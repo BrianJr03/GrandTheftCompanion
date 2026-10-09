@@ -7,6 +7,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(ThorBridge SHARED
     src/dllmain.cpp
+    src/log.cpp
+    src/probes.cpp
+    src/version_detect.cpp
 )
 
 target_compile_options(ThorBridge PRIVATE
@@ -15,10 +18,10 @@ target_compile_options(ThorBridge PRIVATE
 )
 
 target_link_libraries(ThorBridge PRIVATE
-    ws2_32   # winsock, used from M3 onward
+    version   # GetFileVersionInfoA / VerQueryValueA
+    ws2_32    # winsock, needed from M3 onward
 )
 
-# Produce ThorBridge.asi instead of libThorBridge.dll
 set_target_properties(ThorBridge PROPERTIES
     PREFIX ""
     SUFFIX ".asi"

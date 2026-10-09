@@ -1,0 +1,3 @@
+[submodule "asi/third_party/iv-sdk"]
+	path = asi/third_party/iv-sdk
+	url = https://github.com/Zolika1351/iv-sdk.git

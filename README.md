@@ -12,8 +12,8 @@ Full plan: `~/.claude/plans/purring-kindling-rainbow.md`.
 ## Current state
 
 Milestones:
-- [ ] **M1** — ASI hello world loads under Game Native *(in progress)*
-- [ ] M2 — Read natives via IV-SDK, log to stdout
+- [x] **M1** — ASI hello world builds; on-device verification pending
+- [x] **M2** — Game-state reads: version detect + player health/armor via offset reads *(dev-side done; on-device pending)*
 - [ ] M3 — TCP bridge: ASI serves JSON over 127.0.0.1:47801
 - [ ] M4 — Thor companion skeleton (Compose + Hilt + foreground service)
 - [ ] M5 — Bottom-screen rendering via Presentation / fallback Activity

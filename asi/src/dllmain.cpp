@@ -1,40 +1,51 @@
 // ThorBridge.asi — AYN Thor second-screen companion plugin for GTA IV.
 //
-// Loaded by Ultimate ASI Loader into GTA IV's process at startup. Will later
-// read live game state via IV-SDK natives and publish it over localhost TCP
-// to the Thor's companion app. For M1, this is a hello-world: we just want
-// DLL_PROCESS_ATTACH to fire inside the game and a log line to land.
+// M2: detect the game version, fingerprint the exe, spawn a worker thread
+// that samples player state once per second and logs it. No TCP yet
+// (that's M3). All game-state access goes through probes::.
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#include <cstdio>
+#include "log.h"
+#include "probes.h"
+#include "version_detect.h"
 
 namespace {
 
-// GTA IV's working directory when launched is the install dir, so this
-// lands next to GTAIV.exe. Game Native's Wine prefix maps that to a real
-// file on Android storage, so we can retrieve it to confirm the ASI loaded.
-constexpr const char* kLogPath = "ThorBridge.log";
-
-void write_log(const char* msg) {
-    FILE* f = std::fopen(kLogPath, "a");
-    if (!f) {
-        return;
+DWORD WINAPI probe_loop(LPVOID /*unused*/) {
+    thor_log("[probe] worker thread started");
+    for (;;) {
+        Sleep(1000);
+        probes::PlayerState s = probes::sample();
+        if (!s.valid) {
+            thor_log("[probe] no player yet (title/loading)");
+            continue;
+        }
+        thor_log("[probe] health=%.1f max_health=%u max_armor=%u",
+                 s.health, s.max_health, s.max_armor);
     }
-    std::fprintf(f, "%s\n", msg);
-    std::fclose(f);
 }
 
 }  // namespace
 
 extern "C" BOOL WINAPI DllMain(HINSTANCE /*hinst*/, DWORD reason, LPVOID /*reserved*/) {
     switch (reason) {
-    case DLL_PROCESS_ATTACH:
-        write_log("[ThorBridge] loaded — M1 hello world");
+    case DLL_PROCESS_ATTACH: {
+        thor_log("=== ThorBridge M2 loaded ===");
+
+        const char* ver = probes::init();
+        thor_log("[init] game version: %s", ver);
+
+        VersionInfo vi = detect_version();
+        thor_log("[init] exe fingerprint: crc32=0x%08X size=%u label=%s",
+                 vi.crc32, vi.size, vi.label);
+
+        CreateThread(NULL, 0, probe_loop, NULL, 0, NULL);
         break;
+    }
     case DLL_PROCESS_DETACH:
-        write_log("[ThorBridge] unloaded");
+        thor_log("=== ThorBridge unloaded ===");
         break;
     default:
         break;
