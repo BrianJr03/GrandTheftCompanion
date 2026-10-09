@@ -14,8 +14,8 @@ Full plan: `~/.claude/plans/purring-kindling-rainbow.md`.
 Milestones:
 - [x] **M1** — ASI hello world builds
 - [x] **M2** — Game-state reads: version detect + player health/armor via offset reads
-- [x] **M3** — TCP bridge: ASI serves JSON over 127.0.0.1:47801 *(dev-side done; on-device test is the single biggest project risk — see docs/M3-install-and-verify.md)*
-- [ ] M4 — Thor companion skeleton (Compose + Hilt + foreground service)
+- [x] **M3** — TCP bridge: ASI serves JSON over 127.0.0.1:47801
+- [x] **M4** — Thor companion skeleton: Compose + Hilt + foreground service, TCP client with reconnect, debug APK builds
 - [ ] M5 — Bottom-screen rendering via Presentation / fallback Activity
 - [ ] M6 — Three MVP HUD panels
 - [ ] M7 — First-run install wizard for the ASI
@@ -33,6 +33,13 @@ brew install cmake mingw-w64        # cross-compiler for 32-bit Windows DLL
 ```
 cd asi
 ./build.sh      # produces build/ThorBridge.asi
+```
+
+## Building the Android app
+
+```
+./gradlew :app:assembleDebug    # produces app/build/outputs/apk/debug/app-debug.apk
+./gradlew :app:installDebug     # install on a connected ADB device (Thor)
 ```
 
 ## Installing on Thor

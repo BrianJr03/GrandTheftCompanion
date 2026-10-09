@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Placeholder: two stacked rounded rectangles evoking the Thor's
+         dual screens. Replace with real art before shipping. -->
+    <path
+        android:pathData="M30,30 h48 a4,4 0 0 1 4,4 v22 a4,4 0 0 1 -4,4 h-48 a4,4 0 0 1 -4,-4 v-22 a4,4 0 0 1 4,-4 z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M38,66 h32 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-32 a4,4 0 0 1 -4,-4 v-10 a4,4 0 0 1 4,-4 z"
+        android:fillColor="#FFFFFF" />
+</vector>

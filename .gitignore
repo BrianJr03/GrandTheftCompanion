@@ -3,12 +3,14 @@ asi/build/
 app/build/
 build/
 .gradle/
+.cxx/
 
 # Android Studio / IntelliJ
 .idea/
 *.iml
 local.properties
 captures/
+.kotlin/
 
 # macOS
 .DS_Store
