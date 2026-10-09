@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(ThorBridge SHARED
+    src/bridge.cpp
     src/dllmain.cpp
     src/log.cpp
     src/probes.cpp
