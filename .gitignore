@@ -1,0 +1,18 @@
+# Build output
+asi/build/
+app/build/
+build/
+.gradle/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+local.properties
+captures/
+
+# macOS
+.DS_Store
+
+# Env
+.env
+*.local
