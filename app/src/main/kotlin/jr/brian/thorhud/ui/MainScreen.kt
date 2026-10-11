@@ -146,16 +146,18 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 palette = palette,
             )
             Spacer(Modifier.height(8.dp))
+            // Columns size to their content — the earlier weight(1f) was
+            // squeezing them into less vertical space than their 2x
+            // BigValue stacks need, clipping the second row of values.
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                MoneyRadioPanel(liveState, Modifier.weight(1f).fillMaxHeight())
-                WeaponPanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
-                VehiclePanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
+                MoneyRadioPanel(liveState, Modifier.weight(1f))
+                WeaponPanel(liveState, palette, Modifier.weight(1f))
+                VehiclePanel(liveState, palette, Modifier.weight(1f))
             }
+            Spacer(Modifier.weight(1f))
             // Radio picker (vehicle-only) sits BETWEEN the top columns
             // and the full-width bars now, so your eye flows: value
             // headlines → quick-tap pickers → full-screen gauges.
