@@ -19,17 +19,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -148,7 +144,6 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 isStale = isStale,
                 inGame = liveState?.inGame == true,
                 wantedLevel = liveState?.wanted ?: 0,
-                lastError = lastError,
                 palette = palette,
             )
             Spacer(Modifier.height(8.dp))
@@ -196,12 +191,9 @@ private fun StatusBar(
     isStale: Boolean,
     inGame: Boolean,
     wantedLevel: Int,
-    lastError: String?,
     palette: HudPalette,
 ) {
     val mono = FontFamily.Monospace
-    var showInfo by remember { mutableStateOf(false) }
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -222,50 +214,6 @@ private fun StatusBar(
         }
         Spacer(Modifier.weight(1f))
         WantedStars(level = wantedLevel, palette = palette)
-        // Info chip at the far top-right. Tap to see the most recent
-        // socket error ("No errors" if the connection has been clean).
-        IconButton(onClick = { showInfo = true }) {
-            Icon(
-                imageVector = Icons.Filled.Info,
-                contentDescription = stringResource(R.string.info_icon_cd),
-                tint = Color(0xFF6A7A6E),
-            )
-        }
-    }
-
-    if (showInfo) {
-        AlertDialog(
-            onDismissRequest = { showInfo = false },
-            containerColor = Color.Black,
-            titleContentColor = palette.accent,
-            textContentColor = Color(0xFFEDEDED),
-            title = {
-                Text(
-                    stringResource(R.string.info_dialog_title),
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                )
-            },
-            text = {
-                Text(
-                    if (lastError.isNullOrBlank())
-                        stringResource(R.string.info_dialog_no_error)
-                    else
-                        stringResource(R.string.info_dialog_last_error, lastError),
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 13.sp,
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = { showInfo = false }) {
-                    Text(
-                        stringResource(R.string.info_dialog_dismiss),
-                        color = palette.accent,
-                        fontFamily = FontFamily.Monospace,
-                    )
-                }
-            },
-        )
     }
 }
 
