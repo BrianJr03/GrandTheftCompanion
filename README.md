@@ -6,7 +6,7 @@ Repo contains two artefacts: the **GTC** Android companion app and **ThorBridge.
 
 ## Downloads
 
-Prebuilt artefacts (debug APK + ASI) are attached to each [GitHub Release](https://github.com/BrianJr03/ThorHUD-GTAIV/releases/latest). The latest `main` build is always available as a workflow artefact under [Actions → build](https://github.com/BrianJr03/ThorHUD-GTAIV/actions/workflows/build.yml) (requires being signed into GitHub).
+Prebuilt artefacts (debug APK + ASI) are attached to each [GitHub Release](https://github.com/BrianJr03/GrandTheftCompanion/releases/latest). The latest `main` build is always available as a workflow artefact under [Actions → build](https://github.com/BrianJr03/GrandTheftCompanion/actions/workflows/build.yml) (requires being signed into GitHub).
 
 To cut a release, tag the commit and push:
 
