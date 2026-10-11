@@ -1,7 +1,6 @@
 package jr.brian.thorhud.ui
 
 import androidx.annotation.StringRes
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
@@ -151,39 +150,53 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 palette = palette,
             )
             Spacer(Modifier.height(8.dp))
-            // Columns size to their content — the earlier weight(1f) was
-            // squeezing them into less vertical space than their 2x
-            // BigValue stacks need, clipping the second row of values.
-            // No trailing weight-Spacer either; it was stealing enough
-            // vertical space that the engine bar fell off the bottom of
-            // the screen.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                MoneyRadioPanel(liveState, Modifier.weight(1f))
-                WeaponPanel(liveState, palette, Modifier.weight(1f))
-                VehiclePanel(liveState, palette, Modifier.weight(1f))
-            }
-            // Radio picker (vehicle-only) sits BETWEEN the top columns
-            // and the full-width bars now, so your eye flows: value
-            // headlines → quick-tap pickers → full-screen gauges.
-            // Radio picker floats vertically centred between the row of
-            // columns above and the full-width health/armor bars below —
-            // Spacer(weight 1f) above and below splits the leftover
-            // vertical space evenly. The surrounding Column no longer
-            // scrolls so the weight distribution has a real height to
-            // divide.
-            Spacer(Modifier.weight(1f))
-            AnimatedVisibility(liveState?.inVehicle == true) {
+            val inVehicle = liveState?.inVehicle == true
+            if (inVehicle) {
+                // In-vehicle: three narrow columns — coin+radio stacked
+                // on the left, weapon in the middle, vehicle on the
+                // right. The radio PICKER below gets a full row to
+                // itself since the player is actively driving.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    MoneyRadioPanel(liveState, Modifier.weight(1f))
+                    WeaponPanel(liveState, palette, modifier = Modifier.weight(1f))
+                    VehiclePanel(liveState, palette, modifier = Modifier.weight(1f))
+                }
+                Spacer(Modifier.weight(1f))
                 RadioPicker(
                     stations = stationListFor(liveState?.episode),
                     currentLocal = liveState?.radio ?: -1,
                     palette = palette,
                     onStationTap = { enumIdx -> viewModel.setRadio(enumIdx) },
                 )
+                Spacer(Modifier.weight(1f))
+            } else {
+                // On foot: 2×2. Half-width columns give long weapon
+                // names ("pump shotgun", "sawed-off shotgun", "combat
+                // sniper") room to render without an ellipsis.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    CoinPanel(liveState, align = CardAlign.Start,
+                              modifier = Modifier.weight(1f))
+                    WeaponPanel(liveState, palette, align = CardAlign.End,
+                                modifier = Modifier.weight(1f))
+                }
+                Spacer(Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    VehiclePanel(liveState, palette, align = CardAlign.Start,
+                                 modifier = Modifier.weight(1f))
+                    RadioPanel(liveState, align = CardAlign.End,
+                               modifier = Modifier.weight(1f))
+                }
+                Spacer(Modifier.weight(1f))
             }
-            Spacer(Modifier.weight(1f))
             FullWidthStats(liveState, palette)
         }
     }
@@ -226,7 +239,7 @@ private fun MoneyRadioPanel(s: GameState?, modifier: Modifier = Modifier) {
     HudCard(modifier, stringResource(R.string.panel_coin)) {
         BigValue(
             labelRes = null,
-            value = s?.money?.let { stringResource(R.string.money_value, it) }
+            value = s?.money?.let { stringResource(R.string.money_value, formatMoney(it)) }
                 ?: stringResource(R.string.money_empty),
         )
         Spacer(Modifier.height(20.dp))
@@ -241,17 +254,54 @@ private fun MoneyRadioPanel(s: GameState?, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier = Modifier) {
-    HudCard(modifier, stringResource(R.string.panel_weapon), align = CardAlign.Center) {
+private fun CoinPanel(
+    s: GameState?,
+    align: CardAlign = CardAlign.Start,
+    modifier: Modifier = Modifier,
+) {
+    HudCard(modifier, stringResource(R.string.panel_coin), align = align) {
+        BigValue(
+            labelRes = null,
+            value = s?.money?.let { stringResource(R.string.money_value, formatMoney(it)) }
+                ?: stringResource(R.string.money_empty),
+            textAlign = textAlignOf(align),
+        )
+    }
+}
+
+@Composable
+private fun RadioPanel(
+    s: GameState?,
+    align: CardAlign = CardAlign.Start,
+    modifier: Modifier = Modifier,
+) {
+    HudCard(modifier, stringResource(R.string.label_radio), align = align) {
+        BigValue(
+            labelRes = null,
+            value = radioName(gameRadioIndexToEnumIndex(s?.episode, s?.radio)),
+            textAlign = textAlignOf(align),
+        )
+    }
+}
+
+@Composable
+private fun WeaponPanel(
+    s: GameState?,
+    palette: HudPalette,
+    align: CardAlign = CardAlign.Center,
+    modifier: Modifier = Modifier,
+) {
+    val textAlign = textAlignOf(align)
+    HudCard(modifier, stringResource(R.string.panel_weapon), align = align) {
         Text(
             weaponName(s?.weaponId),
             color = Color(0xFFEDEDED),
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
+            textAlign = textAlign,
             modifier = Modifier.fillMaxWidth(),
         )
         if ((s?.weaponId ?: 0) > 0) {
@@ -261,7 +311,7 @@ private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier =
                 color = Color(0xFF6A7A6E),
                 fontFamily = FontFamily.Monospace,
                 fontSize = 11.sp,
-                textAlign = TextAlign.Center,
+                textAlign = textAlign,
                 modifier = Modifier.fillMaxWidth(),
             )
             Text(
@@ -271,7 +321,7 @@ private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier =
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
-                textAlign = TextAlign.Center,
+                textAlign = textAlign,
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -279,15 +329,20 @@ private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier =
 }
 
 @Composable
-private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier = Modifier) {
-    // Right-aligned: panel sits at the right edge of the HUD, so its
-    // text reads naturally against that edge. Mirror of the money
-    // column on the left.
-    HudCard(modifier, stringResource(R.string.panel_vehicle), align = CardAlign.End) {
+private fun VehiclePanel(
+    s: GameState?,
+    palette: HudPalette,
+    align: CardAlign = CardAlign.End,
+    modifier: Modifier = Modifier,
+) {
+    val textAlign = textAlignOf(align)
+    HudCard(modifier, stringResource(R.string.panel_vehicle), align = align) {
         val v = s?.vehicle?.takeIf { s.inVehicle }
         if (v == null) {
             Text(stringResource(R.string.on_foot),
-                 color = Color(0xFF6A7A6E), fontSize = 20.sp)
+                 color = Color(0xFF6A7A6E), fontSize = 20.sp,
+                 textAlign = textAlign,
+                 modifier = Modifier.fillMaxWidth())
             return@HudCard
         }
         Text(
@@ -300,7 +355,7 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
             fontSize = 20.sp,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.End,
+            textAlign = textAlign,
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(20.dp))
@@ -309,7 +364,7 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
             color = Color(0xFF6A7A6E),
             fontFamily = FontFamily.Monospace,
             fontSize = 11.sp,
-            textAlign = TextAlign.End,
+            textAlign = textAlign,
             modifier = Modifier.fillMaxWidth(),
         )
         val mph = v.speedMps * 2.237f
@@ -317,10 +372,16 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
             stringResource(R.string.mph_value, mph.toInt()),
             fontFamily = FontFamily.Monospace, fontSize = 20.sp,
             fontWeight = FontWeight.Bold, color = Color(0xFFEDEDED),
-            textAlign = TextAlign.End,
+            textAlign = textAlign,
             modifier = Modifier.fillMaxWidth(),
         )
     }
+}
+
+private fun textAlignOf(align: CardAlign): TextAlign = when (align) {
+    CardAlign.Start  -> TextAlign.Start
+    CardAlign.Center -> TextAlign.Center
+    CardAlign.End    -> TextAlign.End
 }
 
 @Composable
@@ -499,13 +560,19 @@ private fun HudCard(
  * already names the field.
  */
 @Composable
-private fun BigValue(@StringRes labelRes: Int?, value: String) {
+private fun BigValue(
+    @StringRes labelRes: Int?,
+    value: String,
+    textAlign: TextAlign = TextAlign.Start,
+) {
     if (labelRes != null) {
         Text(
             stringResource(labelRes),
             color = Color(0xFF6A7A6E),
             fontFamily = FontFamily.Monospace,
             fontSize = 11.sp,
+            textAlign = textAlign,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
     // Clip overlong values with an ellipsis instead of letting them
@@ -519,6 +586,7 @@ private fun BigValue(@StringRes labelRes: Int?, value: String) {
         fontSize = 20.sp,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
+        textAlign = textAlign,
         modifier = Modifier.fillMaxWidth(),
     )
 }
@@ -590,26 +658,20 @@ private fun PausedScreen(hello: GameState?, palette: HudPalette) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                stringResource(R.string.paused),
-                color = Color.White,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 72.sp,
-            )
-            Spacer(Modifier.height(24.dp))
-            Text(
                 stringResource(palette.labelRes),
                 color = palette.accent,
                 fontFamily = FontFamily.Monospace,
-                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                fontSize = 56.sp,
+                textAlign = TextAlign.Center,
             )
             hello?.fileVersion?.let {
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(12.dp))
                 Text(
                     stringResource(R.string.paused_version, it),
                     color = Color(0xFF6A7A6E),
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 12.sp,
+                    fontSize = 16.sp,
                 )
             }
         }
@@ -832,3 +894,8 @@ private fun radioName(id: Int?): String {
         else                       -> stringResource(R.string.radio_unknown, id)
     }
 }
+
+// US grouping on purpose — Liberty City is dollar-denominated and we
+// show "$1,234,567" regardless of device locale.
+private fun formatMoney(amount: Long): String =
+    String.format(java.util.Locale.US, "%,d", amount)

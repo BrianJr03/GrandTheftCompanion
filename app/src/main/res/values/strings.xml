@@ -37,14 +37,13 @@
     <string name="model_fallback">model %1$d</string>
 
     <!-- Money -->
-    <string name="money_value">$%1$d</string>
+    <string name="money_value">$%1$s</string>
     <string name="money_empty">—</string>
 
     <!-- Weapon panel -->
     <string name="clip_value">%1$d / %2$d</string>
 
     <!-- Paused view -->
-    <string name="paused">paused</string>
     <string name="paused_version">GTA IV v%1$s</string>
 
     <!-- Setup screen -->
