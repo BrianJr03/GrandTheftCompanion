@@ -159,7 +159,7 @@ private fun WeaponRadioPanel(s: GameState?, modifier: Modifier = Modifier) {
         if ((s?.weaponId ?: 0) > 0) {
             Text(
                 "clip ${s?.ammoClip ?: 0} / ${s?.ammoTotal ?: 0}",
-                fontFamily = FontFamily.Monospace, fontSize = 16.sp,
+                fontFamily = FontFamily.Monospace, fontSize = 13.sp,
                 color = Color(0xFFB6CCBC),
             )
         }
@@ -182,7 +182,7 @@ private fun VehiclePanel(s: GameState?, modifier: Modifier = Modifier) {
         val mph = v.speedMps * 2.237f
         Text(
             "${mph.toInt()} mph",
-            fontFamily = FontFamily.Monospace, fontSize = 42.sp,
+            fontFamily = FontFamily.Monospace, fontSize = 30.sp,
             fontWeight = FontWeight.Bold, color = Color(0xFF78DC9F),
         )
         Spacer(Modifier.height(8.dp))
@@ -261,7 +261,7 @@ private fun BigValue(label: String, value: String) {
         color = Color(0xFFEDEDED),
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Bold,
-        fontSize = 28.sp,
+        fontSize = 20.sp,
     )
     Text(
         label,
