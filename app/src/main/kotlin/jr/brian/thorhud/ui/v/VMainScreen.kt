@@ -145,6 +145,7 @@ internal fun VMainScreen(
                 wantedLevel = live?.wanted ?: 0,
                 palette = palette,
                 maxStars = 5,   // GTA V: five stars, not six
+                title = stringResource(R.string.brand_v),
             )
             if (tags.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))

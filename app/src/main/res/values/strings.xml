@@ -2,6 +2,8 @@
 <resources>
     <!-- Brand -->
     <string name="brand">Grand Theft Companion</string>
+    <string name="brand_iv">Grand Theft Companion IV</string>
+    <string name="brand_v">Grand Theft Companion V</string>
 
     <!-- Status badges (right of the brand when something isn't live) -->
     <string name="status_disconnected">DISCONNECTED</string>

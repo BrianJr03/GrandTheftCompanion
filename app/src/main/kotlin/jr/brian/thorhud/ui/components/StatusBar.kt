@@ -35,6 +35,9 @@ internal fun StatusBar(
     palette: HudPalette,
     // GTA IV has six wanted stars; GTA V passes 5.
     maxStars: Int = 6,
+    // Routed screens pass brand_iv / brand_v so the title names the
+    // game. Default keeps backward compat if a new caller forgets.
+    title: String = stringResource(R.string.brand),
 ) {
     val mono = FontFamily.Monospace
     Row(
@@ -42,7 +45,7 @@ internal fun StatusBar(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(stringResource(R.string.brand),
+        Text(title,
              style = MaterialTheme.typography.titleMedium,
              color = palette.accent)
         val badge: Pair<Int, Color>? = when {

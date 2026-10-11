@@ -18,8 +18,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import jr.brian.thorhud.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import jr.brian.thorhud.ui.components.CardAlign
 import jr.brian.thorhud.ui.components.CoinPanel
@@ -89,6 +91,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 inGame = liveState?.inGame == true,
                 wantedLevel = liveState?.wanted ?: 0,
                 palette = palette,
+                title = stringResource(R.string.brand_iv),
             )
             Spacer(Modifier.height(8.dp))
             val inVehicle = liveState?.inVehicle == true
