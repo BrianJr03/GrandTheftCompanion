@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -138,8 +137,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(12.dp)
-                .verticalScroll(rememberScrollState()),
+                .padding(12.dp),
         ) {
             StatusBar(
                 isDisconnected = isDisconnected,
@@ -166,25 +164,22 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             // Radio picker (vehicle-only) sits BETWEEN the top columns
             // and the full-width bars now, so your eye flows: value
             // headlines → quick-tap pickers → full-screen gauges.
+            // Radio picker floats vertically centred between the row of
+            // columns above and the full-width health/armor bars below —
+            // Spacer(weight 1f) above and below splits the leftover
+            // vertical space evenly. The surrounding Column no longer
+            // scrolls so the weight distribution has a real height to
+            // divide.
+            Spacer(Modifier.weight(1f))
             AnimatedVisibility(liveState?.inVehicle == true) {
-                Column {
-                    Spacer(Modifier.height(20.dp))
-                    // Picker buttons are now indexed by the current
-                    // episode's local 0-based station list. Tapping
-                    // button i SENDs the enum index that corresponds
-                    // to local i; GET's returned local index is used
-                    // directly for highlight comparison. Episodes
-                    // without a derived map fall through to a 20-item
-                    // identity list.
-                    RadioPicker(
-                        stations = stationListFor(liveState?.episode),
-                        currentLocal = liveState?.radio ?: -1,
-                        palette = palette,
-                        onStationTap = { enumIdx -> viewModel.setRadio(enumIdx) },
-                    )
-                }
+                RadioPicker(
+                    stations = stationListFor(liveState?.episode),
+                    currentLocal = liveState?.radio ?: -1,
+                    palette = palette,
+                    onStationTap = { enumIdx -> viewModel.setRadio(enumIdx) },
+                )
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.weight(1f))
             FullWidthStats(liveState, palette)
         }
     }
@@ -243,7 +238,7 @@ private fun MoneyRadioPanel(s: GameState?, modifier: Modifier = Modifier) {
 
 @Composable
 private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier = Modifier) {
-    HudCard(modifier, stringResource(R.string.panel_weapon)) {
+    HudCard(modifier, stringResource(R.string.panel_weapon), align = CardAlign.Center) {
         Text(
             weaponName(s?.weaponId),
             color = Color(0xFFEDEDED),
@@ -281,20 +276,28 @@ private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier =
 
 @Composable
 private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier = Modifier) {
-    HudCard(modifier, stringResource(R.string.panel_vehicle)) {
+    // Right-aligned: panel sits at the right edge of the HUD, so its
+    // text reads naturally against that edge. Mirror of the money
+    // column on the left.
+    HudCard(modifier, stringResource(R.string.panel_vehicle), align = CardAlign.End) {
         val v = s?.vehicle?.takeIf { s.inVehicle }
         if (v == null) {
             Text(stringResource(R.string.on_foot),
-                 color = Color(0xFF6A7A6E), fontSize = 20.sp,
-                 textAlign = TextAlign.Center,
-                 modifier = Modifier.fillMaxWidth())
+                 color = Color(0xFF6A7A6E), fontSize = 20.sp)
             return@HudCard
         }
-        BigValue(
-            labelRes = null,
-            value = v.name.ifBlank {
+        Text(
+            v.name.ifBlank {
                 stringResource(R.string.model_fallback, v.model.toInt())
             },
+            color = Color(0xFFEDEDED),
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.End,
+            modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(20.dp))
         Text(
@@ -302,7 +305,7 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
             color = Color(0xFF6A7A6E),
             fontFamily = FontFamily.Monospace,
             fontSize = 11.sp,
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.End,
             modifier = Modifier.fillMaxWidth(),
         )
         val mph = v.speedMps * 2.237f
@@ -310,7 +313,7 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
             stringResource(R.string.mph_value, mph.toInt()),
             fontFamily = FontFamily.Monospace, fontSize = 20.sp,
             fontWeight = FontWeight.Bold, color = Color(0xFFEDEDED),
-            textAlign = TextAlign.Center,
+            textAlign = TextAlign.End,
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -334,7 +337,7 @@ private fun FullWidthStats(s: GameState?, palette: HudPalette) {
         if (v != null) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Bar(label = stringResource(R.string.label_armor),
                     current = s?.armor?.toFloat() ?: 0f,
@@ -438,12 +441,25 @@ private fun RadioPickerRow(
 
 // --- primitives --------------------------------------------------------
 
+private enum class CardAlign { Start, Center, End }
+
 @Composable
 private fun HudCard(
     modifier: Modifier,
     title: String,
+    align: CardAlign = CardAlign.Start,
     content: @Composable () -> Unit,
 ) {
+    val textAlign = when (align) {
+        CardAlign.Start  -> TextAlign.Start
+        CardAlign.Center -> TextAlign.Center
+        CardAlign.End    -> TextAlign.End
+    }
+    val horizontal = when (align) {
+        CardAlign.Start  -> Alignment.Start
+        CardAlign.Center -> Alignment.CenterHorizontally
+        CardAlign.End    -> Alignment.End
+    }
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
@@ -451,7 +467,7 @@ private fun HudCard(
     ) {
         Column(
             modifier = Modifier.padding(14.dp).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = horizontal,
         ) {
             Text(
                 title,
@@ -459,7 +475,7 @@ private fun HudCard(
                 fontFamily = FontFamily.Monospace,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
+                textAlign = textAlign,
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(6.dp))
@@ -481,8 +497,6 @@ private fun BigValue(@StringRes labelRes: Int?, value: String) {
             color = Color(0xFF6A7A6E),
             fontFamily = FontFamily.Monospace,
             fontSize = 11.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
         )
     }
     // Clip overlong values with an ellipsis instead of letting them
@@ -496,7 +510,6 @@ private fun BigValue(@StringRes labelRes: Int?, value: String) {
         fontSize = 20.sp,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
-        textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth(),
     )
 }
