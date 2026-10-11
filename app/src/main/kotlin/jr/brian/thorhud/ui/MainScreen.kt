@@ -175,16 +175,21 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 WeaponPanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
                 VehiclePanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
             }
-            // Full-width stats band under the columns: health, armor, stars.
+            // Full-width stats band under the columns: health, armor.
             Spacer(Modifier.height(12.dp))
             FullWidthStats(liveState, palette)
-            // Radio picker only when in a vehicle.
+            // Radio picker only when in a vehicle. Extra breathing room
+            // above it so the armor bar doesn't feel glued to the row
+            // of station buttons.
             AnimatedVisibility(liveState?.inVehicle == true) {
-                RadioPicker(
-                    currentStation = liveState?.radio ?: -1,
-                    palette = palette,
-                    onStationTap = { station -> viewModel.setRadio(station) },
-                )
+                Column {
+                    Spacer(Modifier.height(24.dp))
+                    RadioPicker(
+                        currentStation = liveState?.radio ?: -1,
+                        palette = palette,
+                        onStationTap = { station -> viewModel.setRadio(station) },
+                    )
+                }
             }
         }
     }
