@@ -133,27 +133,13 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         return
     }
 
-    val scrollState = rememberScrollState()
-    // One-shot: after first layout settles, latch whether the HUD
-    // overflows the viewport. If it does, FullWidthStats keeps the
-    // engine bar collapsed so we never show a half-clipped bar.
-    // Latched (never un-set) so the engine's own height can't thrash
-    // the detection on/off.
-    var engineBarFits by remember { mutableStateOf(true) }
-    LaunchedEffect(scrollState.maxValue) {
-        delay(250)
-        if (scrollState.maxValue > 0 && engineBarFits) {
-            engineBarFits = false
-        }
-    }
-
     Scaffold(containerColor = Color.Black) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(12.dp)
-                .verticalScroll(scrollState),
+                .verticalScroll(rememberScrollState()),
         ) {
             StatusBar(
                 isDisconnected = isDisconnected,
@@ -182,23 +168,24 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             // headlines → quick-tap pickers → full-screen gauges.
             AnimatedVisibility(liveState?.inVehicle == true) {
                 Column {
-                    // Breathing room so the mph descender doesn't crowd
-                    // the "radio stations" sublabel just below.
                     Spacer(Modifier.height(20.dp))
-                    // Convert the game's episode-local radio index back
-                    // into our 20-item picker space so highlights line
-                    // up with the station that's actually playing.
+                    // Picker buttons are now indexed by the current
+                    // episode's local 0-based station list. Tapping
+                    // button i SENDs the enum index that corresponds
+                    // to local i; GET's returned local index is used
+                    // directly for highlight comparison. Episodes
+                    // without a derived map fall through to a 20-item
+                    // identity list.
                     RadioPicker(
-                        currentStation = gameRadioIndexToEnumIndex(
-                            liveState?.episode, liveState?.radio,
-                        ),
+                        stations = stationListFor(liveState?.episode),
+                        currentLocal = liveState?.radio ?: -1,
                         palette = palette,
-                        onStationTap = { station -> viewModel.setRadio(station) },
+                        onStationTap = { enumIdx -> viewModel.setRadio(enumIdx) },
                     )
                 }
             }
             Spacer(Modifier.height(12.dp))
-            FullWidthStats(liveState, palette, engineBarFits = engineBarFits)
+            FullWidthStats(liveState, palette)
         }
     }
 }
@@ -244,10 +231,9 @@ private fun MoneyRadioPanel(s: GameState?, modifier: Modifier = Modifier) {
                 ?: stringResource(R.string.money_empty),
         )
         Spacer(Modifier.height(20.dp))
-        // Convert local → enum so radio NAME matches whichever station
-        // is actually playing (same conversion the picker uses for its
-        // highlight). Without this, TBoGT would mis-label stations the
-        // whole way down the enum list.
+        // Convert local → enum so the radio NAME matches the station
+        // playing. The picker now works in local-index space but the
+        // name lookup table in strings.xml is enum-indexed.
         BigValue(
             labelRes = R.string.label_radio,
             value = radioName(gameRadioIndexToEnumIndex(s?.episode, s?.radio)),
@@ -331,11 +317,7 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
 }
 
 @Composable
-private fun FullWidthStats(
-    s: GameState?,
-    palette: HudPalette,
-    engineBarFits: Boolean,
-) {
+private fun FullWidthStats(s: GameState?, palette: HudPalette) {
     val v = s?.vehicle?.takeIf { s.inVehicle }
     Column(
         modifier = Modifier
@@ -350,32 +332,34 @@ private fun FullWidthStats(
             current = s?.armor?.toFloat() ?: 0f,
             max = (s?.maxArmor ?: 100).coerceAtLeast(100).toFloat(),
             fill = palette.armor)
-        // engine renders only when we're in a vehicle AND the layout
-        // has room for the full bar — hiding is cleaner than showing
-        // a half-clipped sliver below the fold.
-        AnimatedVisibility(v != null && engineBarFits) {
-            Column {
-                Spacer(Modifier.height(6.dp))
-                if (v != null) {
-                    Bar(label = stringResource(R.string.label_engine),
-                        current = v.engineHp.coerceAtLeast(0f),
-                        max = 1000f,
-                        fill = palette.engine)
-                }
-            }
+        if (v != null) {
+            Spacer(Modifier.height(6.dp))
+            Bar(label = stringResource(R.string.label_engine),
+                current = v.engineHp.coerceAtLeast(0f),
+                max = 1000f,
+                fill = palette.engine)
         }
     }
 }
 
+/**
+ * Episode-aware radio picker.
+ *
+ * @param stations ordered list of enum station IDs for the current
+ *                 episode. Button i displays label "i" (the episode's
+ *                 local index) and taps SEND stations[i] via the Phase-3
+ *                 RETUNE_RADIO_TO_STATION_INDEX command.
+ * @param currentLocal game-reported local station index; the matching
+ *                 button lights up in the episode accent.
+ */
 @Composable
 private fun RadioPicker(
-    currentStation: Int,
+    stations: IntArray,
+    currentLocal: Int,
     palette: HudPalette,
     onStationTap: (Int) -> Unit,
 ) {
-    // 20 stations split into two rows of 10 — covers the full GTA IV
-    // eRadioStation enum (0..19) including the TBoGT DLC entries that
-    // share the same index space.
+    val half = (stations.size + 1) / 2
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -388,14 +372,14 @@ private fun RadioPicker(
             modifier = Modifier.padding(start = 14.dp, bottom = 4.dp),
         )
         RadioPickerRow(
-            start = 0, endExclusive = 10,
-            currentStation = currentStation, palette = palette,
-            onStationTap = onStationTap,
+            start = 0, endExclusive = half,
+            stations = stations, currentLocal = currentLocal,
+            palette = palette, onStationTap = onStationTap,
         )
         RadioPickerRow(
-            start = 10, endExclusive = 20,
-            currentStation = currentStation, palette = palette,
-            onStationTap = onStationTap,
+            start = half, endExclusive = stations.size,
+            stations = stations, currentLocal = currentLocal,
+            palette = palette, onStationTap = onStationTap,
         )
     }
 }
@@ -404,7 +388,8 @@ private fun RadioPicker(
 private fun RadioPickerRow(
     start: Int,
     endExclusive: Int,
-    currentStation: Int,
+    stations: IntArray,
+    currentLocal: Int,
     palette: HudPalette,
     onStationTap: (Int) -> Unit,
 ) {
@@ -412,8 +397,9 @@ private fun RadioPickerRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        for (station in start until endExclusive) {
-            val isCurrent = station == currentStation
+        for (local in start until endExclusive) {
+            val isCurrent = local == currentLocal
+            val enumIdx = stations[local]
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -422,11 +408,11 @@ private fun RadioPickerRow(
                         color = if (isCurrent) palette.accent else Color(0xFF1F2A24),
                         shape = RoundedCornerShape(6.dp),
                     )
-                    .clickable { onStationTap(station) },
+                    .clickable { onStationTap(enumIdx) },
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    station.toString(),
+                    local.toString(),
                     color = if (isCurrent) Color(0xFF000000) else Color(0xFFB6CCBC),
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
@@ -706,22 +692,25 @@ private fun ChecklistItem(
  * TBoGT's local 0..15 → our enum index. Derived from on-device taps:
  * stations 5 (WKTT), 7 (The Journey), 12 (PLR), 19 (Integrity 2.0)
  * are the four base-IV / TLAD stations TBoGT drops. TBoGT additionally
- * has Self Radio at local 16 — it has no enum slot and resolves to -1
- * (no highlight) if the game is tuned there.
+ * has Self Radio at local 16 — it has no enum slot so we don't list it
+ * in the picker (tuning there would also need custom audio).
  */
 private val TBOGT_LOCAL_TO_ENUM = intArrayOf(
     0, 1, 2, 3, 4, 6, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18,
 )
 
+/** Base-IV + TLAD mappings not yet derived from gameplay — pass through
+ *  identity, which at least matches the enum ordering 1:1. */
+private val PASSTHROUGH_LOCAL_TO_ENUM = IntArray(20) { it }
+
+private fun stationListFor(episode: Int?): IntArray = when (episode) {
+    2    -> TBOGT_LOCAL_TO_ENUM
+    else -> PASSTHROUGH_LOCAL_TO_ENUM
+}
+
 private fun gameRadioIndexToEnumIndex(episode: Int?, localIdx: Int?): Int {
     if (localIdx == null || localIdx < 0) return -1
-    return when (episode) {
-        2    -> TBOGT_LOCAL_TO_ENUM.getOrElse(localIdx) { -1 }
-        // Base IV and TLAD mappings haven't been reverse-engineered
-        // yet — pass through identity so at least common stations line
-        // up. Will be dialled in the first time GTC runs on those.
-        else -> localIdx
-    }
+    return stationListFor(episode).getOrElse(localIdx) { -1 }
 }
 
 // --- cosmetic lookup tables -------------------------------------------
