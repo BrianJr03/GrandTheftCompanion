@@ -172,7 +172,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 StatsPanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
-                WeaponRadioPanel(liveState, Modifier.weight(1f).fillMaxHeight())
+                WeaponRadioPanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
                 VehiclePanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
             }
             // Radio picker only when in a vehicle.
@@ -226,25 +226,29 @@ private fun StatusBar(
 @Composable
 private fun StatsPanel(s: GameState?, palette: HudPalette, modifier: Modifier = Modifier) {
     HudCard(modifier, "stats") {
-        BigValue(label = "money", value = s?.money?.let { "$$it" } ?: "—")
-        Spacer(Modifier.height(10.dp))
-        Bar(label = "health", current = s?.health ?: 0f, max = 200f,
-            fill = palette.health)
-        Spacer(Modifier.height(6.dp))
-        Bar(label = "armor",
-            current = s?.armor?.toFloat() ?: 0f,
-            max = (s?.maxArmor ?: 100).coerceAtLeast(100).toFloat(),
-            fill = palette.armor)
-        Spacer(Modifier.height(10.dp))
-        WantedStars(level = s?.wanted ?: 0, palette = palette)
+        Column(modifier = Modifier.fillMaxSize()) {
+            BigValue(label = "money", value = s?.money?.let { "$$it" } ?: "—")
+            // Push the health/armor/stars block to the bottom of the
+            // column so it uses the empty space that was piling up
+            // beneath the money readout.
+            Spacer(Modifier.weight(1f))
+            Bar(label = "health", current = s?.health ?: 0f, max = 200f,
+                fill = palette.health)
+            Spacer(Modifier.height(6.dp))
+            Bar(label = "armor",
+                current = s?.armor?.toFloat() ?: 0f,
+                max = (s?.maxArmor ?: 100).coerceAtLeast(100).toFloat(),
+                fill = palette.armor)
+            Spacer(Modifier.height(10.dp))
+            WantedStars(level = s?.wanted ?: 0, palette = palette)
+        }
     }
 }
 
 @Composable
-private fun WeaponRadioPanel(s: GameState?, modifier: Modifier = Modifier) {
+private fun WeaponRadioPanel(s: GameState?, palette: HudPalette, modifier: Modifier = Modifier) {
     HudCard(modifier, "weapon · radio") {
-        val wname = weaponName(s?.weaponId)
-        BigValue(label = "weapon", value = wname)
+        BigValue(label = "weapon", value = weaponName(s?.weaponId))
         if ((s?.weaponId ?: 0) > 0) {
             Text(
                 "clip ${s?.ammoClip ?: 0} / ${s?.ammoTotal ?: 0}",
