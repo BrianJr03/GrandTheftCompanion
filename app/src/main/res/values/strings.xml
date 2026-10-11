@@ -8,6 +8,13 @@
     <string name="status_stale">STALE</string>
     <string name="status_waiting">WAITING</string>
 
+    <!-- Info-dialog -->
+    <string name="info_icon_cd">connection diagnostics</string>
+    <string name="info_dialog_title">Connection diagnostics</string>
+    <string name="info_dialog_no_error">No errors — the socket connection is healthy.</string>
+    <string name="info_dialog_last_error">Last error:\n%1$s</string>
+    <string name="info_dialog_dismiss">Close</string>
+
     <!-- HUD panel titles -->
     <string name="panel_coin">coin</string>
     <string name="panel_weapon">weapon</string>
