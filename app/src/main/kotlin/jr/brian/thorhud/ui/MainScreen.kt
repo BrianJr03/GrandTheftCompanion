@@ -240,7 +240,7 @@ private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier =
             Text(
                 stringResource(R.string.clip_value,
                                s?.ammoClip ?: 0, s?.ammoTotal ?: 0),
-                color = palette.accent,
+                color = Color(0xFFEDEDED),
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
@@ -276,7 +276,7 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
         Text(
             stringResource(R.string.mph_value, mph.toInt()),
             fontFamily = FontFamily.Monospace, fontSize = 20.sp,
-            fontWeight = FontWeight.Bold, color = palette.speed,
+            fontWeight = FontWeight.Bold, color = Color(0xFFEDEDED),
         )
     }
 }
