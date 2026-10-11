@@ -251,14 +251,16 @@ private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier =
         )
         if ((s?.weaponId ?: 0) > 0) {
             Spacer(Modifier.height(20.dp))
-            // Ammo in headline style: big bold X / X value on top in
-            // the episode accent, "clip" as the small grey label.
+            // Ammo in headline style: value + label matches the money
+            // and radio BigValues. 20sp so "X / Y" fits a single line
+            // even on long ammo totals; same size as the other headline
+            // values across the HUD.
             Text(
                 "${s?.ammoClip ?: 0} / ${s?.ammoTotal ?: 0}",
                 color = palette.accent,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
-                fontSize = 32.sp,
+                fontSize = 20.sp,
             )
             Text(
                 "clip",
@@ -299,9 +301,11 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
         Spacer(Modifier.height(8.dp))
         // GTA IV reports m/s. Convert to mph for display (× 2.237).
         val mph = v.speedMps * 2.237f
+        // mph normalised to 20sp so it matches every other headline
+        // value on the HUD (money, radio, model, weapon, clip X/X).
         Text(
             "${mph.toInt()} mph",
-            fontFamily = FontFamily.Monospace, fontSize = 30.sp,
+            fontFamily = FontFamily.Monospace, fontSize = 20.sp,
             fontWeight = FontWeight.Bold, color = palette.speed,
         )
         Spacer(Modifier.height(8.dp))
