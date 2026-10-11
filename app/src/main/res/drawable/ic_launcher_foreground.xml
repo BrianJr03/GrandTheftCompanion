@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Stylized "GTC" wordmark in the HUD's Niko-green on the dark adaptive
-  background. Three stencil-block letters built from rectangles so no
-  external font is needed. Positioned inside the 72×72 adaptive-icon
-  safe area, centered in the 108×108 viewport.
+  Stylized "GTC" wordmark evoking the GTA IV logo typeface (bold,
+  italic-slanted, chunky block letters). Hand-authored parallelograms
+  rather than a real font glyph render — Pricedown (the GTA logo font)
+  isn't bundled to keep the GPL-3.0 repo clean of foreign-licensed
+  font assets.
+
+  Letters sit inside the 72×72 adaptive-icon safe area; the italic
+  tail extends slightly outside that zone, where it's still visible
+  under all launcher mask shapes (square, round, squircle).
 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
@@ -12,14 +17,14 @@
     android:viewportHeight="108">
 
     <path android:fillColor="#78DC9F" android:pathData="
-        M23,39 H41 V44 H23 Z
-        M23,39 H28 V69 H23 Z
-        M23,64 H41 V69 H23 Z
-        M36,54 H41 V69 H36 Z
-        M32,54 H41 V59 H32 Z
-        M45,39 H63 V44 H45 Z
-        M51,39 H57 V69 H51 Z
-        M67,39 H85 V44 H67 Z
-        M67,39 H72 V69 H67 Z
-        M67,64 H85 V69 H67 Z" />
+        M25.7,30.0 L43.7,30.0 L42.6,35.0 L24.6,35.0 Z
+        M25.7,30.0 L30.7,30.0 L21.0,74.0 L16.0,74.0 Z
+        M17.1,69.0 L35.1,69.0 L34.0,74.0 L16.0,74.0 Z
+        M33.8,52.0 L38.8,52.0 L34.0,74.0 L29.0,74.0 Z
+        M29.8,52.0 L38.8,52.0 L37.7,57.0 L28.7,57.0 Z
+        M49.7,30.0 L67.7,30.0 L66.6,35.0 L48.6,35.0 Z
+        M55.7,30.0 L61.7,30.0 L52.0,74.0 L46.0,74.0 Z
+        M73.7,30.0 L91.7,30.0 L90.6,35.0 L72.6,35.0 Z
+        M73.7,30.0 L78.7,30.0 L69.0,74.0 L64.0,74.0 Z
+        M65.1,69.0 L83.1,69.0 L82.0,74.0 L64.0,74.0 Z" />
 </vector>
