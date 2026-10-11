@@ -119,7 +119,7 @@ private fun StatusBar(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("ThorHUD", style = MaterialTheme.typography.titleMedium,
+        Text("GTC", style = MaterialTheme.typography.titleMedium,
              color = Color(0xFF78DC9F))
         val (label, color) = when {
             isDisconnected -> "DISCONNECTED" to Color(0xFFB04040)

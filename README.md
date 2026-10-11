@@ -1,6 +1,8 @@
 # ThorHUD-GTAIV
 
-AYN Thor bottom-screen companion for GTA IV. Live HUD on the Thor's 3.92″ 1240×1080 bottom screen while GTA IV plays on the main screen via [GameHub Lite](https://www.gamehublite.com/) (`gamehub.lite`), a Winlator-family launcher.
+**GTC** (Grand Theft Companion) — AYN Thor bottom-screen companion for GTA IV. Live HUD on the Thor's 3.92″ 1240×1080 bottom screen while GTA IV plays on the main screen via [GameHub Lite](https://www.gamehublite.com/) (`gamehub.lite`) or any Winlator-family launcher.
+
+Repo contains two artefacts: the **GTC** Android companion app and **ThorBridge.asi**, the ASI plugin that reads game state from inside the GTA IV process.
 
 ## Downloads
 
@@ -18,7 +20,7 @@ CI builds both artefacts and attaches them to a new Release automatically.
 Two artifacts:
 
 - **`asi/`** — `ThorBridge.asi`, a 32-bit Windows DLL (C++) that loads into GTA IV via Ultimate ASI Loader inside GameHub Lite's Wine prefix. Reads game state (money, health, armor, weapon, vehicle, radio) and publishes JSON over `127.0.0.1:47801` at 20 Hz.
-- **`app/`** — Android companion (Jetpack Compose + Hilt + MVVM, min SDK 33). A dedicated HUD Activity launched on the bottom display renders the HUD while GTA IV plays on the main screen.
+- **`app/`** — **GTC** (Grand Theft Companion), the Android app (Jetpack Compose + Hilt + MVVM, min SDK 33). A dedicated HUD Activity launched on the bottom display renders the HUD while GTA IV plays on the main screen.
 
 Full plan: `~/.claude/plans/purring-kindling-rainbow.md`. Verified-facts log: [docs/STATE.md](docs/STATE.md). Licensing and legal posture: [LEGAL.md](LEGAL.md).
 
@@ -51,7 +53,7 @@ cd asi
 ./build.sh      # produces build/ThorBridge.asi
 ```
 
-## Building the Android app
+## Building the Android app (GTC)
 
 ```
 ./gradlew :app:assembleDebug    # produces app/build/outputs/apk/debug/app-debug.apk

@@ -20,6 +20,6 @@ private val HudColors = darkColorScheme(
 )
 
 @Composable
-fun ThorHudTheme(content: @Composable () -> Unit) {
+fun GtcTheme(content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = HudColors, content = content)
 }

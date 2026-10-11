@@ -25,7 +25,7 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-            resValue("string", "app_name", "ThorHUD Debug")
+            resValue("string", "app_name", "GTC Debug")
         }
         release {
             isMinifyEnabled = true
@@ -34,7 +34,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            resValue("string", "app_name", "ThorHUD")
+            resValue("string", "app_name", "GTC")
         }
     }
 

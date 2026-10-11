@@ -69,7 +69,7 @@ jobs:
   # a Play-ready artefact.
   # ------------------------------------------------------------------
   apk:
-    name: ThorHUD.apk (Android debug)
+    name: GTC.apk (Android debug)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -94,13 +94,13 @@ jobs:
       - name: Rename APK for release attachment
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/ThorHUD-debug.apk
+          cp app/build/outputs/apk/debug/app-debug.apk dist/GTC-debug.apk
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ThorHUD-debug.apk
-          path: dist/ThorHUD-debug.apk
+          name: GTC-debug.apk
+          path: dist/GTC-debug.apk
           if-no-files-found: error
           retention-days: 90
 
@@ -125,7 +125,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: ThorHUD-debug.apk
+          name: GTC-debug.apk
           path: dist
 
       - name: Create / update release
@@ -133,6 +133,6 @@ jobs:
         with:
           files: |
             dist/ThorBridge.asi
-            dist/ThorHUD-debug.apk
+            dist/GTC-debug.apk
           generate_release_notes: true
           fail_on_unmatched_files: true

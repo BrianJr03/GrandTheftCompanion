@@ -9,7 +9,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import jr.brian.thorhud.net.GameStateClient
 import jr.brian.thorhud.net.GameStateRepository
 import jr.brian.thorhud.ui.MainScreen
-import jr.brian.thorhud.ui.theme.ThorHudTheme
+import jr.brian.thorhud.ui.theme.GtcTheme
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,7 +36,7 @@ class HudActivity : ComponentActivity() {
         }
 
         setContent {
-            ThorHudTheme {
+            GtcTheme {
                 MainScreen()
             }
         }
