@@ -1,0 +1,34 @@
+ThorBridge.asi
+
+Copyright (C) 2026 Brian Jr. (BrianJr03).
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version. See LICENSE in this directory.
+
+------------------------------------------------------------------------
+Third-party attributions
+------------------------------------------------------------------------
+
+Byte-pattern signatures, hook strategies, and native-dispatcher
+resolution for GTA IV Complete Edition 1.2.0.59 are derived from or
+inspired by:
+
+  GTAIV.EFLC.FusionFix
+    https://github.com/ThirteenAG/GTAIV.EFLC.FusionFix
+    Copyright (C) its contributors.
+    Licensed under GNU General Public License v3.0.
+
+Native-function hashes, struct layouts, and historical offset tables
+are derived from:
+
+  Zolika1351/iv-sdk
+    https://github.com/Zolika1351/iv-sdk
+    Historical reference for GTA IV 1.0.7.0 / 1.0.8.0 natives.
+
+Any direct source lifts from the above projects are tagged with inline
+`[FusionFix: path:line]` comments at the lift site. Code marked that way
+is covered by its originating project's copyright and license. This
+project's own code is covered by its own GPL-3.0 grant above; the
+combined work ships as GPL-3.0.

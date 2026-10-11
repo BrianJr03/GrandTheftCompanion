@@ -9,7 +9,9 @@ add_library(ThorBridge SHARED
     src/bridge.cpp
     src/dllmain.cpp
     src/log.cpp
+    src/patterns.cpp
     src/probes.cpp
+    src/snapshot.cpp
     src/version_detect.cpp
 )
 
