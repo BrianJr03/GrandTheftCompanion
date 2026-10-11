@@ -14,6 +14,21 @@ The repo contains the **GTC** Android companion app and two game plugins: **Thor
   <img src="assets/screenshot_v.png" alt="GTA V on the Thor's top screen, GTC companion on the bottom screen" width="400"/>
 </p>
 
+## Quick start
+
+1. **Winlator-family launcher on the Thor** — GameHub Lite / Winlator / Winlator Cmod / GameNative. The ASI loads inside its Wine prefix.
+2. **Your own legit copy of the game** on-device:
+   - GTA IV: Complete Edition **1.2.0.59** (the ASI pattern-scans this exact build).
+   - GTA V (experimental): Legacy branch, on a build your [Script Hook V](http://www.dev-c.com/gtav/scripthookv) release lists as supported.
+3. **Drop files next to the game `.exe`** (same folder as `GTAIV.exe` / `GTA5.exe`):
+   - GTA IV: [`dinput8.dll` (Ultimate ASI Loader, 32-bit)](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases) + `ThorBridge.asi`.
+   - GTA V: `dinput8.dll` + `ScriptHookV.dll` (both from the Script Hook V zip) + `ThorBridgeV.asi`.
+4. **Per-game env var** in your launcher: `WINEDLLOVERRIDES=dinput8=n,b` (native then builtin, so Wine loads the ASI loader instead of its own stub).
+5. **Install the GTC APK** from the latest [release](https://github.com/BrianJr03/GrandTheftCompanion/releases/latest). Launch it once; the HUD trampolines onto the bottom display.
+6. **Launch the game** from the launcher. HUD lights up the moment the game is in-world.
+
+Prebuilt `ThorBridge.asi`, `ThorBridgeV.asi` and the signed APK are attached to each release.
+
 ## Downloads
 
 Prebuilt artefacts (the APK and both ASI plugins) are attached to each [GitHub Release](https://github.com/BrianJr03/GrandTheftCompanion/releases/latest). The latest `main` build is always available as a workflow artefact under [Actions → build](https://github.com/BrianJr03/GrandTheftCompanion/actions/workflows/build.yml) (requires being signed into GitHub).
