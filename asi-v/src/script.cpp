@@ -184,6 +184,10 @@ void read_vehicle(snapshot::State& s, int32_t ped) {
 void read_radio(snapshot::State& s) {
     s.radio_index = -1;
     s.radio_name[0] = '\0';
+    // The game remembers the last-tuned station even on foot, but the
+    // HUD and spec treat the player as having no active radio outside
+    // a vehicle. Short-circuit here so the stream matches.
+    if (!s.in_vehicle) return;
     const int32_t idx =
         shv::call<int32_t>(natives::GET_PLAYER_RADIO_STATION_INDEX);
     if (idx < 0 || idx >= kRadioOffIndex) return;

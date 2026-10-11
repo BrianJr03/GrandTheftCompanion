@@ -11,6 +11,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -83,11 +84,34 @@ internal fun VCashRadioPanel(
     HudCard(modifier, cashTitle(character, characterKnown)) {
         BigValue(labelRes = null, value = cashText(s, character))
         Spacer(Modifier.height(20.dp))
-        BigValue(
-            labelRes = R.string.label_radio,
-            value = radioText(s, stations),
+        Text(
+            stringResource(R.string.label_radio),
+            color = Color(0xFF6A7A6E),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 11.sp,
+            modifier = Modifier.fillMaxWidth(),
         )
+        VRadioValue(radioText(s, stations), textAlign = TextAlign.Start)
     }
+}
+
+/** Single-line radio value with ellipsis — long station labels like
+ *  "Non-Stop-Pop FM" clip cleanly instead of breaking mid-word under
+ *  the monospace font's character-boundary wrap. */
+@Composable
+private fun VRadioValue(value: String, textAlign: TextAlign) {
+    Text(
+        value,
+        color = Color(0xFFEDEDED),
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Bold,
+        fontSize = 20.sp,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        softWrap = false,
+        textAlign = textAlign,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable
@@ -113,11 +137,7 @@ internal fun VRadioPanel(
     modifier: Modifier = Modifier,
 ) {
     HudCard(modifier, stringResource(R.string.label_radio), align = align) {
-        BigValue(
-            labelRes = null,
-            value = radioText(s, stations),
-            textAlign = textAlignOf(align),
-        )
+        VRadioValue(radioText(s, stations), textAlign = textAlignOf(align))
     }
 }
 
