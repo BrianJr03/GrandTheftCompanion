@@ -203,13 +203,18 @@ private fun StatusBar(
     ) {
         Text("GTC", style = MaterialTheme.typography.titleMedium,
              color = palette.accent)
-        val (label, color) = when {
+        // Only show a status badge when there's something to say.
+        // When the stream is live and in-game, "GTC" alone is enough —
+        // the HUD content itself proves the connection is healthy.
+        val badge: Pair<String, Color>? = when {
             isDisconnected -> "DISCONNECTED" to Color(0xFFB04040)
             isStale        -> "STALE"        to Color(0xFFC08A3C)
             !inGame        -> "WAITING"      to Color(0xFF8EA096)
-            else           -> "LIVE"         to palette.accent
+            else           -> null
         }
-        Text(label, color = color, fontFamily = mono, fontWeight = FontWeight.Bold)
+        badge?.let { (label, color) ->
+            Text(label, color = color, fontFamily = mono, fontWeight = FontWeight.Bold)
+        }
         Spacer(Modifier.weight(1f))
         Text(palette.label, color = Color(0xFF6A7A6E),
              fontFamily = mono, fontSize = 11.sp)
