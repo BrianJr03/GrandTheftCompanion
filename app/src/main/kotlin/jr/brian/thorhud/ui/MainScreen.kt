@@ -201,7 +201,7 @@ private fun StatusBar(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("GTC", style = MaterialTheme.typography.titleMedium,
+        Text("Grand Theft Companion", style = MaterialTheme.typography.titleMedium,
              color = palette.accent)
         // Only show a status badge when there's something to say.
         // When the stream is live and in-game, "GTC" alone is enough —
