@@ -4,11 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -126,11 +127,16 @@ internal fun VMainScreen(
     }
 
     Scaffold(containerColor = Color.Black) { padding ->
+        // Scrollable so overflow on narrow aspect ratios or large tag
+        // rows reaches the stat bars instead of clipping. Weighted-fill
+        // tricks don't survive an unbounded parent, so vertical spacing
+        // is fixed and cards use their natural height.
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(12.dp),
+                .padding(12.dp)
+                .verticalScroll(rememberScrollState()),
         ) {
             StatusBar(
                 isDisconnected = false,
@@ -156,7 +162,7 @@ internal fun VMainScreen(
                     VWeaponPanel(live, modifier = Modifier.weight(1f))
                     VVehiclePanel(live, palette, modifier = Modifier.weight(1f))
                 }
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(16.dp))
                 // No picker in a vehicle without a radio, or before the
                 // station list has arrived.
                 if (vehicle?.hasRadio != false && stations.isNotEmpty()) {
@@ -166,31 +172,30 @@ internal fun VMainScreen(
                         palette = palette,
                         onStationTap = { index -> viewModel.setRadio(index) },
                     )
+                    Spacer(Modifier.height(16.dp))
                 }
-                Spacer(Modifier.weight(1f))
             } else {
                 Row(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     VCashPanel(live, character, characterKnown,
                                align = CardAlign.Start,
-                               verticalCenter = true,
-                               modifier = Modifier.weight(1f).fillMaxHeight())
+                               modifier = Modifier.weight(1f))
                     VWeaponPanel(live, align = CardAlign.End,
-                                 verticalCenter = true,
-                                 modifier = Modifier.weight(1f).fillMaxHeight())
+                                 modifier = Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(16.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     VVehiclePanel(live, palette, align = CardAlign.Start,
-                                  modifier = Modifier.weight(1f).fillMaxHeight())
+                                  modifier = Modifier.weight(1f))
                     VRadioPanel(live, stations, align = CardAlign.End,
-                                modifier = Modifier.weight(1f).fillMaxHeight())
+                                modifier = Modifier.weight(1f))
                 }
+                Spacer(Modifier.height(16.dp))
             }
             VStatsBars(live, character, palette)
         }

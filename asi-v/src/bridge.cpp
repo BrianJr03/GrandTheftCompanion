@@ -409,6 +409,44 @@ done:
     return 0;
 }
 
+// Build a fresh listener bound and in LISTEN state, or INVALID_SOCKET
+// with the error already logged.
+SOCKET open_listener() {
+    SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (s == INVALID_SOCKET) {
+        thor_log("[bridge] socket() failed: %d", WSAGetLastError());
+        return INVALID_SOCKET;
+    }
+
+    BOOL yes = TRUE;
+    setsockopt(s, SOL_SOCKET, SO_REUSEADDR,
+               reinterpret_cast<const char*>(&yes), sizeof(yes));
+
+    sockaddr_in addr = {};
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(kPort);
+#if THORBRIDGE_LAN_DEBUG
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+#else
+    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+#endif
+
+    if (bind(s, reinterpret_cast<sockaddr*>(&addr), sizeof(addr))
+        == SOCKET_ERROR) {
+        thor_log("[bridge] bind on port %u failed: %d",
+                 kPort, WSAGetLastError());
+        closesocket(s);
+        return INVALID_SOCKET;
+    }
+
+    if (listen(s, kListenBacklog) == SOCKET_ERROR) {
+        thor_log("[bridge] listen failed: %d", WSAGetLastError());
+        closesocket(s);
+        return INVALID_SOCKET;
+    }
+    return s;
+}
+
 DWORD WINAPI server_main(LPVOID /*unused*/) {
     WSADATA wsa;
     int rc = WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -417,49 +455,40 @@ DWORD WINAPI server_main(LPVOID /*unused*/) {
         return 1;
     }
 
-    SOCKET listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if (listener == INVALID_SOCKET) {
-        thor_log("[bridge] socket() failed: %d", WSAGetLastError());
-        WSACleanup();
-        return 1;
-    }
-
-    BOOL yes = TRUE;
-    setsockopt(listener, SOL_SOCKET, SO_REUSEADDR,
-               reinterpret_cast<const char*>(&yes), sizeof(yes));
-
-    sockaddr_in addr = {};
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(kPort);
 #if THORBRIDGE_LAN_DEBUG
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
     thor_log("[bridge] LAN debug build: binding 0.0.0.0:%u", kPort);
-#else
-    addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 #endif
 
-    if (bind(listener, reinterpret_cast<sockaddr*>(&addr), sizeof(addr))
-        == SOCKET_ERROR) {
-        thor_log("[bridge] bind on port %u failed: %d",
-                 kPort, WSAGetLastError());
-        closesocket(listener);
+    SOCKET listener = open_listener();
+    if (listener == INVALID_SOCKET) {
         WSACleanup();
         return 1;
     }
-
-    if (listen(listener, kListenBacklog) == SOCKET_ERROR) {
-        thor_log("[bridge] listen failed: %d", WSAGetLastError());
-        closesocket(listener);
-        WSACleanup();
-        return 1;
-    }
-
     thor_log("[bridge] listening on 127.0.0.1:%u", kPort);
 
     for (;;) {
         SOCKET client = accept(listener, NULL, NULL);
         if (client == INVALID_SOCKET) {
             int err = WSAGetLastError();
+            // 10038 (WSAENOTSOCK) and 995 (ERROR_OPERATION_ABORTED) mean
+            // the listener handle itself is gone — seen on the AYN Thor
+            // Wine prefix shortly after GTA V starts up, where something
+            // in the game or anti-tamper path invalidates sockets opened
+            // before the engine finishes init. Retrying accept() on a
+            // dead handle just prints the same error forever; recycle
+            // the listener instead.
+            if (err == WSAENOTSOCK || err == 995) {
+                thor_log("[bridge] listener invalidated (err=%d), "
+                         "rebuilding", err);
+                closesocket(listener);
+                listener = INVALID_SOCKET;
+                for (int attempt = 0; listener == INVALID_SOCKET; ++attempt) {
+                    Sleep(attempt < 3 ? 500 : 2000);
+                    listener = open_listener();
+                }
+                thor_log("[bridge] listener restored on 127.0.0.1:%u", kPort);
+                continue;
+            }
             thor_log("[bridge] accept failed: %d — retrying in 1s", err);
             Sleep(1000);
             continue;

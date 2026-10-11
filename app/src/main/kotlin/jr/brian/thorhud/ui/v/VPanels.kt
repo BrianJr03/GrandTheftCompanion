@@ -228,7 +228,7 @@ internal fun VVehiclePanel(
         Text(
             stringResource(R.string.mph_value, mph.toInt()),
             fontFamily = FontFamily.Monospace, fontSize = 20.sp,
-            fontWeight = FontWeight.Bold, color = palette.speed,
+            fontWeight = FontWeight.Bold, color = Color(0xFFEDEDED),
             textAlign = textAlign,
             modifier = Modifier.fillMaxWidth(),
         )
