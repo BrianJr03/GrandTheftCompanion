@@ -2,6 +2,19 @@
 
 AYN Thor bottom-screen companion for GTA IV. Live HUD on the Thor's 3.92″ 1240×1080 bottom screen while GTA IV plays on the main screen via [GameHub Lite](https://www.gamehublite.com/) (`gamehub.lite`), a Winlator-family launcher.
 
+## Downloads
+
+Prebuilt artefacts (debug APK + ASI) are attached to each [GitHub Release](https://github.com/BrianJr03/ThorHUD-GTAIV/releases/latest). The latest `main` build is always available as a workflow artefact under [Actions → build](https://github.com/BrianJr03/ThorHUD-GTAIV/actions/workflows/build.yml) (requires being signed into GitHub).
+
+To cut a release, tag the commit and push:
+
+```
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+CI builds both artefacts and attaches them to a new Release automatically.
+
 Two artifacts:
 
 - **`asi/`** — `ThorBridge.asi`, a 32-bit Windows DLL (C++) that loads into GTA IV via Ultimate ASI Loader inside GameHub Lite's Wine prefix. Reads game state (money, health, armor, weapon, vehicle, radio) and publishes JSON over `127.0.0.1:47801` at 20 Hz.

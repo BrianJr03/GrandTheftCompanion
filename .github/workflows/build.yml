@@ -1,0 +1,138 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ------------------------------------------------------------------
+  # ASI — cross-compile the 32-bit Windows DLL on Ubuntu via mingw-w64.
+  # Produces ThorBridge.asi with the production flags (CGameProcess
+  # hook on, full HUD natives chain). Users who want the safer
+  # diagnostic variants build locally with different -D flags.
+  # ------------------------------------------------------------------
+  asi:
+    name: ThorBridge.asi (mingw-w64 i686)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install mingw-w64 i686 + cmake
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            g++-mingw-w64-i686 \
+            gcc-mingw-w64-i686 \
+            cmake \
+            ninja-build
+
+      - name: Configure
+        working-directory: asi
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-i686.cmake \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DTHORBRIDGE_ENABLE_HOOK=ON \
+            -DTHORBRIDGE_NATIVES_LEVEL=3
+
+      - name: Build
+        working-directory: asi
+        run: cmake --build build --parallel
+
+      - name: Verify PE32 + clean imports
+        working-directory: asi/build
+        run: |
+          file ThorBridge.asi
+          echo '--- imported DLLs (should be system-only) ---'
+          i686-w64-mingw32-objdump -p ThorBridge.asi | grep 'DLL Name'
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ThorBridge.asi
+          path: asi/build/ThorBridge.asi
+          if-no-files-found: error
+          retention-days: 90
+
+  # ------------------------------------------------------------------
+  # APK — Android companion. Debug variant is signed with the auto-
+  # generated debug keystore, which is fine for sideloading. Release
+  # signing would need a keystore secret; add that if you ever want
+  # a Play-ready artefact.
+  # ------------------------------------------------------------------
+  apk:
+    name: ThorHUD.apk (Android debug)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platforms;android-37
+            build-tools;35.0.0
+
+      - name: Setup Gradle (caching)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Rename APK for release attachment
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/ThorHUD-debug.apk
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ThorHUD-debug.apk
+          path: dist/ThorHUD-debug.apk
+          if-no-files-found: error
+          retention-days: 90
+
+  # ------------------------------------------------------------------
+  # Release — only on `v*` tags. Pulls the artefacts the two build
+  # jobs just uploaded and attaches them to a GitHub Release. The
+  # release body is auto-generated from the commit range since the
+  # previous tag.
+  # ------------------------------------------------------------------
+  release:
+    name: Attach to GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [asi, apk]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ThorBridge.asi
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ThorHUD-debug.apk
+          path: dist
+
+      - name: Create / update release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/ThorBridge.asi
+            dist/ThorHUD-debug.apk
+          generate_release_notes: true
+          fail_on_unmatched_files: true
