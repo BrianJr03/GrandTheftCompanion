@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -230,15 +231,20 @@ private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier =
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
         )
         if ((s?.weaponId ?: 0) > 0) {
             Spacer(Modifier.height(20.dp))
-            // Label-over-value, matches the money/radio BigValue style.
             Text(
                 stringResource(R.string.label_clip),
                 color = Color(0xFF6A7A6E),
                 fontFamily = FontFamily.Monospace,
                 fontSize = 11.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
             )
             Text(
                 stringResource(R.string.clip_value,
@@ -247,6 +253,8 @@ private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier =
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }
@@ -258,7 +266,9 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
         val v = s?.vehicle?.takeIf { s.inVehicle }
         if (v == null) {
             Text(stringResource(R.string.on_foot),
-                 color = Color(0xFF6A7A6E), fontSize = 20.sp)
+                 color = Color(0xFF6A7A6E), fontSize = 20.sp,
+                 textAlign = TextAlign.Center,
+                 modifier = Modifier.fillMaxWidth())
             return@HudCard
         }
         BigValue(
@@ -268,18 +278,21 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
             },
         )
         Spacer(Modifier.height(20.dp))
-        // Label-over-value for speed, matching the clip/radio treatment.
         Text(
             stringResource(R.string.label_speed),
             color = Color(0xFF6A7A6E),
             fontFamily = FontFamily.Monospace,
             fontSize = 11.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
         )
         val mph = v.speedMps * 2.237f
         Text(
             stringResource(R.string.mph_value, mph.toInt()),
             fontFamily = FontFamily.Monospace, fontSize = 20.sp,
             fontWeight = FontWeight.Bold, color = Color(0xFFEDEDED),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -392,13 +405,18 @@ private fun HudCard(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         shape = RoundedCornerShape(10.dp),
     ) {
-        Column(Modifier.padding(14.dp)) {
+        Column(
+            modifier = Modifier.padding(14.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Text(
                 title,
                 color = Color(0xFF6A7A6E),
                 fontFamily = FontFamily.Monospace,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(6.dp))
             content()
@@ -419,6 +437,8 @@ private fun BigValue(@StringRes labelRes: Int?, value: String) {
             color = Color(0xFF6A7A6E),
             fontFamily = FontFamily.Monospace,
             fontSize = 11.sp,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
     // Clip overlong values with an ellipsis instead of letting them
@@ -430,8 +450,9 @@ private fun BigValue(@StringRes labelRes: Int?, value: String) {
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
-        maxLines = 1,
+        maxLines = 2,
         overflow = TextOverflow.Ellipsis,
+        textAlign = TextAlign.Center,
         modifier = Modifier.fillMaxWidth(),
     )
 }
