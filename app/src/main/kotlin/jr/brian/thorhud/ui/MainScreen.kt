@@ -255,11 +255,15 @@ private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier =
             fontSize = 20.sp,
         )
         if ((s?.weaponId ?: 0) > 0) {
+            // 14.dp "ghost label" so weapon-name height matches a full
+            // BigValue (value + 11sp label) in the money/model columns.
+            // Combined with the 20dp real spacer this puts the clip
+            // value on the same baseline as Self Radio and the mph
+            // readout in the neighbouring columns.
+            Spacer(Modifier.height(14.dp))
             Spacer(Modifier.height(20.dp))
             // Ammo in headline style: value + label matches the money
-            // and radio BigValues. 20sp so "X / Y" fits a single line
-            // even on long ammo totals; same size as the other headline
-            // values across the HUD.
+            // and radio BigValues.
             Text(
                 "${s?.ammoClip ?: 0} / ${s?.ammoTotal ?: 0}",
                 color = palette.accent,
@@ -279,6 +283,7 @@ private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier =
 
 @Composable
 private fun FullWidthStats(s: GameState?, palette: HudPalette) {
+    val v = s?.vehicle?.takeIf { s.inVehicle }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -291,6 +296,13 @@ private fun FullWidthStats(s: GameState?, palette: HudPalette) {
             current = s?.armor?.toFloat() ?: 0f,
             max = (s?.maxArmor ?: 100).coerceAtLeast(100).toFloat(),
             fill = palette.armor)
+        if (v != null) {
+            Spacer(Modifier.height(6.dp))
+            Bar(label = "engine",
+                current = v.engineHp.coerceAtLeast(0f),
+                max = 1000f,
+                fill = palette.engine)
+        }
     }
 }
 
@@ -303,19 +315,18 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
             return@HudCard
         }
         BigValue(label = "model", value = v.name.ifBlank { "model ${v.model}" })
-        Spacer(Modifier.height(8.dp))
+        // 20dp (matching the money→radio gap in column 1) so mph lands
+        // on the same baseline as "Self Radio" and clip X / Y.
+        Spacer(Modifier.height(20.dp))
         // GTA IV reports m/s. Convert to mph for display (× 2.237).
         val mph = v.speedMps * 2.237f
-        // mph normalised to 20sp so it matches every other headline
-        // value on the HUD (money, radio, model, weapon, clip X/X).
         Text(
             "${mph.toInt()} mph",
             fontFamily = FontFamily.Monospace, fontSize = 20.sp,
             fontWeight = FontWeight.Bold, color = palette.speed,
         )
-        Spacer(Modifier.height(8.dp))
-        Bar(label = "engine", current = v.engineHp.coerceAtLeast(0f),
-            max = 1000f, fill = palette.engine)
+        // (engine bar moved to the full-width stats band below the
+        // columns; see FullWidthStats.)
     }
 }
 
