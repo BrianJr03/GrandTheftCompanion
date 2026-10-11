@@ -1,5 +1,3 @@
-# ThorHUD-GTAIV
-
 **GTC** (Grand Theft Companion) — AYN Thor bottom-screen companion for GTA IV. Live HUD on the Thor's bottom screen while GTA IV plays on the main screen via [GameHub Lite](https://www.gamehublite.com/) (`gamehub.lite`) or any Winlator-family launcher.
 
 Repo contains two artefacts: the **GTC** Android companion app and **ThorBridge.asi**, the ASI plugin that reads game state from inside the GTA IV process.
@@ -7,15 +5,6 @@ Repo contains two artefacts: the **GTC** Android companion app and **ThorBridge.
 ## Downloads
 
 Prebuilt artefacts (debug APK + ASI) are attached to each [GitHub Release](https://github.com/BrianJr03/GrandTheftCompanion/releases/latest). The latest `main` build is always available as a workflow artefact under [Actions → build](https://github.com/BrianJr03/GrandTheftCompanion/actions/workflows/build.yml) (requires being signed into GitHub).
-
-To cut a release, tag the commit and push:
-
-```
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-CI builds both artefacts and attaches them to a new Release automatically.
 
 Two artifacts:
 
@@ -26,21 +15,8 @@ Licensed under **GPL-3.0-or-later** — see [LICENSE](LICENSE) and [LEGAL.md](LE
 
 ## Roadmap
 
-Known gaps worth fixing before this is a release-quality tool rather
-than a "builds and works on my device" project:
+- **Weapon picker** 
 
-- **Weapon picker** — the per-frame scan of all 13 weapon slots
-  crashed in Phase 2 and was disabled. The HUD can display the
-  current weapon but has no owned-weapons list, so a tap-to-switch
-  picker needs an on-demand `scan_weapons` command: fire
-  `GET_CHAR_WEAPON_IN_SLOT` × 13 once when the picker opens, return
-  the list as a dedicated response frame. Reuses the Phase-3
-  command infrastructure.
-- **Verify weapon / radio id → name tables** — the lookup tables in
-  `MainScreen.kt` (`weaponName()`, `radioName()`) are my educated
-  guesses from memory. Needs a verification pass against the game:
-  equip each weapon in sequence, note which id the HUD prints,
-  update the table. Same for radio stations.
 - **Broader device coverage** — only tested on the AYN Thor with
   GameHub Lite. The code paths are generic (secondary-display
   detection enumerates `FLAG_PRESENTATION` displays rather than
@@ -49,13 +25,6 @@ than a "builds and works on my device" project:
   Odin / RG556 / RP5 / etc. are all unverified. Each new device
   needs: display enumeration confirmed, bottom-screen touch
   behaviour confirmed, ASI load path confirmed.
-
-## Prerequisites (macOS dev host)
-
-```
-brew install cmake mingw-w64        # cross-compiler for 32-bit Windows DLL
-# Android Studio + Android SDK (API 33+)   — you already have this
-```
 
 ## Building the ASI
 
