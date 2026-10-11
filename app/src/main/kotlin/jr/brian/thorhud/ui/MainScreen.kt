@@ -325,12 +325,12 @@ private fun HudCard(
     title: String,
     content: @Composable () -> Unit,
 ) {
-    // On a true-black backdrop the cards would disappear with pure
-    // #000000 fill, so keep them a hair above black — enough to read as
-    // a card edge without lighting up a solid rectangle of AMOLED pixels.
+    // All-black backdrop — cards are visually just columns separated by
+    // whitespace, no fill. Keeps AMOLED pixels off everywhere except
+    // the actual text + bars.
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF070A08)),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         shape = RoundedCornerShape(10.dp),
     ) {
         Column(Modifier.padding(14.dp)) {
