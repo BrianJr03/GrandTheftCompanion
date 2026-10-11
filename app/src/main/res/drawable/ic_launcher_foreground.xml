@@ -15,14 +15,19 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <path android:fillColor="#FFFFFF" android:pathData="
+    <!-- G = base GTA IV accent (clean white, PaletteIV). -->
+    <path android:fillColor="#EDEDED" android:pathData="
         M35.5,36.0 L49.5,36.0 L48.8,40.0 L34.8,40.0 Z
         M35.5,36.0 L39.5,36.0 L33.0,72.0 L29.0,72.0 Z
         M29.7,68.0 L43.7,68.0 L43.0,72.0 L29.0,72.0 Z
         M42.2,54.0 L46.2,54.0 L43.0,72.0 L39.0,72.0 Z
-        M39.2,54.0 L46.2,54.0 L45.5,58.0 L38.5,58.0 Z
+        M39.2,54.0 L46.2,54.0 L45.5,58.0 L38.5,58.0 Z" />
+    <!-- T = The Lost and Damned accent (biker-rust, PaletteTLAD). -->
+    <path android:fillColor="#C46A2A" android:pathData="
         M53.5,36.0 L67.5,36.0 L66.8,40.0 L52.8,40.0 Z
-        M58.5,36.0 L62.5,36.0 L56.0,72.0 L52.0,72.0 Z
+        M58.5,36.0 L62.5,36.0 L56.0,72.0 L52.0,72.0 Z" />
+    <!-- C = The Ballad of Gay Tony accent (Tony neon-magenta, PaletteTBoGT). -->
+    <path android:fillColor="#FF4FBF" android:pathData="
         M71.5,36.0 L85.5,36.0 L84.8,40.0 L70.8,40.0 Z
         M71.5,36.0 L75.5,36.0 L69.0,72.0 L65.0,72.0 Z
         M65.7,68.0 L79.7,68.0 L79.0,72.0 L65.0,72.0 Z" />
