@@ -422,8 +422,32 @@ Default build (no flags) still installs no hook — safe to push. Rebuild
 with `-DTHORBRIDGE_NATIVES_LEVEL=2` for weapon reads, `=3` for the full
 chain (vehicle + radio).
 
+### Level 2 and 3 enabled (2026-10-11, same session)
+
+- First L2 attempt crashed within 0.25 s of invoking weapon natives.
+  The log showed all 10 natives resolved cleanly then the game died.
+  Prime suspect: the owned-weapons scan iterating all 13 slots per
+  frame, OR passing `weapon_id=0` to the ammo natives when the ped was
+  unarmed. Reverted to L1 immediately.
+- Fixed L2: dropped the slot-iteration entirely (the weapon picker in
+  Phase 5 will do slot queries on demand, not every frame) and guarded
+  the ammo natives on `weapon > 0 && weapon < 200`. L2 then showed
+  `weapon=12 (clip=28/tot=663)` alongside stats, no crash.
+- L3 added vehicle + radio with no new issues. Captured state frame:
+
+```
+{"in_game":true,"in_vehicle":true,"money":2867,"health":200.0,
+ "wanted":0,"weapon":12,"ammo_total":685,"ammo_clip":0,
+ "vehicle":{"model":3338918751,"name":"TAXI","speed_mps":0.85,
+            "engine_hp":1000.0},
+ "radio":14}
+```
+
+Default build is now `THORBRIDGE_NATIVES_LEVEL=3` + hook disabled.
+Enable hook via `-DTHORBRIDGE_ENABLE_HOOK=ON`.
+
 ## Next
 
-Phase 2 is substantively done. Phase 3 adds the client→server command
-channel (`set_weapon`, `set_radio`) and the server-side command queue
-drained from the per-frame hook.
+Phase 2 fully done. Phase 3 adds the client→server command channel
+(`set_weapon`, `set_radio`) and the server-side command queue drained
+from the per-frame hook.

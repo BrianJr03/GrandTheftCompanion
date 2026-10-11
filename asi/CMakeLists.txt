@@ -30,9 +30,9 @@ target_compile_options(ThorBridge PRIVATE
 option(THORBRIDGE_ENABLE_HOOK    "Install the CGameProcess per-frame hook" OFF)
 option(THORBRIDGE_HOOK_NO_NATIVES "If hook is on, skip native invocations" OFF)
 # 1 = core stats only (health/armor/money/wanted)
-# 2 = stats + weapon + ammo + owned slots
-# 3 = stats + weapon + vehicle + radio (everything)
-set(THORBRIDGE_NATIVES_LEVEL "1" CACHE STRING "Which native groups on_frame invokes")
+# 2 = stats + current weapon + ammo (no owned-slots scan)
+# 3 = stats + weapon + vehicle + radio — the full HUD
+set(THORBRIDGE_NATIVES_LEVEL "3" CACHE STRING "Which native groups on_frame invokes")
 if(THORBRIDGE_ENABLE_HOOK)
     target_compile_definitions(ThorBridge PRIVATE THORBRIDGE_ENABLE_HOOK=1)
 endif()

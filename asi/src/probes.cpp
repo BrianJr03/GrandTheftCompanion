@@ -189,52 +189,41 @@ void on_frame() {
         p.wanted_level = static_cast<uint8_t>(out);
     }
 #if THORBRIDGE_NATIVES_LEVEL >= 2
-    // Current weapon.
+    // Current weapon. GetCurrentCharWeapon returns a bool indicating
+    // success; if the ped has no current weapon or the engine is in a
+    // transient state, `out` may stay 0. We treat 0 as "unarmed" and
+    // skip downstream ammo queries — passing weapon_id=0 to the ammo
+    // natives has been observed to crash the game.
+    uint32_t cur_weapon = 0;
     {
-        uint32_t out = 0;
-        ctx.reset(); ctx.push(ped_handle); ctx.push(&out);
+        ctx.reset(); ctx.push(ped_handle); ctx.push(&cur_weapon);
         natives::invoke(natives::GET_CURRENT_CHAR_WEAPON, ctx);
-        p.weapon_id = static_cast<int32_t>(out);
+        p.weapon_id = static_cast<int32_t>(cur_weapon);
     }
-    // Ammo in current weapon (total) and in current clip.
-    {
+    // Guard: valid IV weapon ids are small positive integers. Skip the
+    // ammo chain for weapon=0 (fists/unarmed) and anything implausibly
+    // large that would suggest a transient read.
+    if (cur_weapon > 0 && cur_weapon < 200) {
         uint32_t out = 0;
         ctx.reset(); ctx.push(ped_handle);
-        ctx.push(static_cast<uint32_t>(p.weapon_id));
+        ctx.push(cur_weapon);
         ctx.push(&out);
         natives::invoke(natives::GET_AMMO_IN_CHAR_WEAPON, ctx);
         p.ammo_total = static_cast<int32_t>(out);
 
         out = 0;
         ctx.reset(); ctx.push(ped_handle);
-        ctx.push(static_cast<uint32_t>(p.weapon_id));
+        ctx.push(cur_weapon);
         ctx.push(&out);
         natives::invoke(natives::GET_AMMO_IN_CLIP, ctx);
         p.ammo_clip = static_cast<int32_t>(out);
     }
-    // Owned weapons across all 13 slots. ~13 extra natives/frame is
-    // enough that we throttle to roughly once a second — the HUD only
-    // uses this for the picker, not twitch feedback. We reuse the last
-    // scanned values across in-between frames via a module-local cache.
-    static uint32_t s_slot_frame = 0;
-    static int32_t  s_cached_weapons[13] = {};
-    static int32_t  s_cached_ammo[13]    = {};
-    if ((s_slot_frame++ % 30) == 0) {
-        for (int slot = 0; slot < 13; ++slot) {
-            uint32_t weapon = 0, ammo0 = 0, ammo1 = 0;
-            ctx.reset();
-            ctx.push(ped_handle);
-            ctx.push(static_cast<uint32_t>(slot));
-            ctx.push(&weapon);
-            ctx.push(&ammo0);
-            ctx.push(&ammo1);
-            natives::invoke(natives::GET_CHAR_WEAPON_IN_SLOT, ctx);
-            s_cached_weapons[slot] = static_cast<int32_t>(weapon);
-            s_cached_ammo[slot]    = static_cast<int32_t>(ammo0);
-        }
-    }
-    std::memcpy(p.owned_weapons, s_cached_weapons, sizeof(p.owned_weapons));
-    std::memcpy(p.owned_ammo,    s_cached_ammo,    sizeof(p.owned_ammo));
+    // NOTE: GET_CHAR_WEAPON_IN_SLOT (owned-weapons scan across 13 slots)
+    // is deliberately NOT called here. First L2 attempt crashed the
+    // game very shortly after enabling it; prime suspect is either an
+    // out-of-range slot index or the natives themselves. The weapon
+    // picker in Phase 5 only needs owned weapons on demand, not every
+    // frame, so this is low priority.
 #endif  // THORBRIDGE_NATIVES_LEVEL >= 2
 
 #if THORBRIDGE_NATIVES_LEVEL >= 3
