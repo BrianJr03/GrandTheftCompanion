@@ -136,7 +136,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(12.dp),
+                .padding(12.dp)
+                .verticalScroll(rememberScrollState()),
         ) {
             StatusBar(
                 isDisconnected = isDisconnected,
@@ -149,6 +150,9 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             // Columns size to their content — the earlier weight(1f) was
             // squeezing them into less vertical space than their 2x
             // BigValue stacks need, clipping the second row of values.
+            // No trailing weight-Spacer either; it was stealing enough
+            // vertical space that the engine bar fell off the bottom of
+            // the screen.
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -157,7 +161,6 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 WeaponPanel(liveState, palette, Modifier.weight(1f))
                 VehiclePanel(liveState, palette, Modifier.weight(1f))
             }
-            Spacer(Modifier.weight(1f))
             // Radio picker (vehicle-only) sits BETWEEN the top columns
             // and the full-width bars now, so your eye flows: value
             // headlines → quick-tap pickers → full-screen gauges.
@@ -331,9 +334,9 @@ private fun RadioPicker(
     palette: HudPalette,
     onStationTap: (Int) -> Unit,
 ) {
-    // 18 stations split into two rows of 9. Keeps tap targets wider on
-    // the Thor's bottom panel and matches GTA IV's own radio wheel
-    // where IV stations and TBoGT DLC stations stack visually.
+    // 20 stations split into two rows of 10 — covers the full GTA IV
+    // eRadioStation enum (0..19) including the TBoGT DLC entries that
+    // share the same index space.
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -346,12 +349,12 @@ private fun RadioPicker(
             modifier = Modifier.padding(start = 14.dp, bottom = 4.dp),
         )
         RadioPickerRow(
-            start = 0, endExclusive = 9,
+            start = 0, endExclusive = 10,
             currentStation = currentStation, palette = palette,
             onStationTap = onStationTap,
         )
         RadioPickerRow(
-            start = 9, endExclusive = 18,
+            start = 10, endExclusive = 20,
             currentStation = currentStation, palette = palette,
             onStationTap = onStationTap,
         )

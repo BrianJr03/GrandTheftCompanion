@@ -92,25 +92,32 @@
     <string name="weapon_episodic">episodic %1$d</string>
     <string name="weapon_unknown">weapon %1$d</string>
 
-    <!-- Radio station names, indexed 0..17 (0..13 IV, 14..17 TBoGT). -->
+    <!-- Radio station names, authoritative from Aru's ScriptHook SDK
+         (violetfrost/gtaiv-scripthook-sdk, ScriptHook/ScriptingEnums.h
+         eRadioStation). 20 stations, indices 0..19. Episodic DLC
+         stations (San Juan Sounds, Electro-Choc) use the same numeric
+         indices as the base game — all 20 share one table. -->
     <string-array name="radio_names">
-        <item>The Vibe</item>
-        <item>The Beat</item>
-        <item>Rock 97.8</item>
-        <item>The Journey</item>
-        <item>Fusion</item>
-        <item>Jazz Nation</item>
-        <item>Vladivostok</item>
-        <item>Mega Hitz</item>
-        <item>San Juan Sounds</item>
-        <item>WKTT</item>
-        <item>Classics</item>
+        <item>The Vibe 98.8</item>
+        <item>Liberty Rock 97.8</item>
+        <item>Jazz Nation 108.5</item>
+        <item>Massive B 96.9</item>
         <item>K109 The Studio</item>
-        <item>RamJam</item>
-        <item>Int\'l Funk 99</item>
-        <item>Vice City FM</item>
-        <item>LCPR / Police</item>
-        <item>Self Radio</item>
+        <item>WKTT</item>
+        <item>LCHC</item>
+        <item>The Journey</item>
+        <item>Fusion FM</item>
+        <item>The Beat 102.7</item>
+        <item>Radio Broker</item>
+        <item>Vladivostok FM</item>
+        <item>PLR</item>
+        <item>San Juan Sounds</item>
+        <item>Electro-Choc</item>
+        <item>The Classics 104.1</item>
+        <item>IF99 Int\'l Funk</item>
+        <item>Tuff Gong</item>
+        <item>Independence FM</item>
+        <item>Integrity 2.0</item>
     </string-array>
     <string name="radio_off">off</string>
     <string name="radio_unknown">station %1$d</string>
