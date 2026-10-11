@@ -116,7 +116,19 @@ jobs:
             echo "::error::KEYSTORE_B64 secret is empty; cannot sign release"
             exit 1
           fi
-          printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          # Strip any whitespace (newlines, spaces, tabs) that might
+          # have snuck in during upload, then decode. GNU base64 is
+          # strict about non-alphabet characters.
+          printf '%s' "$KEYSTORE_B64" \
+            | tr -d '[:space:]' \
+            | base64 -d > "$RUNNER_TEMP/release.jks"
+          # Sanity-check: file should be a non-trivial PKCS12/JKS blob.
+          sz=$(stat -c '%s' "$RUNNER_TEMP/release.jks")
+          echo "decoded keystore size: $sz bytes"
+          if [ "$sz" -lt 1024 ]; then
+            echo "::error::decoded keystore is suspiciously small ($sz bytes)"
+            exit 1
+          fi
           echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
 
       - name: Build release APK (signed)
