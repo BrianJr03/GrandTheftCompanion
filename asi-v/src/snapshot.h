@@ -1,0 +1,130 @@
+#pragma once
+
+#include <cstddef>
+#include <cstdint>
+
+// snapshot:: — one-writer (script fiber) / many-readers (socket
+// workers) handoff of game state, mirroring asi/src/snapshot.h.
+//
+// Two things are published:
+//   * State — small, rewritten every frame, sent to clients at 20 Hz.
+//   * Lists — the owned-weapon list and the radio-station list. Both
+//     are bulky and change rarely, so they carry version counters and
+//     the bridge only sends them on connect and when a counter moves.
+
+namespace snapshot {
+
+constexpr size_t kNameLen     = 48;   // GXT keys / station ids
+constexpr size_t kLabelLen    = 64;   // localised display strings (UTF-8)
+constexpr size_t kMaxWeapons  = 128;
+constexpr size_t kMaxStations = 64;
+
+// Which protagonist the player ped currently is.
+enum Character : int8_t {
+    kCharOther    = -1,  // Director Mode actor, animal, cutscene ped...
+    kCharMichael  = 0,   // player_zero
+    kCharFranklin = 1,   // player_one
+    kCharTrevor   = 2,   // player_two
+};
+
+struct State {
+    // --- session flags ---
+    bool in_game;         // a player ped exists and no loading screen
+    bool online;          // GTA Online session: everything else is blank
+    bool paused;          // pause menu open
+    bool switching;       // character-switch camera in progress
+    bool cutscene;        // scripted cutscene playing
+    bool mission;         // GET_MISSION_FLAG
+    bool animal;          // peyote / Director Mode animal form
+
+    // --- who ---
+    int8_t   character;   // Character
+    uint32_t ped_model;   // raw model hash, for the "other" case
+
+    // --- stats ---
+    bool    money_valid;  // false for non-protagonists (no SPn_ stat)
+    int32_t money;        // SPn_TOTAL_CASH for the current character
+    int32_t health;       // GET_ENTITY_HEALTH; protagonists: 100..200
+    int32_t max_health;   // GET_ENTITY_MAX_HEALTH
+    int32_t armor;        // GET_PED_ARMOUR
+    int32_t max_armor;    // GET_PLAYER_MAX_ARMOUR
+    uint8_t wanted;       // 0..5 (GTA V has five stars, IV had six)
+
+    // --- special ability (GTA V only) ---
+    // The game exposes no script native for the meter's fill level,
+    // only these states, so the HUD shows a state rather than a %.
+    bool special_unlocked;
+    bool special_enabled;
+    bool special_active;
+    bool special_full;
+
+    // --- weapon ---
+    uint32_t weapon;                 // GET_SELECTED_PED_WEAPON (joaat hash)
+    char     weapon_name[kNameLen];  // "weapon_pistol", or "" if not in our table
+    uint32_t weapon_group;           // GET_WEAPONTYPE_GROUP
+    int32_t  ammo_total;
+    int32_t  ammo_clip;
+    int32_t  clip_size;
+
+    // --- vehicle (meaningful iff in_vehicle) ---
+    bool     in_vehicle;
+    uint32_t vehicle_model;
+    int32_t  vehicle_class;               // natives::VehicleClass
+    char     vehicle_name[kLabelLen];     // localised ("Adder")
+    float    vehicle_speed_mps;
+    float    vehicle_engine_hp;           // -4000..1000
+    float    vehicle_body_hp;             // 0..1000
+    float    vehicle_altitude_m;          // above ground; aircraft only
+    bool     vehicle_has_radio;
+
+    // --- audio ---
+    int32_t radio_index;                  // -1 = off
+    char    radio_name[kNameLen];         // "RADIO_01_CLASS_ROCK", "" = off
+
+    uint64_t ts_ms;                       // GetTickCount64 at publish
+};
+
+struct Weapon {
+    uint32_t hash;
+    uint32_t group;
+    int32_t  ammo;
+    char     name[kNameLen];
+};
+
+struct Station {
+    char name[kNameLen];    // stable id, e.g. "RADIO_01_CLASS_ROCK"
+    char label[kLabelLen];  // localised ("Los Santos Rock Radio"), may be ""
+};
+
+struct Lists {
+    uint32_t weapons_ver;   // bumped whenever weapons[] content changes
+    uint32_t n_weapons;
+    Weapon   weapons[kMaxWeapons];
+
+    uint32_t stations_ver;  // bumped whenever stations[] content changes
+    uint32_t n_stations;
+    Station  stations[kMaxStations];
+};
+
+// Call once before any other function (startup worker).
+void init();
+
+// Writer side (script fiber).
+void publish(const State& s);
+// Replace the weapon / station list; bumps the version only when the
+// content actually differs from what is already published.
+void publish_weapons(const Weapon* list, uint32_t n);
+void publish_stations(const Station* list, uint32_t n);
+
+// Reader side. read() returns the ts_ms of the sample (0 = nothing
+// published yet). read_lists() copies both lists out.
+uint64_t read(State& out);
+void read_lists(Lists& out);
+// Cheap version peek so the bridge can skip copying ~15 KB at 20 Hz.
+void list_versions(uint32_t* weapons_ver, uint32_t* stations_ver);
+
+// Station id for a published index, copied into `out`. False if out of
+// range. Used by commands:: to turn a client's index into a name.
+bool station_name(uint32_t index, char* out, size_t cap);
+
+}  // namespace snapshot

@@ -1,0 +1,29 @@
+#pragma once
+
+#include "version_info.h"
+
+// bridge:: — in-process TCP server publishing newline-delimited JSON on
+// 127.0.0.1:47801, the same port and framing as the GTA IV plugin
+// (asi/src/bridge.h) so the companion app needs one client for both
+// games. Every frame carries "game":"v" so the app can tell them apart.
+//
+// Server -> client frames:
+//   hello     once per connection: exe identity + Script Hook V status
+//   tick      heartbeat while no game state has been published yet
+//   state     20 Hz game state (see format_state in bridge.cpp)
+//   weapons   owned-weapon list; on connect and whenever it changes
+//   stations  radio-station list; on connect and whenever it changes
+//   ack       reply to a client command
+//
+// Client -> server:
+//   {"v":1,"type":"cmd","id":N,"name":"set_radio","args":{"station":I}}
+//   {"v":1,"type":"cmd","id":N,"name":"set_weapon","args":{"weapon":H}}
+
+namespace bridge {
+
+constexpr const char* kPluginVersion = "0.1.0";
+
+// Spawn the listener thread. Returns immediately.
+void start(const VersionInfo& vi);
+
+}  // namespace bridge

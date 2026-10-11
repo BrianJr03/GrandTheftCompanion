@@ -33,6 +33,8 @@ internal fun StatusBar(
     inGame: Boolean,
     wantedLevel: Int,
     palette: HudPalette,
+    // GTA IV has six wanted stars; GTA V passes 5.
+    maxStars: Int = 6,
 ) {
     val mono = FontFamily.Monospace
     Row(
@@ -62,15 +64,15 @@ internal fun StatusBar(
             enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
             exit  = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
         ) {
-            WantedStars(level = wantedLevel, palette = palette)
+            WantedStars(level = wantedLevel, palette = palette, maxStars = maxStars)
         }
     }
 }
 
 @Composable
-private fun WantedStars(level: Int, palette: HudPalette) {
+private fun WantedStars(level: Int, palette: HudPalette, maxStars: Int) {
     Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-        repeat(6) { i ->
+        repeat(maxStars) { i ->
             val lit = i < level
             Icon(
                 imageVector = Icons.Filled.Star,

@@ -1,0 +1,31 @@
+ThorBridgeV.asi
+
+Copyright (C) 2026 Brian Jr. (BrianJr03).
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version. See LICENSE in the repository root.
+
+------------------------------------------------------------------------
+Third-party notes
+------------------------------------------------------------------------
+
+Script Hook V
+  https://www.dev-c.com/gtav/scripthookv
+  (C) Alexander Blade. Closed-source freeware.
+
+  NOT included, NOT redistributed, NOT linked at build time. The plugin
+  resolves ScriptHookV.dll's exported functions by name at run time
+  (src/shv.cpp). No file here is copied or derived from Script Hook V
+  or its SDK; test/mock_shv.cpp is an independent stand-in that exports
+  the same symbol names for off-device testing.
+
+GTA V NativeDB
+  https://github.com/alloc8or/gta5-nativedb-data
+  Community reference. The native names, identifiers and parameter
+  lists in src/natives.h were checked against natives.json and
+  natives_gen9.json. No file from that repository is included.
+
+Unlike asi/ (GTA IV), nothing in this directory is derived from
+GTAIV.EFLC.FusionFix or Zolika1351/iv-sdk.

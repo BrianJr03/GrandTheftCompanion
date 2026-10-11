@@ -17,6 +17,11 @@ The Complete Edition 1.2.0.59** to use the project.
 
 The HUD will refuse to light up on any other game build.
 
+The experimental GTA V plugin (`asi-v/`) likewise ships no Rockstar
+assets and needs your own legitimately-purchased copy of **Grand
+Theft Auto V**. It is story-mode only: in GTA Online it publishes
+nothing but an "online" flag and reads no game state.
+
 ## Rockstar's modding guidelines
 
 As of 2026, Rockstar Games' public modding guidelines permit
@@ -52,6 +57,21 @@ inspired by:
   by ThirteenAG — the `dinput8.dll` proxy that loads
   `ThorBridge.asi` inside the Wine prefix. Not bundled; users
   download it directly from the upstream release.
+
+For the GTA V plugin (`asi-v/`):
+
+* **[Script Hook V](https://www.dev-c.com/gtav/scripthookv)** by
+  Alexander Blade — closed-source freeware that the plugin calls at
+  run time to invoke script natives. It is **not bundled, not
+  redistributed and not linked at build time**; users download it
+  from its author. `asi-v/` contains no code from Script Hook V or
+  its SDK — it looks up the DLL's exported functions by name when it
+  loads (see `asi-v/src/shv.cpp`).
+* **[alloc8or/gta5-nativedb-data](https://github.com/alloc8or/gta5-nativedb-data)**
+  — community reference used to check native names, identifiers and
+  parameter lists.
+* `asi-v/` contains no code derived from FusionFix or iv-sdk; the
+  GTA IV attributions above apply to `asi/` only.
 
 The directly-ported helpers from the GPL-3.0 projects above are why
 this project is also GPL-3.0 — the combined work must be. See

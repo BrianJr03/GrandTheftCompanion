@@ -34,6 +34,7 @@ import jr.brian.thorhud.ui.components.VehiclePanel
 import jr.brian.thorhud.ui.components.WeaponPanel
 import jr.brian.thorhud.ui.components.paletteFor
 import jr.brian.thorhud.ui.components.stationListFor
+import jr.brian.thorhud.ui.v.VMainScreen
 import kotlinx.coroutines.delay
 
 @Composable
@@ -53,6 +54,18 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
 
     if (isDisconnected) {
         SetupScreen(lastError)
+        return
+    }
+
+    // GTA V has its own layout (ui/v/). The plugin names its game in
+    // the hello frame that opens every connection.
+    if (hello?.isGtaV == true) {
+        VMainScreen(
+            viewModel = viewModel,
+            hello = hello,
+            state = state,
+            isStale = isStale,
+        )
         return
     }
 

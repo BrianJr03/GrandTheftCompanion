@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- GTA V strings. Everything specific to the GTA V layout (ui/v/) lives
+     here so strings.xml stays the GTA IV file. Shared wording (panel
+     titles, bar labels, units) is reused from strings.xml. -->
+<resources>
+    <!-- The three protagonists, plus anyone else the player can be
+         (Director Mode actor, peyote animal). Lower-case to match the
+         card-title styling. -->
+    <string name="v_char_michael">michael</string>
+    <string name="v_char_franklin">franklin</string>
+    <string name="v_char_trevor">trevor</string>
+    <string name="v_char_other">other</string>
+
+    <!-- Cash card title: cash is per character in GTA V. -->
+    <string name="v_panel_cash">%1$s · cash</string>
+
+    <!-- Weapon card: thrown weapons have a count but no clip. -->
+    <string name="v_label_ammo">ammo</string>
+
+    <!-- Vehicle card -->
+    <string name="v_panel_vehicle_class">vehicle · %1$s</string>
+    <string name="v_model_fallback">model %1$d</string>
+    <string name="v_altitude_value">alt %1$d ft</string>
+    <string name="v_radio_none">no radio</string>
+
+    <!-- GET_VEHICLE_CLASS, indices 0..22. -->
+    <string-array name="v_vehicle_classes">
+        <item>compact</item>          <!-- 0 -->
+        <item>sedan</item>            <!-- 1 -->
+        <item>SUV</item>              <!-- 2 -->
+        <item>coupe</item>            <!-- 3 -->
+        <item>muscle</item>           <!-- 4 -->
+        <item>sports classic</item>   <!-- 5 -->
+        <item>sports</item>           <!-- 6 -->
+        <item>super</item>            <!-- 7 -->
+        <item>motorcycle</item>       <!-- 8 -->
+        <item>off-road</item>         <!-- 9 -->
+        <item>industrial</item>       <!-- 10 -->
+        <item>utility</item>          <!-- 11 -->
+        <item>van</item>              <!-- 12 -->
+        <item>bicycle</item>          <!-- 13 -->
+        <item>boat</item>             <!-- 14 -->
+        <item>helicopter</item>       <!-- 15 -->
+        <item>plane</item>            <!-- 16 -->
+        <item>service</item>          <!-- 17 -->
+        <item>emergency</item>        <!-- 18 -->
+        <item>military</item>         <!-- 19 -->
+        <item>commercial</item>       <!-- 20 -->
+        <item>train</item>            <!-- 21 -->
+        <item>open wheel</item>       <!-- 22 -->
+    </string-array>
+
+    <!-- Special-ability bar. The game exposes states, not a level. -->
+    <string name="v_label_special">special</string>
+    <string name="v_special_active">ACTIVE</string>
+    <string name="v_special_ready">READY</string>
+    <string name="v_special_charging">charging</string>
+
+    <!-- Tag row under the status bar -->
+    <string name="v_tag_mission">mission</string>
+    <string name="v_tag_cutscene">cutscene</string>
+    <string name="v_tag_animal">animal form</string>
+    <string name="v_tag_special">special active</string>
+
+    <!-- Paused view -->
+    <string name="v_version">GTA V v%1$s</string>
+
+    <!-- Full-screen notices -->
+    <string name="v_notice_switching_title">SWITCHING…</string>
+    <string name="v_notice_online_title">GTA ONLINE</string>
+    <string name="v_notice_online_detail">The companion is story mode only. It shows nothing while you are online.</string>
+    <string name="v_notice_unsupported_title">GTA V: PLUGIN CAN\'T READ THE GAME</string>
+    <string name="v_notice_unsupported_detail">ThorBridgeV.asi loaded, but Script Hook V is not usable:\n%1$s\n\nInstall the Script Hook V release that matches your game build next to GTA5.exe, then relaunch.</string>
+    <string name="v_notice_unsupported_unknown">no reason reported</string>
+
+    <!-- Setup screen: GTA V note under the GTA IV checklist -->
+    <string name="setup_v_section">playing gta v instead?</string>
+    <string name="setup_v_title">ThorBridgeV.asi + Script Hook V</string>
+    <string name="setup_v_detail">Story mode only. Put ThorBridgeV.asi next to GTA5.exe together with Script Hook V (ScriptHookV.dll + its dinput8.dll), keep WINEDLLOVERRIDES=dinput8=n,b, and load a save. The HUD switches to the GTA V layout by itself.</string>
+</resources>

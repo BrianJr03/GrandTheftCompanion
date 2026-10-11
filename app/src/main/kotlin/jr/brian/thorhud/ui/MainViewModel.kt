@@ -20,6 +20,10 @@ class MainViewModel @Inject constructor(
     val lastUpdateMs: StateFlow<Long> = repository.lastUpdateMs
     val lastError: StateFlow<String?> = repository.lastError
 
+    // GTA V only (empty for GTA IV).
+    val stations: StateFlow<List<GameState.Station>> = repository.stations
+    val weapons: StateFlow<List<GameState.VWeapon>> = repository.weapons
+
     fun setRadio(stationIndex: Int) {
         viewModelScope.launch { repository.setRadio(stationIndex) }
     }

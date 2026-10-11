@@ -15,6 +15,8 @@ import javax.inject.Singleton
  *            frames so the HUD doesn't flicker during pauses.
  *  [last]  — most recent frame of any type (used for liveness).
  *  [ack]   — latest `ack` frame received for a client->server command.
+ *  [stations] / [weapons] — GTA V only: latest radio-station list and
+ *            owned-weapon list. Empty for GTA IV.
  *  [lastUpdateMs] — wall clock of the last frame; the UI compares against
  *                   System.currentTimeMillis() to decide "stale."
  */
@@ -35,6 +37,12 @@ class GameStateRepository @Inject constructor(
     private val _ack = MutableStateFlow<GameState?>(null)
     val ack: StateFlow<GameState?> = _ack.asStateFlow()
 
+    private val _stations = MutableStateFlow<List<GameState.Station>>(emptyList())
+    val stations: StateFlow<List<GameState.Station>> = _stations.asStateFlow()
+
+    private val _weapons = MutableStateFlow<List<GameState.VWeapon>>(emptyList())
+    val weapons: StateFlow<List<GameState.VWeapon>> = _weapons.asStateFlow()
+
     private val _lastUpdateMs = MutableStateFlow(0L)
     val lastUpdateMs: StateFlow<Long> = _lastUpdateMs.asStateFlow()
 
@@ -42,9 +50,21 @@ class GameStateRepository @Inject constructor(
     val lastError: StateFlow<String?> = client.lastError
 
     fun update(frame: GameState) {
-        if (frame.isHello) _hello.value = frame
+        if (frame.isHello) {
+            // A hello opens every connection. If the game on the other
+            // end changed (quit GTA IV, launched GTA V or vice versa),
+            // nothing cached from the previous one applies any more.
+            if (_hello.value?.game != frame.game) {
+                _state.value = null
+                _stations.value = emptyList()
+                _weapons.value = emptyList()
+            }
+            _hello.value = frame
+        }
         if (frame.isState) _state.value = frame
         if (frame.isAck) _ack.value = frame
+        if (frame.isStations) _stations.value = frame.stations
+        if (frame.isWeapons) _weapons.value = frame.weapons
         _last.value = frame
         _lastUpdateMs.value = System.currentTimeMillis()
     }

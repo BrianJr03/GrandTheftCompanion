@@ -61,13 +61,17 @@ internal fun FullWidthStats(s: GameState?, palette: HudPalette) {
     }
 }
 
+// internal (not private): the GTA V stats row in ui/v/ reuses it.
+// `valueText` overrides the default "current/max" readout for bars
+// that show a state rather than a number.
 @Composable
-private fun Bar(
+internal fun Bar(
     label: String,
     current: Float,
     max: Float,
     fill: Color,
     modifier: Modifier = Modifier,
+    valueText: String = "${current.toInt()}/${max.toInt()}",
 ) {
     val pct = if (max > 0) (current / max).coerceIn(0f, 1f) else 0f
     Column(modifier = modifier) {
@@ -77,7 +81,7 @@ private fun Bar(
         ) {
             Text(label, color = Color(0xFF6A7A6E),
                  fontFamily = FontFamily.Monospace, fontSize = 11.sp)
-            Text("${current.toInt()}/${max.toInt()}",
+            Text(valueText,
                  color = Color(0xFFB6CCBC),
                  fontFamily = FontFamily.Monospace, fontSize = 11.sp)
         }

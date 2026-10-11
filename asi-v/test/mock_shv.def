@@ -1,0 +1,10 @@
+LIBRARY ScriptHookV
+EXPORTS
+    "?scriptRegister@@YAXPEAUHINSTANCE__@@P6AXXZ@Z" = mock_scriptRegister
+    "?scriptUnregister@@YAXPEAUHINSTANCE__@@@Z" = mock_scriptUnregister
+    "?scriptUnregister@@YAXP6AXXZ@Z" = mock_scriptUnregisterFn
+    "?scriptWait@@YAXK@Z" = mock_scriptWait
+    "?nativeInit@@YAX_K@Z" = mock_nativeInit
+    "?nativePush64@@YAX_K@Z" = mock_nativePush64
+    "?nativeCall@@YAPEA_KXZ" = mock_nativeCall
+    "?getGameVersion@@YA?AW4eGameVersion@@XZ" = mock_getGameVersion

@@ -12,6 +12,9 @@ local.properties
 captures/
 .kotlin/
 
+# Python (asi-v/test/run_mock_test.py)
+__pycache__/
+
 # macOS
 .DS_Store
 

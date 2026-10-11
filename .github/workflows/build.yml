@@ -63,6 +63,56 @@ jobs:
           retention-days: 90
 
   # ------------------------------------------------------------------
+  # ASI (GTA V) — the 64-bit sibling plugin in asi-v/. Binds Script
+  # Hook V at runtime, so nothing third-party is needed to build it.
+  # ------------------------------------------------------------------
+  asi-v:
+    name: ThorBridgeV.asi (mingw-w64 x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install mingw-w64 x86_64 + cmake
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            g++-mingw-w64-x86-64 \
+            gcc-mingw-w64-x86-64 \
+            cmake \
+            ninja-build
+
+      - name: Configure
+        working-directory: asi-v
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-x86_64.cmake \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        working-directory: asi-v
+        run: cmake --build build --parallel
+
+      - name: Verify PE32+ + clean imports
+        working-directory: asi-v/build
+        run: |
+          file ThorBridgeV.asi
+          file ThorBridgeV.asi | grep -q 'PE32+'
+          echo '--- imported DLLs (should be system-only; no ScriptHookV) ---'
+          x86_64-w64-mingw32-objdump -p ThorBridgeV.asi | grep 'DLL Name'
+          if x86_64-w64-mingw32-objdump -p ThorBridgeV.asi | grep -qi 'DLL Name: ScriptHookV'; then
+            echo "::error::ThorBridgeV.asi must not import ScriptHookV.dll statically"
+            exit 1
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ThorBridgeV.asi
+          path: asi-v/build/ThorBridgeV.asi
+          if-no-files-found: error
+          retention-days: 90
+
+  # ------------------------------------------------------------------
   # APK — Android companion. Always builds debug (useful workflow
   # artefact for every main push + PR). On a `v*` tag it ALSO builds a
   # release-signed APK using the keystore secrets, and that signed APK
@@ -153,13 +203,13 @@ jobs:
           retention-days: 90
 
   # ------------------------------------------------------------------
-  # Release — only on `v*` tags. Attaches the ASI and the SIGNED
+  # Release — only on `v*` tags. Attaches both ASIs and the SIGNED
   # release APK to a GitHub Release with auto-generated notes.
   # ------------------------------------------------------------------
   release:
     name: Attach to GitHub Release
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [asi, apk]
+    needs: [asi, asi-v, apk]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -167,6 +217,11 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: ThorBridge.asi
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ThorBridgeV.asi
           path: dist
 
       - uses: actions/download-artifact@v4
@@ -179,6 +234,7 @@ jobs:
         with:
           files: |
             dist/ThorBridge.asi
+            dist/ThorBridgeV.asi
             dist/GTC-release.apk
           generate_release_notes: true
           fail_on_unmatched_files: true
