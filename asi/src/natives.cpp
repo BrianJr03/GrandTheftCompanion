@@ -34,17 +34,26 @@ bool g_resolved = false;
 // FusionFix finds getNativeAddress with `find_pattern<2>(a, b).count(2)
 // .get(1)`. Pattern (a) is for classic IV, pattern (b) for EFLC/CE 1.2.
 // We only ship (b) because our fingerprint-check already pinned CE
-// 1.2.0.59. If a future rebuild changes this, probes::init will log the
-// miss and we stay in safe mode.
+// 1.2.0.59.
 //
 // Match N==2 and take the second hit: the first is a near-identical
 // caller stub FusionFix explicitly rejects (see comvars.ixx:3171).
 constexpr const char* kPatGetNativeAddr =
     "56 8B 35 ?? ?? ?? ?? 85 F6 75 06";
 
-// Pause-gate pattern. Match once; CTimer::ms_bUserPause is a global
-// pointer loaded by MOV at +3, ms_bScriptPause by MOV at +15.
-constexpr const char* kPatPauseGate =
+// Pause-gate pattern. FusionFix tries two forms (comvars.ixx:3129-3140):
+//   short (12 bytes): "0F B6 0D ? ? ? ? 0F B6 C0 0B C1"
+//                     ms_bUserPause @+3, ms_bScriptPause @+15  (OUTSIDE match!)
+//   long  (19 bytes): "0F B6 0D ? ? ? ? 0F B6 15 ? ? ? ? 33 C0 0B C1"
+//                     ms_bUserPause @+3, ms_bScriptPause @+10  (both inside)
+// Round 1 of Phase 2 used the SHORT form; `ms_bScriptPause` read from
+// +15 landed outside the matched instruction stream and resolved to a
+// pointer-1-byte-after-ms_bUserPause (very suspicious). We now try the
+// LONG form first and only fall back to the short one, logging a warning
+// in that case.
+constexpr const char* kPatPauseGateLong =
+    "0F B6 0D ?? ?? ?? ?? 0F B6 15 ?? ?? ?? ?? 33 C0 0B C1";
+constexpr const char* kPatPauseGateShort =
     "0F B6 0D ?? ?? ?? ?? 0F B6 C0 0B C1";
 
 // Returns the N-th (0-indexed) match of `pat` in .text, or 0 if `pat`
@@ -141,17 +150,57 @@ bool resolve() {
     if (!gna) return false;
     g_get_native_addr = reinterpret_cast<GetNativeAddressFn>(gna);
 
-    // 2. Pause gate — single match. ms_bUserPause pointer lives at +3
-    // (inside the MOVZX cl, byte ptr [imm32]), ms_bScriptPause at +15.
-    uintptr_t gate = patterns::find("ms_bPause gate", kPatPauseGate);
-    if (!gate) return false;
+    // 2. Pause gate — prefer the LONG form (both pointers inside the
+    //    matched block); fall back to the short form only if the long
+    //    one misses.
+    uintptr_t gate = patterns::find("ms_bPause gate (long)", kPatPauseGateLong);
+    int script_pause_off = 10;
+    if (!gate) {
+        thor_log("[natives] long pause-gate missed; trying short form");
+        gate = patterns::find("ms_bPause gate (short)", kPatPauseGateShort);
+        script_pause_off = 15;  // outside the matched instruction stream
+        if (!gate) return false;
+    }
     g_user_pause   = *reinterpret_cast<const bool* const*>(gate + 3);
-    g_script_pause = *reinterpret_cast<const bool* const*>(gate + 15);
-    thor_log("[natives] ms_bUserPause=0x%08X ms_bScriptPause=0x%08X",
+    g_script_pause = *reinterpret_cast<const bool* const*>(gate + script_pause_off);
+    thor_log("[natives] ms_bUserPause=0x%08X ms_bScriptPause=0x%08X (gate+%d)",
              static_cast<unsigned>(reinterpret_cast<uintptr_t>(g_user_pause)),
-             static_cast<unsigned>(reinterpret_cast<uintptr_t>(g_script_pause)));
+             static_cast<unsigned>(reinterpret_cast<uintptr_t>(g_script_pause)),
+             script_pause_off);
+
+    // Sanity: the two pointers should be in the same general region of
+    // the exe's data segment, but they are independent globals — being
+    // 1 byte apart is a strong "something is wrong" smell.
+    uintptr_t up = reinterpret_cast<uintptr_t>(g_user_pause);
+    uintptr_t sp = reinterpret_cast<uintptr_t>(g_script_pause);
+    if (up == sp || (up < sp && sp - up < 4) || (sp < up && up - sp < 4)) {
+        thor_log("[natives] WARNING: pause pointers suspiciously close (%u bytes apart)",
+                 static_cast<unsigned>(up > sp ? up - sp : sp - up));
+    }
 
     g_resolved = true;
+
+    // Pre-warm the handler cache so per-frame invokes never call
+    // getNativeAddress mid-transition.
+    static const uint32_t kPrewarm[] = {
+        GET_PLAYER_ID, GET_PLAYER_CHAR,
+        GET_CHAR_HEALTH, GET_CHAR_ARMOUR,
+        STORE_SCORE, STORE_WANTED_LEVEL,
+        GET_CURRENT_CHAR_WEAPON, GET_AMMO_IN_CHAR_WEAPON,
+        GET_AMMO_IN_CLIP, GET_CHAR_WEAPON_IN_SLOT,
+        IS_CHAR_IN_ANY_CAR, GET_CAR_CHAR_IS_USING,
+        GET_CAR_SPEED, GET_ENGINE_HEALTH,
+        GET_CAR_MODEL, GET_DISPLAY_NAME_FROM_VEHICLE_MODEL,
+        GET_PLAYER_RADIO_STATION_INDEX,
+        SET_CURRENT_CHAR_WEAPON, RETUNE_RADIO_TO_STATION_INDEX,
+    };
+    unsigned ok_count = 0;
+    for (uint32_t h : kPrewarm) {
+        if (lookup(h)) ++ok_count;
+    }
+    thor_log("[natives] handler cache primed: %u/%u", ok_count,
+             static_cast<unsigned>(sizeof(kPrewarm) / sizeof(kPrewarm[0])));
+
     return true;
 }
 
@@ -161,17 +210,37 @@ bool ok_to_invoke() {
     return !*g_user_pause && !*g_script_pause;
 }
 
+// Fixed-size open-addressing cache for native handlers. Tiny: GTA IV
+// has ~1500 natives but we only invoke ~15 per frame; linear scan over a
+// 32-entry array is faster than a hash probe.
+namespace {
+struct CacheEntry { uint32_t hash; natives::Handler fn; };
+CacheEntry g_cache[32] = {};
+unsigned   g_cache_count = 0;
+}  // namespace
+
+Handler lookup(uint32_t hash) {
+    if (!g_resolved) return nullptr;
+    for (unsigned i = 0; i < g_cache_count; ++i) {
+        if (g_cache[i].hash == hash) return g_cache[i].fn;
+    }
+    if (g_cache_count >= sizeof(g_cache) / sizeof(g_cache[0])) return nullptr;
+    void* h = g_get_native_addr(hash);
+    if (!h) {
+        thor_log("[natives] lookup(0x%08X): game returned null", hash);
+        return nullptr;
+    }
+    g_cache[g_cache_count].hash = hash;
+    g_cache[g_cache_count].fn   = reinterpret_cast<Handler>(h);
+    ++g_cache_count;
+    return reinterpret_cast<Handler>(h);
+}
+
 bool invoke(uint32_t hash, Context& ctx) {
-    if (!g_resolved) return false;
     if (!ok_to_invoke()) return false;
-
-    void* handler_v = g_get_native_addr(hash);
-    if (!handler_v) return false;
-
-    // All natives are void(__cdecl)(Context*). MinGW's default calling
-    // convention on i386 is cdecl, so no attribute needed on the typedef.
-    using Handler = void (*)(Context*);
-    reinterpret_cast<Handler>(handler_v)(&ctx);
+    Handler fn = lookup(hash);
+    if (!fn) return false;
+    fn(&ctx);
     return true;
 }
 

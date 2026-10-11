@@ -280,8 +280,82 @@ placement strategy (`setLaunchDisplayId` into the HUD Activity). It works
 without any special permissions — no `SYSTEM_ALERT_WINDOW`, no Presentation
 needed. Phase 4 is now mostly a wiring task.
 
-## Next
+## Gate 2 — FAILED on first attempt (2026-10-10 → 2026-10-11)
 
-**Phase 2** — replace the `probes::sample()` stub with CE-correct
-byte-pattern scans + script natives invoked from the game's main thread.
-Everything in `probes.cpp` is currently a safe no-op.
+Phase 2 ASI (`54dddb1`) loaded cleanly: all three pattern scans matched
+exactly once, `getNativeAddress` resolved via the EFLC string, pause-gate
+booleans found, CGameProcess 5-byte CALL hook installed. Log shows
+`[probes] enabled` after each launch.
+
+But the game **crashed on save load, four times in a row**:
+
+```
+# grep -nE 'loaded|detour|enabled|disconnected' ThorBridge.log
+144:[23:49:31.024] === ThorBridge Phase 2 loaded ===
+153:[23:49:31.715] [hook] CGameProcess detour: site=0x005C2A41 orig=0x004016A0 ...
+154:[23:49:31.720] [probes] enabled
+163:[23:51:05.157] === ThorBridge Phase 2 loaded ===
+172:[23:51:05.813] [hook] CGameProcess detour: site=0x005C2A41 orig=0x004016A0 ...
+173:[23:51:05.815] [probes] enabled
+181:[23:52:25.490] === ThorBridge Phase 2 loaded ===
+190:[23:52:26.147] [hook] CGameProcess detour: site=0x005C2A41 orig=0x004016A0 ...
+191:[23:52:26.149] [probes] enabled
+199:[23:53:42.847] === ThorBridge Phase 2 loaded ===
+208:[23:53:43.522] [hook] CGameProcess detour: site=0x005C2A41 orig=0x004016A0 ...
+209:[23:53:43.525] [probes] enabled
+```
+
+Each launch ran ~90 s (main menu + attempt to load the save) then the
+game process died. Fully reproducible. Brian confirmed removing the ASI
+from the folder restored normal behaviour on the same save — definitively
+my fault.
+
+ASI preserved for debugging at
+`<game dir>/_thorbridge_backup/ThorBridge.asi.phase2` on the device.
+
+### Prime suspects
+
+1. **Pause-gate pattern is the 12-byte short form.** FusionFix ships two
+   `find_pattern<2>` strings for `ms_bUserPause`/`ms_bScriptPause`.
+   I used the shorter one; `ms_bScriptPause` is read at displacement +15,
+   which is **three bytes past the end of the matched 12-byte block**.
+   For CE 1.2.0.59 the correct form is the 19-byte EFLC pattern
+   `"0F B6 0D ?? ?? ?? ?? 0F B6 15 ?? ?? ?? ?? 33 C0 0B C1"` with the
+   second pointer at +10 (inside the match). My log reports the two
+   booleans at `0x01173590` and `0x01173591` — adjacent single bytes. That
+   is plausible if `CTimer` has two adjacent `bool`s but is also exactly
+   what a one-off wrong read would look like. If `g_script_pause` is
+   pointing at the wrong byte, `ok_to_invoke()` returns true while the
+   script engine is actually mid-transition and natives fire into
+   half-constructed state.
+
+2. **`getNativeAddress` is called per-invoke.** Each frame I do ~15 native
+   calls, each of which re-walks the game's native table. Over 60 fps
+   that is 900 lookups/sec. FusionFix caches handlers at startup; I
+   should too. Not a crash-cause on its own but adds exposure to
+   transitional state.
+
+3. **No sanity check on player_id / ped_handle.** I call `GET_PLAYER_ID`
+   then unconditionally `GET_PLAYER_CHAR(player_id, &ped)` even if
+   `player_id` looks garbage. During save-load the player ped is
+   destroyed and recreated; a mid-transition native call can land on a
+   null slot.
+
+### Fix plan for round 2 (not yet pushed)
+
+- Switch to the EFLC long pause-gate pattern; verify both pointers
+  resolve to independently-plausible addresses (not necessarily
+  adjacent).
+- Resolve every native handler once at startup and cache; invoke directly
+  through the cached pointer.
+- Add defensive checks: skip the frame if `player_id` is `0` or `0xFFFFFFFF`
+  or if `ped_handle` is `0`.
+- Gate `hook::install_cgameprocess()` behind a `THORBRIDGE_ENABLE_HOOK`
+  compile flag defaulting to OFF so a stock build is always safe to push.
+- Keep the exact pattern + address diagnostics in the log so round-2
+  evidence has the same shape.
+
+Next on-device attempt should start with the hook disabled, confirm the
+new `natives::resolve()` reads the EFLC pointers correctly (log them,
+compare against expectations), then enable the hook via rebuild only when
+I'm confident.

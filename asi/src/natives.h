@@ -116,4 +116,10 @@ bool ok_to_invoke();
 // thread that might be mid-pause.
 bool invoke(uint32_t hash, Context& ctx);
 
+// Resolve a native handler once and cache it. Returns nullptr if
+// resolve() hasn't succeeded or the hash isn't known to the game.
+// Subsequent calls with the same hash return the cached pointer.
+using Handler = void (*)(Context*);
+Handler lookup(uint32_t hash);
+
 }  // namespace natives

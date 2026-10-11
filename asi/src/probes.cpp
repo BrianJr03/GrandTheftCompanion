@@ -30,6 +30,15 @@
 #include "probes.h"
 #include "snapshot.h"
 
+// Round-2 safety: the per-frame hook is only installed if this is set
+// at build time. Default OFF after Phase-2 round 1 crashed Brian's
+// save-load four times. Build with -DTHORBRIDGE_ENABLE_HOOK=1 once the
+// natives + hook changes have been reviewed and we're ready to retry
+// on-device.
+#ifndef THORBRIDGE_ENABLE_HOOK
+#define THORBRIDGE_ENABLE_HOOK 0
+#endif
+
 namespace {
 
 // Post-decryption gate. FusionFix uses this same signature as the
@@ -71,6 +80,15 @@ void on_frame() {
     ctx.reset();
     if (!natives::invoke(natives::GET_PLAYER_ID, ctx)) return;
     uint32_t player_id = ctx.get_u32();
+    // GTA IV single-player returns 0 for the local player. Values other
+    // than 0 or a plausible small index are a strong signal that the
+    // engine is mid-transition — bail without touching anything else.
+    if (player_id == 0xFFFFFFFFu || player_id > 32) {
+        snapshot::Player p{};
+        p.ts_ms = GetTickCount();
+        snapshot::publish(p);
+        return;
+    }
 
     // GET_PLAYER_CHAR(player, &ped_handle) — ped written to out ptr.
     uint32_t ped_handle = 0;
@@ -78,7 +96,9 @@ void on_frame() {
     ctx.push(player_id);
     ctx.push(&ped_handle);
     natives::invoke(natives::GET_PLAYER_CHAR, ctx);
-    if (ped_handle == 0) {
+    // Script-engine handles are strictly positive 20-bit integers (upper
+    // bits are generation/pool metadata); 0 or 0xFFFFFFFF means "none".
+    if (ped_handle == 0 || ped_handle == 0xFFFFFFFFu) {
         snapshot::Player p{};
         p.ts_ms = GetTickCount();
         snapshot::publish(p);
@@ -222,12 +242,18 @@ DWORD WINAPI startup_worker(LPVOID /*unused*/) {
         thor_log("[probes] natives::resolve() failed; staying in safe mode");
         return 0;
     }
+#if THORBRIDGE_ENABLE_HOOK
     if (!hook::install_cgameprocess(on_frame)) {
         thor_log("[probes] CGameProcess hook install failed; staying in safe mode");
         return 0;
     }
     g_enabled = true;
-    thor_log("[probes] enabled");
+    thor_log("[probes] enabled with per-frame hook");
+#else
+    (void)on_frame;  // silence -Wunused when hook is off
+    thor_log("[probes] natives resolved, hook disabled by build flag "
+             "(THORBRIDGE_ENABLE_HOOK=0) — safe mode");
+#endif
     return 0;
 }
 
