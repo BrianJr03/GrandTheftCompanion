@@ -11,7 +11,9 @@ Repo contains the **GTC** Android companion app and **ThorBridge.asi**, the ASI 
 **GTA V (story mode) support is experimental** — a second plugin, **ThorBridgeV.asi**, and a GTA V layout in the app. See [GTA V](#gta-v-experimental).
 
 <p align="center">
-  <img src="assets/screenshot.png" alt="GTA IV on the Thor's top screen, GTC companion on the bottom screen" width="560"/>
+  <img src="assets/screenshot.png" alt="GTA IV on the Thor's top screen, GTC companion on the bottom screen" width="400"/>
+  &nbsp;&nbsp;
+  <img src="assets/screenshot_v.png" alt="GTA V on the Thor's top screen, GTC companion on the bottom screen" width="400"/>
 </p>
 
 ## Downloads
@@ -28,12 +30,6 @@ Licensed under **GPL-3.0-or-later** — see [LICENSE](LICENSE) and [LEGAL.md](LE
 ## Roadmap
 
 - **Weapon picker** 
-
-- **GTA V on-device verification** — `asi-v/` and the GTA V layout
-  are written and mock-tested but have not been run against the real
-  game on a Thor yet. Open questions: Script Hook V under Wine on ARM,
-  what the plugin sees while the game is paused, radio-station list
-  contents per build, layout fit with 20+ stations.
 
 - **Broader device coverage** — only tested on the AYN Thor with
   GameHub Lite. The code paths are generic (secondary-display
@@ -97,7 +93,7 @@ In your launcher, open the game's settings → Environment variables and add:
 
 ## GTA V (experimental)
 
-> **Status:** builds in CI and passes an off-device test against a mock Script Hook V (`asi-v/test/`). **Not yet verified on a Thor against the real game.** Expect rough edges; issues welcome.
+> **Status:** verified on an AYN Thor with GameHub Lite against GTA V 1.0.3751.0 + Script Hook V v3889.0. Trevor, 5-star wanted, aircraft / boat / bicycle data still want more live play — the HUD renders correctly against unit fixtures but has not been eyeballed in-game for those cases. Issues welcome.
 
 **`asi-v/`** — `ThorBridgeV.asi`, a 64-bit Windows DLL for GTA V story mode. It shares the GTA IV plugin's wire protocol and port (`127.0.0.1:47801`, every frame tagged `"game":"v"`) but nothing else:
 
