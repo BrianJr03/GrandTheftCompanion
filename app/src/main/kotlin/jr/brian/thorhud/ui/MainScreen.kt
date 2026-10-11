@@ -775,23 +775,24 @@ private fun ChecklistItem(
 // station playing.
 
 /**
- * TBoGT's local 0..15 → our enum index. Derived from on-device taps:
- * stations 5 (WKTT), 7 (The Journey), 12 (PLR), 19 (Integrity 2.0)
- * are the four base-IV / TLAD stations TBoGT drops. TBoGT additionally
- * has Self Radio at local 16 — it has no enum slot so we don't list it
- * in the picker (tuning there would also need custom audio).
+ * Local 0..15 → enum index for base GTA IV *and* TBoGT. Both episodes
+ * drop the same four enum stations (5 WKTT, 7 The Journey, 12 PLR,
+ * 19 Integrity 2.0) and renumber the rest contiguously; derived from
+ * on-device taps on each. TBoGT additionally has Self Radio at local
+ * 16 — it has no enum slot so it isn't listed in the picker (tuning
+ * there would also need custom audio).
  */
-private val TBOGT_LOCAL_TO_ENUM = intArrayOf(
+private val IV_LOCAL_TO_ENUM = intArrayOf(
     0, 1, 2, 3, 4, 6, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18,
 )
 
-/** Base-IV + TLAD mappings not yet derived from gameplay — pass through
+/** TLAD mapping not yet derived from gameplay — pass through
  *  identity, which at least matches the enum ordering 1:1. */
 private val PASSTHROUGH_LOCAL_TO_ENUM = IntArray(20) { it }
 
 private fun stationListFor(episode: Int?): IntArray = when (episode) {
-    2    -> TBOGT_LOCAL_TO_ENUM
-    else -> PASSTHROUGH_LOCAL_TO_ENUM
+    0, 2 -> IV_LOCAL_TO_ENUM            // base IV + TBoGT (same skips)
+    else -> PASSTHROUGH_LOCAL_TO_ENUM   // TLAD / unknown
 }
 
 private fun gameRadioIndexToEnumIndex(episode: Int?, localIdx: Int?): Int {
