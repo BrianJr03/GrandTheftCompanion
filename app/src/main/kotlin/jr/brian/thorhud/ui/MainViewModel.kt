@@ -18,6 +18,7 @@ class MainViewModel @Inject constructor(
     val last: StateFlow<GameState> = repository.last
     val ack: StateFlow<GameState?> = repository.ack
     val lastUpdateMs: StateFlow<Long> = repository.lastUpdateMs
+    val lastError: StateFlow<String?> = repository.lastError
 
     fun setRadio(stationIndex: Int) {
         viewModelScope.launch { repository.setRadio(stationIndex) }

@@ -38,6 +38,9 @@ class GameStateRepository @Inject constructor(
     private val _lastUpdateMs = MutableStateFlow(0L)
     val lastUpdateMs: StateFlow<Long> = _lastUpdateMs.asStateFlow()
 
+    /** Latest connection-level error for the setup screen. */
+    val lastError: StateFlow<String?> = client.lastError
+
     fun update(frame: GameState) {
         if (frame.isHello) _hello.value = frame
         if (frame.isState) _state.value = frame

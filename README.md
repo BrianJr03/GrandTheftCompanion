@@ -38,6 +38,33 @@ frames, screencaps).
 - [x] **Phase 3** — Two-way protocol with cmd/ack
 - [x] **Phase 4** — HudActivity on bottom display via `setLaunchDisplayId`
 - [x] **Phase 5** — Three HUD panels + radio picker + OLED theme
+- [x] **Phase 6** — In-app setup screen with checklist + last connection error
+
+## Roadmap
+
+Known gaps worth fixing before this is a release-quality tool rather
+than a "builds and works on my device" project:
+
+- **Weapon picker** — the per-frame scan of all 13 weapon slots
+  crashed in Phase 2 and was disabled. The HUD can display the
+  current weapon but has no owned-weapons list, so a tap-to-switch
+  picker needs an on-demand `scan_weapons` command: fire
+  `GET_CHAR_WEAPON_IN_SLOT` × 13 once when the picker opens, return
+  the list as a dedicated response frame. Reuses the Phase-3
+  command infrastructure.
+- **Verify weapon / radio id → name tables** — the lookup tables in
+  `MainScreen.kt` (`weaponName()`, `radioName()`) are my educated
+  guesses from memory. Needs a verification pass against the game:
+  equip each weapon in sequence, note which id the HUD prints,
+  update the table. Same for radio stations.
+- **Broader device coverage** — only tested on the AYN Thor with
+  GameHub Lite. The code paths are generic (secondary-display
+  detection enumerates `FLAG_PRESENTATION` displays rather than
+  hardcoding `displayId=4`; the ASI only needs any Winlator-family
+  launcher that honours `WINEDLLOVERRIDES`), but ScriptHook /
+  Odin / RG556 / RP5 / etc. are all unverified. Each new device
+  needs: display enumeration confirmed, bottom-screen touch
+  behaviour confirmed, ASI load path confirmed.
 
 ## Prerequisites (macOS dev host)
 

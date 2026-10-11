@@ -67,6 +67,16 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     val isStale = lastUpdateMs > 0 && (now - lastUpdateMs) > 1500
     val isDisconnected = lastUpdateMs == 0L
     val liveState = if (!isDisconnected && !isStale) state else null
+    val lastError by viewModel.lastError.collectAsStateWithLifecycle()
+
+    // When the socket has never connected, show a focused setup
+    // walkthrough instead of three empty cards. Keeps someone trying
+    // GTC for the first time from staring at zeros wondering what's
+    // wrong.
+    if (isDisconnected) {
+        SetupScreen(lastError)
+        return
+    }
 
     // True-OLED black: #000000 means those AMOLED subpixels power off,
     // which both saves battery on the Thor's bottom panel and gives
@@ -312,6 +322,118 @@ private fun WantedStars(level: Int) {
                     color = if (lit) Color(0xFFE09B3C) else Color(0xFF263029),
                     shape = RoundedCornerShape(3.dp),
                 ),
+            )
+        }
+    }
+}
+
+// --- setup screen -----------------------------------------------------
+
+@Composable
+private fun SetupScreen(lastError: String?) {
+    Scaffold(containerColor = Color.Black) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start,
+        ) {
+            Text(
+                "GTC — not connected",
+                color = Color(0xFF78DC9F),
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Expecting ThorBridge.asi on 127.0.0.1:47801.",
+                color = Color(0xFF8EA096),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 13.sp,
+            )
+            if (!lastError.isNullOrBlank()) {
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    "Last error: $lastError",
+                    color = Color(0xFFB04040),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 12.sp,
+                )
+            }
+
+            Spacer(Modifier.height(20.dp))
+            Text(
+                "setup checklist",
+                color = Color(0xFF6A7A6E),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(10.dp))
+            ChecklistItem(
+                step = "1",
+                title = "GTA IV: Complete Edition 1.2.0.59",
+                detail = "The ASI pattern-scans this exact build. Other versions won't light up the HUD.",
+            )
+            ChecklistItem(
+                step = "2",
+                title = "Winlator-family launcher with env vars",
+                detail = "GameHub Lite, Winlator / Winlator Cmod, or GameNative. Add " +
+                        "WINEDLLOVERRIDES=dinput8=n,b in the per-game Environment variables.",
+            )
+            ChecklistItem(
+                step = "3",
+                title = "ThorBridge.asi + dinput8.dll in the game folder",
+                detail = "Push both next to GTAIV.exe. dinput8.dll is Ultimate ASI Loader " +
+                        "(ThirteenAG, 32-bit); download from the UAL releases page.",
+            )
+            ChecklistItem(
+                step = "4",
+                title = "Launch GTA IV and load a save",
+                detail = "The ASI stays in safe mode until the script engine is up. On " +
+                        "a loaded save this screen clears automatically.",
+            )
+        }
+    }
+}
+
+@Composable
+private fun ChecklistItem(step: String, title: String, detail: String) {
+    Row(
+        modifier = Modifier.padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .background(Color(0xFF1F2A24), RoundedCornerShape(6.dp)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                step,
+                color = Color(0xFF78DC9F),
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+            )
+        }
+        Column {
+            Text(
+                title,
+                color = Color(0xFFEDEDED),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                detail,
+                color = Color(0xFF8EA096),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 11.sp,
             )
         }
     }

@@ -5,6 +5,9 @@ import jr.brian.thorhud.model.GameState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.sync.Mutex
@@ -24,16 +27,12 @@ import kotlin.math.min
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * TCP client that connects to ThorBridge.asi inside the GameHub Lite
- * Wine prefix. Emits [GameState] frames parsed from newline-delimited
- * JSON, reconnects with exponential backoff on disconnect, and (Phase 3)
- * exposes a [send] path for client->server commands.
- *
- * The frames flow is cold — collect once from the service / activity.
- * [send] is independent — it writes to the current connection if one
- * exists. Commands issued while disconnected are dropped and return
- * false; the UI should either disable itself when the stream is stale
- * or retry.
+ * TCP client that connects to ThorBridge.asi inside the GameHub Lite /
+ * Winlator / GameNative Wine prefix. Emits [GameState] frames parsed
+ * from newline-delimited JSON, reconnects with exponential backoff on
+ * disconnect, exposes a [send] path for client->server commands, and
+ * (Phase A UX) surfaces the latest connection error via [lastError] so
+ * the HUD's setup screen can tell the user what to fix.
  */
 @Singleton
 class GameStateClient @Inject constructor() {
@@ -41,6 +40,11 @@ class GameStateClient @Inject constructor() {
     private val writeMutex = Mutex()
     @Volatile private var currentOut: OutputStream? = null
     private val cmdId = AtomicInteger(0)
+
+    // Null while idle / not yet attempted. On any connect failure or
+    // mid-stream disconnect the reason lands here so the UI can show it.
+    private val _lastError = MutableStateFlow<String?>(null)
+    val lastError: StateFlow<String?> = _lastError.asStateFlow()
 
     fun frames(
         host: String = DEFAULT_HOST,
@@ -54,6 +58,7 @@ class GameStateClient @Inject constructor() {
                     socket.connect(InetSocketAddress(host, port), CONNECT_TIMEOUT_MS)
                     socket.soTimeout = READ_TIMEOUT_MS
                     Log.i(TAG, "connected to $host:$port")
+                    _lastError.value = null
                     backoffMs = INITIAL_BACKOFF_MS
                     currentOut = socket.getOutputStream()
                     try {
@@ -77,8 +82,11 @@ class GameStateClient @Inject constructor() {
                     }
                 }
                 Log.w(TAG, "stream ended, reconnecting")
+                _lastError.value = "stream ended; reconnecting"
             } catch (t: Throwable) {
-                Log.w(TAG, "connection lost: ${t.javaClass.simpleName}: ${t.message}")
+                val short = "${t.javaClass.simpleName}: ${t.message ?: "no detail"}"
+                Log.w(TAG, "connection lost: $short")
+                _lastError.value = short
             }
             kotlinx.coroutines.delay(backoffMs.milliseconds)
             backoffMs = min(backoffMs * 2, MAX_BACKOFF_MS)
@@ -88,8 +96,7 @@ class GameStateClient @Inject constructor() {
     /**
      * Send a client->server command. Returns the assigned command id if
      * written to the socket, or null if the client is not connected.
-     * Caller correlates the id against the matching `ack` frame in the
-     * frames flow.
+     * Caller correlates the id against the matching `ack` frame.
      */
     suspend fun send(name: String, intArg: Int): Int? = withContext(Dispatchers.IO) {
         val out = currentOut ?: return@withContext null
