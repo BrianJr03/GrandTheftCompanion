@@ -328,16 +328,30 @@ private fun FullWidthStats(s: GameState?, palette: HudPalette) {
             current = s?.health ?: 0f, max = 200f,
             fill = palette.health)
         Spacer(Modifier.height(6.dp))
-        Bar(label = stringResource(R.string.label_armor),
-            current = s?.armor?.toFloat() ?: 0f,
-            max = (s?.maxArmor ?: 100).coerceAtLeast(100).toFloat(),
-            fill = palette.armor)
+        // Armor + engine share a single row when the player is in a
+        // vehicle (half-width each, 8dp gap). On foot, armor stays
+        // full-width since there's no engine to pair it with.
         if (v != null) {
-            Spacer(Modifier.height(6.dp))
-            Bar(label = stringResource(R.string.label_engine),
-                current = v.engineHp.coerceAtLeast(0f),
-                max = 1000f,
-                fill = palette.engine)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Bar(label = stringResource(R.string.label_armor),
+                    current = s?.armor?.toFloat() ?: 0f,
+                    max = (s?.maxArmor ?: 100).coerceAtLeast(100).toFloat(),
+                    fill = palette.armor,
+                    modifier = Modifier.weight(1f))
+                Bar(label = stringResource(R.string.label_engine),
+                    current = v.engineHp.coerceAtLeast(0f),
+                    max = 1000f,
+                    fill = palette.engine,
+                    modifier = Modifier.weight(1f))
+            }
+        } else {
+            Bar(label = stringResource(R.string.label_armor),
+                current = s?.armor?.toFloat() ?: 0f,
+                max = (s?.maxArmor ?: 100).coerceAtLeast(100).toFloat(),
+                fill = palette.armor)
         }
     }
 }
@@ -488,9 +502,15 @@ private fun BigValue(@StringRes labelRes: Int?, value: String) {
 }
 
 @Composable
-private fun Bar(label: String, current: Float, max: Float, fill: Color) {
+private fun Bar(
+    label: String,
+    current: Float,
+    max: Float,
+    fill: Color,
+    modifier: Modifier = Modifier,
+) {
     val pct = if (max > 0) (current / max).coerceIn(0f, 1f) else 0f
-    Column {
+    Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
