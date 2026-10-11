@@ -8,24 +8,23 @@
 namespace {
 
 CRITICAL_SECTION g_cs;
-bool g_cs_inited = false;
+bool g_inited = false;
 
 snapshot::Player g_latest{};
 bool g_ever_in_game = false;
-
-void ensure_cs() {
-    if (!g_cs_inited) {
-        InitializeCriticalSection(&g_cs);
-        g_cs_inited = true;
-    }
-}
 
 }  // namespace
 
 namespace snapshot {
 
+void init() {
+    if (g_inited) return;
+    InitializeCriticalSection(&g_cs);
+    g_inited = true;
+}
+
 void publish(const Player& p) {
-    ensure_cs();
+    if (!g_inited) return;
     EnterCriticalSection(&g_cs);
     std::memcpy(&g_latest, &p, sizeof(g_latest));
     if (p.in_game) g_ever_in_game = true;
@@ -33,7 +32,10 @@ void publish(const Player& p) {
 }
 
 uint64_t read(Player& out) {
-    ensure_cs();
+    if (!g_inited) {
+        std::memset(&out, 0, sizeof(out));
+        return 0;
+    }
     EnterCriticalSection(&g_cs);
     std::memcpy(&out, &g_latest, sizeof(out));
     uint64_t ts = g_latest.ts_ms;
@@ -42,7 +44,7 @@ uint64_t read(Player& out) {
 }
 
 bool has_ever_been_in_game() {
-    ensure_cs();
+    if (!g_inited) return false;
     EnterCriticalSection(&g_cs);
     bool v = g_ever_in_game;
     LeaveCriticalSection(&g_cs);

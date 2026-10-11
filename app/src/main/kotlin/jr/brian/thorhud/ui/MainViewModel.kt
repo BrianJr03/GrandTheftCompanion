@@ -12,5 +12,6 @@ class MainViewModel @Inject constructor(
     repository: GameStateRepository,
 ) : ViewModel() {
     val hello: StateFlow<GameState?> = repository.hello
+    val state: StateFlow<GameState?> = repository.state
     val last: StateFlow<GameState> = repository.last
 }

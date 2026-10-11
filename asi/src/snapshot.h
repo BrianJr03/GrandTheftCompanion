@@ -44,6 +44,11 @@ struct Player {
     uint64_t ts_ms;            // monotonic tick when published
 };
 
+// MUST be called once from the main startup worker before any publish/
+// read happens. Initializes the critical section. Calling publish/read
+// without this is undefined.
+void init();
+
 // Writer: called from the game-thread per-frame hook once a per-frame
 // read has filled a local Player.
 void publish(const Player& p);

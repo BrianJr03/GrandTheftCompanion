@@ -2,29 +2,24 @@
 
 #include <cstdint>
 
-// probes:: — the game-state reader. Phase 1 is deliberately safe-mode: no
-// memory reads, no hooks, no native invocations. sample() always returns
-// an empty PlayerState with in_game=false. Phase 2 will replace the body
-// with CE-correct byte-pattern scans + script natives called from the
-// game's own thread.
+// probes:: — the game-state reader. Owns the deferred-init worker that
+// waits for GTA IV's code to be decrypted/mapped, resolves native-engine
+// resolvers via patterns::, installs the CGameProcess hook via hook::,
+// and once per frame reads player/vehicle/weapon state via natives::,
+// publishing to snapshot::.
+//
+// Must be fired exactly once from DllMain's startup worker:
+//     probes::start_async();
+// Returns immediately. Progress is logged.
 
 namespace probes {
 
-struct PlayerState {
-    bool in_game;        // true when a CPlayerInfo + CPed are live
-    // Phase 2 extends this with health, armor, money, weapon, vehicle, ...
-};
+void start_async();
 
-// Attempt to enable the probe path. In Phase 1 this never succeeds: the
-// ASI stays in safe mode regardless of which exe is loaded. The returned
-// string is a short, log-friendly reason.
-const char* init();
-
-// True once init() has concluded the current exe is supported AND all
-// required pattern scans / hooks succeeded. Phase 1 always returns false.
+// True once the deferred-init worker has (a) matched the init-gate
+// pattern, (b) resolved natives::, and (c) installed the CGameProcess
+// hook. The ASI bridge consults this via natives::ok_to_invoke() and
+// snapshot::has_ever_been_in_game() to decide what frame type to emit.
 bool enabled();
-
-// Sample the game. Phase 1: always {in_game=false}.
-PlayerState sample();
 
 }  // namespace probes

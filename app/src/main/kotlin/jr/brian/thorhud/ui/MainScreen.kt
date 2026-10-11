@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -19,20 +21,22 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import jr.brian.thorhud.model.GameState
 
 /**
- * Phase 1 scaffold screen. Shows the live ThorBridge handshake and tick
- * stream on the primary display. Phase 4 moves the real HUD to the
+ * Phase 2 debug screen. Shows hello + the last state frame in a dense
+ * monospace layout. Phase 5 replaces this with a styled HUD on the
  * bottom screen.
  */
 @Composable
 fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     val hello by viewModel.hello.collectAsStateWithLifecycle()
+    val state by viewModel.state.collectAsStateWithLifecycle()
     val last by viewModel.last.collectAsStateWithLifecycle()
     Scaffold { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp),
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
@@ -43,10 +47,10 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 text = "waiting for ThorBridge.asi on 127.0.0.1:47801",
                 style = MaterialTheme.typography.bodyMedium,
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
             HelloPanel(hello)
-            Spacer(Modifier.height(16.dp))
-            LastFramePanel(last)
+            Spacer(Modifier.height(12.dp))
+            StatePanel(state, last)
         }
     }
 }
@@ -62,19 +66,34 @@ private fun HelloPanel(hello: GameState?) {
             return@Column
         }
         Text("  crc32        = ${hello.crc32}", style = body)
-        Text("  size         = ${hello.size}", style = body)
         Text("  file_version = ${hello.fileVersion}", style = body)
         Text("  supported    = ${hello.supported}", style = body)
     }
 }
 
 @Composable
-private fun LastFramePanel(state: GameState) {
+private fun StatePanel(state: GameState?, last: GameState) {
     val mono = FontFamily.Monospace
     val body = MaterialTheme.typography.bodyLarge.copy(fontFamily = mono)
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("last frame:", style = MaterialTheme.typography.titleSmall)
-        Text("  type = ${state.type}", style = body)
-        state.tickMs?.let { Text("  t    = $it ms", style = body) }
+        Text("state:", style = MaterialTheme.typography.titleSmall)
+        if (state == null) {
+            Text("  waiting — last frame was: ${last.type}", style = body)
+            return@Column
+        }
+        Text("  in_game     = ${state.inGame}", style = body)
+        Text("  in_vehicle  = ${state.inVehicle}", style = body)
+        Text("  money       = ${state.money}", style = body)
+        Text("  health      = ${state.health}", style = body)
+        Text("  armor       = ${state.armor}", style = body)
+        Text("  wanted      = ${state.wanted}", style = body)
+        Text("  weapon      = ${state.weaponId} (clip=${state.ammoClip}/tot=${state.ammoTotal})", style = body)
+        Text("  radio       = ${state.radio}", style = body)
+        state.vehicle?.let { v ->
+            Text("  vehicle     = ${v.name} (model=${v.model})", style = body)
+            Text("  speed_mps   = ${"%.1f".format(v.speedMps)}", style = body)
+            Text("  engine_hp   = ${"%.1f".format(v.engineHp)}", style = body)
+        }
+        Text("  owned=${state.ownedWeapons.size} slots", style = body)
     }
 }
