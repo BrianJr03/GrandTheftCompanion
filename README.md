@@ -60,7 +60,9 @@ cd asi
 
 ## Installing on Thor
 
-Current (Phase-1) install flow — the game folder is on shared storage, so adb pushes directly:
+**Launcher**: install **GameHub Lite**, **Winlator** (or a fork such as **Winlator Cmod**), or **GameNative** — any launcher that lets you set per-game environment variables, needed for `WINEDLLOVERRIDES`.
+
+The game folder is on shared storage, so adb pushes directly:
 
 ```
 GAME_DIR='/storage/emulated/0/Download/PC Rom/GTA IV/Game/Grand Theft Auto IV'
@@ -68,5 +70,5 @@ adb -s 114202 push asi/build/ThorBridge.asi "$GAME_DIR/"
 adb -s 114202 push /path/to/dinput8.dll "$GAME_DIR/"    # Ultimate ASI Loader (ThirteenAG), 32-bit
 ```
 
-In GameHub Lite, open the game's `...` menu → settings → Environment variables:
-`WINEDLLOVERRIDES = dinput8=n,b` (native then builtin — forces Wine to load UAL instead of its own `dinput8`). Then launch GTA IV from GameHub Lite as normal.
+In your launcher, open the game's settings → Environment variables and add:
+`WINEDLLOVERRIDES = dinput8=n,b` (native then builtin — forces Wine to load UAL instead of its own `dinput8`). Then launch GTA IV as normal.
