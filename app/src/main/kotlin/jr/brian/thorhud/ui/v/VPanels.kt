@@ -9,6 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,6 +55,26 @@ private fun cashTitle(character: VCharacter, characterKnown: Boolean): String =
         stringResource(R.string.panel_coin)
     }
 
+/** Only the protagonist name span of the cash title ("michael" of
+ *  "michael · cash") picks up the accent; the "· cash" tail stays
+ *  grey. For the non-protagonist "coin" fallback we return null and
+ *  HudCard uses its default rendering. */
+@Composable
+private fun cashTitleAnnotated(
+    character: VCharacter,
+    characterKnown: Boolean,
+): AnnotatedString? {
+    if (!characterKnown || !character.isProtagonist) return null
+    val name = stringResource(character.nameRes)
+    val full = stringResource(R.string.v_panel_cash, name)
+    val nameIdx = full.indexOf(name).coerceAtLeast(0)
+    return buildAnnotatedString {
+        append(full)
+        addStyle(SpanStyle(color = character.palette.accent),
+                 nameIdx, nameIdx + name.length)
+    }
+}
+
 @Composable
 internal fun VCashPanel(
     s: GameState?,
@@ -63,7 +86,7 @@ internal fun VCashPanel(
 ) {
     HudCard(modifier, cashTitle(character, characterKnown),
             align = align, verticalCenter = verticalCenter,
-            titleColor = cashTitleColor(character, characterKnown)) {
+            titleAnnotated = cashTitleAnnotated(character, characterKnown)) {
         BigValue(
             labelRes = null,
             value = cashText(s, character),
@@ -83,7 +106,7 @@ internal fun VCashRadioPanel(
     modifier: Modifier = Modifier,
 ) {
     HudCard(modifier, cashTitle(character, characterKnown),
-            titleColor = cashTitleColor(character, characterKnown)) {
+            titleAnnotated = cashTitleAnnotated(character, characterKnown)) {
         BigValue(labelRes = null, value = cashText(s, character))
         Spacer(Modifier.height(20.dp))
         Text(
@@ -96,12 +119,6 @@ internal fun VCashRadioPanel(
         VRadioValue(radioText(s, stations), textAlign = TextAlign.Start)
     }
 }
-
-/** Protagonist cash-title inherits that character's accent; the
- *  non-protagonist "coin" fallback stays neutral grey. */
-private fun cashTitleColor(character: VCharacter, characterKnown: Boolean): Color =
-    if (characterKnown && character.isProtagonist) character.palette.accent
-    else Color(0xFF6A7A6E)
 
 /** Single-line radio value with ellipsis — long station labels like
  *  "Non-Stop-Pop FM" clip cleanly instead of breaking mid-word under

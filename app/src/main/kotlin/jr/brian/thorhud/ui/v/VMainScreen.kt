@@ -92,8 +92,10 @@ internal fun VMainScreen(
             return
         }
         state != null && state.inGame && (state.paused || state.stalled) -> {
+            // The full-screen notice is a brand moment ("Michael"), not a
+            // repeated label like the cash card; title-case it here.
             VNoticeScreen(
-                title = characterName,
+                title = characterName.replaceFirstChar { it.titlecase() },
                 accent = palette.accent,
                 detail = versionLine,
             )

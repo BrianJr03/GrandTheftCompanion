@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,10 +39,10 @@ internal fun HudCard(
     title: String,
     align: CardAlign = CardAlign.Start,
     verticalCenter: Boolean = false,
-    // GTA V tints the cash-card title in the protagonist's accent so
-    // the character is readable at a glance; everything else keeps the
-    // muted grey.
-    titleColor: Color = Color(0xFF6A7A6E),
+    // GTA V's cash card wants only the character-name span in the
+    // protagonist's accent (the "· cash" tail stays grey). Pass a
+    // pre-styled AnnotatedString here to override the plain title.
+    titleAnnotated: AnnotatedString? = null,
     content: @Composable () -> Unit,
 ) {
     val textAlign = when (align) {
@@ -70,15 +71,27 @@ internal fun HudCard(
             verticalArrangement = if (verticalCenter) Arrangement.Center
                                   else Arrangement.Top,
         ) {
-            Text(
-                title,
-                color = titleColor,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = textAlign,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            if (titleAnnotated != null) {
+                Text(
+                    titleAnnotated,
+                    color = Color(0xFF6A7A6E),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = textAlign,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            } else {
+                Text(
+                    title,
+                    color = Color(0xFF6A7A6E),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = textAlign,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
             Spacer(Modifier.height(6.dp))
             content()
         }

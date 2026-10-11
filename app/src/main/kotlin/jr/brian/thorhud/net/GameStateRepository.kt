@@ -53,11 +53,17 @@ class GameStateRepository @Inject constructor(
         if (frame.isHello) {
             // A hello opens every connection. If the game on the other
             // end changed (quit GTA IV, launched GTA V or vice versa),
-            // nothing cached from the previous one applies any more.
+            // nothing cached from the previous one applies any more —
+            // wipe every flow so the HUD can't briefly render IV data
+            // under the V title (or vice versa) while a fresh state
+            // frame is on its way.
             if (_hello.value?.game != frame.game) {
                 _state.value = null
                 _stations.value = emptyList()
                 _weapons.value = emptyList()
+                _ack.value = null
+                _last.value = GameState.WAITING
+                _lastUpdateMs.value = 0L
             }
             _hello.value = frame
         }
