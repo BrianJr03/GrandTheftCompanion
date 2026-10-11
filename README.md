@@ -76,3 +76,9 @@ If a `dinput8.dll` is already there from another mod (e.g. FusionFix or an earli
 
 In your launcher, open the game's settings → Environment variables and add:
 `WINEDLLOVERRIDES = dinput8=n,b` (native then builtin — forces Wine to load UAL instead of its own `dinput8`). Then launch GTA IV as normal.
+
+## A note on AI usage
+
+I'm a software engineer by trade. I built, tested, and iterated on this project (both the C++ ASI and the Android companion) in collaboration with Anthropic's Claude. Pattern-scan work, Compose UI, release signing, and most of what's in `git log` was pair-programmed with it.
+
+Everything that landed in the repo was reviewed, tested on-device (an AYN Thor + legitimate copy of GTA IV: Complete Edition 1.2.0.59), and signed off by me. Issues and PRs welcome.
