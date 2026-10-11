@@ -234,8 +234,9 @@ private fun StatusBar(
 
 @Composable
 private fun MoneyRadioPanel(s: GameState?, modifier: Modifier = Modifier) {
-    HudCard(modifier, "money · radio") {
-        BigValue(label = "money", value = s?.money?.let { "$$it" } ?: "—")
+    HudCard(modifier, "money") {
+        // No "money" sublabel — the panel title already says it.
+        BigValue(label = null, value = s?.money?.let { "$$it" } ?: "—")
         Spacer(Modifier.height(20.dp))
         BigValue(label = "radio", value = radioName(s?.radio))
     }
@@ -255,12 +256,10 @@ private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier =
             fontSize = 20.sp,
         )
         if ((s?.weaponId ?: 0) > 0) {
-            // "Ghost label" so weapon-name total height matches a full
-            // BigValue (value + 11sp label) in the money/model columns.
-            // Combined with the 20dp real spacer this puts clip X / Y
-            // on the same baseline as Self Radio and mph. 22dp after
-            // on-device check (14 was too low, 30 was too high).
-            Spacer(Modifier.height(22.dp))
+            // Money and model no longer render sublabels, so weapon
+            // doesn't need a ghost spacer any more — a plain 20dp
+            // puts clip X / Y on the same baseline as Self Radio and
+            // mph.
             Spacer(Modifier.height(20.dp))
             // Ammo in headline style: value + label matches the money
             // and radio BigValues.
@@ -314,7 +313,8 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
             Text("on foot", color = Color(0xFF6A7A6E), fontSize = 20.sp)
             return@HudCard
         }
-        BigValue(label = "model", value = v.name.ifBlank { "model ${v.model}" })
+        // No "model" sublabel — the panel title already says "vehicle".
+        BigValue(label = null, value = v.name.ifBlank { "model ${v.model}" })
         // 20dp (matching the money→radio gap in column 1) so mph lands
         // on the same baseline as "Self Radio" and clip X / Y.
         Spacer(Modifier.height(20.dp))
@@ -406,7 +406,7 @@ private fun HudCard(
 }
 
 @Composable
-private fun BigValue(label: String, value: String) {
+private fun BigValue(label: String?, value: String) {
     Text(
         value,
         color = Color(0xFFEDEDED),
@@ -414,12 +414,17 @@ private fun BigValue(label: String, value: String) {
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
     )
-    Text(
-        label,
-        color = Color(0xFF6A7A6E),
-        fontFamily = FontFamily.Monospace,
-        fontSize = 11.sp,
-    )
+    // Null / blank label skips the sublabel row entirely — used for
+    // the money + model headlines where the panel title above already
+    // names the field.
+    if (!label.isNullOrBlank()) {
+        Text(
+            label,
+            color = Color(0xFF6A7A6E),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 11.sp,
+        )
+    }
 }
 
 @Composable
