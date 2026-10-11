@@ -39,6 +39,7 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -159,7 +160,9 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             // headlines → quick-tap pickers → full-screen gauges.
             AnimatedVisibility(liveState?.inVehicle == true) {
                 Column {
-                    Spacer(Modifier.height(12.dp))
+                    // Breathing room so the mph descender doesn't crowd
+                    // the "radio stations" sublabel just below.
+                    Spacer(Modifier.height(20.dp))
                     RadioPicker(
                         currentStation = liveState?.radio ?: -1,
                         palette = palette,
@@ -418,12 +421,18 @@ private fun BigValue(@StringRes labelRes: Int?, value: String) {
             fontSize = 11.sp,
         )
     }
+    // Clip overlong values with an ellipsis instead of letting them
+    // overflow their column (e.g. "K109 The Studio" in a narrow radio
+    // slot renders as "K109 The…").
     Text(
         value,
         color = Color(0xFFEDEDED),
         fontFamily = FontFamily.Monospace,
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.fillMaxWidth(),
     )
 }
 
