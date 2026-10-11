@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -131,13 +133,27 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         return
     }
 
+    val scrollState = rememberScrollState()
+    // One-shot: after first layout settles, latch whether the HUD
+    // overflows the viewport. If it does, FullWidthStats keeps the
+    // engine bar collapsed so we never show a half-clipped bar.
+    // Latched (never un-set) so the engine's own height can't thrash
+    // the detection on/off.
+    var engineBarFits by remember { mutableStateOf(true) }
+    LaunchedEffect(scrollState.maxValue) {
+        delay(250)
+        if (scrollState.maxValue > 0 && engineBarFits) {
+            engineBarFits = false
+        }
+    }
+
     Scaffold(containerColor = Color.Black) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(12.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
         ) {
             StatusBar(
                 isDisconnected = isDisconnected,
@@ -177,7 +193,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 }
             }
             Spacer(Modifier.height(12.dp))
-            FullWidthStats(liveState, palette)
+            FullWidthStats(liveState, palette, engineBarFits = engineBarFits)
         }
     }
 }
@@ -303,7 +319,11 @@ private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier 
 }
 
 @Composable
-private fun FullWidthStats(s: GameState?, palette: HudPalette) {
+private fun FullWidthStats(
+    s: GameState?,
+    palette: HudPalette,
+    engineBarFits: Boolean,
+) {
     val v = s?.vehicle?.takeIf { s.inVehicle }
     Column(
         modifier = Modifier
@@ -318,12 +338,19 @@ private fun FullWidthStats(s: GameState?, palette: HudPalette) {
             current = s?.armor?.toFloat() ?: 0f,
             max = (s?.maxArmor ?: 100).coerceAtLeast(100).toFloat(),
             fill = palette.armor)
-        if (v != null) {
-            Spacer(Modifier.height(6.dp))
-            Bar(label = stringResource(R.string.label_engine),
-                current = v.engineHp.coerceAtLeast(0f),
-                max = 1000f,
-                fill = palette.engine)
+        // engine renders only when we're in a vehicle AND the layout
+        // has room for the full bar — hiding is cleaner than showing
+        // a half-clipped sliver below the fold.
+        AnimatedVisibility(v != null && engineBarFits) {
+            Column {
+                Spacer(Modifier.height(6.dp))
+                if (v != null) {
+                    Bar(label = stringResource(R.string.label_engine),
+                        current = v.engineHp.coerceAtLeast(0f),
+                        max = 1000f,
+                        fill = palette.engine)
+                }
+            }
         }
     }
 }
