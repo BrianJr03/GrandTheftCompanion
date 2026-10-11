@@ -20,9 +20,15 @@ The repo contains the **GTC** Android companion app and two game plugins: **Thor
 2. **Your own legit copy of the game** on-device:
    - GTA IV: Complete Edition **1.2.0.59** (the ASI pattern-scans this exact build).
    - GTA V (experimental): Legacy branch, on a build your [Script Hook V](http://www.dev-c.com/gtav/scripthookv) release lists as supported.
-3. **Drop files next to the game `.exe`** (same folder as `GTAIV.exe` / `GTA5.exe`):
-   - GTA IV: [`dinput8.dll` (Ultimate ASI Loader, 32-bit)](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases) + `ThorBridge.asi`.
-   - GTA V: `dinput8.dll` + `ScriptHookV.dll` (both from the Script Hook V zip) + `ThorBridgeV.asi`.
+3. **Drop these files next to the game `.exe`** (same folder as `GTAIV.exe` / `GTA5.exe`):
+   - **GTA IV** (two files):
+     - `ThorBridge.asi` — from this project's [latest release](https://github.com/BrianJr03/GrandTheftCompanion/releases/latest).
+     - `dinput8.dll` — the **32-bit** build from [Ultimate ASI Loader releases](https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases) (file is named `dinput8.zip` inside the release — unzip and keep the DLL).
+   - **GTA V** (three files):
+     - `ThorBridgeV.asi` — from this project's [latest release](https://github.com/BrianJr03/GrandTheftCompanion/releases/latest).
+     - `ScriptHookV.dll` **and** `dinput8.dll` — both from the `bin/` folder of the [Script Hook V zip](http://www.dev-c.com/gtav/scripthookv). Ignore `NativeTrainer.asi` and `xinput1_4.dll` unless you want them.
+
+   *(We don't bundle `dinput8.dll` or `ScriptHookV.dll` ourselves — Script Hook V's licence forbids redistribution, and keeping the ASI loader next to it for symmetry means both downloads come straight from the author.)*
 4. **Per-game env var** in your launcher: `WINEDLLOVERRIDES=dinput8=n,b` (native then builtin, so Wine loads the ASI loader instead of its own stub).
 5. **Install the GTC APK** from the latest [release](https://github.com/BrianJr03/GrandTheftCompanion/releases/latest). Launch it once; the HUD trampolines onto the bottom display.
 6. **Launch the game** from the launcher. HUD lights up the moment the game is in-world.
