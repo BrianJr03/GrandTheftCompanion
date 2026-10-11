@@ -487,9 +487,33 @@ the game thread, not just that we round-tripped a protocol message.
 - `ack` frames are parsed via nullable id/ok/err fields on the
   tagged-union `GameState` and surfaced on a sticky `ack` StateFlow.
 
+## Gate 4 — PASSED (2026-10-11)
+
+- `MainActivity` is now a trampoline. On `onCreate` it enumerates
+  displays, picks the first secondary with `FLAG_PRESENTATION`, and
+  launches `HudActivity` on it via
+  `ActivityOptions.setLaunchDisplayId`, then calls `finish()`.
+- `HudActivity` owns the TCP connection for its lifetime via
+  `lifecycleScope`, keeps the screen on, hosts the `MainScreen`
+  composable. Declared `taskAffinity=":hud"` + `singleTask` so a
+  back-press on the top screen doesn't tear it down.
+- `GameStateService` + its permissions + notification strings have
+  been removed. A visible Activity on the secondary display stays
+  alive while the game runs on display 0; the service was redundant.
+
+Verified on-device: launching the companion from the launcher routed
+HudActivity to displayId=4 (logcat: `MainActivity: launching HudActivity
+on displayId=4` → `ActivityThread: performLaunchActivity ... displayId
+4` → `GameStateClient: connected to 127.0.0.1:47801`). HUD stays up and
+updates while GTA IV runs on top. Brian confirmed **touches on the
+bottom screen do NOT pause, stutter, or steal controller input from
+the game** — Phase 5's weapon picker and radio control can be plain
+Compose buttons with no non-focusable-window tricks.
+
 ## Next
 
-Phase 3 is done. Phase 4 moves the HUD to a dedicated Activity on the
-bottom display (we already validated `am start --display 4` works
-without special permissions in Phase 1). Phase 5 builds the three real
-panels + weapon picker + radio control.
+Phase 5 — final phase. Three styled HUD panels (stats, weapon+radio,
+vehicle), weapon picker (needs owned-weapons list; the slot-scan was
+disabled in Phase 2 after it crashed — pick up by scanning on demand
+when the picker opens), radio picker, and clear disconnected/stale
+visual states.

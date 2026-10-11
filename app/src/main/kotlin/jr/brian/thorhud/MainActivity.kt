@@ -1,53 +1,57 @@
 package jr.brian.thorhud
 
-import android.Manifest
+import android.app.ActivityOptions
+import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
+import android.hardware.display.DisplayManager
 import android.os.Bundle
+import android.util.Log
+import android.view.Display
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
-import dagger.hilt.android.AndroidEntryPoint
-import jr.brian.thorhud.net.GameStateService
-import jr.brian.thorhud.ui.MainScreen
-import jr.brian.thorhud.ui.theme.ThorHudTheme
 
-@AndroidEntryPoint
+/**
+ * Trampoline launcher: finds the Thor's bottom display (any secondary
+ * display with FLAG_PRESENTATION) and starts [HudActivity] on it via
+ * [ActivityOptions.setLaunchDisplayId], then finishes itself so the
+ * launcher icon never actually occupies the main screen.
+ *
+ * Falls back to launching [HudActivity] on the default display when no
+ * secondary display exists (useful for dev builds on single-display
+ * devices).
+ */
 class MainActivity : ComponentActivity() {
-
-    private val requestNotificationPermission =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) {
-            startBackgroundService()
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            ThorHudTheme {
-                MainScreen()
-            }
+
+        val dm = getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+        val targetDisplayId = pickBottomDisplayId(dm) ?: Display.DEFAULT_DISPLAY
+
+        Log.i(TAG, "launching HudActivity on displayId=$targetDisplayId")
+
+        val intent = Intent(this, HudActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }
-        ensureNotificationPermissionThenStart()
+        val options = ActivityOptions.makeBasic()
+            .setLaunchDisplayId(targetDisplayId)
+            .toBundle()
+        startActivity(intent, options)
+        finish()
     }
 
-    private fun ensureNotificationPermissionThenStart() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val granted = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.POST_NOTIFICATIONS
-            ) == PackageManager.PERMISSION_GRANTED
-            if (!granted) {
-                requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                return
+    private fun pickBottomDisplayId(dm: DisplayManager): Int? {
+        // Any display beyond the default internal one with
+        // FLAG_PRESENTATION is a candidate — on the AYN Thor this is
+        // displayId=4 (local uniqueId local:4630946482288158084).
+        return dm.displays
+            .firstOrNull { display ->
+                display.displayId != Display.DEFAULT_DISPLAY &&
+                    (display.flags and Display.FLAG_PRESENTATION) != 0
             }
-        }
-        startBackgroundService()
+            ?.displayId
     }
 
-    private fun startBackgroundService() {
-        ContextCompat.startForegroundService(
-            this, Intent(this, GameStateService::class.java)
-        )
+    companion object {
+        private const val TAG = "MainActivity"
     }
 }

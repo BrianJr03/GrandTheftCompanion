@@ -5,11 +5,6 @@
     <!-- Loopback TCP from Android still requires the INTERNET permission. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Foreground service runs the TCP client to Game Native's ASI. -->
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
     <application
         android:name=".ThorHudApp"
         android:allowBackup="true"
@@ -19,6 +14,8 @@
         android:theme="@style/Theme.ThorHud"
         tools:targetApi="34">
 
+        <!-- Launcher trampoline. Finds the bottom display and starts
+             HudActivity on it via setLaunchDisplayId, then finishes. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -29,9 +26,16 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".net.GameStateService"
+        <!-- The actual HUD. Supports being launched on an external
+             display. taskAffinity + launchMode keep it in its own task
+             so a back-press from the top screen doesn't tear it down. -->
+        <activity
+            android:name=".HudActivity"
             android:exported="false"
-            android:foregroundServiceType="dataSync" />
+            android:launchMode="singleTask"
+            android:taskAffinity=":hud"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="false"
+            android:theme="@style/Theme.ThorHud" />
     </application>
 </manifest>
