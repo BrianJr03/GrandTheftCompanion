@@ -2,26 +2,29 @@
 
 #include <cstdint>
 
-// probes:: — read GTA IV player state via hand-rolled offset reads. We
-// originally planned to use IV-SDK but its headers lack include guards and
-// rely on MSVC-only parser quirks, so we treat IV-SDK as a reference source
-// for offsets and function RVAs rather than linking it. See probes.cpp.
+// probes:: — the game-state reader. Phase 1 is deliberately safe-mode: no
+// memory reads, no hooks, no native invocations. sample() always returns
+// an empty PlayerState with in_game=false. Phase 2 will replace the body
+// with CE-correct byte-pattern scans + script natives called from the
+// game's own thread.
 
 namespace probes {
 
 struct PlayerState {
-    bool valid;          // false until we're actually in-game
-    float health;        // current health, matches CPed::m_fPedHealth
-    uint32_t max_health; // CPlayerInfo::m_nMaxHealth
-    uint32_t max_armor;  // CPlayerInfo::m_nMaxArmor
+    bool in_game;        // true when a CPlayerInfo + CPed are live
+    // Phase 2 extends this with health, armor, money, weapon, vehicle, ...
 };
 
-// Resolve the IV-SDK address table against the running exe. Returns the
-// detected game version as a short label ("classic 1.0.8.0", "unknown").
+// Attempt to enable the probe path. In Phase 1 this never succeeds: the
+// ASI stays in safe mode regardless of which exe is loaded. The returned
+// string is a short, log-friendly reason.
 const char* init();
 
-// Sample current player state. Returns valid=false if the player hasn't
-// loaded yet (title screen, loading, cutscene without CPlayerInfo).
+// True once init() has concluded the current exe is supported AND all
+// required pattern scans / hooks succeeded. Phase 1 always returns false.
+bool enabled();
+
+// Sample the game. Phase 1: always {in_game=false}.
 PlayerState sample();
 
 }  // namespace probes

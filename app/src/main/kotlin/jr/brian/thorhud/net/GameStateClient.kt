@@ -19,13 +19,15 @@ import kotlin.math.min
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * TCP client that connects to ThorBridge.asi running inside Game Native and
- * emits [GameState] frames parsed from newline-delimited JSON. The flow
- * reconnects on disconnect with exponential backoff capped at 5 s.
+ * TCP client that connects to ThorBridge.asi running inside GameHub Lite's
+ * Wine prefix and emits [GameState] frames parsed from newline-delimited
+ * JSON. The flow reconnects on disconnect with exponential backoff capped
+ * at 5 s. Hello and tick frames are emitted directly; unknown types are
+ * passed through for forward-compat.
  *
- * The flow is cold — collect once from the Service. Backpressure is handled
- * by the collector (StateFlow.update drops older frames, which is correct
- * for a HUD).
+ * The flow is cold — collect once from the Service / Activity. Backpressure
+ * is handled by the collector (StateFlow.update drops older frames, which
+ * is correct for a HUD).
  */
 @Singleton
 class GameStateClient @Inject constructor() {
@@ -50,7 +52,12 @@ class GameStateClient @Inject constructor() {
                             val line = reader.readLine() ?: break
                             if (line.isBlank()) continue
                             val frame = runCatching { json.decodeFromString<GameState>(line) }
+                                .onFailure { Log.w(TAG, "parse failed on: $line") }
                                 .getOrNull() ?: continue
+                            if (frame.isHello) {
+                                Log.i(TAG, "hello: version=${frame.fileVersion} " +
+                                        "crc32=${frame.crc32} supported=${frame.supported}")
+                            }
                             emit(frame)
                         }
                     }

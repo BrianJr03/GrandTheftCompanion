@@ -212,11 +212,76 @@ HWC-display physical id, printed by `dumpsys SurfaceFlinger --display-id`:
 | Game memory reads can happen on the socket thread      | Must move to the game's main/script thread.                 |
 | ULA ships as `dinput8.dll`, Wine auto-overrides it     | Needs `WINEDLLOVERRIDES=dinput8=n,b` in GameHub Lite.       |
 
-## Current gate
+## Gate 0: PASSED (2026-10-10)
 
-**Gate 0 PASSED.** Launcher package, game folder path, exe fingerprint,
-mod files already present, bottom screen display id — all stated above with
-commands to reproduce.
+Launcher package, game folder path, exe fingerprint, mod files already
+present, bottom screen display id — all stated above with commands to
+reproduce.
 
-Next: **Phase 1** — safe-mode ASI (no memory reads, no hooks on unrecognised
-exe) + end-to-end pipe test with `adb forward` and `nc`.
+## Gate 1: PASSED (2026-10-10)
+
+Safe-mode ASI loads under GameHub Lite's Wine, serves `hello` + 20 Hz
+ticks, both the Mac (via `adb forward`) and the companion app on the Thor's
+bottom screen receive frames, and GTA IV plays normally through all of it.
+
+### Install
+
+- Ultimate ASI Loader v9.7.4 (ThirteenAG, 32-bit `dinput8.dll`) and the
+  Phase-1 `ThorBridge.asi` pushed to the game folder via `adb push`. No
+  pre-existing files were overwritten; backup directory not needed.
+- Brian added `WINEDLLOVERRIDES=dinput8=n,b` to GameHub Lite's per-game
+  Environment variables (one-time step).
+
+### Evidence
+
+GTAIV.exe imports `DINPUT8.dll` directly (confirmed with
+`i686-w64-mingw32-objdump -p /tmp/thor_GTAIV.exe`), so UAL as `dinput8.dll`
+with the WINEDLLOVERRIDES above does get loaded.
+
+`ThorBridge.log` (pulled from the game folder):
+```
+[23:27:40.869] === ThorBridge Phase 1 loaded ===
+[23:27:40.933] [init] exe fingerprint: crc32=0x521747AC size=17425752 file_version=1.2.0.59
+[23:27:40.960] [init] probes: safe-mode (Phase 1: no reads, no hooks)
+[23:27:40.974] [bridge] listening on 127.0.0.1:47801
+[23:27:50.986] [heartbeat] alive (probes.enabled=false)
+...
+[23:30:33.253] [bridge] client connected
+```
+
+Fingerprint matches STATE.md exactly — the exe we're attached to is the
+same one `pefile` reported from a static pull.
+
+Mac-side TCP capture (`adb forward tcp:47801 tcp:47801`, then python
+socket for 3 s):
+```
+received 2134 bytes in 59 lines  (≈ 20 Hz)
+{"v":1,"type":"hello","crc32":"0x521747AC","size":17425752,"file_version":"1.2.0.59","supported":false}
+{"v":1,"type":"tick","t":23530268}
+{"v":1,"type":"tick","t":23530322}
+...
+```
+
+Companion app on bottom display (`adb shell am start --display 4 -n jr.brian.thorhud.debug/jr.brian.thorhud.MainActivity`):
+- logcat: `GameStateClient: connected to 127.0.0.1:47801`
+- logcat: `GameStateClient: hello: version=1.2.0.59 crc32=0x521747AC supported=false`
+- `dumpsys activity services` shows `GameStateService` running in-foreground.
+- Bottom-screen screencap (`adb exec-out screencap -d 4630946482288158084 -p`)
+  shows the hello panel and a live tick counter.
+
+GTA IV screencap taken from display 0 at the same moment shows the game in
+free-roam with the minimap drawn and no visible regression. Brian confirmed
+by voice that no stutter or input issue appeared.
+
+### Side bonus
+
+Validating via `am start --display 4` also pre-exercised Phase 4's
+placement strategy (`setLaunchDisplayId` into the HUD Activity). It works
+without any special permissions — no `SYSTEM_ALERT_WINDOW`, no Presentation
+needed. Phase 4 is now mostly a wiring task.
+
+## Next
+
+**Phase 2** — replace the `probes::sample()` stub with CE-correct
+byte-pattern scans + script natives invoked from the game's main thread.
+Everything in `probes.cpp` is currently a safe no-op.

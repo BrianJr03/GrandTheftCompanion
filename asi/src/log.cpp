@@ -9,14 +9,35 @@
 
 namespace {
 
-// Three log destinations, union written to each line so we read whichever
-// is accessible from the Android side. On Game Native (no root), the game's
-// working dir is in app-private storage — unreachable via ADB. Winlator-
-// family launchers mount Linux `/` under drive letter `Z:`, so a path like
-// `Z:\sdcard\ThorBridge.log` resolves to `/sdcard/ThorBridge.log` on
-// Android, which IS reachable via `adb pull`.
-constexpr const char* kLogPathLocal = "ThorBridge.log";
-constexpr const char* kLogPathSdcard = "Z:\\sdcard\\ThorBridge.log";
+// Lazily-resolved absolute log path next to GTAIV.exe. Resolving once at
+// first use avoids depending on the game's CWD (Wine may chdir after
+// start-up) and tolerates DllMain being called very early. We fall back to
+// a plain `ThorBridge.log` relative path on failure.
+char g_log_path[MAX_PATH] = {0};
+bool g_log_path_resolved = false;
+
+const char* log_path() {
+    if (!g_log_path_resolved) {
+        char exe[MAX_PATH];
+        DWORD n = GetModuleFileNameA(NULL, exe, MAX_PATH);
+        if (n == 0 || n == MAX_PATH) {
+            std::strcpy(g_log_path, "ThorBridge.log");
+        } else {
+            // Trim to the directory separator before the exe filename, then
+            // append our log filename.
+            char* sep = std::strrchr(exe, '\\');
+            if (sep) {
+                *(sep + 1) = '\0';
+                std::snprintf(g_log_path, sizeof(g_log_path),
+                              "%sThorBridge.log", exe);
+            } else {
+                std::strcpy(g_log_path, "ThorBridge.log");
+            }
+        }
+        g_log_path_resolved = true;
+    }
+    return g_log_path;
+}
 
 void write_timestamped(FILE* f, const char* line_body) {
     SYSTEMTIME st;
@@ -40,22 +61,16 @@ void thor_log(const char* fmt, ...) {
         }
     }
 
-    // Local file next to GTAIV.exe. Always try — reachable via Game Native's
-    // in-app file manager even without root.
-    if (FILE* f = std::fopen(kLogPathLocal, "a")) {
+    // Primary channel: file in the game folder. On GameHub Lite this folder
+    // is on shared storage (/sdcard), so `adb pull` reaches it without root.
+    if (FILE* f = std::fopen(log_path(), "a")) {
         write_timestamped(f, body);
         std::fclose(f);
     }
 
-    // Z:\sdcard path — ADB-readable if Winlator's Z: drive is mapped.
-    // Opens silently fail if not mapped; no harm.
-    if (FILE* f = std::fopen(kLogPathSdcard, "a")) {
-        write_timestamped(f, body);
-        std::fclose(f);
-    }
-
-    // Wine stderr → Game Native typically captures to
-    // /sdcard/Android/data/app.gamenative/files/wine_logs/*.
+    // Extras: Wine stderr (captured by GameHub Lite under
+    // /sdcard/Android/data/gamehub.lite/files/log/*_wine.txt), and the
+    // Windows debugger stream.
     std::fprintf(stderr, "[ThorBridge] %s\n", body);
     std::fflush(stderr);
     OutputDebugStringA(body);

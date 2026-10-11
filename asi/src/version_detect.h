@@ -2,16 +2,17 @@
 
 #include <cstdint>
 
-// Fingerprints GTAIV.exe so we can pick the correct offset profile for the
-// user's build. The classic 1.0.8.0 / 1.0.7.0 CRC32s are stable and in the
-// table below. The Anker Games repack the user plays will produce an
-// as-yet-unknown CRC32 the first time we run against it — M8 adds it to
-// the table.
+// Reports a stable fingerprint of GTAIV.exe so the client knows what it is
+// talking to. The CRC32 + size pair uniquely identifies a build; the
+// file_version string ("1.2.0.59" etc.) is from the exe's version resource
+// if present. `supported` is true only once Phase 2 lands pattern scans
+// for the detected build.
 
 struct VersionInfo {
     uint32_t crc32;
     uint32_t size;
-    const char* label;  // human-readable identifier, "unknown" if unmatched
+    char file_version[32];   // from VS_FIXEDFILEINFO, or "" if absent
+    bool supported;          // currently always false; Phase 2 flips per-build
 };
 
 VersionInfo detect_version();

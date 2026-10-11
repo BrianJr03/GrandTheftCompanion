@@ -19,12 +19,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import jr.brian.thorhud.model.GameState
 
 /**
- * M4 scaffold screen. Shows the raw game-state stream on the primary
- * display. M5 adds the real HUD on the Thor's bottom screen.
+ * Phase 1 scaffold screen. Shows the live ThorBridge handshake and tick
+ * stream on the primary display. Phase 4 moves the real HUD to the
+ * bottom screen.
  */
 @Composable
 fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val hello by viewModel.hello.collectAsStateWithLifecycle()
+    val last by viewModel.last.collectAsStateWithLifecycle()
     Scaffold { padding ->
         Column(
             modifier = Modifier
@@ -42,22 +44,37 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(Modifier.height(16.dp))
-            StatePanel(state)
+            HelloPanel(hello)
+            Spacer(Modifier.height(16.dp))
+            LastFramePanel(last)
         }
     }
 }
 
 @Composable
-private fun StatePanel(state: GameState) {
+private fun HelloPanel(hello: GameState?) {
     val mono = FontFamily.Monospace
     val body = MaterialTheme.typography.bodyLarge.copy(fontFamily = mono)
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("t         = ${state.tickMs} ms", style = body)
-        Text("valid     = ${state.valid}", style = body)
-        if (state.valid) {
-            Text("health    = ${"%.1f".format(state.health)}", style = body)
-            Text("maxHealth = ${state.maxHealth}", style = body)
-            Text("maxArmor  = ${state.maxArmor}", style = body)
+        Text("hello:", style = MaterialTheme.typography.titleSmall)
+        if (hello == null) {
+            Text("  (none yet)", style = body)
+            return@Column
         }
+        Text("  crc32        = ${hello.crc32}", style = body)
+        Text("  size         = ${hello.size}", style = body)
+        Text("  file_version = ${hello.fileVersion}", style = body)
+        Text("  supported    = ${hello.supported}", style = body)
+    }
+}
+
+@Composable
+private fun LastFramePanel(state: GameState) {
+    val mono = FontFamily.Monospace
+    val body = MaterialTheme.typography.bodyLarge.copy(fontFamily = mono)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("last frame:", style = MaterialTheme.typography.titleSmall)
+        Text("  type = ${state.type}", style = body)
+        state.tickMs?.let { Text("  t    = $it ms", style = body) }
     }
 }

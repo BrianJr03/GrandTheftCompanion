@@ -2,28 +2,14 @@
 #include <windows.h>
 
 #include <cstdio>
+#include <cstring>
 
 #include "version_detect.h"
 
 namespace {
 
-struct Known {
-    uint32_t crc32;
-    uint32_t size;
-    const char* label;
-};
-
-// Fill this in as we fingerprint builds. M8 pins the user's actual Anker
-// Games build. The sentinel {0,0} is unreachable (any real exe has nonzero
-// size) and exists only so the array isn't zero-sized under -Wpedantic.
-constexpr Known kKnown[] = {
-    {0, 0, "sentinel"},
-    // {0x????????, ????????, "classic 1.0.7.0"},
-    // {0x????????, ????????, "classic 1.0.8.0"},
-    // {0x????????, ????????, "complete-edition 1.2.0.59"},
-    // {0x????????, ????????, "anker-games repack"},
-};
-
+// CRC32-with-reflected-polynomial 0xEDB88320. Streamed so we never hold
+// GTAIV.exe (~17 MB) in RAM.
 uint32_t crc32_stream(FILE* f) {
     static uint32_t table[256];
     static bool built = false;
@@ -50,35 +36,56 @@ uint32_t crc32_stream(FILE* f) {
     return crc ^ 0xFFFFFFFFu;
 }
 
+void read_file_version_string(const char* exe_path, char out[32]) {
+    out[0] = '\0';
+
+    DWORD handle = 0;
+    DWORD size = GetFileVersionInfoSizeA(exe_path, &handle);
+    if (size == 0) return;
+
+    void* data = HeapAlloc(GetProcessHeap(), 0, size);
+    if (!data) return;
+
+    if (GetFileVersionInfoA(exe_path, handle, size, data)) {
+        VS_FIXEDFILEINFO* info = nullptr;
+        UINT info_size = 0;
+        if (VerQueryValueA(data, "\\",
+                           reinterpret_cast<LPVOID*>(&info), &info_size)
+            && info && info->dwSignature == 0xFEEF04BD) {
+            std::snprintf(out, 32, "%u.%u.%u.%u",
+                static_cast<unsigned>((info->dwFileVersionMS >> 16) & 0xFFFFu),
+                static_cast<unsigned>((info->dwFileVersionMS      ) & 0xFFFFu),
+                static_cast<unsigned>((info->dwFileVersionLS >> 16) & 0xFFFFu),
+                static_cast<unsigned>((info->dwFileVersionLS      ) & 0xFFFFu));
+        }
+    }
+
+    HeapFree(GetProcessHeap(), 0, data);
+}
+
 }  // namespace
 
 VersionInfo detect_version() {
-    VersionInfo out = {0, 0, "no-exe"};
+    VersionInfo out = {};
+    out.file_version[0] = '\0';
+    out.supported = false;
 
     char path[MAX_PATH];
     if (GetModuleFileNameA(NULL, path, MAX_PATH) == 0) {
         return out;
     }
 
+    read_file_version_string(path, out.file_version);
+
     FILE* f = std::fopen(path, "rb");
-    if (!f) {
-        return out;
-    }
+    if (!f) return out;
 
     std::fseek(f, 0, SEEK_END);
     long sz = std::ftell(f);
     std::fseek(f, 0, SEEK_SET);
-
     out.size = (sz > 0) ? static_cast<uint32_t>(sz) : 0;
     out.crc32 = crc32_stream(f);
     std::fclose(f);
 
-    out.label = "unknown";
-    for (const auto& k : kKnown) {
-        if (k.crc32 == out.crc32 && k.size == out.size) {
-            out.label = k.label;
-            break;
-        }
-    }
     return out;
 }
