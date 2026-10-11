@@ -70,9 +70,9 @@ private data class HudPalette(
 
 private val PaletteIV = HudPalette(
     label  = "GTA IV",
-    accent = Color(0xFF78DC9F),  // Niko green
-    speed  = Color(0xFF78DC9F),
-    health = Color(0xFF78DC9F),
+    accent = Color(0xFFEDEDED),  // base IV: clean white as the default accent
+    speed  = Color(0xFFEDEDED),
+    health = Color(0xFFEDEDED),
     armor  = Color(0xFF4F8FD0),
     stars  = Color(0xFFE09B3C),
     engine = Color(0xFFE09B3C),
