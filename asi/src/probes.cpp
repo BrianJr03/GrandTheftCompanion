@@ -86,6 +86,12 @@ constexpr unsigned kStableFramesRequired = 15;  // ~0.25s at 60fps
 #define THORBRIDGE_NATIVES_LEVEL 1  // 1=stats, 2=stats+weapon, 3=all
 #endif
 
+// Last episode value from a successful on_frame read. We echo it on
+// every publish_waiting() so the HUD's episode-accent and the
+// paused-view "episode" label don't collapse back to GTA IV defaults
+// the moment the natives chain bypasses (pause, cutscene, etc.).
+uint32_t g_last_episode = 0;
+
 void publish_waiting() {
     snapshot::Player p{};
     p.ts_ms = GetTickCount();
@@ -95,6 +101,7 @@ void publish_waiting() {
     bool u = false, s = false;
     natives::debug_read_pause(&u, &s);
     p.paused = u;
+    p.episode = g_last_episode;
     snapshot::publish(p);
 }
 
@@ -289,6 +296,7 @@ void on_frame() {
         ctx.reset();
         natives::invoke(natives::GET_CURRENT_EPISODE, ctx);
         p.episode = ctx.get_u32();
+        g_last_episode = p.episode;  // see publish_waiting()
     }
 #endif  // THORBRIDGE_NATIVES_LEVEL >= 3
 

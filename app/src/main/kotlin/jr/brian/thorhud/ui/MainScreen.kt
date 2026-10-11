@@ -255,12 +255,12 @@ private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier =
             fontSize = 20.sp,
         )
         if ((s?.weaponId ?: 0) > 0) {
-            // 14.dp "ghost label" so weapon-name height matches a full
+            // "Ghost label" so weapon-name total height matches a full
             // BigValue (value + 11sp label) in the money/model columns.
-            // Combined with the 20dp real spacer this puts the clip
-            // value on the same baseline as Self Radio and the mph
-            // readout in the neighbouring columns.
-            Spacer(Modifier.height(14.dp))
+            // Combined with the 20dp real spacer this puts clip X / Y
+            // on the same baseline as Self Radio and mph. Bumped to
+            // 30dp after on-device check — 14dp wasn't enough.
+            Spacer(Modifier.height(30.dp))
             Spacer(Modifier.height(20.dp))
             // Ammo in headline style: value + label matches the money
             // and radio BigValues.
