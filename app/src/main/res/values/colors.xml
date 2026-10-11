@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#156A3B</color>
+    <!-- Adaptive-icon background. True black so the Niko-green GTC
+         wordmark pops at any launcher shape (square, round, squircle). -->
+    <color name="ic_launcher_background">#000000</color>
 </resources>

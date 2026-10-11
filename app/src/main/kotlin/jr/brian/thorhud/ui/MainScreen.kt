@@ -553,23 +553,33 @@ private fun ChecklistItem(step: String, title: String, detail: String) {
 
 // --- cosmetic lookup tables -------------------------------------------
 
+// GTA IV eWeapon enum, authoritative from Aru's ScriptHook SDK
+// (violetfrost/gtaiv-scripthook-sdk, ScriptHook/ScriptingEnums.h).
+// Earlier table was shifted by a few positions and reported "SMG" for
+// what was actually a pistol.
 private fun weaponName(id: Int?): String = when (id) {
     null, 0 -> "unarmed"
-    1 -> "baseball bat"
-    2 -> "pool cue"
-    3 -> "knife"
-    4 -> "grenade"
-    5 -> "pistol"
-    6 -> "combat pistol"
-    7 -> "SMG"
-    8 -> "carbine SMG"
-    9 -> "pump shotgun"
-    10 -> "combat shotgun"
-    11 -> "AK-47"
-    12 -> "M4"
-    13 -> "sniper"
-    14 -> "combat sniper"
-    15 -> "RPG"
+    1  -> "baseball bat"
+    2  -> "pool cue"
+    3  -> "knife"
+    4  -> "grenade"
+    5  -> "molotov"
+    6  -> "rocket"
+    7  -> "pistol"
+    8  -> "weapon 8"             // WEAPON_UNUSED0 — reserved, never equipped
+    9  -> "Desert Eagle"
+    10 -> "pump shotgun"
+    11 -> "sawed-off shotgun"    // Baretta
+    12 -> "Micro-SMG"
+    13 -> "MP5"
+    14 -> "AK-47"
+    15 -> "M4"
+    16 -> "sniper rifle"
+    17 -> "combat sniper"        // M40A1
+    18 -> "RPG"                  // RLAUNCHER
+    19 -> "flamethrower"
+    20 -> "minigun"
+    in 21..38 -> "episodic ${id - 20}"  // TLAD/TBoGT DLC weapons
     else -> "weapon $id"
 }
 

@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  Stylized "GTC" wordmark in the HUD's Niko-green on the dark adaptive
+  background. Three stencil-block letters built from rectangles so no
+  external font is needed. Positioned inside the 72×72 adaptive-icon
+  safe area, centered in the 108×108 viewport.
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Placeholder: two stacked rounded rectangles evoking the Thor's
-         dual screens. Replace with real art before shipping. -->
-    <path
-        android:pathData="M30,30 h48 a4,4 0 0 1 4,4 v22 a4,4 0 0 1 -4,4 h-48 a4,4 0 0 1 -4,-4 v-22 a4,4 0 0 1 4,-4 z"
-        android:fillColor="#FFFFFF" />
-    <path
-        android:pathData="M38,66 h32 a4,4 0 0 1 4,4 v10 a4,4 0 0 1 -4,4 h-32 a4,4 0 0 1 -4,-4 v-10 a4,4 0 0 1 4,-4 z"
-        android:fillColor="#FFFFFF" />
+
+    <path android:fillColor="#78DC9F" android:pathData="
+        M23,39 H41 V44 H23 Z
+        M23,39 H28 V69 H23 Z
+        M23,64 H41 V69 H23 Z
+        M36,54 H41 V69 H36 Z
+        M32,54 H41 V59 H32 Z
+        M45,39 H63 V44 H45 Z
+        M51,39 H57 V69 H51 Z
+        M67,39 H85 V44 H67 Z
+        M67,39 H72 V69 H67 Z
+        M67,64 H85 V69 H67 Z" />
 </vector>
