@@ -5,7 +5,6 @@
   Keep in sync with the vector drawable if the launcher icon ever changes.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="256" height="256">
-  <rect width="108" height="108" fill="#000000"/>
   <path fill="#FFFFFF" d="
     M35.5,36.0 L49.5,36.0 L48.8,40.0 L34.8,40.0 Z
     M35.5,36.0 L39.5,36.0 L33.0,72.0 L29.0,72.0 Z
