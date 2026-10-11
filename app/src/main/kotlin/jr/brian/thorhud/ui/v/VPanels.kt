@@ -62,7 +62,8 @@ internal fun VCashPanel(
     modifier: Modifier = Modifier,
 ) {
     HudCard(modifier, cashTitle(character, characterKnown),
-            align = align, verticalCenter = verticalCenter) {
+            align = align, verticalCenter = verticalCenter,
+            titleColor = cashTitleColor(character, characterKnown)) {
         BigValue(
             labelRes = null,
             value = cashText(s, character),
@@ -81,7 +82,8 @@ internal fun VCashRadioPanel(
     stations: List<GameState.Station>,
     modifier: Modifier = Modifier,
 ) {
-    HudCard(modifier, cashTitle(character, characterKnown)) {
+    HudCard(modifier, cashTitle(character, characterKnown),
+            titleColor = cashTitleColor(character, characterKnown)) {
         BigValue(labelRes = null, value = cashText(s, character))
         Spacer(Modifier.height(20.dp))
         Text(
@@ -94,6 +96,12 @@ internal fun VCashRadioPanel(
         VRadioValue(radioText(s, stations), textAlign = TextAlign.Start)
     }
 }
+
+/** Protagonist cash-title inherits that character's accent; the
+ *  non-protagonist "coin" fallback stays neutral grey. */
+private fun cashTitleColor(character: VCharacter, characterKnown: Boolean): Color =
+    if (characterKnown && character.isProtagonist) character.palette.accent
+    else Color(0xFF6A7A6E)
 
 /** Single-line radio value with ellipsis — long station labels like
  *  "Non-Stop-Pop FM" clip cleanly instead of breaking mid-word under

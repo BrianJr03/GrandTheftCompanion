@@ -38,6 +38,10 @@ internal fun HudCard(
     title: String,
     align: CardAlign = CardAlign.Start,
     verticalCenter: Boolean = false,
+    // GTA V tints the cash-card title in the protagonist's accent so
+    // the character is readable at a glance; everything else keeps the
+    // muted grey.
+    titleColor: Color = Color(0xFF6A7A6E),
     content: @Composable () -> Unit,
 ) {
     val textAlign = when (align) {
@@ -68,7 +72,7 @@ internal fun HudCard(
         ) {
             Text(
                 title,
-                color = Color(0xFF6A7A6E),
+                color = titleColor,
                 fontFamily = FontFamily.Monospace,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
