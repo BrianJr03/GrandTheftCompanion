@@ -185,8 +185,13 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     // Breathing room so the mph descender doesn't crowd
                     // the "radio stations" sublabel just below.
                     Spacer(Modifier.height(20.dp))
+                    // Convert the game's episode-local radio index back
+                    // into our 20-item picker space so highlights line
+                    // up with the station that's actually playing.
                     RadioPicker(
-                        currentStation = liveState?.radio ?: -1,
+                        currentStation = gameRadioIndexToEnumIndex(
+                            liveState?.episode, liveState?.radio,
+                        ),
                         palette = palette,
                         onStationTap = { station -> viewModel.setRadio(station) },
                     )
@@ -239,7 +244,14 @@ private fun MoneyRadioPanel(s: GameState?, modifier: Modifier = Modifier) {
                 ?: stringResource(R.string.money_empty),
         )
         Spacer(Modifier.height(20.dp))
-        BigValue(labelRes = R.string.label_radio, value = radioName(s?.radio))
+        // Convert local → enum so radio NAME matches whichever station
+        // is actually playing (same conversion the picker uses for its
+        // highlight). Without this, TBoGT would mis-label stations the
+        // whole way down the enum list.
+        BigValue(
+            labelRes = R.string.label_radio,
+            value = radioName(gameRadioIndexToEnumIndex(s?.episode, s?.radio)),
+        )
     }
 }
 
@@ -670,6 +682,45 @@ private fun ChecklistItem(
                 fontSize = 11.sp,
             )
         }
+    }
+}
+
+// --- radio index-space conversion -------------------------------------
+//
+// GTA IV radio has two different index spaces that fooled the picker:
+//   SET (RETUNE_RADIO_TO_STATION_INDEX): expects the authoritative
+//       20-item enum index (0..19, see res/values/strings.xml).
+//   GET (GET_PLAYER_RADIO_STATION_INDEX): returns the current episode's
+//       LOCAL 0-based index (base IV / TLAD / TBoGT each skip the
+//       stations they don't carry and renumber the rest).
+//
+// Without conversion the picker tapped "9" (The Beat enum=9), SET
+// honoured it, but GET came back as local 7 and the highlight landed
+// on the "7" button (The Journey — which TBoGT doesn't even have).
+//
+// gameRadioIndexToEnumIndex() takes GET's local return value and maps
+// it back into our 20-slot picker so the highlight follows the actual
+// station playing.
+
+/**
+ * TBoGT's local 0..15 → our enum index. Derived from on-device taps:
+ * stations 5 (WKTT), 7 (The Journey), 12 (PLR), 19 (Integrity 2.0)
+ * are the four base-IV / TLAD stations TBoGT drops. TBoGT additionally
+ * has Self Radio at local 16 — it has no enum slot and resolves to -1
+ * (no highlight) if the game is tuned there.
+ */
+private val TBOGT_LOCAL_TO_ENUM = intArrayOf(
+    0, 1, 2, 3, 4, 6, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18,
+)
+
+private fun gameRadioIndexToEnumIndex(episode: Int?, localIdx: Int?): Int {
+    if (localIdx == null || localIdx < 0) return -1
+    return when (episode) {
+        2    -> TBOGT_LOCAL_TO_ENUM.getOrElse(localIdx) { -1 }
+        // Base IV and TLAD mappings haven't been reverse-engineered
+        // yet — pass through identity so at least common stations line
+        // up. Will be dialled in the first time GTC runs on those.
+        else -> localIdx
     }
 }
 
