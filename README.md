@@ -40,17 +40,39 @@ cd asi
 ./gradlew :app:installDebug     # install on a connected ADB device (Thor)
 ```
 
-## Installing on Thor
+## Installing on-device
 
 **Launcher**: install **GameHub Lite**, **Winlator** (or a fork such as **Winlator Cmod**), or **GameNative** — any launcher that lets you set per-game environment variables, needed for `WINEDLLOVERRIDES`.
 
-The game folder is on shared storage, so adb pushes directly:
+### Where is the game folder?
+
+GTC needs to drop two files next to `GTAIV.exe` inside your existing GTA IV install. The game folder's path depends on how/where you installed it:
+
+- **Shared storage** (common for sideloaded / repacked installs): typically something like `/sdcard/Download/.../GTAIV/` or `/sdcard/Games/.../GTAIV/`. Any folder under `/storage/emulated/0/` is reachable by `adb push` directly.
+- **Launcher app-private storage** (some launcher imports do this): the folder lives under `/sdcard/Android/data/<launcher.package>/files/...`. Also reachable via `adb push` on Android 13.
+- **If you don't know where it is**, find it:
+  ```
+  adb shell "find /sdcard /storage -iname 'GTAIV.exe' 2>/dev/null"
+  ```
+  Point `GAME_DIR` at whatever that returns (minus `/GTAIV.exe`).
+
+### Dropping the files
 
 ```
-GAME_DIR='/storage/emulated/0/Download/PC Rom/GTA IV/Game/Grand Theft Auto IV'
-adb push asi/build/ThorBridge.asi "$GAME_DIR/"
-adb push /path/to/dinput8.dll "$GAME_DIR/"    # Ultimate ASI Loader (ThirteenAG), 32-bit
+# Set to whatever path the find command above returned
+GAME_DIR='/sdcard/path/to/your/GTAIV folder'
+
+# ThorBridge.asi — from this repo's build or the GitHub release
+adb push ThorBridge.asi "$GAME_DIR/"
+
+# Ultimate ASI Loader (ThirteenAG) 32-bit — download the dinput8.dll
+# from https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases
+adb push dinput8.dll "$GAME_DIR/"
 ```
+
+If a `dinput8.dll` is already there from another mod (e.g. FusionFix or an earlier UAL install), you can usually leave it in place — UAL will chain-load any additional `.asi` files it finds alongside, which is exactly what we want.
+
+### Launcher env var
 
 In your launcher, open the game's settings → Environment variables and add:
 `WINEDLLOVERRIDES = dinput8=n,b` (native then builtin — forces Wine to load UAL instead of its own `dinput8`). Then launch GTA IV as normal.
