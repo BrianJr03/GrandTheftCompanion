@@ -91,9 +91,9 @@ If a `dinput8.dll` is already there from another mod (e.g. FusionFix or an earli
 In your launcher, open the game's settings → Environment variables and add:
 `WINEDLLOVERRIDES = dinput8=n,b` (native then builtin — forces Wine to load UAL instead of its own `dinput8`). Then launch GTA IV as normal.
 
-## GTA V (experimental)
+## GTA V
 
-> **Status:** verified on an AYN Thor with GameHub Lite against GTA V 1.0.3751.0 + Script Hook V v3889.0. Trevor, 5-star wanted, aircraft / boat / bicycle data still want more live play — the HUD renders correctly against unit fixtures but has not been eyeballed in-game for those cases. Issues welcome.
+> **Status:** verified on an AYN Thor with GameHub Lite against GTA V 1.0.3751.0 + Script Hook V v3889.0. Issues welcome.
 
 **`asi-v/`** — `ThorBridgeV.asi`, a 64-bit Windows DLL for GTA V story mode. It shares the GTA IV plugin's wire protocol and port (`127.0.0.1:47801`, every frame tagged `"game":"v"`) but nothing else:
 
