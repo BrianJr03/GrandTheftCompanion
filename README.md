@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="GTC logo" width="160" height="160"/>
+</p>
+
 # Grand Theft Companion
 
 **GTC**: AYN Thor bottom-screen companion for GTA IV. Live HUD on the Thor's bottom screen while GTA IV plays on the main screen via [GameHub Lite](https://www.gamehublite.com/) (`gamehub.lite`) or any Winlator-family launcher.
