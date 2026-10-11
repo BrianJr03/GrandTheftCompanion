@@ -41,6 +41,12 @@ struct Player {
     // --- audio ---
     int32_t radio_station;     // GET_PLAYER_RADIO_STATION_INDEX; -1 = off
 
+    // --- episode ---
+    // 0 = Grand Theft Auto IV
+    // 1 = The Lost and Damned
+    // 2 = The Ballad of Gay Tony
+    uint32_t episode;          // GET_CURRENT_EPISODE
+
     uint64_t ts_ms;            // monotonic tick when published
 };
 

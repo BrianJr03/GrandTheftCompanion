@@ -53,6 +53,10 @@ data class GameState(
     // state — audio
     @SerialName("radio") val radio: Int? = null,
 
+    // state — episode. 0 = GTA IV, 1 = The Lost and Damned, 2 = TBoGT.
+    // Drives the HUD's accent palette.
+    @SerialName("episode") val episode: Int? = null,
+
     // ack (Phase 3) — correlation id matches the cmd id, ok=true on
     // success, err carries a short reason string on failure.
     @SerialName("id") val ackId: Int? = null,

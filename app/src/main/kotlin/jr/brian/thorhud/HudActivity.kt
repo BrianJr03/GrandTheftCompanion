@@ -4,6 +4,9 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import jr.brian.thorhud.net.GameStateClient
@@ -19,7 +22,9 @@ import javax.inject.Inject
  * (no foreground service needed — a visible Activity on a secondary
  * display stays alive while the main-screen game runs on display 0).
  *
- * Keeps the screen on while visible so the HUD doesn't dim mid-session.
+ * Immersive-sticky: keeps the screen on and hides the system status +
+ * navigation bars so the HUD gets the whole 1240×1080 panel. Bars
+ * reappear briefly on a swipe from an edge, then auto-hide.
  */
 @AndroidEntryPoint
 class HudActivity : ComponentActivity() {
@@ -30,6 +35,7 @@ class HudActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        goImmersive()
 
         lifecycleScope.launch {
             client.frames().collect { repository.update(it) }
@@ -39,6 +45,22 @@ class HudActivity : ComponentActivity() {
             GtcTheme {
                 MainScreen()
             }
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // System bars can creep back on focus changes (dialogs, display
+        // routing); re-hide every time we regain focus.
+        if (hasFocus) goImmersive()
+    }
+
+    private fun goImmersive() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            hide(WindowInsetsCompat.Type.systemBars())
+            systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
 }

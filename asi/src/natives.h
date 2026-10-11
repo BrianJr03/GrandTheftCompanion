@@ -42,6 +42,7 @@ enum : uint32_t {
     GET_PLAYER_RADIO_STATION_INDEX      = 0x4E493AAF,
     SET_CURRENT_CHAR_WEAPON             = 0x6CF44DD6,
     RETUNE_RADIO_TO_STATION_INDEX       = 0x48ED6432,
+    GET_CURRENT_EPISODE                 = 0x7D7619D2,  // 0=IV, 1=TLAD, 2=TBoGT
 };
 
 // rage::scrNativeCallContext layout, per FusionFix (source/natives.ixx).

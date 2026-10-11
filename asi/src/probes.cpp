@@ -277,6 +277,13 @@ void on_frame() {
         natives::invoke(natives::GET_PLAYER_RADIO_STATION_INDEX, ctx);
         p.radio_station = static_cast<int32_t>(ctx.get_u32());
     }
+    // Current episode — 0=IV, 1=TLAD, 2=TBoGT. Direct uint32 return.
+    // Used by the HUD to pick an accent palette per episode.
+    {
+        ctx.reset();
+        natives::invoke(natives::GET_CURRENT_EPISODE, ctx);
+        p.episode = ctx.get_u32();
+    }
 #endif  // THORBRIDGE_NATIVES_LEVEL >= 3
 
     snapshot::publish(p);

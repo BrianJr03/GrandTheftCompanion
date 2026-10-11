@@ -96,7 +96,7 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         "\"owned\":%s,"
         "\"vehicle\":{\"model\":%u,\"name\":\"%s\","
         "\"speed_mps\":%.2f,\"engine_hp\":%.1f},"
-        "\"radio\":%d}\n",
+        "\"radio\":%d,\"episode\":%u}\n",
         static_cast<unsigned long long>(p.ts_ms),
         p.in_game ? "true" : "false",
         p.in_vehicle ? "true" : "false",
@@ -111,7 +111,7 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         p.vehicle_model, veh_name,
         static_cast<double>(p.vehicle_speed_mps),
         static_cast<double>(p.vehicle_engine_hp),
-        p.radio_station);
+        p.radio_station, p.episode);
 }
 
 int format_ack(char* buf, size_t cap, const commands::Ack& a) {

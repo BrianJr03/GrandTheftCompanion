@@ -20,8 +20,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,6 +48,59 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import jr.brian.thorhud.model.GameState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+// --- episode-driven accent palette ------------------------------------
+
+/**
+ * Accent colours tied to the currently-loaded GTA IV episode. The ASI
+ * reports `episode` via GET_CURRENT_EPISODE (0 = IV, 1 = The Lost and
+ * Damned, 2 = The Ballad of Gay Tony). Each episode gets its own
+ * signature accent so the HUD mirrors the mood of what's on the top
+ * screen.
+ */
+private data class HudPalette(
+    val label: String,
+    val accent: Color,       // primary accent — title, LIVE badge, picker-selected
+    val speed: Color,        // speed readout
+    val health: Color,       // health bar fill
+    val armor: Color,        // armor bar fill
+    val stars: Color,        // lit wanted-level stars
+    val engine: Color,       // engine HP bar fill
+)
+
+private val PaletteIV = HudPalette(
+    label  = "GTA IV",
+    accent = Color(0xFF78DC9F),  // Niko green
+    speed  = Color(0xFF78DC9F),
+    health = Color(0xFF78DC9F),
+    armor  = Color(0xFF4F8FD0),
+    stars  = Color(0xFFE09B3C),
+    engine = Color(0xFFE09B3C),
+)
+private val PaletteTLAD = HudPalette(
+    label  = "The Lost and Damned",
+    accent = Color(0xFFC46A2A),  // biker-rust orange
+    speed  = Color(0xFFE2963B),
+    health = Color(0xFFC46A2A),
+    armor  = Color(0xFF7A8E92),  // gunmetal
+    stars  = Color(0xFFD9CF4A),
+    engine = Color(0xFFD9CF4A),
+)
+private val PaletteTBoGT = HudPalette(
+    label  = "The Ballad of Gay Tony",
+    accent = Color(0xFFFF4FBF),  // Tony neon-magenta
+    speed  = Color(0xFFFF4FBF),
+    health = Color(0xFFFF8EDC),
+    armor  = Color(0xFF59F0E8),  // cyan to complement the magenta
+    stars  = Color(0xFFF8E850),  // gold
+    engine = Color(0xFFF8E850),
+)
+
+private fun paletteFor(episode: Int?): HudPalette = when (episode) {
+    1    -> PaletteTLAD
+    2    -> PaletteTBoGT
+    else -> PaletteIV
+}
 
 /**
  * Phase 5 HUD. Landscape layout for the Thor's 1240×1080 bottom
@@ -80,6 +136,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         return
     }
 
+    val palette = paletteFor(liveState?.episode ?: state?.episode)
+
     // True-OLED black: #000000 means those AMOLED subpixels power off,
     // which both saves battery on the Thor's bottom panel and gives
     // perfect contrast against the Compose chrome.
@@ -95,6 +153,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 isDisconnected = isDisconnected,
                 isStale = isStale,
                 inGame = liveState?.inGame == true,
+                palette = palette,
             )
             Spacer(Modifier.height(8.dp))
             Row(
@@ -103,14 +162,15 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     .weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                StatsPanel(liveState, Modifier.weight(1f).fillMaxHeight())
+                StatsPanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
                 WeaponRadioPanel(liveState, Modifier.weight(1f).fillMaxHeight())
-                VehiclePanel(liveState, Modifier.weight(1f).fillMaxHeight())
+                VehiclePanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
             }
             // Radio picker only when in a vehicle.
             AnimatedVisibility(liveState?.inVehicle == true) {
                 RadioPicker(
                     currentStation = liveState?.radio ?: -1,
+                    palette = palette,
                     onStationTap = { station -> viewModel.setRadio(station) },
                 )
             }
@@ -124,6 +184,7 @@ private fun StatusBar(
     isDisconnected: Boolean,
     isStale: Boolean,
     inGame: Boolean,
+    palette: HudPalette,
 ) {
     val mono = FontFamily.Monospace
     Row(
@@ -132,34 +193,36 @@ private fun StatusBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text("GTC", style = MaterialTheme.typography.titleMedium,
-             color = Color(0xFF78DC9F))
+             color = palette.accent)
         val (label, color) = when {
             isDisconnected -> "DISCONNECTED" to Color(0xFFB04040)
             isStale        -> "STALE"        to Color(0xFFC08A3C)
             !inGame        -> "WAITING"      to Color(0xFF8EA096)
-            else           -> "LIVE"         to Color(0xFF78DC9F)
+            else           -> "LIVE"         to palette.accent
         }
         Text(label, color = color, fontFamily = mono, fontWeight = FontWeight.Bold)
         Spacer(Modifier.weight(1f))
-        hello?.fileVersion?.let { Text("GTAIV $it", color = Color(0xFF6A7A6E),
+        Text(palette.label, color = Color(0xFF6A7A6E),
+             fontFamily = mono, fontSize = 11.sp)
+        hello?.fileVersion?.let { Text("v$it", color = Color(0xFF6A7A6E),
                                        fontFamily = mono, fontSize = 11.sp) }
     }
 }
 
 @Composable
-private fun StatsPanel(s: GameState?, modifier: Modifier = Modifier) {
+private fun StatsPanel(s: GameState?, palette: HudPalette, modifier: Modifier = Modifier) {
     HudCard(modifier, "stats") {
         BigValue(label = "money", value = s?.money?.let { "$$it" } ?: "—")
         Spacer(Modifier.height(10.dp))
         Bar(label = "health", current = s?.health ?: 0f, max = 200f,
-            fill = Color(0xFF78DC9F))
+            fill = palette.health)
         Spacer(Modifier.height(6.dp))
         Bar(label = "armor",
             current = s?.armor?.toFloat() ?: 0f,
             max = (s?.maxArmor ?: 100).coerceAtLeast(100).toFloat(),
-            fill = Color(0xFF4F8FD0))
+            fill = palette.armor)
         Spacer(Modifier.height(10.dp))
-        WantedStars(level = s?.wanted ?: 0)
+        WantedStars(level = s?.wanted ?: 0, palette = palette)
     }
 }
 
@@ -181,7 +244,7 @@ private fun WeaponRadioPanel(s: GameState?, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun VehiclePanel(s: GameState?, modifier: Modifier = Modifier) {
+private fun VehiclePanel(s: GameState?, palette: HudPalette, modifier: Modifier = Modifier) {
     HudCard(modifier, "vehicle") {
         val v = s?.vehicle?.takeIf { s.inVehicle }
         if (v == null) {
@@ -195,16 +258,20 @@ private fun VehiclePanel(s: GameState?, modifier: Modifier = Modifier) {
         Text(
             "${mph.toInt()} mph",
             fontFamily = FontFamily.Monospace, fontSize = 30.sp,
-            fontWeight = FontWeight.Bold, color = Color(0xFF78DC9F),
+            fontWeight = FontWeight.Bold, color = palette.speed,
         )
         Spacer(Modifier.height(8.dp))
         Bar(label = "engine", current = v.engineHp.coerceAtLeast(0f),
-            max = 1000f, fill = Color(0xFFE09B3C))
+            max = 1000f, fill = palette.engine)
     }
 }
 
 @Composable
-private fun RadioPicker(currentStation: Int, onStationTap: (Int) -> Unit) {
+private fun RadioPicker(
+    currentStation: Int,
+    palette: HudPalette,
+    onStationTap: (Int) -> Unit,
+) {
     val count = 18  // 0..13 = IV, 14..17 = TBoGT; be generous
     Row(
         modifier = Modifier
@@ -219,7 +286,7 @@ private fun RadioPicker(currentStation: Int, onStationTap: (Int) -> Unit) {
                     .weight(1f)
                     .height(36.dp)
                     .background(
-                        color = if (isCurrent) Color(0xFF78DC9F) else Color(0xFF1F2A24),
+                        color = if (isCurrent) palette.accent else Color(0xFF1F2A24),
                         shape = RoundedCornerShape(6.dp),
                     )
                     .clickable { onStationTap(station) },
@@ -227,7 +294,7 @@ private fun RadioPicker(currentStation: Int, onStationTap: (Int) -> Unit) {
             ) {
                 Text(
                     station.toString(),
-                    color = if (isCurrent) Color(0xFF003919) else Color(0xFFB6CCBC),
+                    color = if (isCurrent) Color(0xFF000000) else Color(0xFFB6CCBC),
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
                 )
@@ -315,15 +382,16 @@ private fun Bar(label: String, current: Float, max: Float, fill: Color) {
 }
 
 @Composable
-private fun WantedStars(level: Int) {
-    Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+private fun WantedStars(level: Int, palette: HudPalette) {
+    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        // GTA IV goes up to 6 stars; render all six, lit vs dim.
         repeat(6) { i ->
             val lit = i < level
-            Box(
-                modifier = Modifier.size(14.dp).background(
-                    color = if (lit) Color(0xFFE09B3C) else Color(0xFF263029),
-                    shape = RoundedCornerShape(3.dp),
-                ),
+            Icon(
+                imageVector = Icons.Filled.Star,
+                contentDescription = if (lit) "wanted star $i lit" else "wanted star $i dim",
+                tint = if (lit) palette.stars else Color(0xFF2A332D),
+                modifier = Modifier.size(20.dp),
             )
         }
     }
@@ -344,7 +412,7 @@ private fun SetupScreen(lastError: String?) {
         ) {
             Text(
                 "GTC: not connected",
-                color = Color(0xFF78DC9F),
+                color = PaletteIV.accent,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
@@ -417,7 +485,7 @@ private fun ChecklistItem(step: String, title: String, detail: String) {
         ) {
             Text(
                 step,
-                color = Color(0xFF78DC9F),
+                color = PaletteIV.accent,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp,
