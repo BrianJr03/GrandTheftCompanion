@@ -446,8 +446,50 @@ chain (vehicle + radio).
 Default build is now `THORBRIDGE_NATIVES_LEVEL=3` + hook disabled.
 Enable hook via `-DTHORBRIDGE_ENABLE_HOOK=ON`.
 
+## Gate 3 — PASSED (2026-10-11)
+
+Bidirectional NDJSON protocol over the same `127.0.0.1:47801` socket.
+Server now reads newline-delimited `cmd` frames on a per-client reader
+thread, enqueues them, and the per-frame hook drains + dispatches via
+natives on the game thread, posting `ack` frames back for the writer
+loop to send.
+
+### Mac-side evidence
+
+```
+--> {"v":1,"type":"cmd","id":2001,"name":"set_radio","args":{"station":3}}
+<-- {"v":1,"type":"ack","id":2001,"ok":true,"err":""}
+PRE  : radio=16, veh='MARBELLA'
+POST : radio=3,  veh='MARBELLA'
+```
+
+Radio audibly / observably changed from station 16 → 3 in-game while
+Brian was driving a civilian car (MARBELLA). Earlier attempt in a
+POLICE car failed to change the station — likely a game-side override;
+not a protocol issue. Noted and moved on.
+
+```
+--> {"v":1,"type":"cmd","id":3001,"name":"set_weapon","args":{"weapon":12}}
+<-- {"v":1,"type":"ack","id":3001,"ok":true,"err":""}
+PRE  : weapon=12, clip=0,  total=685
+POST : weapon=12, clip=50, total=685
+```
+
+Set-weapon to the current weapon with `forceEquip=true` triggered a
+clip reload (0 → 50) — strong confirmation the native actually fired on
+the game thread, not just that we round-tripped a protocol message.
+
+### Android side
+
+- `GameStateClient.send(name, intArg)` writes NDJSON to the current
+  connection and returns an assigned id, or null when disconnected.
+- `GameStateRepository.setWeapon(id)` / `setRadio(station)` wrap it.
+- `ack` frames are parsed via nullable id/ok/err fields on the
+  tagged-union `GameState` and surfaced on a sticky `ack` StateFlow.
+
 ## Next
 
-Phase 2 fully done. Phase 3 adds the client→server command channel
-(`set_weapon`, `set_radio`) and the server-side command queue drained
-from the per-frame hook.
+Phase 3 is done. Phase 4 moves the HUD to a dedicated Activity on the
+bottom display (we already validated `am start --display 4` works
+without special permissions in Phase 1). Phase 5 builds the three real
+panels + weapon picker + radio control.

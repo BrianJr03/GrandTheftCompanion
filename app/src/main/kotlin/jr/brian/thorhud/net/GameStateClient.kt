@@ -7,11 +7,16 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.io.OutputStream
 import java.net.InetSocketAddress
 import java.net.Socket
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.coroutineContext
@@ -19,18 +24,23 @@ import kotlin.math.min
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * TCP client that connects to ThorBridge.asi running inside GameHub Lite's
- * Wine prefix and emits [GameState] frames parsed from newline-delimited
- * JSON. The flow reconnects on disconnect with exponential backoff capped
- * at 5 s. Hello and tick frames are emitted directly; unknown types are
- * passed through for forward-compat.
+ * TCP client that connects to ThorBridge.asi inside the GameHub Lite
+ * Wine prefix. Emits [GameState] frames parsed from newline-delimited
+ * JSON, reconnects with exponential backoff on disconnect, and (Phase 3)
+ * exposes a [send] path for client->server commands.
  *
- * The flow is cold — collect once from the Service / Activity. Backpressure
- * is handled by the collector (StateFlow.update drops older frames, which
- * is correct for a HUD).
+ * The frames flow is cold — collect once from the service / activity.
+ * [send] is independent — it writes to the current connection if one
+ * exists. Commands issued while disconnected are dropped and return
+ * false; the UI should either disable itself when the stream is stale
+ * or retry.
  */
 @Singleton
 class GameStateClient @Inject constructor() {
+
+    private val writeMutex = Mutex()
+    @Volatile private var currentOut: OutputStream? = null
+    private val cmdId = AtomicInteger(0)
 
     fun frames(
         host: String = DEFAULT_HOST,
@@ -45,35 +55,64 @@ class GameStateClient @Inject constructor() {
                     socket.soTimeout = READ_TIMEOUT_MS
                     Log.i(TAG, "connected to $host:$port")
                     backoffMs = INITIAL_BACKOFF_MS
-
-                    BufferedReader(InputStreamReader(socket.getInputStream())).use { reader ->
-                        while (true) {
-                            coroutineContext.ensureActive()
-                            val line = reader.readLine() ?: break
-                            if (line.isBlank()) continue
-                            val frame = runCatching { json.decodeFromString<GameState>(line) }
-                                .onFailure { Log.w(TAG, "parse failed on: $line") }
-                                .getOrNull() ?: continue
-                            if (frame.isHello) {
-                                Log.i(TAG, "hello: version=${frame.fileVersion} " +
-                                        "crc32=${frame.crc32} supported=${frame.supported}")
+                    currentOut = socket.getOutputStream()
+                    try {
+                        BufferedReader(InputStreamReader(socket.getInputStream())).use { reader ->
+                            while (true) {
+                                coroutineContext.ensureActive()
+                                val line = reader.readLine() ?: break
+                                if (line.isBlank()) continue
+                                val frame = runCatching { json.decodeFromString<GameState>(line) }
+                                    .onFailure { Log.w(TAG, "parse failed on: $line") }
+                                    .getOrNull() ?: continue
+                                if (frame.isHello) {
+                                    Log.i(TAG, "hello: version=${frame.fileVersion} " +
+                                            "crc32=${frame.crc32} supported=${frame.supported}")
+                                }
+                                emit(frame)
                             }
-                            emit(frame)
                         }
+                    } finally {
+                        currentOut = null
                     }
                 }
                 Log.w(TAG, "stream ended, reconnecting")
             } catch (t: Throwable) {
-                // Expected classes of failure: ConnectException (ASI not up),
-                // SocketTimeoutException (connection stalled), IOException
-                // (game crashed). Log and reconnect.
                 Log.w(TAG, "connection lost: ${t.javaClass.simpleName}: ${t.message}")
             }
-
             kotlinx.coroutines.delay(backoffMs.milliseconds)
             backoffMs = min(backoffMs * 2, MAX_BACKOFF_MS)
         }
     }.flowOn(Dispatchers.IO)
+
+    /**
+     * Send a client->server command. Returns the assigned command id if
+     * written to the socket, or null if the client is not connected.
+     * Caller correlates the id against the matching `ack` frame in the
+     * frames flow.
+     */
+    suspend fun send(name: String, intArg: Int): Int? = withContext(Dispatchers.IO) {
+        val out = currentOut ?: return@withContext null
+        val id = cmdId.incrementAndGet()
+        val argKey = when (name) {
+            "set_weapon" -> "weapon"
+            "set_radio"  -> "station"
+            else         -> "value"
+        }
+        val line = "{\"v\":1,\"type\":\"cmd\",\"id\":$id,\"name\":\"$name\"," +
+                "\"args\":{\"$argKey\":$intArg}}\n"
+        writeMutex.withLock {
+            try {
+                out.write(line.toByteArray(Charsets.UTF_8))
+                out.flush()
+                Log.i(TAG, "sent cmd id=$id name=$name arg=$intArg")
+                id
+            } catch (t: Throwable) {
+                Log.w(TAG, "send failed: ${t.message}")
+                null
+            }
+        }
+    }
 
     companion object {
         const val DEFAULT_HOST = "127.0.0.1"

@@ -8,16 +8,20 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * App-wide snapshot of the ThorBridge connection. The three flows are
- * sticky in different ways:
- *   - [hello]  holds the latest `hello` frame (ASI's exe fingerprint).
- *   - [state]  holds the latest `state` frame (real game data). Stays at
- *              its last value until a new `state` arrives — the UI uses
- *              [lastUpdateMs] vs. the clock to decide "stale."
- *   - [last]   holds the most recent frame of any type for liveness.
+ * App-wide snapshot of the ThorBridge connection.
+ *
+ *  [hello] — latest `hello` frame from the ASI (exe fingerprint).
+ *  [state] — latest `state` frame (real game data). Sticks across tick-only
+ *            frames so the HUD doesn't flicker during pauses.
+ *  [last]  — most recent frame of any type (used for liveness).
+ *  [ack]   — latest `ack` frame received for a client->server command.
+ *  [lastUpdateMs] — wall clock of the last frame; the UI compares against
+ *                   System.currentTimeMillis() to decide "stale."
  */
 @Singleton
-class GameStateRepository @Inject constructor() {
+class GameStateRepository @Inject constructor(
+    private val client: GameStateClient,
+) {
 
     private val _hello = MutableStateFlow<GameState?>(null)
     val hello: StateFlow<GameState?> = _hello.asStateFlow()
@@ -28,13 +32,20 @@ class GameStateRepository @Inject constructor() {
     private val _last = MutableStateFlow(GameState.WAITING)
     val last: StateFlow<GameState> = _last.asStateFlow()
 
+    private val _ack = MutableStateFlow<GameState?>(null)
+    val ack: StateFlow<GameState?> = _ack.asStateFlow()
+
     private val _lastUpdateMs = MutableStateFlow(0L)
     val lastUpdateMs: StateFlow<Long> = _lastUpdateMs.asStateFlow()
 
     fun update(frame: GameState) {
         if (frame.isHello) _hello.value = frame
         if (frame.isState) _state.value = frame
+        if (frame.isAck) _ack.value = frame
         _last.value = frame
         _lastUpdateMs.value = System.currentTimeMillis()
     }
+
+    suspend fun setWeapon(weaponId: Int): Int? = client.send("set_weapon", weaponId)
+    suspend fun setRadio(stationIndex: Int): Int? = client.send("set_radio", stationIndex)
 }

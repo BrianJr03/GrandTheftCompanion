@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <cstring>
 
+#include "commands.h"
 #include "hook.h"
 #include "log.h"
 #include "natives.h"
@@ -279,6 +280,10 @@ void on_frame() {
 #endif  // THORBRIDGE_NATIVES_LEVEL >= 3
 
     snapshot::publish(p);
+
+    // Phase 3: drain any client->server commands on the game thread
+    // using the ped we just confirmed is live.
+    commands::drain(ped_handle);
 }
 
 DWORD WINAPI startup_worker(LPVOID /*unused*/) {

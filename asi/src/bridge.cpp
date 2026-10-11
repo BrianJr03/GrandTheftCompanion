@@ -7,8 +7,11 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "bridge.h"
+#include "commands.h"
 #include "log.h"
 #include "snapshot.h"
 
@@ -23,6 +26,13 @@ constexpr int kListenBacklog = 2;
 #endif
 
 VersionInfo g_vi{};
+
+// Per-client state passed to the reader + writer threads.
+struct ClientCtx {
+    SOCKET            sock;
+    commands::AckQueue ack_queue;
+    volatile LONG     alive;   // 1 while both threads should run
+};
 
 int format_hello(char* buf, size_t cap) {
     return std::snprintf(buf, cap,
@@ -39,11 +49,6 @@ int format_tick(char* buf, size_t cap, unsigned long t) {
         "{\"v\":1,\"type\":\"tick\",\"t\":%lu}\n", t);
 }
 
-// Escape double-quotes and backslashes in a short game-provided string
-// so it's safe to drop into a JSON string literal. Writes at most
-// `cap-1` chars + NUL. Game strings are static text-table entries and
-// have never been observed to contain control characters, so we don't
-// bother escaping those.
 void json_escape(char* dst, size_t cap, const char* src) {
     size_t i = 0;
     for (; src && *src && i + 2 < cap; ++src) {
@@ -61,7 +66,6 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
     char veh_name[64] = {0};
     json_escape(veh_name, sizeof(veh_name), p.vehicle_name);
 
-    // Owned-weapon arrays: emit only non-zero slots as compact pairs.
     char weapons[256];
     {
         size_t w = 0;
@@ -110,6 +114,14 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         p.radio_station);
 }
 
+int format_ack(char* buf, size_t cap, const commands::Ack& a) {
+    char escaped[128];
+    json_escape(escaped, sizeof(escaped), a.err);
+    return std::snprintf(buf, cap,
+        "{\"v\":1,\"type\":\"ack\",\"id\":%u,\"ok\":%s,\"err\":\"%s\"}\n",
+        a.id, a.ok ? "true" : "false", escaped);
+}
+
 bool send_all(SOCKET sock, const char* buf, int n) {
     int sent = 0;
     while (sent < n) {
@@ -120,22 +132,122 @@ bool send_all(SOCKET sock, const char* buf, int n) {
     return true;
 }
 
+// Minimal JSON extraction for `cmd` frames. The protocol is small and
+// server-side: {"v":1,"type":"cmd","id":<n>,"name":"<name>","args":{...}}.
+// We extract id, name, and the first numeric arg under args (weapon or
+// station — both commands take one int). More complex args would want
+// a real parser.
+bool parse_cmd(const char* line, uint32_t* id, char* name, size_t name_cap,
+               uint32_t* arg0) {
+    if (!std::strstr(line, "\"type\":\"cmd\"")) return false;
+
+    const char* p = std::strstr(line, "\"id\":");
+    if (!p) return false;
+    char* end = nullptr;
+    unsigned long parsed_id = std::strtoul(p + 5, &end, 10);
+    if (end == p + 5) return false;
+    *id = static_cast<uint32_t>(parsed_id);
+
+    const char* n = std::strstr(line, "\"name\":\"");
+    if (!n) return false;
+    n += 8;
+    size_t i = 0;
+    while (*n && *n != '"' && i + 1 < name_cap) {
+        name[i++] = *n++;
+    }
+    name[i] = '\0';
+    if (*n != '"') return false;
+
+    // Pull the first integer inside args:{...}. Works for {"weapon":N}
+    // and {"station":N} and future single-int commands; richer commands
+    // would get a proper parser.
+    const char* a = std::strstr(line, "\"args\":");
+    if (!a) { *arg0 = 0; return true; }  // args optional
+    // Find first digit after args:
+    while (*a && !(*a >= '0' && *a <= '9') && *a != '-') ++a;
+    if (!*a) { *arg0 = 0; return true; }
+    unsigned long parsed_arg = std::strtoul(a, nullptr, 10);
+    *arg0 = static_cast<uint32_t>(parsed_arg);
+    return true;
+}
+
+// Reader thread — one per client. Pulls newline-delimited input and
+// enqueues parsed commands. Exits when the socket is closed by the
+// writer side.
+DWORD WINAPI reader_main(LPVOID arg) {
+    auto* cx = static_cast<ClientCtx*>(arg);
+    char buf[1024];
+    size_t len = 0;
+
+    while (InterlockedCompareExchange(&cx->alive, 1, 1) == 1) {
+        int n = recv(cx->sock, buf + len, static_cast<int>(sizeof(buf) - len), 0);
+        if (n <= 0) break;
+        len += static_cast<size_t>(n);
+
+        // Pull out complete lines.
+        for (;;) {
+            char* nl = static_cast<char*>(std::memchr(buf, '\n', len));
+            if (!nl) break;
+            size_t line_len = static_cast<size_t>(nl - buf);
+            buf[line_len] = '\0';
+
+            commands::Cmd c{};
+            c.ack_queue = &cx->ack_queue;
+            if (parse_cmd(buf, &c.id, c.name, sizeof(c.name), &c.arg0)) {
+                thor_log("[bridge/rx] cmd id=%u name=%s arg0=%u",
+                         c.id, c.name, c.arg0);
+                commands::enqueue(c);
+            } else {
+                thor_log("[bridge/rx] unparseable line (%zu bytes)", line_len);
+            }
+
+            // Shift any bytes after the newline to the front.
+            size_t rem = len - (line_len + 1);
+            std::memmove(buf, nl + 1, rem);
+            len = rem;
+        }
+
+        if (len == sizeof(buf)) {
+            thor_log("[bridge/rx] line too long, dropping buffer");
+            len = 0;
+        }
+    }
+    return 0;
+}
+
 DWORD WINAPI serve_client(LPVOID arg) {
     SOCKET sock = reinterpret_cast<SOCKET>(arg);
     thor_log("[bridge] client connected");
+
+    ClientCtx cx;
+    cx.sock = sock;
+    cx.alive = 1;
+
+    HANDLE reader = CreateThread(NULL, 0, reader_main, &cx, 0, NULL);
+    if (!reader) {
+        thor_log("[bridge] reader thread spawn failed");
+        closesocket(sock);
+        return 0;
+    }
 
     char buf[1024];
     int n = format_hello(buf, sizeof(buf));
     if (n <= 0 || !send_all(sock, buf, n)) {
         thor_log("[bridge] hello send failed");
-        closesocket(sock);
-        return 0;
     }
 
     for (;;) {
-        // Prefer a `state` frame when the game thread has published at
-        // least one snapshot; else fall back to a `tick` so the client
-        // can tell the ASI is alive.
+        // 1. Flush any pending acks first — snappier perceived latency
+        //    than letting them wait for the next 50ms state frame.
+        commands::Ack a;
+        bool wrote_ack = false;
+        while (cx.ack_queue.pop(&a)) {
+            n = format_ack(buf, sizeof(buf), a);
+            if (n <= 0 || !send_all(sock, buf, n)) goto done;
+            wrote_ack = true;
+        }
+
+        // 2. State or tick frame.
         snapshot::Player p{};
         uint64_t snap_ts = snapshot::read(p);
         if (snap_ts != 0) {
@@ -156,11 +268,16 @@ DWORD WINAPI serve_client(LPVOID arg) {
             }
             break;
         }
+        (void)wrote_ack;
         Sleep(kSendIntervalMs);
     }
-
+done:
     thor_log("[bridge] client disconnected");
+    InterlockedExchange(&cx.alive, 0);
+    shutdown(sock, SD_BOTH);
     closesocket(sock);
+    WaitForSingleObject(reader, 2000);
+    CloseHandle(reader);
     return 0;
 }
 
