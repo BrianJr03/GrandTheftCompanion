@@ -136,16 +136,16 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         return
     }
 
+    val palette = paletteFor(liveState?.episode ?: state?.episode)
+
     // When the game is paused, hide the whole HUD and show a dedicated
     // view. Use `state` (sticky) rather than `liveState` so the paused
     // view survives the short STALE window right after the pause menu
     // opens (frames thin out while the game is paused).
     if (state?.paused == true) {
-        PausedScreen()
+        PausedScreen(hello = hello, palette = palette)
         return
     }
-
-    val palette = paletteFor(liveState?.episode ?: state?.episode)
 
     // True-OLED black: #000000 means those AMOLED subpixels power off,
     // which both saves battery on the Thor's bottom panel and gives
@@ -158,10 +158,10 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 .padding(12.dp),
         ) {
             StatusBar(
-                hello = hello,
                 isDisconnected = isDisconnected,
                 isStale = isStale,
                 inGame = liveState?.inGame == true,
+                wantedLevel = liveState?.wanted ?: 0,
                 palette = palette,
             )
             Spacer(Modifier.height(8.dp))
@@ -192,10 +192,10 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
 
 @Composable
 private fun StatusBar(
-    hello: GameState?,
     isDisconnected: Boolean,
     isStale: Boolean,
     inGame: Boolean,
+    wantedLevel: Int,
     palette: HudPalette,
 ) {
     val mono = FontFamily.Monospace
@@ -219,10 +219,11 @@ private fun StatusBar(
             Text(label, color = color, fontFamily = mono, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.weight(1f))
-        Text(palette.label, color = Color(0xFF6A7A6E),
-             fontFamily = mono, fontSize = 11.sp)
-        hello?.fileVersion?.let { Text("v$it", color = Color(0xFF6A7A6E),
-                                       fontFamily = mono, fontSize = 11.sp) }
+        // Wanted stars live in the top-right of the status bar — matches
+        // the game's own HUD placement. Episode name + exe version move
+        // to the paused view (shown when the game is paused), where there
+        // is actually room for them.
+        WantedStars(level = wantedLevel, palette = palette)
     }
 }
 
@@ -238,22 +239,33 @@ private fun MoneyRadioPanel(s: GameState?, modifier: Modifier = Modifier) {
 @Composable
 private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier = Modifier) {
     HudCard(modifier, "weapon") {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Weapon lives at the bottom of its column, with CLIP X / X
-            // as the dominant number right under it in the episode
-            // accent — matches the "money" + "mph" headline treatments.
-            Spacer(Modifier.weight(1f))
-            BigValue(label = "weapon", value = weaponName(s?.weaponId))
-            if ((s?.weaponId ?: 0) > 0) {
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    "CLIP ${s?.ammoClip ?: 0} / ${s?.ammoTotal ?: 0}",
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 28.sp,
-                    color = palette.accent,
-                )
-            }
+        // Weapon name at the top of the card so it aligns with "$money"
+        // and "POLICE" across the three columns. No separate "weapon"
+        // label since the panel title already says it.
+        Text(
+            weaponName(s?.weaponId),
+            color = Color(0xFFEDEDED),
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            fontSize = 20.sp,
+        )
+        if ((s?.weaponId ?: 0) > 0) {
+            Spacer(Modifier.height(20.dp))
+            // Ammo in headline style: big bold X / X value on top in
+            // the episode accent, "clip" as the small grey label.
+            Text(
+                "${s?.ammoClip ?: 0} / ${s?.ammoTotal ?: 0}",
+                color = palette.accent,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 32.sp,
+            )
+            Text(
+                "clip",
+                color = Color(0xFF6A7A6E),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 11.sp,
+            )
         }
     }
 }
@@ -272,8 +284,6 @@ private fun FullWidthStats(s: GameState?, palette: HudPalette) {
             current = s?.armor?.toFloat() ?: 0f,
             max = (s?.maxArmor ?: 100).coerceAtLeast(100).toFloat(),
             fill = palette.armor)
-        Spacer(Modifier.height(10.dp))
-        WantedStars(level = s?.wanted ?: 0, palette = palette)
     }
 }
 
@@ -440,13 +450,14 @@ private fun WantedStars(level: Int, palette: HudPalette) {
  * pixels are powered off.
  */
 @Composable
-private fun PausedScreen() {
+private fun PausedScreen(hello: GameState?, palette: HudPalette) {
     Scaffold(containerColor = Color.Black) { padding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentAlignment = Alignment.Center,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 "paused",
@@ -455,6 +466,24 @@ private fun PausedScreen() {
                 fontWeight = FontWeight.Bold,
                 fontSize = 72.sp,
             )
+            Spacer(Modifier.height(24.dp))
+            // Episode name — moved here from the status bar so the HUD
+            // top-right can host the wanted stars during gameplay.
+            Text(
+                palette.label,
+                color = palette.accent,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 18.sp,
+            )
+            hello?.fileVersion?.let {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "GTA IV v$it",
+                    color = Color(0xFF6A7A6E),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 12.sp,
+                )
+            }
         }
     }
 }
