@@ -171,10 +171,13 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     .weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                StatsPanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
-                WeaponRadioPanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
+                MoneyRadioPanel(liveState, Modifier.weight(1f).fillMaxHeight())
+                WeaponPanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
                 VehiclePanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
             }
+            // Full-width stats band under the columns: health, armor, stars.
+            Spacer(Modifier.height(12.dp))
+            FullWidthStats(liveState, palette)
             // Radio picker only when in a vehicle.
             AnimatedVisibility(liveState?.inVehicle == true) {
                 RadioPicker(
@@ -224,40 +227,53 @@ private fun StatusBar(
 }
 
 @Composable
-private fun StatsPanel(s: GameState?, palette: HudPalette, modifier: Modifier = Modifier) {
-    HudCard(modifier, "stats") {
+private fun MoneyRadioPanel(s: GameState?, modifier: Modifier = Modifier) {
+    HudCard(modifier, "money · radio") {
+        BigValue(label = "money", value = s?.money?.let { "$$it" } ?: "—")
+        Spacer(Modifier.height(20.dp))
+        BigValue(label = "radio", value = radioName(s?.radio))
+    }
+}
+
+@Composable
+private fun WeaponPanel(s: GameState?, palette: HudPalette, modifier: Modifier = Modifier) {
+    HudCard(modifier, "weapon") {
         Column(modifier = Modifier.fillMaxSize()) {
-            BigValue(label = "money", value = s?.money?.let { "$$it" } ?: "—")
-            // Push the health/armor/stars block to the bottom of the
-            // column so it uses the empty space that was piling up
-            // beneath the money readout.
+            // Weapon lives at the bottom of its column, with CLIP X / X
+            // as the dominant number right under it in the episode
+            // accent — matches the "money" + "mph" headline treatments.
             Spacer(Modifier.weight(1f))
-            Bar(label = "health", current = s?.health ?: 0f, max = 200f,
-                fill = palette.health)
-            Spacer(Modifier.height(6.dp))
-            Bar(label = "armor",
-                current = s?.armor?.toFloat() ?: 0f,
-                max = (s?.maxArmor ?: 100).coerceAtLeast(100).toFloat(),
-                fill = palette.armor)
-            Spacer(Modifier.height(10.dp))
-            WantedStars(level = s?.wanted ?: 0, palette = palette)
+            BigValue(label = "weapon", value = weaponName(s?.weaponId))
+            if ((s?.weaponId ?: 0) > 0) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "CLIP ${s?.ammoClip ?: 0} / ${s?.ammoTotal ?: 0}",
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 28.sp,
+                    color = palette.accent,
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun WeaponRadioPanel(s: GameState?, palette: HudPalette, modifier: Modifier = Modifier) {
-    HudCard(modifier, "weapon · radio") {
-        BigValue(label = "weapon", value = weaponName(s?.weaponId))
-        if ((s?.weaponId ?: 0) > 0) {
-            Text(
-                "clip ${s?.ammoClip ?: 0} / ${s?.ammoTotal ?: 0}",
-                fontFamily = FontFamily.Monospace, fontSize = 13.sp,
-                color = Color(0xFFB6CCBC),
-            )
-        }
-        Spacer(Modifier.height(14.dp))
-        BigValue(label = "radio", value = radioName(s?.radio))
+private fun FullWidthStats(s: GameState?, palette: HudPalette) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp),
+    ) {
+        Bar(label = "health", current = s?.health ?: 0f, max = 200f,
+            fill = palette.health)
+        Spacer(Modifier.height(6.dp))
+        Bar(label = "armor",
+            current = s?.armor?.toFloat() ?: 0f,
+            max = (s?.maxArmor ?: 100).coerceAtLeast(100).toFloat(),
+            fill = palette.armor)
+        Spacer(Modifier.height(10.dp))
+        WantedStars(level = s?.wanted ?: 0, palette = palette)
     }
 }
 
