@@ -44,36 +44,38 @@ enum : uint32_t {
     RETUNE_RADIO_TO_STATION_INDEX       = 0x48ED6432,
 };
 
-// rage::scrNativeCallContext layout as FusionFix observes it
-// (source/natives.ixx:64..). All natives are `void (__cdecl)(Context*)`:
-// their handler reads args from m_pArgs, writes a return into m_pReturn
-// (which we point at the same 16-slot scratch, so return reads come out
-// of slot 0). Fixed size — natives take at most 16 4-byte args in IV.
+// rage::scrNativeCallContext layout, per FusionFix (source/natives.ixx).
+// All natives are `void (__cdecl)(Context*)`. The handler reads args
+// from m_pArgs, writes return to m_pReturn. Critically, both pointers
+// point into the SAME storage — m_TemporaryData — so direct-return
+// natives like GET_PLAYER_ID write their result into slot 0 of this
+// buffer. Round-5 bug: I had a separate `m_scratch` that m_pArgs /
+// m_pReturn pointed at, which meant direct returns landed in
+// m_TemporaryData while get_u32() read from m_scratch — always zero.
 struct Context {
-    void*     m_pReturn;
-    uint32_t  m_nArgCount;
-    void*     m_pArgs;
-    uint32_t  m_nDataCount;
-    void*     m_pOriginalData[4];   // Vector3*[4]; we never touch these
-    float     m_TemporaryData[16];  // Vector4[4] = 16 floats = 64 bytes
-
-    // The actual arg/return scratch. 16 slots of 4 bytes each. Reset by
-    // reset(); push() appends.
-    uint32_t  m_scratch[16];
+    void*     m_pReturn;             // offset 0
+    uint32_t  m_nArgCount;           // offset 4
+    void*     m_pArgs;               // offset 8
+    uint32_t  m_nDataCount;          // offset 12
+    void*     m_pOriginalData[4];    // offset 16 — Vector3*[4]; unused by us
+    uint32_t  m_TemporaryData[16];   // offset 32 — the shared arg+return scratch
 
     Context() { reset(); }
 
     void reset() {
         m_nArgCount = 0;
         m_nDataCount = 0;
-        m_pArgs = m_scratch;
-        m_pReturn = m_scratch;
+        m_pArgs   = m_TemporaryData;
+        m_pReturn = m_TemporaryData;
+        // Zero the originals; some handlers inspect them unconditionally.
+        for (int i = 0; i < 4; ++i) m_pOriginalData[i] = nullptr;
+        for (int i = 0; i < 16; ++i) m_TemporaryData[i] = 0;
     }
 
     // Push a 4-byte argument. uint32_t covers int32_t, uint32_t, handles,
     // and raw bit-casts of float (use push_float for floats).
     void push(uint32_t v) {
-        m_scratch[m_nArgCount++] = v;
+        m_TemporaryData[m_nArgCount++] = v;
     }
     void push(int32_t v) { push(static_cast<uint32_t>(v)); }
     void push(void* p)   { push(reinterpret_cast<uint32_t>(p)); }
@@ -83,18 +85,16 @@ struct Context {
         push(cvt.u);
     }
 
-    // Read the native's return value out of scratch slot 0. Floats come
-    // back via the same slot (the handler stores st0 → first scratch
-    // slot before returning in FusionFix's observed behaviour).
-    uint32_t get_u32() const { return m_scratch[0]; }
-    int32_t  get_i32() const { return static_cast<int32_t>(m_scratch[0]); }
-    bool     get_bool() const { return m_scratch[0] != 0; }
+    // Read the native's return value out of slot 0 of the scratch.
+    uint32_t get_u32() const { return m_TemporaryData[0]; }
+    int32_t  get_i32() const { return static_cast<int32_t>(m_TemporaryData[0]); }
+    bool     get_bool() const { return m_TemporaryData[0] != 0; }
     float    get_float() const {
-        union { uint32_t u; float f; } cvt{m_scratch[0]};
+        union { uint32_t u; float f; } cvt{m_TemporaryData[0]};
         return cvt.f;
     }
     void*    get_ptr() const {
-        return reinterpret_cast<void*>(m_scratch[0]);
+        return reinterpret_cast<void*>(m_TemporaryData[0]);
     }
 };
 
@@ -121,5 +121,10 @@ bool invoke(uint32_t hash, Context& ctx);
 // Subsequent calls with the same hash return the cached pointer.
 using Handler = void (*)(Context*);
 Handler lookup(uint32_t hash);
+
+// Diagnostic — read the raw pause-gate bytes so we can verify from the
+// log that the resolved pointers transition sensibly during gameplay.
+// Returns false if resolve() hasn't succeeded.
+bool debug_read_pause(bool* user_paused, bool* script_paused);
 
 }  // namespace natives

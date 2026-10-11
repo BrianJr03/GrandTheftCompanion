@@ -179,28 +179,11 @@ bool resolve() {
     }
 
     g_resolved = true;
-
-    // Pre-warm the handler cache so per-frame invokes never call
-    // getNativeAddress mid-transition.
-    static const uint32_t kPrewarm[] = {
-        GET_PLAYER_ID, GET_PLAYER_CHAR,
-        GET_CHAR_HEALTH, GET_CHAR_ARMOUR,
-        STORE_SCORE, STORE_WANTED_LEVEL,
-        GET_CURRENT_CHAR_WEAPON, GET_AMMO_IN_CHAR_WEAPON,
-        GET_AMMO_IN_CLIP, GET_CHAR_WEAPON_IN_SLOT,
-        IS_CHAR_IN_ANY_CAR, GET_CAR_CHAR_IS_USING,
-        GET_CAR_SPEED, GET_ENGINE_HEALTH,
-        GET_CAR_MODEL, GET_DISPLAY_NAME_FROM_VEHICLE_MODEL,
-        GET_PLAYER_RADIO_STATION_INDEX,
-        SET_CURRENT_CHAR_WEAPON, RETUNE_RADIO_TO_STATION_INDEX,
-    };
-    unsigned ok_count = 0;
-    for (uint32_t h : kPrewarm) {
-        if (lookup(h)) ++ok_count;
-    }
-    thor_log("[natives] handler cache primed: %u/%u", ok_count,
-             static_cast<unsigned>(sizeof(kPrewarm) / sizeof(kPrewarm[0])));
-
+    // Do NOT prewarm the native cache here. Round-2 observation: at ASI
+    // load time (before the user has loaded a save) the game's native
+    // table isn't populated — getNativeAddress returns null for every
+    // hash. Round 3 defers lookups to the first on_frame invoke that
+    // happens AFTER a save is loaded and the script engine is running.
     return true;
 }
 
@@ -208,6 +191,13 @@ bool ok_to_invoke() {
     if (!g_resolved) return false;
     if (!g_user_pause || !g_script_pause) return false;
     return !*g_user_pause && !*g_script_pause;
+}
+
+bool debug_read_pause(bool* user_paused, bool* script_paused) {
+    if (!g_resolved || !g_user_pause || !g_script_pause) return false;
+    if (user_paused)   *user_paused   = *g_user_pause;
+    if (script_paused) *script_paused = *g_script_pause;
+    return true;
 }
 
 // Fixed-size open-addressing cache for native handlers. Tiny: GTA IV
@@ -219,6 +209,23 @@ CacheEntry g_cache[32] = {};
 unsigned   g_cache_count = 0;
 }  // namespace
 
+// Hashes we've logged a "null" for; rate-limits the log line to one
+// entry per hash so a per-frame invocation chain doesn't flood when the
+// script engine hasn't initialised yet.
+namespace {
+uint32_t g_logged_null[32] = {};
+unsigned g_logged_null_count = 0;
+bool have_logged_null(uint32_t hash) {
+    for (unsigned i = 0; i < g_logged_null_count; ++i) {
+        if (g_logged_null[i] == hash) return true;
+    }
+    if (g_logged_null_count < sizeof(g_logged_null) / sizeof(g_logged_null[0])) {
+        g_logged_null[g_logged_null_count++] = hash;
+    }
+    return false;
+}
+}  // namespace
+
 Handler lookup(uint32_t hash) {
     if (!g_resolved) return nullptr;
     for (unsigned i = 0; i < g_cache_count; ++i) {
@@ -227,12 +234,18 @@ Handler lookup(uint32_t hash) {
     if (g_cache_count >= sizeof(g_cache) / sizeof(g_cache[0])) return nullptr;
     void* h = g_get_native_addr(hash);
     if (!h) {
-        thor_log("[natives] lookup(0x%08X): game returned null", hash);
+        if (!have_logged_null(hash)) {
+            thor_log("[natives] lookup(0x%08X): game returned null (will retry quietly)",
+                     hash);
+        }
         return nullptr;
     }
     g_cache[g_cache_count].hash = hash;
     g_cache[g_cache_count].fn   = reinterpret_cast<Handler>(h);
     ++g_cache_count;
+    thor_log("[natives] lookup(0x%08X) -> 0x%08X (first hit after %u-entry cache)",
+             hash, static_cast<unsigned>(reinterpret_cast<uintptr_t>(h)),
+             g_cache_count - 1);
     return reinterpret_cast<Handler>(h);
 }
 

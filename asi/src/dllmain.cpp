@@ -10,6 +10,7 @@
 
 #include "bridge.h"
 #include "log.h"
+#include "natives.h"
 #include "probes.h"
 #include "snapshot.h"
 #include "version_detect.h"
@@ -24,6 +25,29 @@ DWORD WINAPI heartbeat(LPVOID /*unused*/) {
         thor_log("[heartbeat] alive (probes.enabled=%s)",
                  probes::enabled() ? "true" : "false");
     }
+}
+
+// Diagnostic thread for round 3: samples the resolved pause-gate
+// booleans every 2 s for the first 2 minutes, so the log captures
+// their actual transitions during a real save-load + gameplay session.
+// If the "user paused" or "script paused" byte never changes from 0,
+// the pointer is almost certainly wrong. If it toggles during pauses /
+// cutscenes / loads, the pointer is right.
+DWORD WINAPI pause_sampler(LPVOID /*unused*/) {
+    bool prev_u = false, prev_s = false;
+    bool have_prev = false;
+    for (int i = 0; i < 60; ++i) {
+        Sleep(2000);
+        bool u = false, s = false;
+        if (!natives::debug_read_pause(&u, &s)) continue;
+        if (!have_prev || u != prev_u || s != prev_s) {
+            thor_log("[diag] pause: user=%d script=%d (t=%d s%s)",
+                     u ? 1 : 0, s ? 1 : 0, i * 2,
+                     have_prev ? " TRANSITION" : "");
+            prev_u = u; prev_s = s; have_prev = true;
+        }
+    }
+    return 0;
 }
 
 DWORD WINAPI startup(LPVOID /*unused*/) {
@@ -45,6 +69,7 @@ DWORD WINAPI startup(LPVOID /*unused*/) {
 
     bridge::start(vi);
     CreateThread(NULL, 0, heartbeat, NULL, 0, NULL);
+    CreateThread(NULL, 0, pause_sampler, NULL, 0, NULL);
     return 0;
 }
 

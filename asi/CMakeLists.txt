@@ -22,6 +22,26 @@ target_compile_options(ThorBridge PRIVATE
     -fno-exceptions
 )
 
+# Round-2+ safety flags. Default: hook OFF, natives OFF. Switch on the
+# command line, e.g.:
+#   cmake .. -DTHORBRIDGE_ENABLE_HOOK=ON              # hook on, natives on
+#   cmake .. -DTHORBRIDGE_ENABLE_HOOK=ON \
+#            -DTHORBRIDGE_HOOK_NO_NATIVES=ON          # hook on, natives off
+option(THORBRIDGE_ENABLE_HOOK    "Install the CGameProcess per-frame hook" OFF)
+option(THORBRIDGE_HOOK_NO_NATIVES "If hook is on, skip native invocations" OFF)
+# 1 = core stats only (health/armor/money/wanted)
+# 2 = stats + weapon + ammo + owned slots
+# 3 = stats + weapon + vehicle + radio (everything)
+set(THORBRIDGE_NATIVES_LEVEL "1" CACHE STRING "Which native groups on_frame invokes")
+if(THORBRIDGE_ENABLE_HOOK)
+    target_compile_definitions(ThorBridge PRIVATE THORBRIDGE_ENABLE_HOOK=1)
+endif()
+if(THORBRIDGE_HOOK_NO_NATIVES)
+    target_compile_definitions(ThorBridge PRIVATE THORBRIDGE_HOOK_NO_NATIVES=1)
+endif()
+target_compile_definitions(ThorBridge PRIVATE
+    THORBRIDGE_NATIVES_LEVEL=${THORBRIDGE_NATIVES_LEVEL})
+
 target_link_libraries(ThorBridge PRIVATE
     version   # GetFileVersionInfoA / VerQueryValueA
     ws2_32    # winsock, needed from M3 onward

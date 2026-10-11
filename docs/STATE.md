@@ -359,3 +359,71 @@ Next on-device attempt should start with the hook disabled, confirm the
 new `natives::resolve()` reads the EFLC pointers correctly (log them,
 compare against expectations), then enable the hook via rebuild only when
 I'm confident.
+
+### Gate 2 — PASSED on round 6 (2026-10-11)
+
+Rounds 3-6 iterated on the device without further crashes. Each round
+pushed a narrower variant to isolate one variable:
+
+- **Round 3** (hook OFF, pause-sampler ON) — confirmed `ms_bUserPause @
+  0x01173590` is correct (toggled 0→1→0 when Brian opened the pause
+  menu). `ms_bScriptPause @ 0x01173591` never transitioned; could still
+  be right (adjacent CTimer bool) but we can't verify and don't trust it.
+- **Round 4** (hook ON, `THORBRIDGE_HOOK_NO_NATIVES=1`) — the CGameProcess
+  5-byte CALL overwrite installed and fired every frame with on_frame
+  doing nothing. Game loaded cleanly through save-load and pause cycles.
+  Proof: the hook mechanism itself is safe under Wine. Round 1's crash
+  was in the native invocation path, not the trampoline.
+- **Round 5** (hook ON, `THORBRIDGE_NATIVES_LEVEL=1`, stability gate on
+  GET_PLAYER_ID for 15 consecutive frames) — game stable, all six core
+  natives resolved and cached (`[natives] lookup(0x62E319C6) -> 0x00BB1F30`
+  etc.), hook ran for 10+ minutes with no crash. But `state` frames
+  consistently showed `in_game=false` with all zeros — chain was bailing
+  early.
+- **Round 6** fixed the real bug: my `Context` struct had `m_pArgs` and
+  `m_pReturn` pointing at a separate `m_scratch[]` buffer, when they
+  should both point at `m_TemporaryData[]` inside the struct (per
+  FusionFix's layout). Direct-return natives like `GET_PLAYER_ID` wrote
+  their result into `m_TemporaryData[0]`, which `get_u32()` never read.
+  Fix: delete `m_scratch`, point both pointers at `m_TemporaryData`.
+
+### Round-6 evidence
+
+Live state frame captured from `127.0.0.1:47801` while Brian was in
+free-roam:
+
+```
+{
+  "v": 1, "type": "state", "t": 27547846,
+  "in_game": true, "in_vehicle": false,
+  "money": 2885, "health": 200.0, "wanted": 1,
+  "max_health": 0, "armor": 0, "max_armor": 0,
+  "weapon": 0, "ammo_total": 0, "ammo_clip": 0,
+  "owned": [], "vehicle": {...}, "radio": 0
+}
+```
+
+Money / health / wanted level are real. `max_health` / `max_armor` are 0
+because those come from `CPlayerInfo` struct offsets rather than natives
+(see §3 of the FusionFix synthesis) — Phase 2 reads them from natives
+that haven't been wired yet (future rounds). `weapon` / `radio` / vehicle
+fields are 0 because they live behind `THORBRIDGE_NATIVES_LEVEL >= 2/3`.
+
+Bottom-screen screencap shows the same values rendered in the Phase-2
+debug UI.
+
+### Build matrix for round 6
+
+```
+cmake .. -DTHORBRIDGE_ENABLE_HOOK=ON -DTHORBRIDGE_NATIVES_LEVEL=1
+```
+
+Default build (no flags) still installs no hook — safe to push. Rebuild
+with `-DTHORBRIDGE_NATIVES_LEVEL=2` for weapon reads, `=3` for the full
+chain (vehicle + radio).
+
+## Next
+
+Phase 2 is substantively done. Phase 3 adds the client→server command
+channel (`set_weapon`, `set_radio`) and the server-side command queue
+drained from the per-frame hook.

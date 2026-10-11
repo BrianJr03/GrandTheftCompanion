@@ -32,11 +32,18 @@
 
 // Round-2 safety: the per-frame hook is only installed if this is set
 // at build time. Default OFF after Phase-2 round 1 crashed Brian's
-// save-load four times. Build with -DTHORBRIDGE_ENABLE_HOOK=1 once the
-// natives + hook changes have been reviewed and we're ready to retry
-// on-device.
+// save-load four times.
 #ifndef THORBRIDGE_ENABLE_HOOK
 #define THORBRIDGE_ENABLE_HOOK 0
+#endif
+
+// Round-4 isolation: when set alongside THORBRIDGE_ENABLE_HOOK=1, the
+// per-frame hook installs and fires every frame, but on_frame does
+// NOT invoke any natives — it just publishes an empty snapshot. This
+// cleanly separates "is the CALL-overwrite trampoline unsafe under
+// Wine?" from "are my native invocations unsafe?".
+#ifndef THORBRIDGE_HOOK_NO_NATIVES
+#define THORBRIDGE_HOOK_NO_NATIVES 0
 #endif
 
 namespace {
@@ -64,29 +71,77 @@ bool wait_for_init_gate() {
     return false;
 }
 
+// Round-5 stability gate. GET_PLAYER_ID must return the SAME small-
+// positive value this many frames in a row before we trust the engine
+// enough to chain further natives. Round-1 crashes happened during the
+// save-load transition when values were in flux; this blocks that
+// window without needing to trust ms_bScriptPause (which stayed 0
+// through Brian's save-load in round 3).
+constexpr unsigned kStableFramesRequired = 15;  // ~0.25s at 60fps
+
+// Which native-group is enabled for this build. Round 5 starts narrow
+// to isolate any further misbehavior.
+#ifndef THORBRIDGE_NATIVES_LEVEL
+#define THORBRIDGE_NATIVES_LEVEL 1  // 1=stats, 2=stats+weapon, 3=all
+#endif
+
+void publish_waiting() {
+    snapshot::Player p{};
+    p.ts_ms = GetTickCount();
+    snapshot::publish(p);
+}
+
 // Per-frame tick. Runs on the game's main thread AFTER the game's own
 // CGameProcess completes.
 void on_frame() {
+#if THORBRIDGE_HOOK_NO_NATIVES
+    // Isolation mode: hook fires but we touch nothing in the game.
+    publish_waiting();
+    return;
+#endif
+
+    // Even if ms_bScriptPause is wrong (round-3 showed it never
+    // transitioned), ms_bUserPause is proven correct — honour it as the
+    // primary user-pause gate.
     if (!natives::ok_to_invoke()) {
-        snapshot::Player p{};
-        p.ts_ms = GetTickCount();
-        snapshot::publish(p);
+        publish_waiting();
         return;
     }
 
     natives::Context ctx;
 
-    // GET_PLAYER_ID() — direct uint32_t return.
+    // GET_PLAYER_ID() — direct uint32_t return. First-touch: this is
+    // where we discover whether the game's native table has been
+    // populated. invoke() returns false if lookup returns null, which
+    // happens pre-script-engine (main menu, mid-load before scripts
+    // kick in). Skip the frame cleanly — no further natives fire.
     ctx.reset();
-    if (!natives::invoke(natives::GET_PLAYER_ID, ctx)) return;
+    if (!natives::invoke(natives::GET_PLAYER_ID, ctx)) {
+        publish_waiting();
+        return;
+    }
     uint32_t player_id = ctx.get_u32();
-    // GTA IV single-player returns 0 for the local player. Values other
-    // than 0 or a plausible small index are a strong signal that the
-    // engine is mid-transition — bail without touching anything else.
     if (player_id == 0xFFFFFFFFu || player_id > 32) {
-        snapshot::Player p{};
-        p.ts_ms = GetTickCount();
-        snapshot::publish(p);
+        publish_waiting();
+        return;
+    }
+
+    // Stability: require k consecutive frames of the same small-positive
+    // player id before we chain further natives. During save-load the
+    // engine briefly returns values that look plausible but reference
+    // half-constructed state — this is the window round-1 crashed in.
+    static uint32_t s_last_player_id = 0xFFFFFFFFu;
+    static unsigned s_stable_streak  = 0;
+    if (player_id == s_last_player_id) {
+        if (s_stable_streak < kStableFramesRequired) ++s_stable_streak;
+    } else {
+        s_last_player_id = player_id;
+        s_stable_streak  = 0;
+        publish_waiting();
+        return;
+    }
+    if (s_stable_streak < kStableFramesRequired) {
+        publish_waiting();
         return;
     }
 
@@ -96,12 +151,8 @@ void on_frame() {
     ctx.push(player_id);
     ctx.push(&ped_handle);
     natives::invoke(natives::GET_PLAYER_CHAR, ctx);
-    // Script-engine handles are strictly positive 20-bit integers (upper
-    // bits are generation/pool metadata); 0 or 0xFFFFFFFF means "none".
     if (ped_handle == 0 || ped_handle == 0xFFFFFFFFu) {
-        snapshot::Player p{};
-        p.ts_ms = GetTickCount();
-        snapshot::publish(p);
+        publish_waiting();
         return;
     }
 
@@ -137,6 +188,7 @@ void on_frame() {
         natives::invoke(natives::STORE_WANTED_LEVEL, ctx);
         p.wanted_level = static_cast<uint8_t>(out);
     }
+#if THORBRIDGE_NATIVES_LEVEL >= 2
     // Current weapon.
     {
         uint32_t out = 0;
@@ -183,6 +235,9 @@ void on_frame() {
     }
     std::memcpy(p.owned_weapons, s_cached_weapons, sizeof(p.owned_weapons));
     std::memcpy(p.owned_ammo,    s_cached_ammo,    sizeof(p.owned_ammo));
+#endif  // THORBRIDGE_NATIVES_LEVEL >= 2
+
+#if THORBRIDGE_NATIVES_LEVEL >= 3
     // Vehicle (iff in one).
     {
         ctx.reset(); ctx.push(ped_handle);
@@ -232,6 +287,7 @@ void on_frame() {
         natives::invoke(natives::GET_PLAYER_RADIO_STATION_INDEX, ctx);
         p.radio_station = static_cast<int32_t>(ctx.get_u32());
     }
+#endif  // THORBRIDGE_NATIVES_LEVEL >= 3
 
     snapshot::publish(p);
 }
@@ -248,7 +304,14 @@ DWORD WINAPI startup_worker(LPVOID /*unused*/) {
         return 0;
     }
     g_enabled = true;
-    thor_log("[probes] enabled with per-frame hook");
+#if THORBRIDGE_HOOK_NO_NATIVES
+    thor_log("[probes] enabled with per-frame hook — ISOLATION BUILD "
+             "(on_frame does not invoke any natives)");
+#else
+    thor_log("[probes] enabled with per-frame hook — natives level %d, "
+             "stability gate %u frames", THORBRIDGE_NATIVES_LEVEL,
+             kStableFramesRequired);
+#endif
 #else
     (void)on_frame;  // silence -Wunused when hook is off
     thor_log("[probes] natives resolved, hook disabled by build flag "
