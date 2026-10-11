@@ -8,6 +8,20 @@ plugins {
     alias(libs.plugins.hilt.android)
 }
 
+// Release signing is wired via environment variables so the keystore
+// never lands in source control. CI (.github/workflows/build.yml)
+// decodes KEYSTORE_B64 to a temp file and sets KEYSTORE_PATH before
+// invoking :app:assembleRelease. When any of these are missing the
+// release signingConfig stays unconfigured and assembleRelease will
+// produce an unsigned APK — fine for a local sanity-check, not for a
+// GitHub Release.
+val releaseKeystorePath = System.getenv("KEYSTORE_PATH")
+val releaseKeystorePwd  = System.getenv("KEYSTORE_PASSWORD")
+val releaseKeyAlias     = System.getenv("KEY_ALIAS") ?: "gtc-release"
+val releaseKeyPwd       = System.getenv("KEY_PASSWORD") ?: releaseKeystorePwd
+val releaseSigningReady = !releaseKeystorePath.isNullOrBlank() &&
+                          !releaseKeystorePwd.isNullOrBlank()
+
 android {
     namespace = "jr.brian.thorhud"
     compileSdk = 36
@@ -21,6 +35,17 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            if (releaseSigningReady) {
+                storeFile = file(releaseKeystorePath!!)
+                storePassword = releaseKeystorePwd
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPwd
+            }
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -28,13 +53,16 @@ android {
             resValue("string", "app_name", "GTC Debug")
         }
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            // Minification is off for now. Hilt + Compose + kotlinx-
+            // serialization need carefully-tuned R8 rules and the first
+            // release should prove signing/plumbing end-to-end before
+            // taking on that risk. Flip on later with the right rules.
+            isMinifyEnabled = false
+            isShrinkResources = false
             resValue("string", "app_name", "GTC")
+            if (releaseSigningReady) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

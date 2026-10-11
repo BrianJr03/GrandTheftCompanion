@@ -63,13 +63,13 @@ jobs:
           retention-days: 90
 
   # ------------------------------------------------------------------
-  # APK — Android companion. Debug variant is signed with the auto-
-  # generated debug keystore, which is fine for sideloading. Release
-  # signing would need a keystore secret; add that if you ever want
-  # a Play-ready artefact.
+  # APK — Android companion. Always builds debug (useful workflow
+  # artefact for every main push + PR). On a `v*` tag it ALSO builds a
+  # release-signed APK using the keystore secrets, and that signed APK
+  # is what the release job attaches to the GitHub Release.
   # ------------------------------------------------------------------
   apk:
-    name: GTC.apk (Android debug)
+    name: GTC.apk
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -83,8 +83,7 @@ jobs:
         with:
           # Space-separated single-line — the setup-android action passes
           # `packages` straight to sdkmanager, so a YAML `|` block that
-          # inserts a newline between entries fails with "Failed to find
-          # package 'platforms;android-37\nbuild-tools;35.0.0'".
+          # inserts a newline between entries fails.
           packages: platforms;android-36 build-tools;35.0.0
 
       - name: Setup Gradle (caching)
@@ -93,12 +92,12 @@ jobs:
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
-      - name: Rename APK for release attachment
+      - name: Stage debug APK
         run: |
           mkdir -p dist
           cp app/build/outputs/apk/debug/app-debug.apk dist/GTC-debug.apk
 
-      - name: Upload artifact
+      - name: Upload debug artifact
         uses: actions/upload-artifact@v4
         with:
           name: GTC-debug.apk
@@ -106,11 +105,44 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      # --- release path (tag-only) ---
+
+      - name: Decode release keystore
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "::error::KEYSTORE_B64 secret is empty; cannot sign release"
+            exit 1
+          fi
+          printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+      - name: Build release APK (signed)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Stage release APK
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk dist/GTC-release.apk
+
+      - name: Upload release artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v4
+        with:
+          name: GTC-release.apk
+          path: dist/GTC-release.apk
+          if-no-files-found: error
+          retention-days: 90
+
   # ------------------------------------------------------------------
-  # Release — only on `v*` tags. Pulls the artefacts the two build
-  # jobs just uploaded and attaches them to a GitHub Release. The
-  # release body is auto-generated from the commit range since the
-  # previous tag.
+  # Release — only on `v*` tags. Attaches the ASI and the SIGNED
+  # release APK to a GitHub Release with auto-generated notes.
   # ------------------------------------------------------------------
   release:
     name: Attach to GitHub Release
@@ -127,7 +159,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: GTC-debug.apk
+          name: GTC-release.apk
           path: dist
 
       - name: Create / update release
@@ -135,6 +167,6 @@ jobs:
         with:
           files: |
             dist/ThorBridge.asi
-            dist/GTC-debug.apk
+            dist/GTC-release.apk
           generate_release_notes: true
           fail_on_unmatched_files: true
