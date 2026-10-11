@@ -4,11 +4,11 @@
 
 # Grand Theft Companion
 
-**GTC**: AYN Thor bottom-screen companion for GTA IV. Live HUD on the Thor's bottom screen while GTA IV plays on the main screen via [GameHub Lite](https://www.gamehublite.com/) (`gamehub.lite`) or any Winlator-family launcher.
+**GTC**: AYN Thor bottom-screen companion for GTA IV and V. Live HUD on the Thor's bottom screen while GTA plays on the main screen via [GameHub Lite](https://www.gamehublite.com/) (`gamehub.lite`) or any Winlator-family launcher.
 
 Repo contains the **GTC** Android companion app and **ThorBridge.asi**, the ASI plugin that reads game state from inside the GTA IV process.
 
-**GTA V (story mode) support is experimental** — a second plugin, **ThorBridgeV.asi**, and a GTA V layout in the app. See [GTA V](#gta-v-experimental).
+**GTA V**: A separate plugin is required, **ThorBridgeV.asi**. See [GTA V](#gta-v-experimental).
 
 <p align="center">
   <img src="assets/screenshot.png" alt="GTA IV on the Thor's top screen, GTC companion on the bottom screen" width="400"/>
@@ -130,7 +130,7 @@ python3 test/run_mock_test.py
 
 ### Installing for GTA V
 
-You need your own legitimately-purchased copy of GTA V, and [Script Hook V](https://www.dev-c.com/gtav/scripthookv) (by Alexander Blade — download it from his site; it is not bundled here) in a release that supports your exact game build. Script Hook V refuses to run on builds it does not know; when the game updates, wait for a matching Script Hook V release.
+You need your own legitimately-purchased copy of GTA V, and [Script Hook V](https://www.dev-c.com/gtav/scripthookv) (by Alexander Blade. Download it from his site. It is not bundled here.) in a release that supports your exact game build. Script Hook V refuses to run on builds it does not know; when the game updates, wait for a matching Script Hook V release.
 
 ```
 GAME_DIR='/sdcard/path/to/your/GTA V folder'   # the folder containing GTA5.exe
