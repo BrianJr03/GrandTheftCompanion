@@ -85,13 +85,18 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 .padding(padding)
                 .padding(12.dp),
         ) {
+            // Drop the "IV" suffix when there's no live cash to show
+            // (the HUD is a shell with "—" everywhere) — the title
+            // naming a game it can't read from feels like a lie.
+            val titleRes = if (liveState?.money != null) R.string.brand_iv
+                           else R.string.brand
             StatusBar(
                 isDisconnected = isDisconnected,
                 isStale = isStale,
                 inGame = liveState?.inGame == true,
                 wantedLevel = liveState?.wanted ?: 0,
                 palette = palette,
-                title = stringResource(R.string.brand_iv),
+                title = stringResource(titleRes),
             )
             Spacer(Modifier.height(8.dp))
             val inVehicle = liveState?.inVehicle == true

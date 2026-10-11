@@ -141,6 +141,12 @@ internal fun VMainScreen(
                 .padding(12.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
+            // Mirrors MainScreen: the HUD title drops back to plain
+            // "Grand Theft Companion" (no "V") while the cash card is
+            // showing "—" (no live money for a protagonist). The
+            // moment real data flows the "V" rejoins.
+            val hasCash = live?.money != null && character.isProtagonist
+            val titleRes = if (hasCash) R.string.brand_v else R.string.brand
             StatusBar(
                 isDisconnected = false,
                 isStale = isStale,
@@ -148,7 +154,7 @@ internal fun VMainScreen(
                 wantedLevel = live?.wanted ?: 0,
                 palette = palette,
                 maxStars = 5,   // GTA V: five stars, not six
-                title = stringResource(R.string.brand_v),
+                title = stringResource(titleRes),
             )
             if (tags.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))
