@@ -154,11 +154,12 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 WeaponPanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
                 VehiclePanel(liveState, palette, Modifier.weight(1f).fillMaxHeight())
             }
-            Spacer(Modifier.height(12.dp))
-            FullWidthStats(liveState, palette)
+            // Radio picker (vehicle-only) sits BETWEEN the top columns
+            // and the full-width bars now, so your eye flows: value
+            // headlines → quick-tap pickers → full-screen gauges.
             AnimatedVisibility(liveState?.inVehicle == true) {
                 Column {
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.height(12.dp))
                     RadioPicker(
                         currentStation = liveState?.radio ?: -1,
                         palette = palette,
@@ -166,6 +167,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     )
                 }
             }
+            Spacer(Modifier.height(12.dp))
+            FullWidthStats(liveState, palette)
         }
     }
 }
@@ -310,14 +313,39 @@ private fun RadioPicker(
     palette: HudPalette,
     onStationTap: (Int) -> Unit,
 ) {
-    val count = 18
+    // 18 stations split into two rows of 9. Keeps tap targets wider on
+    // the Thor's bottom panel and matches GTA IV's own radio wheel
+    // where IV stations and TBoGT DLC stations stack visually.
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        RadioPickerRow(
+            start = 0, endExclusive = 9,
+            currentStation = currentStation, palette = palette,
+            onStationTap = onStationTap,
+        )
+        RadioPickerRow(
+            start = 9, endExclusive = 18,
+            currentStation = currentStation, palette = palette,
+            onStationTap = onStationTap,
+        )
+    }
+}
+
+@Composable
+private fun RadioPickerRow(
+    start: Int,
+    endExclusive: Int,
+    currentStation: Int,
+    palette: HudPalette,
+    onStationTap: (Int) -> Unit,
+) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        for (station in 0 until count) {
+        for (station in start until endExclusive) {
             val isCurrent = station == currentStation
             Box(
                 modifier = Modifier
