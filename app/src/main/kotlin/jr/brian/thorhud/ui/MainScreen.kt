@@ -234,7 +234,7 @@ private fun StatusBar(
 
 @Composable
 private fun MoneyRadioPanel(s: GameState?, modifier: Modifier = Modifier) {
-    HudCard(modifier, "money") {
+    HudCard(modifier, "coin") {
         // No "money" sublabel — the panel title already says it.
         BigValue(label = null, value = s?.money?.let { "$$it" } ?: "—")
         Spacer(Modifier.height(20.dp))
