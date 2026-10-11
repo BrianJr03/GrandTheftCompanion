@@ -4,7 +4,7 @@
 
 # Grand Theft Companion
 
-**GTC**: AYN Thor bottom-screen companion for GTA IV and V. Live HUD on the Thor's bottom screen while GTA plays on the main screen via [GameHub Lite](https://www.gamehublite.com/) (`gamehub.lite`) or any Winlator-family launcher.
+AYN Thor bottom-screen companion for GTA IV and V. Live HUD on the Thor's bottom screen while GTA plays on the main screen via [GameHub Lite](https://www.gamehublite.com/) (`gamehub.lite`) or any Winlator-family launcher.
 
 Repo contains the **GTC** Android companion app and **ThorBridge.asi**, the ASI plugin that reads game state from inside the GTA IV process.
 
