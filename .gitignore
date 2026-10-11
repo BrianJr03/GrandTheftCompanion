@@ -18,3 +18,8 @@ captures/
 # Env
 .env
 *.local
+
+# Local build-process notes / per-gate validation logs. Kept out of
+# the public repo on purpose; anything a user needs is in README,
+# LEGAL.md, or inline source comments.
+docs/

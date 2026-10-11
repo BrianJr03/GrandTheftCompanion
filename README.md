@@ -22,23 +22,7 @@ Two artifacts:
 - **`asi/`** — `ThorBridge.asi`, a 32-bit Windows DLL (C++) that loads into GTA IV via Ultimate ASI Loader inside GameHub Lite's Wine prefix. Reads game state (money, health, armor, weapon, vehicle, radio) and publishes JSON over `127.0.0.1:47801` at 20 Hz.
 - **`app/`** — **GTC** (Grand Theft Companion), the Android app (Jetpack Compose + Hilt + MVVM, min SDK 33). A dedicated HUD Activity launched on the bottom display renders the HUD while GTA IV plays on the main screen.
 
-Full plan: `~/.claude/plans/purring-kindling-rainbow.md`. Verified-facts log: [docs/STATE.md](docs/STATE.md). Licensing and legal posture: [LEGAL.md](LEGAL.md).
-
-Licensed under **GPL-3.0-or-later** — see [LICENSE](LICENSE). Rockstar's **GTA IV is not included and must not be redistributed with this project**; bring your own legitimately-purchased copy of Complete Edition 1.2.0.59.
-
-## Current state
-
-All five phases of the handoff plan are complete on-device. See
-[docs/STATE.md](docs/STATE.md) for per-gate evidence (logs, state
-frames, screencaps).
-
-- [x] **Phase 0** — Ground truth: launcher, exe fingerprint, display IDs
-- [x] **Phase 1** — Pipe: safe-mode ASI + 20 Hz hello/tick → companion
-- [x] **Phase 2** — CE natives on game thread → live state frames
-- [x] **Phase 3** — Two-way protocol with cmd/ack
-- [x] **Phase 4** — HudActivity on bottom display via `setLaunchDisplayId`
-- [x] **Phase 5** — Three HUD panels + radio picker + OLED theme
-- [x] **Phase 6** — In-app setup screen with checklist + last connection error
+Licensed under **GPL-3.0-or-later** — see [LICENSE](LICENSE) and [LEGAL.md](LEGAL.md). Rockstar's **GTA IV is not included and must not be redistributed with this project**; bring your own legitimately-purchased copy of Complete Edition 1.2.0.59.
 
 ## Roadmap
 
@@ -95,8 +79,8 @@ The game folder is on shared storage, so adb pushes directly:
 
 ```
 GAME_DIR='/storage/emulated/0/Download/PC Rom/GTA IV/Game/Grand Theft Auto IV'
-adb -s 114202 push asi/build/ThorBridge.asi "$GAME_DIR/"
-adb -s 114202 push /path/to/dinput8.dll "$GAME_DIR/"    # Ultimate ASI Loader (ThirteenAG), 32-bit
+adb push asi/build/ThorBridge.asi "$GAME_DIR/"
+adb push /path/to/dinput8.dll "$GAME_DIR/"    # Ultimate ASI Loader (ThirteenAG), 32-bit
 ```
 
 In your launcher, open the game's settings → Environment variables and add:
