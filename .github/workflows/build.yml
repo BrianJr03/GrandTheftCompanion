@@ -85,7 +85,7 @@ jobs:
           # `packages` straight to sdkmanager, so a YAML `|` block that
           # inserts a newline between entries fails with "Failed to find
           # package 'platforms;android-37\nbuild-tools;35.0.0'".
-          packages: platforms;android-37 build-tools;35.0.0
+          packages: platforms;android-36 build-tools;35.0.0
 
       - name: Setup Gradle (caching)
         uses: gradle/actions/setup-gradle@v4
