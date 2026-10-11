@@ -15,10 +15,17 @@
         tools:targetApi="34">
 
         <!-- Launcher trampoline. Finds the bottom display and starts
-             HudActivity on it via setLaunchDisplayId, then finishes. -->
+             HudActivity on it via setLaunchDisplayId, then finishes.
+             excludeFromRecents keeps the trampoline from flashing into
+             the recents list; HudActivity (its own task, taskAffinity
+             :hud) is what the user sees instead. noHistory ensures the
+             trampoline is never kept around on the back stack. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
             android:theme="@style/Theme.Gtc">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
