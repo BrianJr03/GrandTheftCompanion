@@ -662,16 +662,23 @@ private fun PausedScreen(hello: GameState?, palette: HudPalette) {
                 color = palette.accent,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
-                fontSize = 56.sp,
+                fontSize = 24.sp,
+                lineHeight = 28.sp,
+                maxLines = 1,
+                softWrap = false,
+                overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
             )
             hello?.fileVersion?.let {
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(6.dp))
                 Text(
                     stringResource(R.string.paused_version, it),
                     color = Color(0xFF6A7A6E),
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 16.sp,
+                    fontSize = 12.sp,
                 )
             }
         }
