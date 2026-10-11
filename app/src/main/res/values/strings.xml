@@ -1,3 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Brand -->
+    <string name="brand">Grand Theft Companion</string>
+
+    <!-- Status badges (right of the brand when something isn't live) -->
+    <string name="status_disconnected">DISCONNECTED</string>
+    <string name="status_stale">STALE</string>
+    <string name="status_waiting">WAITING</string>
+
+    <!-- HUD panel titles -->
+    <string name="panel_coin">coin</string>
+    <string name="panel_weapon">weapon</string>
+    <string name="panel_vehicle">vehicle</string>
+
+    <!-- HUD sublabels under big values -->
+    <string name="label_radio">radio</string>
+    <string name="label_clip">clip</string>
+    <string name="label_speed">speed</string>
+
+    <!-- HUD bar labels -->
+    <string name="label_health">health</string>
+    <string name="label_armor">armor</string>
+    <string name="label_engine">engine</string>
+
+    <!-- Vehicle panel -->
+    <string name="on_foot">on foot</string>
+    <string name="mph_value">%1$d mph</string>
+    <string name="model_fallback">model %1$d</string>
+
+    <!-- Money -->
+    <string name="money_value">$%1$d</string>
+    <string name="money_empty">—</string>
+
+    <!-- Weapon panel -->
+    <string name="clip_value">%1$d / %2$d</string>
+
+    <!-- Paused view -->
+    <string name="paused">paused</string>
+    <string name="paused_version">GTA IV v%1$s</string>
+
+    <!-- Setup screen -->
+    <string name="setup_title">GTC: not connected</string>
+    <string name="setup_subtitle">Expecting ThorBridge.asi on 127.0.0.1:47801.</string>
+    <string name="setup_last_error">Last error: %1$s</string>
+    <string name="setup_section">setup checklist</string>
+
+    <string name="setup_step1_title">GTA IV: Complete Edition 1.2.0.59</string>
+    <string name="setup_step1_detail">The ASI pattern-scans this exact build. Other versions won\'t light up the HUD.</string>
+    <string name="setup_step2_title">Winlator-family launcher with env vars</string>
+    <string name="setup_step2_detail">GameHub Lite, Winlator / Winlator Cmod, or GameNative. Add WINEDLLOVERRIDES=dinput8=n,b in the per-game Environment variables.</string>
+    <string name="setup_step3_title">ThorBridge.asi + dinput8.dll in the game folder</string>
+    <string name="setup_step3_detail">Push both next to GTAIV.exe. dinput8.dll is Ultimate ASI Loader (ThirteenAG, 32-bit); download from the UAL releases page.</string>
+    <string name="setup_step4_title">Launch GTA IV and load a save</string>
+    <string name="setup_step4_detail">The ASI stays in safe mode until the script engine is up. On a loaded save this screen clears automatically.</string>
+
+    <!-- Episode labels -->
+    <string name="episode_iv">GTA IV</string>
+    <string name="episode_tlad">The Lost and Damned</string>
+    <string name="episode_tbogt">The Ballad of Gay Tony</string>
+
+    <!-- Content descriptions for the wanted-level star icons -->
+    <string name="wanted_star_lit">wanted star %1$d lit</string>
+    <string name="wanted_star_dim">wanted star %1$d dim</string>
+
+    <!-- Weapon names, indexed by eWeapon enum value (0..20). Values past
+         20 are TLAD/TBoGT episodic weapons; those use weapon_episodic. -->
+    <string-array name="weapon_names">
+        <item>unarmed</item>
+        <item>baseball bat</item>
+        <item>pool cue</item>
+        <item>knife</item>
+        <item>grenade</item>
+        <item>molotov</item>
+        <item>rocket</item>
+        <item>pistol</item>
+        <item>weapon 8</item>
+        <item>Desert Eagle</item>
+        <item>pump shotgun</item>
+        <item>sawed-off shotgun</item>
+        <item>Micro-SMG</item>
+        <item>MP5</item>
+        <item>AK-47</item>
+        <item>M4</item>
+        <item>sniper rifle</item>
+        <item>combat sniper</item>
+        <item>RPG</item>
+        <item>flamethrower</item>
+        <item>minigun</item>
+    </string-array>
+    <string name="weapon_episodic">episodic %1$d</string>
+    <string name="weapon_unknown">weapon %1$d</string>
+
+    <!-- Radio station names, indexed 0..17 (0..13 IV, 14..17 TBoGT). -->
+    <string-array name="radio_names">
+        <item>The Vibe</item>
+        <item>The Beat</item>
+        <item>Rock 97.8</item>
+        <item>The Journey</item>
+        <item>Fusion</item>
+        <item>Jazz Nation</item>
+        <item>Vladivostok</item>
+        <item>Mega Hitz</item>
+        <item>San Juan Sounds</item>
+        <item>WKTT</item>
+        <item>Classics</item>
+        <item>K109 The Studio</item>
+        <item>RamJam</item>
+        <item>Int\'l Funk 99</item>
+        <item>Vice City FM</item>
+        <item>LCPR / Police</item>
+        <item>Self Radio</item>
+    </string-array>
+    <string name="radio_off">off</string>
+    <string name="radio_unknown">station %1$d</string>
 </resources>
