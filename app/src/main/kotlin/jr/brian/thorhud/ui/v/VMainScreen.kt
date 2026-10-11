@@ -115,9 +115,10 @@ internal fun VMainScreen(
     val vehicle = live?.vehicle?.takeIf { live.inVehicle }
     val inVehicle = vehicle != null
 
+    // Character is already named by the status-bar title colour and the
+    // cash card ("michael · cash"); the chip was redundant.
     val tags = mutableListOf<Pair<String, Boolean>>()
     if (live != null && live.inGame) {
-        tags.add(characterName to true)
         if (live.mission) tags.add(stringResource(R.string.v_tag_mission) to false)
         if (live.cutscene) tags.add(stringResource(R.string.v_tag_cutscene) to false)
         if (live.animal) tags.add(stringResource(R.string.v_tag_animal) to false)
