@@ -28,7 +28,6 @@ The repo contains the **GTC** Android companion app and two game plugins: **Thor
      - `ThorBridgeV.asi` — from this project's [latest release](https://github.com/BrianJr03/GrandTheftCompanion/releases/latest).
      - `ScriptHookV.dll` **and** `dinput8.dll` — both from the `bin/` folder of the [Script Hook V zip](http://www.dev-c.com/gtav/scripthookv). Ignore `NativeTrainer.asi` and `xinput1_4.dll` unless you want them.
 
-   *(We don't bundle `dinput8.dll` or `ScriptHookV.dll` ourselves — Script Hook V's licence forbids redistribution, and keeping the ASI loader next to it for symmetry means both downloads come straight from the author.)*
 4. **Per-game env var** in your launcher: `WINEDLLOVERRIDES=dinput8=n,b` (native then builtin, so Wine loads the ASI loader instead of its own stub).
 5. **Install the GTC APK** from the latest [release](https://github.com/BrianJr03/GrandTheftCompanion/releases/latest). Launch it once; the HUD trampolines onto the bottom display.
 6. **Launch the game** from the launcher. HUD lights up the moment the game is in-world.
