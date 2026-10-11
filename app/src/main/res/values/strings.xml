@@ -127,4 +127,30 @@
     </string-array>
     <string name="radio_off">off</string>
     <string name="radio_unknown">station %1$d</string>
+
+    <!-- Short labels for the picker buttons. Frequency when the station
+         is music + the game displays one, callsign/abbreviation
+         otherwise. Indexed by enum (same order as radio_names). -->
+    <string-array name="radio_short">
+        <item>98.8</item>    <!-- 0  The Vibe -->
+        <item>97.8</item>    <!-- 1  Liberty Rock -->
+        <item>108.5</item>   <!-- 2  Jazz Nation -->
+        <item>96.9</item>    <!-- 3  Massive B -->
+        <item>K109</item>    <!-- 4  K109 The Studio -->
+        <item>WKTT</item>    <!-- 5  WKTT (talk) -->
+        <item>LCHC</item>    <!-- 6  LCHC -->
+        <item>JRNY</item>    <!-- 7  The Journey (ambient) -->
+        <item>FUSN</item>    <!-- 8  Fusion FM -->
+        <item>102.7</item>   <!-- 9  The Beat -->
+        <item>BRKR</item>    <!-- 10 Radio Broker -->
+        <item>VLAD</item>    <!-- 11 Vladivostok FM -->
+        <item>PLR</item>     <!-- 12 Public Liberty Radio (talk) -->
+        <item>SJS</item>     <!-- 13 San Juan Sounds -->
+        <item>ELEC</item>    <!-- 14 Electro-Choc -->
+        <item>104.1</item>   <!-- 15 The Classics -->
+        <item>IF99</item>    <!-- 16 International Funk 99 -->
+        <item>TUFF</item>    <!-- 17 Tuff Gong -->
+        <item>IND</item>     <!-- 18 Independence FM (user tracks) -->
+        <item>INT</item>     <!-- 19 Integrity 2.0 (talk) -->
+    </string-array>
 </resources>

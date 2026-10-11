@@ -414,6 +414,9 @@ private fun RadioPickerRow(
     palette: HudPalette,
     onStationTap: (Int) -> Unit,
 ) {
+    // Short labels (freq where known, callsign otherwise) indexed by
+    // enum station id. Button i's label = shortLabels[stations[i]].
+    val shortLabels = stringArrayResource(R.array.radio_short)
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -421,6 +424,7 @@ private fun RadioPickerRow(
         for (local in start until endExclusive) {
             val isCurrent = local == currentLocal
             val enumIdx = stations[local]
+            val label = shortLabels.getOrNull(enumIdx) ?: local.toString()
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -433,10 +437,11 @@ private fun RadioPickerRow(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    local.toString(),
+                    label,
                     color = if (isCurrent) Color(0xFF000000) else Color(0xFFB6CCBC),
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
                 )
             }
         }
