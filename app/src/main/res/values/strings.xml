@@ -8,6 +8,13 @@
     <string name="status_stale">STALE</string>
     <string name="status_waiting">WAITING</string>
 
+    <!-- Setup-screen info dialog (hidden behind an icon in the top-right) -->
+    <string name="info_icon_cd">connection diagnostics</string>
+    <string name="info_dialog_title">Connection diagnostics</string>
+    <string name="info_dialog_no_error">No errors yet — nothing has tried to connect, or every attempt timed out before producing an error line.</string>
+    <string name="info_dialog_last_error">Last error:\n%1$s</string>
+    <string name="info_dialog_dismiss">Close</string>
+
     <!-- HUD panel titles -->
     <string name="panel_coin">coin</string>
     <string name="panel_weapon">weapon</string>
@@ -43,7 +50,6 @@
     <!-- Setup screen -->
     <string name="setup_title">GTC: NOT CONNECTED</string>
     <string name="setup_subtitle">Expecting ThorBridge.asi on 127.0.0.1:47801.</string>
-    <string name="setup_last_error">Last error: %1$s</string>
     <string name="setup_section">setup checklist</string>
 
     <string name="setup_step1_title">GTA IV: Complete Edition 1.2.0.59</string>

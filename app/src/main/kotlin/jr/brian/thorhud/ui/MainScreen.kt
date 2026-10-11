@@ -19,13 +19,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -611,53 +615,102 @@ private fun PausedScreen(hello: GameState?, palette: HudPalette) {
 
 @Composable
 private fun SetupScreen(lastError: String?) {
+    var showInfo by remember { mutableStateOf(false) }
+
     Scaffold(containerColor = Color.Black) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.Start,
+                .padding(padding),
         ) {
-            Text(
-                stringResource(R.string.setup_title),
-                color = PaletteIV.accent,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                stringResource(R.string.setup_subtitle),
-                color = Color(0xFF8EA096),
-                fontFamily = FontFamily.Monospace,
-                fontSize = 13.sp,
-            )
-            if (!lastError.isNullOrBlank()) {
-                Spacer(Modifier.height(2.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.Start,
+            ) {
                 Text(
-                    stringResource(R.string.setup_last_error, lastError),
-                    color = Color(0xFFB04040),
+                    stringResource(R.string.setup_title),
+                    color = PaletteIV.accent,
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    stringResource(R.string.setup_subtitle),
+                    color = Color(0xFF8EA096),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 13.sp,
+                )
+
+                Spacer(Modifier.height(20.dp))
+                Text(
+                    stringResource(R.string.setup_section),
+                    color = Color(0xFF6A7A6E),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(Modifier.height(10.dp))
+                ChecklistItem("1", R.string.setup_step1_title, R.string.setup_step1_detail)
+                ChecklistItem("2", R.string.setup_step2_title, R.string.setup_step2_detail)
+                ChecklistItem("3", R.string.setup_step3_title, R.string.setup_step3_detail)
+                ChecklistItem("4", R.string.setup_step4_title, R.string.setup_step4_detail)
+            }
+            // Info chip at the top-right. Tap for the last connection
+            // error — tinted red when there's actually an error to show,
+            // grey otherwise.
+            IconButton(
+                onClick = { showInfo = true },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 16.dp, end = 16.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Info,
+                    contentDescription = stringResource(R.string.info_icon_cd),
+                    tint = if (lastError.isNullOrBlank()) Color(0xFF6A7A6E)
+                           else Color(0xFFB04040),
                 )
             }
-
-            Spacer(Modifier.height(20.dp))
-            Text(
-                stringResource(R.string.setup_section),
-                color = Color(0xFF6A7A6E),
-                fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(Modifier.height(10.dp))
-            ChecklistItem("1", R.string.setup_step1_title, R.string.setup_step1_detail)
-            ChecklistItem("2", R.string.setup_step2_title, R.string.setup_step2_detail)
-            ChecklistItem("3", R.string.setup_step3_title, R.string.setup_step3_detail)
-            ChecklistItem("4", R.string.setup_step4_title, R.string.setup_step4_detail)
         }
+    }
+
+    if (showInfo) {
+        AlertDialog(
+            onDismissRequest = { showInfo = false },
+            containerColor = Color.Black,
+            titleContentColor = PaletteIV.accent,
+            textContentColor = Color(0xFFEDEDED),
+            title = {
+                Text(
+                    stringResource(R.string.info_dialog_title),
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                )
+            },
+            text = {
+                Text(
+                    if (lastError.isNullOrBlank())
+                        stringResource(R.string.info_dialog_no_error)
+                    else
+                        stringResource(R.string.info_dialog_last_error, lastError),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 13.sp,
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showInfo = false }) {
+                    Text(
+                        stringResource(R.string.info_dialog_dismiss),
+                        color = PaletteIV.accent,
+                        fontFamily = FontFamily.Monospace,
+                    )
+                }
+            },
+        )
     }
 }
 
