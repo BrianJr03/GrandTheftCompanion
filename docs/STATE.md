@@ -510,10 +510,42 @@ bottom screen do NOT pause, stutter, or steal controller input from
 the game** — Phase 5's weapon picker and radio control can be plain
 Compose buttons with no non-focusable-window tricks.
 
-## Next
+## Gate 5 — PASSED (2026-10-11)
 
-Phase 5 — final phase. Three styled HUD panels (stats, weapon+radio,
-vehicle), weapon picker (needs owned-weapons list; the slot-scan was
-disabled in Phase 2 after it crashed — pick up by scanning on demand
-when the picker opens), radio picker, and clear disconnected/stale
-visual states.
+HUD UI replaced with three Compose cards in a landscape layout tuned
+for the Thor's 1240×1080 bottom panel:
+
+- **stats** — money (big mono), health bar (200-scale), armor bar,
+  wanted-level dots
+- **weapon · radio** — current weapon name (looked up from a small id
+  table), clip/total ammo, radio station name
+- **vehicle** — model name, mph speed (converted from m/s), engine HP
+  bar; collapses to "on foot" when `in_vehicle=false`
+
+Status bar at the top shows connection state (`DISCONNECTED` / `STALE`
+/ `WAITING` / `LIVE`) and the game version. A radio-station picker
+appears as a bottom row only when the player is in a vehicle; tapping
+a station button fires `GameStateRepository.setRadio` via the Phase-3
+command path. The weapon picker is intentionally deferred — it needs
+the owned-weapons list that was disabled in Phase 2 for crash safety;
+can be added later by scanning on demand when the picker opens.
+
+Theme pinned to a hard dark palette (no dynamic-color drift) and the
+window background forced to `#000000` so the Thor's AMOLED pixels
+power off outside the HUD content — perfect contrast, lower draw.
+
+Brian confirmed on-device: everything live, radio-station taps change
+the station in-game, no touch interference with GTA IV on display 0.
+
+## Project MVP complete
+
+All five phases of the handoff plan passed on-device:
+
+| Phase | Scope | Status |
+|-------|-------|--------|
+| 0     | Ground truth: launcher, exe, folder, display IDs | ✅ |
+| 1     | Pipe: safe-mode ASI + 20 Hz hello/tick → companion | ✅ |
+| 2     | CE natives on game thread → live state frames | ✅ |
+| 3     | Two-way protocol with cmd/ack | ✅ |
+| 4     | HudActivity on bottom display via setLaunchDisplayId | ✅ |
+| 5     | Three HUD panels + radio picker | ✅ |

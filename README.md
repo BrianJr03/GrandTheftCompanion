@@ -11,17 +11,16 @@ Full plan: `~/.claude/plans/purring-kindling-rainbow.md`. Verified-facts log: [d
 
 ## Current state
 
-Milestones — all pre-Phase-0 milestones only mean "code compiled," **not** "ran inside the game":
+All five phases of the handoff plan are complete on-device. See
+[docs/STATE.md](docs/STATE.md) for per-gate evidence (logs, state
+frames, screencaps).
 
-- [x] **M1** — ASI hello-world: *builds*, unverified on device
-- [x] **M2** — Game-state reads via raw offsets: *builds*, unverified on device. **Offsets are for GTA IV 1.0.7.0/1.0.8.0; actual game is Complete Edition 1.2.0.59. The offset path must stay disabled on CE until Phase 2 replaces it with pattern scans + natives.**
-- [x] **M3** — TCP bridge: *builds*, unverified on device
-- [x] **M4** — Thor companion skeleton (Compose + Hilt + foreground service): *builds*, unverified on device
-- [ ] Phase 1 — Prove the pipe end-to-end (safe-mode ASI, no memory reads)
-- [ ] Phase 2 — CE-correct game-state reads on the game thread
-- [ ] Phase 3 — Two-way protocol with commands and acks
-- [ ] Phase 4 — Bottom-screen HudActivity via `setLaunchDisplayId`
-- [ ] Phase 5 — HUD panels and touch interaction
+- [x] **Phase 0** — Ground truth: launcher, exe fingerprint, display IDs
+- [x] **Phase 1** — Pipe: safe-mode ASI + 20 Hz hello/tick → companion
+- [x] **Phase 2** — CE natives on game thread → live state frames
+- [x] **Phase 3** — Two-way protocol with cmd/ack
+- [x] **Phase 4** — HudActivity on bottom display via `setLaunchDisplayId`
+- [x] **Phase 5** — Three HUD panels + radio picker + OLED theme
 
 ## Prerequisites (macOS dev host)
 
