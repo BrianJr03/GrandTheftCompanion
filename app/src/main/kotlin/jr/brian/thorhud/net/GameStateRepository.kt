@@ -50,23 +50,25 @@ class GameStateRepository @Inject constructor(
     val lastError: StateFlow<String?> = client.lastError
 
     fun update(frame: GameState) {
-        if (frame.isHello) {
-            // A hello opens every connection. If the game on the other
-            // end changed (quit GTA IV, launched GTA V or vice versa),
-            // nothing cached from the previous one applies any more —
-            // wipe every flow so the HUD can't briefly render IV data
-            // under the V title (or vice versa) while a fresh state
-            // frame is on its way.
-            if (_hello.value?.game != frame.game) {
-                _state.value = null
-                _stations.value = emptyList()
-                _weapons.value = emptyList()
-                _ack.value = null
-                _last.value = GameState.WAITING
-                _lastUpdateMs.value = 0L
-            }
+        // A hello opens every connection. If the game on the other end
+        // changed (quit GTA IV, launched GTA V or vice versa), nothing
+        // cached from the previous one applies. Wipe every flow AND
+        // hold the UI in the disconnected/setup state until a real
+        // state frame from the new game arrives — otherwise the hello
+        // itself re-populates _last / _lastUpdateMs and the HUD briefly
+        // renders the new game's layout with empty/leftover fields
+        // (e.g. GTA IV's "coin" title with no data under it).
+        if (frame.isHello && _hello.value?.game != frame.game) {
+            _state.value = null
+            _stations.value = emptyList()
+            _weapons.value = emptyList()
+            _ack.value = null
+            _last.value = GameState.WAITING
+            _lastUpdateMs.value = 0L
             _hello.value = frame
+            return
         }
+        if (frame.isHello) _hello.value = frame
         if (frame.isState) _state.value = frame
         if (frame.isAck) _ack.value = frame
         if (frame.isStations) _stations.value = frame.stations
