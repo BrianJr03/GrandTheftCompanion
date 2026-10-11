@@ -161,7 +161,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     MoneyRadioPanel(liveState, Modifier.weight(1f))
-                    WeaponPanel(liveState, palette, modifier = Modifier.weight(1f))
+                    WeaponPanel(liveState, modifier = Modifier.weight(1f))
                     VehiclePanel(liveState, palette, modifier = Modifier.weight(1f))
                 }
                 Spacer(Modifier.weight(1f))
@@ -175,27 +175,32 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             } else {
                 // On foot: 2×2. Half-width columns give long weapon
                 // names ("pump shotgun", "sawed-off shotgun", "combat
-                // sniper") room to render without an ellipsis.
+                // sniper") room to render without an ellipsis. Each row
+                // takes equal vertical space (weight 1f) so WeaponPanel
+                // can vertically-centre its contents in its cell —
+                // "clip 15/30" sits in the vertical middle of the right
+                // column, visually between the weapon name and the
+                // radio panel below.
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     CoinPanel(liveState, align = CardAlign.Start,
-                              modifier = Modifier.weight(1f))
-                    WeaponPanel(liveState, palette, align = CardAlign.End,
-                                modifier = Modifier.weight(1f))
+                              modifier = Modifier.weight(1f).fillMaxHeight())
+                    WeaponPanel(liveState, align = CardAlign.End,
+                                verticalCenter = true,
+                                modifier = Modifier.weight(1f).fillMaxHeight())
                 }
                 Spacer(Modifier.height(16.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     VehiclePanel(liveState, palette, align = CardAlign.Start,
-                                 modifier = Modifier.weight(1f))
+                                 modifier = Modifier.weight(1f).fillMaxHeight())
                     RadioPanel(liveState, align = CardAlign.End,
-                               modifier = Modifier.weight(1f))
+                               modifier = Modifier.weight(1f).fillMaxHeight())
                 }
-                Spacer(Modifier.weight(1f))
             }
             FullWidthStats(liveState, palette)
         }
@@ -287,12 +292,13 @@ private fun RadioPanel(
 @Composable
 private fun WeaponPanel(
     s: GameState?,
-    palette: HudPalette,
     align: CardAlign = CardAlign.Center,
+    verticalCenter: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val textAlign = textAlignOf(align)
-    HudCard(modifier, stringResource(R.string.panel_weapon), align = align) {
+    HudCard(modifier, stringResource(R.string.panel_weapon),
+            align = align, verticalCenter = verticalCenter) {
         Text(
             weaponName(s?.weaponId),
             color = Color(0xFFEDEDED),
@@ -518,6 +524,7 @@ private fun HudCard(
     modifier: Modifier,
     title: String,
     align: CardAlign = CardAlign.Start,
+    verticalCenter: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val textAlign = when (align) {
@@ -535,9 +542,16 @@ private fun HudCard(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         shape = RoundedCornerShape(10.dp),
     ) {
+        val columnMod = if (verticalCenter) {
+            Modifier.padding(14.dp).fillMaxWidth().fillMaxHeight()
+        } else {
+            Modifier.padding(14.dp).fillMaxWidth()
+        }
         Column(
-            modifier = Modifier.padding(14.dp).fillMaxWidth(),
+            modifier = columnMod,
             horizontalAlignment = horizontal,
+            verticalArrangement = if (verticalCenter) Arrangement.Center
+                                  else Arrangement.Top,
         ) {
             Text(
                 title,
