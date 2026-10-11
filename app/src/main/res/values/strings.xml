@@ -15,6 +15,7 @@
 
     <!-- HUD sublabels under big values -->
     <string name="label_radio">radio</string>
+    <string name="label_radio_stations">radio stations</string>
     <string name="label_clip">clip</string>
     <string name="label_speed">speed</string>
 

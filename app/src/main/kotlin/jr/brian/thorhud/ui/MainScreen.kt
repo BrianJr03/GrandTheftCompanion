@@ -287,7 +287,7 @@ private fun FullWidthStats(s: GameState?, palette: HudPalette) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp),
+            .padding(start = 14.dp, end = 14.dp, bottom = 14.dp),
     ) {
         Bar(label = stringResource(R.string.label_health),
             current = s?.health ?: 0f, max = 200f,
@@ -320,6 +320,13 @@ private fun RadioPicker(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
+        Text(
+            stringResource(R.string.label_radio_stations),
+            color = Color(0xFF6A7A6E),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 11.sp,
+            modifier = Modifier.padding(start = 14.dp, bottom = 4.dp),
+        )
         RadioPickerRow(
             start = 0, endExclusive = 9,
             currentStation = currentStation, palette = palette,
