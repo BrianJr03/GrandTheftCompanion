@@ -13,6 +13,10 @@ namespace snapshot {
 struct Player {
     bool in_game;          // true when CPlayerInfo + CPed are both live
     bool in_vehicle;       // true when IS_CHAR_IN_ANY_CAR
+    bool paused;           // true when the user has the pause menu open
+                           // (CTimer::ms_bUserPause). Set even when the
+                           // natives chain is bypassed, so the HUD can
+                           // flip to a dedicated paused view.
 
     // --- stats ---
     uint32_t money;        // GET_SCORE / STORE_SCORE

@@ -89,6 +89,12 @@ constexpr unsigned kStableFramesRequired = 15;  // ~0.25s at 60fps
 void publish_waiting() {
     snapshot::Player p{};
     p.ts_ms = GetTickCount();
+    // Even in the bypass path, mirror the user-pause flag so the HUD
+    // can switch to a dedicated paused view regardless of whether the
+    // natives chain fired this frame.
+    bool u = false, s = false;
+    natives::debug_read_pause(&u, &s);
+    p.paused = u;
     snapshot::publish(p);
 }
 

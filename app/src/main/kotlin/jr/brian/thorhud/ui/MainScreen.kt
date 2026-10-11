@@ -136,6 +136,15 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         return
     }
 
+    // When the game is paused, hide the whole HUD and show a dedicated
+    // view. Use `state` (sticky) rather than `liveState` so the paused
+    // view survives the short STALE window right after the pause menu
+    // opens (frames thin out while the game is paused).
+    if (state?.paused == true) {
+        PausedScreen()
+        return
+    }
+
     val palette = paletteFor(liveState?.episode ?: state?.episode)
 
     // True-OLED black: #000000 means those AMOLED subpixels power off,
@@ -392,6 +401,34 @@ private fun WantedStars(level: Int, palette: HudPalette) {
                 contentDescription = if (lit) "wanted star $i lit" else "wanted star $i dim",
                 tint = if (lit) palette.stars else Color(0xFF2A332D),
                 modifier = Modifier.size(20.dp),
+            )
+        }
+    }
+}
+
+// --- paused screen ----------------------------------------------------
+
+/**
+ * Shown while GTA IV's pause menu is open. Everything else is hidden
+ * — a single centered white "paused" word on true OLED black. Easier
+ * on the eye when the game isn't producing new state and more AMOLED
+ * pixels are powered off.
+ */
+@Composable
+private fun PausedScreen() {
+    Scaffold(containerColor = Color.Black) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                "paused",
+                color = Color.White,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 72.sp,
             )
         }
     }

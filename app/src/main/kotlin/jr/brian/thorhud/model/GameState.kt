@@ -34,6 +34,7 @@ data class GameState(
     // state — core
     @SerialName("in_game") val inGame: Boolean = false,
     @SerialName("in_vehicle") val inVehicle: Boolean = false,
+    @SerialName("paused") val paused: Boolean = false,
     @SerialName("money") val money: Long? = null,
     @SerialName("health") val health: Float? = null,
     @SerialName("max_health") val maxHealth: Int? = null,
