@@ -23,7 +23,8 @@
     <string name="map_reset">сброс</string>
     <string name="map_lock">заблокировать</string>
     <string name="map_unlock">разблокировать</string>
-    <string name="map_gesture_hint">свести для зума · перетащить для сдвига</string>
+    <string name="map_gesture_hint_zoom">свести для зума</string>
+    <string name="map_gesture_hint_pan">перетащить для сдвига</string>
     <string name="map_view_cd">зеркало верхнего экрана; свести пальцы для зума, перетащить для сдвига</string>
     <string name="mirror_channel_name">Зеркало карты</string>
     <string name="mirror_notification_title">GTC отражает верхний экран</string>

@@ -23,7 +23,8 @@
     <string name="map_reset">réinitialiser</string>
     <string name="map_lock">verrouiller</string>
     <string name="map_unlock">déverrouiller</string>
-    <string name="map_gesture_hint">pincer pour zoomer · glisser pour déplacer</string>
+    <string name="map_gesture_hint_zoom">pincer pour zoomer</string>
+    <string name="map_gesture_hint_pan">glisser pour déplacer</string>
     <string name="map_view_cd">miroir de l\'écran du haut ; pincer pour zoomer, glisser pour déplacer</string>
     <string name="mirror_channel_name">Miroir de la carte</string>
     <string name="mirror_notification_title">GTC reflète l\'écran du haut</string>

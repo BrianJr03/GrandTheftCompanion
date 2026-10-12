@@ -23,7 +23,8 @@
     <string name="map_reset">reset</string>
     <string name="map_lock">lock</string>
     <string name="map_unlock">unlock</string>
-    <string name="map_gesture_hint">pinch to zoom · drag to pan</string>
+    <string name="map_gesture_hint_zoom">pinch to zoom</string>
+    <string name="map_gesture_hint_pan">drag to pan</string>
     <string name="map_view_cd">mirror of the top screen; pinch to zoom, drag to pan</string>
     <string name="mirror_channel_name">Map mirroring</string>
     <string name="mirror_notification_title">GTC is mirroring the top screen</string>

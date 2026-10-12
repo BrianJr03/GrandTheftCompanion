@@ -23,7 +23,8 @@
     <string name="map_reset">zurücksetzen</string>
     <string name="map_lock">sperren</string>
     <string name="map_unlock">entsperren</string>
-    <string name="map_gesture_hint">zusammenziehen zum zoomen · ziehen zum verschieben</string>
+    <string name="map_gesture_hint_zoom">zum zoomen zusammenziehen</string>
+    <string name="map_gesture_hint_pan">zum verschieben ziehen</string>
     <string name="map_view_cd">Spiegelung des oberen Bildschirms; zusammenziehen zum zoomen, ziehen zum verschieben</string>
     <string name="mirror_channel_name">Karten-Spiegelung</string>
     <string name="mirror_notification_title">GTC spiegelt den oberen Bildschirm</string>

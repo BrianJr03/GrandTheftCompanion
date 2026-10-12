@@ -23,7 +23,8 @@
     <string name="map_reset">restablecer</string>
     <string name="map_lock">bloquear</string>
     <string name="map_unlock">desbloquear</string>
-    <string name="map_gesture_hint">pellizca para zoom · arrastra para desplazar</string>
+    <string name="map_gesture_hint_zoom">pellizca para zoom</string>
+    <string name="map_gesture_hint_pan">arrastra para desplazar</string>
     <string name="map_view_cd">espejo de la pantalla superior; pellizca para hacer zoom, arrastra para desplazar</string>
     <string name="mirror_channel_name">Espejo del mapa</string>
     <string name="mirror_notification_title">GTC está reflejando la pantalla superior</string>

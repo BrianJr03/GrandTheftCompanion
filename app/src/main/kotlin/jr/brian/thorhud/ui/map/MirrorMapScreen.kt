@@ -109,16 +109,27 @@ internal fun MirrorMapScreen(
         // Hint lives at the top-right of the whole map tab, visible
         // only while the user is actively adjusting the mirror.
         if (status == ScreenMirror.Status.Active && size != null && !isLocked) {
-            Text(
-                text = stringResource(R.string.map_gesture_hint),
-                color = accent,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 11.sp,
+            Column(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 2.dp, end = 2.dp),
-            )
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = stringResource(R.string.map_gesture_hint_zoom),
+                    color = accent,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                )
+                Text(
+                    text = stringResource(R.string.map_gesture_hint_pan),
+                    color = accent,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                )
+            }
         }
         when {
             status == ScreenMirror.Status.Active && size != null -> {
