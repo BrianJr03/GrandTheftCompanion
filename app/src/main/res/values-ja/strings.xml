@@ -121,6 +121,28 @@
         <item>RPG</item>
         <item>火炎放射器</item>
         <item>ミニガン</item>
+        <!-- 21..41: TLAD / TBoGT -->
+        <item>グレネードランチャー</item>
+        <item>アサルトショットガン</item>
+        <item>武器 23</item>
+        <item>キュー</item>
+        <item>武器 25</item>
+        <item>ソードオフショットガン</item>
+        <item>オートマチック9mm</item>
+        <item>パイプ爆弾</item>
+        <item>.44ピストル</item>
+        <item>爆発ショットガン</item>
+        <item>オートショットガン</item>
+        <item>assault SMG</item>
+        <item>gold SMG</item>
+        <item>advanced MG</item>
+        <item>アドバンストスナイパー</item>
+        <item>粘着爆弾</item>
+        <item>武器 37</item>
+        <item>武器 38</item>
+        <item>武器 39</item>
+        <item>武器 40</item>
+        <item>パラシュート</item>
     </string-array>
     <string name="weapon_unknown">武器 %1$d</string>
 

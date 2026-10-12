@@ -121,6 +121,28 @@
         <item>RPG</item>
         <item>lance-flammes</item>
         <item>minigun</item>
+        <!-- 21..41: TLAD / TBoGT -->
+        <item>lance-grenades</item>
+        <item>fusil d\'assaut</item>
+        <item>arme 23</item>
+        <item>queue de billard</item>
+        <item>arme 25</item>
+        <item>fusil à canon scié</item>
+        <item>9mm automatique</item>
+        <item>bombe artisanale</item>
+        <item>pistolet .44</item>
+        <item>fusil explosif</item>
+        <item>fusil automatique</item>
+        <item>assault SMG</item>
+        <item>gold SMG</item>
+        <item>advanced MG</item>
+        <item>sniper avancé</item>
+        <item>bombe adhésive</item>
+        <item>arme 37</item>
+        <item>arme 38</item>
+        <item>arme 39</item>
+        <item>arme 40</item>
+        <item>parachute</item>
     </string-array>
     <string name="weapon_unknown">arme %1$d</string>
 

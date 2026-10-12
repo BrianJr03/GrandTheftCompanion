@@ -121,6 +121,28 @@
         <item>RPG</item>
         <item>lanzallamas</item>
         <item>minigun</item>
+        <!-- 21..41: TLAD / TBoGT -->
+        <item>lanzagranadas</item>
+        <item>escopeta de asalto</item>
+        <item>arma 23</item>
+        <item>taco de billar</item>
+        <item>arma 25</item>
+        <item>escopeta recortada</item>
+        <item>9mm automática</item>
+        <item>bomba de tubo</item>
+        <item>pistola .44</item>
+        <item>escopeta explosiva</item>
+        <item>escopeta automática</item>
+        <item>assault SMG</item>
+        <item>gold SMG</item>
+        <item>advanced MG</item>
+        <item>francotirador avanzado</item>
+        <item>bomba adhesiva</item>
+        <item>arma 37</item>
+        <item>arma 38</item>
+        <item>arma 39</item>
+        <item>arma 40</item>
+        <item>paracaídas</item>
     </string-array>
     <string name="weapon_unknown">arma %1$d</string>
 

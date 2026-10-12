@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Weapon-wheel strings, shared by the GTA IV and GTA V HUD. The rest
+     of strings_v.xml (character names, vehicle classes, notices…) is
+     English only until the GTA V HUD gets its own translation pass. -->
+<resources>
+    <string name="v_wheel_hint_open">toca un arma · toca aquí para cerrar</string>
+    <string name="v_wheel_hint_held">toca un arma · suelta para equipar</string>
+    <string name="v_wheel_hint_held_iv">toca un arma · suelta para cerrar</string>
+    <string name="v_wheel_failed">no se puede: %1$s</string>
+    <string name="v_label_ammo">munición</string>
+</resources>

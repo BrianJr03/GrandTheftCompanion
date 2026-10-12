@@ -121,6 +121,28 @@
         <item>RPG</item>
         <item>Flammenwerfer</item>
         <item>Minigun</item>
+        <!-- 21..41: TLAD / TBoGT -->
+        <item>Granatwerfer</item>
+        <item>Kampfschrotflinte</item>
+        <item>Waffe 23</item>
+        <item>Billard-Queue</item>
+        <item>Waffe 25</item>
+        <item>abgesägte Shotgun</item>
+        <item>automatische 9mm</item>
+        <item>Rohrbombe</item>
+        <item>.44 Pistole</item>
+        <item>explosive Shotgun</item>
+        <item>automatische Shotgun</item>
+        <item>assault SMG</item>
+        <item>gold SMG</item>
+        <item>advanced MG</item>
+        <item>Advanced Sniper</item>
+        <item>Haftbombe</item>
+        <item>Waffe 37</item>
+        <item>Waffe 38</item>
+        <item>Waffe 39</item>
+        <item>Waffe 40</item>
+        <item>Fallschirm</item>
     </string-array>
     <string name="weapon_unknown">Waffe %1$d</string>
 

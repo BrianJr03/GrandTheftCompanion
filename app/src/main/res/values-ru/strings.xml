@@ -121,6 +121,28 @@
         <item>RPG</item>
         <item>огнемёт</item>
         <item>миниган</item>
+        <!-- 21..41: TLAD / TBoGT -->
+        <item>гранатомёт</item>
+        <item>штурмовой дробовик</item>
+        <item>оружие 23</item>
+        <item>кий</item>
+        <item>оружие 25</item>
+        <item>обрез</item>
+        <item>автоматический 9мм</item>
+        <item>самодельная бомба</item>
+        <item>пистолет .44</item>
+        <item>взрывной дробовик</item>
+        <item>автоматический дробовик</item>
+        <item>assault SMG</item>
+        <item>gold SMG</item>
+        <item>advanced MG</item>
+        <item>улучшенный снайпер</item>
+        <item>липкая бомба</item>
+        <item>оружие 37</item>
+        <item>оружие 38</item>
+        <item>оружие 39</item>
+        <item>оружие 40</item>
+        <item>парашют</item>
     </string-array>
     <string name="weapon_unknown">оружие %1$d</string>
 
