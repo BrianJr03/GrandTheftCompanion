@@ -77,6 +77,9 @@ class GameStateRepository @Inject constructor(
         _lastUpdateMs.value = System.currentTimeMillis()
     }
 
-    suspend fun setWeapon(weaponId: Int): Int? = client.send("set_weapon", weaponId)
-    suspend fun setRadio(stationIndex: Int): Int? = client.send("set_radio", stationIndex)
+    /** [weapon] is a GTA IV weapon id or a GTA V weapon hash; a hash
+     *  needs the full unsigned 32-bit range, hence the Long. */
+    suspend fun setWeapon(weapon: Long): Int? = client.send("set_weapon", weapon)
+    suspend fun setRadio(stationIndex: Int): Int? =
+        client.send("set_radio", stationIndex.toLong())
 }

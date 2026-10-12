@@ -97,22 +97,23 @@ class GameStateClient @Inject constructor() {
      * Send a client->server command. Returns the assigned command id if
      * written to the socket, or null if the client is not connected.
      * Caller correlates the id against the matching `ack` frame.
+     *
+     * [arg] is an unsigned 32-bit value carried in a Long; see
+     * [commandFrame] for why it is not an Int.
      */
-    suspend fun send(name: String, intArg: Int): Int? = withContext(Dispatchers.IO) {
+    suspend fun send(name: String, arg: Long): Int? = withContext(Dispatchers.IO) {
         val out = currentOut ?: return@withContext null
         val id = cmdId.incrementAndGet()
-        val argKey = when (name) {
-            "set_weapon" -> "weapon"
-            "set_radio"  -> "station"
-            else         -> "value"
+        val line = commandFrame(id, name, arg)
+        if (line == null) {
+            Log.w(TAG, "cmd $name not sent: argument $arg out of range")
+            return@withContext null
         }
-        val line = "{\"v\":1,\"type\":\"cmd\",\"id\":$id,\"name\":\"$name\"," +
-                "\"args\":{\"$argKey\":$intArg}}\n"
         writeMutex.withLock {
             try {
                 out.write(line.toByteArray(Charsets.UTF_8))
                 out.flush()
-                Log.i(TAG, "sent cmd id=$id name=$name arg=$intArg")
+                Log.i(TAG, "sent cmd id=$id name=$name arg=$arg")
                 id
             } catch (t: Throwable) {
                 Log.w(TAG, "send failed: ${t.message}")
