@@ -1,6 +1,7 @@
 package jr.brian.thorhud.update
 
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -45,9 +46,16 @@ import androidx.core.net.toUri
 import jr.brian.thorhud.R
 import jr.brian.thorhud.ui.components.HudPalette
 import kotlinx.coroutines.launch
-import java.io.File
 
-private enum class UpdatePhase { Info, PermissionRequired, Downloading, Complete, ErrorState }
+private enum class UpdatePhase {
+    Info,
+    PermissionRequired,
+    Downloading,
+    Complete,
+    AsiDownloading,
+    AsiComplete,
+    ErrorState,
+}
 
 /**
  * The update dialog, hosted over the HUD when the user taps the
@@ -69,12 +77,60 @@ internal fun UpdateDialog(
     var progress by remember { mutableIntStateOf(0) }
     var downloaded by remember { mutableLongStateOf(0L) }
     var total by remember { mutableLongStateOf(updateInfo.apkSize) }
-    var file by remember { mutableStateOf<File?>(null) }
+    var apkUri by remember { mutableStateOf<Uri?>(null) }
     var errorMessage by remember { mutableStateOf("") }
+    // Which ASI (0-based) is currently downloading, and how many in
+    // this batch. Shown as "n of N — ThorBridge.asi" in the progress
+    // phase.
+    var asiIndex by remember { mutableIntStateOf(0) }
+    var asiCount by remember { mutableIntStateOf(0) }
+    var asiCurrentName by remember { mutableStateOf("") }
 
     fun openReleaseInBrowser() {
         if (updateInfo.releaseHtmlUrl.isBlank()) return
         context.startActivity(Intent(Intent.ACTION_VIEW, updateInfo.releaseHtmlUrl.toUri()))
+    }
+
+    fun startAsiDownloads() {
+        val assets = updateInfo.asiAssets
+        if (assets.isEmpty()) return
+        asiCount = assets.size
+        phase = UpdatePhase.AsiDownloading
+        scope.launch {
+            for ((i, asset) in assets.withIndex()) {
+                asiIndex = i
+                asiCurrentName = asset.fileName
+                total = asset.size
+                downloaded = 0L
+                progress = 0
+                var failed = false
+                UpdateDownloader.downloadAsi(
+                    context = context,
+                    downloadUrl = asset.downloadUrl,
+                    fileName = asset.fileName,
+                    version = updateInfo.latestVersion,
+                ).collect { state ->
+                    when (state) {
+                        is DownloadState.Idle -> progress = 0
+                        is DownloadState.Downloading -> {
+                            progress = state.progress
+                            downloaded = state.downloadedBytes
+                            total = state.totalBytes
+                        }
+                        is DownloadState.Success -> Unit
+                        is DownloadState.Error -> {
+                            errorMessage = state.message
+                            failed = true
+                        }
+                    }
+                }
+                if (failed) {
+                    phase = UpdatePhase.ErrorState
+                    return@launch
+                }
+            }
+            phase = UpdatePhase.AsiComplete
+        }
     }
 
     fun startDownload() {
@@ -96,6 +152,7 @@ internal fun UpdateDialog(
                 context = context,
                 downloadUrl = updateInfo.apkDownloadUrl,
                 fileName = updateInfo.apkFileName,
+                version = updateInfo.latestVersion,
             ).collect { state ->
                 when (state) {
                     is DownloadState.Idle -> progress = 0
@@ -105,7 +162,7 @@ internal fun UpdateDialog(
                         total = state.totalBytes
                     }
                     is DownloadState.Success -> {
-                        file = state.file
+                        apkUri = state.uri
                         phase = UpdatePhase.Complete
                     }
                     is DownloadState.Error -> {
@@ -117,7 +174,8 @@ internal fun UpdateDialog(
         }
     }
 
-    val dismissible = phase != UpdatePhase.Downloading
+    val dismissible =
+        phase != UpdatePhase.Downloading && phase != UpdatePhase.AsiDownloading
     Dialog(
         onDismissRequest = { if (dismissible) onDismiss() },
         properties = DialogProperties(
@@ -143,6 +201,7 @@ internal fun UpdateDialog(
                     currentVersion = currentVersion,
                     palette = palette,
                     onDownload = ::startDownload,
+                    onDownloadAsi = ::startAsiDownloads,
                     onOpenInBrowser = {
                         openReleaseInBrowser()
                         onDismiss()
@@ -164,10 +223,27 @@ internal fun UpdateDialog(
                 UpdatePhase.Complete -> CompletePhase(
                     palette = palette,
                     onInstall = {
-                        file?.let { UpdateDownloader.installApk(context, it) }
+                        apkUri?.let { UpdateDownloader.installApk(context, it) }
                         onDismiss()
                     },
                     onLater = onDismiss,
+                )
+                UpdatePhase.AsiDownloading -> AsiDownloadingPhase(
+                    index = asiIndex,
+                    count = asiCount,
+                    fileName = asiCurrentName,
+                    progress = progress,
+                    downloaded = downloaded,
+                    total = total,
+                    palette = palette,
+                )
+                UpdatePhase.AsiComplete -> AsiCompletePhase(
+                    palette = palette,
+                    version = updateInfo.latestVersion,
+                    canDownloadApk = updateInfo.hasApkAsset,
+                    apkSize = updateInfo.apkSize,
+                    onDone = onDismiss,
+                    onDownloadApk = ::startDownload,
                 )
                 UpdatePhase.ErrorState -> ErrorPhase(
                     message = errorMessage,
@@ -190,6 +266,7 @@ private fun InfoPhase(
     currentVersion: String,
     palette: HudPalette,
     onDownload: () -> Unit,
+    onDownloadAsi: () -> Unit,
     onOpenInBrowser: () -> Unit,
     onLater: () -> Unit,
 ) {
@@ -222,6 +299,16 @@ private fun InfoPhase(
             TextButton(onClick = onLater) {
                 Text(stringResource(R.string.update_later), color = palette.accent)
             }
+            if (updateInfo.hasAsiAssets) {
+                TextButton(onClick = onDownloadAsi) {
+                    val size = if (updateInfo.totalAsiSize > 0)
+                        " (${UpdateDownloader.formatBytes(updateInfo.totalAsiSize)})" else ""
+                    Text(
+                        stringResource(R.string.update_download_asi) + size,
+                        color = palette.accent,
+                    )
+                }
+            }
             if (updateInfo.hasApkAsset) {
                 TextButton(onClick = onDownload) {
                     val size = if (updateInfo.apkSize > 0)
@@ -236,6 +323,97 @@ private fun InfoPhase(
                 TextButton(onClick = onOpenInBrowser) {
                     Text(
                         stringResource(R.string.update_open_release),
+                        color = palette.accent,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AsiDownloadingPhase(
+    index: Int,
+    count: Int,
+    fileName: String,
+    progress: Int,
+    downloaded: Long,
+    total: Long,
+    palette: HudPalette,
+) {
+    Column(Modifier.padding(16.dp)) {
+        Header(
+            title = stringResource(R.string.update_asi_downloading_title),
+            subtitle = stringResource(
+                R.string.update_asi_downloading_which,
+                (index + 1).coerceAtLeast(1),
+                count.coerceAtLeast(1),
+                fileName.ifBlank { "" },
+            ),
+            palette = palette,
+        )
+        Spacer(Modifier.height(12.dp))
+        if (progress >= 0) {
+            LinearProgressIndicator(
+                progress = { (progress / 100f).coerceIn(0f, 1f) },
+                modifier = Modifier.fillMaxWidth(),
+                color = palette.accent,
+                trackColor = palette.accent.copy(alpha = 0.2f),
+            )
+        } else {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth(),
+                color = palette.accent,
+                trackColor = palette.accent.copy(alpha = 0.2f),
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        val sub = if (total > 0) {
+            stringResource(
+                R.string.update_downloading_progress,
+                UpdateDownloader.formatBytes(downloaded),
+                UpdateDownloader.formatBytes(total),
+            )
+        } else {
+            UpdateDownloader.formatBytes(downloaded)
+        }
+        Text(sub, color = Color(0xFF8EA096), fontFamily = FontFamily.Monospace)
+    }
+}
+
+@Composable
+private fun AsiCompletePhase(
+    palette: HudPalette,
+    version: String,
+    canDownloadApk: Boolean,
+    apkSize: Long,
+    onDone: () -> Unit,
+    onDownloadApk: () -> Unit,
+) {
+    Column(Modifier.padding(16.dp)) {
+        Header(
+            title = stringResource(R.string.update_asi_ready_title),
+            subtitle = stringResource(R.string.update_asi_ready_subtitle, version),
+            palette = palette,
+        )
+        Spacer(Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            TextButton(onClick = onDone) {
+                Text(
+                    stringResource(R.string.update_done),
+                    color = palette.accent,
+                    fontWeight = if (canDownloadApk) FontWeight.Normal else FontWeight.Bold,
+                )
+            }
+            if (canDownloadApk) {
+                TextButton(onClick = onDownloadApk) {
+                    val size = if (apkSize > 0) " (${UpdateDownloader.formatBytes(apkSize)})" else ""
+                    Text(
+                        stringResource(R.string.update_download) + size,
                         color = palette.accent,
                         fontWeight = FontWeight.Bold,
                     )

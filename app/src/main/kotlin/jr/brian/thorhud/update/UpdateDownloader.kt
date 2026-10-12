@@ -1,49 +1,143 @@
 package jr.brian.thorhud.update
 
+import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Environment
+import android.provider.MediaStore
 import android.provider.Settings
-import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import java.io.File
-import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
 sealed class DownloadState {
     data object Idle : DownloadState()
     data class Downloading(val progress: Int, val downloadedBytes: Long, val totalBytes: Long) : DownloadState()
-    data class Success(val file: File) : DownloadState()
+    /** [uri] is the content URI the file was written to (handed to
+     *  the installer for an APK, ignored for an ASI). [displayPath] is
+     *  the human-readable `Downloads/gtc-downloads/<version>/<name>`
+     *  the dialog shows the user. */
+    data class Success(val uri: Uri, val displayPath: String) : DownloadState()
     data class Error(val message: String) : DownloadState()
 }
 
 /**
- * Pulls an APK down the pipe into the app's cache directory and hands
- * it to Android's package installer. The cache dir is deliberate: no
- * extra storage permission is needed, [FileProvider] can share from
- * there, and Android cleans it up on uninstall if the install never
- * completes.
+ * Pulls release assets (APK + ASIs) into the shared Downloads folder
+ * under a per-version subfolder (`gtc-downloads/<version>/`). The APK's
+ * MediaStore content URI goes straight to Android's package installer;
+ * ASIs stay in Downloads for the user to copy into the game's Wine
+ * prefix.
  */
 object UpdateDownloader {
 
-    private const val UPDATE_DIR = "updates"
-    private const val DEFAULT_FILE_NAME = "update.apk"
     private const val BUFFER_BYTES = 8192
     private const val CONNECT_TIMEOUT_MS = 30_000
     private const val READ_TIMEOUT_MS = 30_000
 
+    private const val MIME_APK = "application/vnd.android.package-archive"
+    private const val MIME_BINARY = "application/octet-stream"
+
+    /** Top-level folder in the shared Downloads collection. Each
+     *  release gets its own `<version>` subfolder underneath so users
+     *  can keep organised copies as the APK + ASIs change release to
+     *  release. */
+    const val DOWNLOADS_RELATIVE_DIR = "gtc-downloads"
+
     fun downloadApk(
         context: Context,
         downloadUrl: String,
-        fileName: String = DEFAULT_FILE_NAME,
+        fileName: String,
+        version: String,
+    ): Flow<DownloadState> = downloadToVersionedDownloads(
+        context = context,
+        downloadUrl = downloadUrl,
+        fileName = fileName.ifBlank { "update.apk" },
+        version = version,
+        mimeType = MIME_APK,
+    )
+
+    fun downloadAsi(
+        context: Context,
+        downloadUrl: String,
+        fileName: String,
+        version: String,
+    ): Flow<DownloadState> = downloadToVersionedDownloads(
+        context = context,
+        downloadUrl = downloadUrl,
+        fileName = fileName,
+        version = version,
+        mimeType = MIME_BINARY,
+    )
+
+    /**
+     * Streams a release asset into
+     * `Download/gtc-downloads/<version>/<fileName>` via MediaStore
+     * (minSdk 33, so no WRITE_EXTERNAL_STORAGE). An existing file with
+     * the same display name in the same relative path is deleted first
+     * so repeated downloads overwrite instead of piling up
+     * `name (1).apk`, `(2)`, etc.
+     */
+    private fun downloadToVersionedDownloads(
+        context: Context,
+        downloadUrl: String,
+        fileName: String,
+        version: String,
+        mimeType: String,
     ): Flow<DownloadState> = flow {
         emit(DownloadState.Idle)
-        val safeName = fileName.ifBlank { DEFAULT_FILE_NAME }
-        val outFile = File(cacheDir(context), safeName)
+        val resolver = context.contentResolver
+        val versionDir = sanitizeVersion(version)
+        val relativePath = buildString {
+            append(Environment.DIRECTORY_DOWNLOADS)
+            append('/')
+            append(DOWNLOADS_RELATIVE_DIR)
+            if (versionDir.isNotEmpty()) {
+                append('/')
+                append(versionDir)
+            }
+        }
+        val displayDir = buildString {
+            append("Downloads/")
+            append(DOWNLOADS_RELATIVE_DIR)
+            if (versionDir.isNotEmpty()) {
+                append('/')
+                append(versionDir)
+            }
+        }
+        val selection =
+            "${MediaStore.Downloads.DISPLAY_NAME}=? AND ${MediaStore.Downloads.RELATIVE_PATH}=?"
+        val selectionArgs = arrayOf(fileName, "$relativePath/")
+        resolver.query(
+            MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+            arrayOf(MediaStore.Downloads._ID),
+            selection,
+            selectionArgs,
+            null,
+        )?.use { cursor ->
+            while (cursor.moveToNext()) {
+                val id = cursor.getLong(0)
+                val existing = ContentUris.withAppendedId(
+                    MediaStore.Downloads.EXTERNAL_CONTENT_URI, id)
+                resolver.delete(existing, null, null)
+            }
+        }
+        val values = ContentValues().apply {
+            put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+            put(MediaStore.Downloads.MIME_TYPE, mimeType)
+            put(MediaStore.Downloads.RELATIVE_PATH, relativePath)
+            put(MediaStore.Downloads.IS_PENDING, 1)
+        }
+        val targetUri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+        if (targetUri == null) {
+            emit(DownloadState.Error("Could not create $fileName in Downloads"))
+            return@flow
+        }
         try {
             // GitHub's browser_download_url redirects to a signed S3
             // URL; the default HttpURLConnection follows redirects.
@@ -56,14 +150,20 @@ object UpdateDownloader {
             }
             connection.connect()
             if (connection.responseCode !in 200..299) {
+                resolver.delete(targetUri, null, null)
                 emit(DownloadState.Error("Server returned ${connection.responseCode}"))
                 return@flow
             }
-
             val totalBytes = connection.contentLengthLong
             var downloaded = 0L
-            connection.inputStream.use { input ->
-                FileOutputStream(outFile).use { output ->
+            val stream = resolver.openOutputStream(targetUri)
+            if (stream == null) {
+                resolver.delete(targetUri, null, null)
+                emit(DownloadState.Error("Could not open $fileName for writing"))
+                return@flow
+            }
+            stream.use { output ->
+                connection.inputStream.use { input ->
                     val buffer = ByteArray(BUFFER_BYTES)
                     while (true) {
                         val read = input.read(buffer)
@@ -76,20 +176,22 @@ object UpdateDownloader {
                     }
                 }
             }
-            emit(DownloadState.Success(outFile))
+            resolver.update(
+                targetUri,
+                ContentValues().apply { put(MediaStore.Downloads.IS_PENDING, 0) },
+                null,
+                null,
+            )
+            emit(DownloadState.Success(targetUri, "$displayDir/$fileName"))
         } catch (t: Throwable) {
+            runCatching { resolver.delete(targetUri, null, null) }
             emit(DownloadState.Error(t.message ?: "Download failed"))
         }
     }.flowOn(Dispatchers.IO)
 
-    fun installApk(context: Context, apkFile: File) {
-        val uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.updates.fileprovider",
-            apkFile,
-        )
+    fun installApk(context: Context, apkUri: Uri) {
         val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
+            setDataAndType(apkUri, MIME_APK)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
         }
         context.startActivity(intent)
@@ -108,16 +210,18 @@ object UpdateDownloader {
         context.startActivity(intent)
     }
 
+    /** Strip anything a MediaStore RELATIVE_PATH would reject (slashes,
+     *  control chars) so a goofy tag name does not blow up the insert.
+     *  Blank in → blank out, in which case the caller skips the
+     *  per-version subfolder entirely. */
+    private fun sanitizeVersion(version: String): String =
+        version.trim().removePrefix("v")
+            .filter { it.isLetterOrDigit() || it == '.' || it == '-' || it == '_' }
+
     fun formatBytes(bytes: Long): String = when {
         bytes <= 0 -> "0 B"
         bytes < 1024 -> "$bytes B"
         bytes < 1024 * 1024 -> "%.1f KB".format(bytes / 1024.0)
         else -> "%.1f MB".format(bytes / (1024.0 * 1024.0))
-    }
-
-    private fun cacheDir(context: Context): File {
-        val dir = File(context.cacheDir, UPDATE_DIR)
-        if (!dir.exists()) dir.mkdirs()
-        return dir
     }
 }

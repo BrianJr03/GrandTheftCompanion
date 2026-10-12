@@ -26,6 +26,16 @@ class HudPrefs @Inject constructor(
             prefs.edit().putBoolean(KEY_SEEN_SWIPE_HINT, value).apply()
         }
 
+    /** Last latestVersion the user dismissed the auto-popup for. The
+     *  auto-open on app start skips any version that matches this; the
+     *  status-bar chip still opens the dialog on demand. Blank until
+     *  the user has dismissed anything. */
+    var dismissedUpdateVersion: String
+        get() = prefs.getString(KEY_DISMISSED_UPDATE_VERSION, "").orEmpty()
+        set(value) {
+            prefs.edit().putString(KEY_DISMISSED_UPDATE_VERSION, value).apply()
+        }
+
     /** User zoom factor on top of the preset mirror crop (1.0 = preset). */
     fun mirrorScale(gameKey: String): Float =
         prefs.getFloat("${KEY_MIRROR_SCALE}_$gameKey", 1f)
@@ -57,6 +67,7 @@ class HudPrefs @Inject constructor(
         const val FILE = "hud_prefs"
         const val KEY_PAGER_PAGE = "pager_page"
         const val KEY_SEEN_SWIPE_HINT = "seen_swipe_hint"
+        const val KEY_DISMISSED_UPDATE_VERSION = "dismissed_update_version"
         const val KEY_MIRROR_SCALE = "mirror_scale"
         const val KEY_MIRROR_OFFSET_X = "mirror_offset_x"
         const val KEY_MIRROR_OFFSET_Y = "mirror_offset_y"

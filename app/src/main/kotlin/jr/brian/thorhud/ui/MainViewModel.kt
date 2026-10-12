@@ -120,6 +120,17 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /** Latest release the user has already dismissed the auto-popup
+     *  for. MainScreen reads this once at start to decide whether to
+     *  pop the dialog automatically; the status-bar chip ignores it. */
+    val dismissedUpdateVersion: String get() = prefs.dismissedUpdateVersion
+
+    /** Remember that the user dismissed this version so we do not
+     *  auto-open the dialog again until a newer tag lands. */
+    fun markUpdateDismissed(version: String) {
+        if (version.isNotBlank()) prefs.dismissedUpdateVersion = version
+    }
+
     private companion object {
         // The plugin answers on its next script tick (25 Hz) and refuses
         // commands that sat for 2 s itself, so anything slower than this

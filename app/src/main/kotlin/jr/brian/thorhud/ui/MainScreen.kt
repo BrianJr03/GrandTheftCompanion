@@ -79,12 +79,29 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     // instance; palette uses whichever episode we know about so the
     // dialog's accent matches the HUD below it.
     var showUpdateDialog by remember { mutableStateOf(false) }
+    // Auto-open once per process start when a newer release lands and
+    // the user has not already dismissed this exact version. The
+    // status-bar chip stays independent — tapping it still opens the
+    // dialog regardless of the dismissed-version pref.
+    var autoPromptHandled by remember { mutableStateOf(false) }
+    LaunchedEffect(updateInfo) {
+        if (autoPromptHandled || updateInfo.latestVersion.isBlank()) return@LaunchedEffect
+        autoPromptHandled = true
+        if (updateInfo.isUpdateAvailable &&
+            updateInfo.latestVersion != viewModel.dismissedUpdateVersion
+        ) {
+            showUpdateDialog = true
+        }
+    }
     if (showUpdateDialog && updateInfo.isUpdateAvailable) {
         UpdateDialog(
             updateInfo = updateInfo,
             currentVersion = viewModel.currentVersionName,
             palette = paletteFor(state?.episode),
-            onDismiss = { showUpdateDialog = false },
+            onDismiss = {
+                viewModel.markUpdateDismissed(updateInfo.latestVersion)
+                showUpdateDialog = false
+            },
         )
     }
 

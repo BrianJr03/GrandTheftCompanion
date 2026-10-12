@@ -112,6 +112,12 @@
     <string name="update_ready_subtitle">Android will take over for the actual install.</string>
     <string name="update_error_title">Download failed</string>
     <string name="update_error_fallback">Something went wrong. Try again or open the release page in your browser.</string>
+    <string name="update_download_asi">Download ASIs</string>
+    <string name="update_asi_downloading_title">Downloading ASIs…</string>
+    <string name="update_asi_downloading_which">%1$d of %2$d · %3$s</string>
+    <string name="update_asi_ready_title">ASIs saved</string>
+    <string name="update_asi_ready_subtitle">Saved to Downloads/gtc-downloads/%1$s. Copy them next to GTAIV.exe in your game folder.</string>
+    <string name="update_done">Done</string>
 
     <!-- Episode labels -->
     <string name="episode_iv" translatable="false">GTA IV</string>

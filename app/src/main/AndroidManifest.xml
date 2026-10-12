@@ -75,21 +75,6 @@
             android:supportsPictureInPicture="false"
             android:theme="@style/Theme.Gtc" />
 
-        <!-- FileProvider only shares the single "updates" cache folder,
-             where UpdateDownloader stashes the downloaded APK before
-             handing a content:// URI to the package installer.
-             Authority stays stable across debug/release because the
-             suffix is a literal, not the applicationId. -->
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.updates.fileprovider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider>
-
         <!-- Owns the screen-capture session for the map page. Started
              only after the user approves capture; stopped with it. -->
         <service

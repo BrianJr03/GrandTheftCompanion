@@ -5,10 +5,20 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
 
+/** One non-APK release asset the dialog can save to Downloads/gtc-asi.
+ *  Right now the release ships ThorBridge.asi (32-bit, IV) and
+ *  ThorBridgeV.asi (64-bit, V); anything else ending in .asi gets
+ *  picked up the same way. */
+data class AsiAsset(
+    val fileName: String,
+    val downloadUrl: String,
+    val size: Long,
+)
+
 /**
  * The release the update dialog talks about: version, body (what you
  * wrote in `app/src/main/res/raw/patch_notes.md`, round-tripped via
- * the GitHub Release), and the APK asset the user downloads.
+ * the GitHub Release), and the APK + ASI assets the user downloads.
  */
 data class UpdateInfo(
     val isUpdateAvailable: Boolean,
@@ -18,8 +28,11 @@ data class UpdateInfo(
     val apkDownloadUrl: String,
     val apkFileName: String,
     val apkSize: Long,
+    val asiAssets: List<AsiAsset> = emptyList(),
 ) {
     val hasApkAsset: Boolean get() = apkDownloadUrl.isNotBlank()
+    val hasAsiAssets: Boolean get() = asiAssets.isNotEmpty()
+    val totalAsiSize: Long get() = asiAssets.sumOf { it.size }
 
     companion object {
         val EMPTY = UpdateInfo(
@@ -30,6 +43,7 @@ data class UpdateInfo(
             apkDownloadUrl = "",
             apkFileName = "",
             apkSize = 0L,
+            asiAssets = emptyList(),
         )
     }
 }
@@ -43,6 +57,7 @@ object UpdateChecker {
     private const val OWNER = "BrianJr03"
     private const val REPO = "GrandTheftCompanion"
     private const val APK_ASSET_SUFFIX = ".apk"
+    private const val ASI_ASSET_SUFFIX = ".asi"
 
     suspend fun checkForUpdate(
         currentVersionName: String,
@@ -63,18 +78,30 @@ object UpdateChecker {
         var apkUrl = ""
         var apkName = ""
         var apkSize = 0L
+        val asiAssets = mutableListOf<AsiAsset>()
         if (assets != null) {
             // First .apk wins. We only publish one APK per release
             // (app/build/outputs/apk/release/app-release.apk → GTC-release.apk),
-            // so no variant picker.
+            // so no variant picker. Every .asi becomes a saveable
+            // asset — the current release ships ThorBridge.asi (IV)
+            // and ThorBridgeV.asi (V).
             for (i in 0 until assets.length()) {
                 val asset = assets.optJSONObject(i) ?: continue
                 val downloadUrl = asset.optString("browser_download_url")
-                if (!downloadUrl.endsWith(APK_ASSET_SUFFIX, ignoreCase = true)) continue
-                apkUrl = downloadUrl
-                apkName = asset.optString("name").ifBlank { downloadUrl.substringAfterLast("/") }
-                apkSize = asset.optLong("size", 0L)
-                break
+                val name = asset.optString("name").ifBlank { downloadUrl.substringAfterLast("/") }
+                val size = asset.optLong("size", 0L)
+                when {
+                    downloadUrl.endsWith(APK_ASSET_SUFFIX, ignoreCase = true) -> {
+                        if (apkUrl.isBlank()) {
+                            apkUrl = downloadUrl
+                            apkName = name
+                            apkSize = size
+                        }
+                    }
+                    downloadUrl.endsWith(ASI_ASSET_SUFFIX, ignoreCase = true) -> {
+                        asiAssets += AsiAsset(name, downloadUrl, size)
+                    }
+                }
             }
         }
         return UpdateInfo(
@@ -85,6 +112,7 @@ object UpdateChecker {
             apkDownloadUrl = apkUrl,
             apkFileName = apkName,
             apkSize = apkSize,
+            asiAssets = asiAssets,
         )
     }
 
