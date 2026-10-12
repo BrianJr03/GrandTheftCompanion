@@ -1,3 +1,17 @@
+## v0.5.0
+
+**Weapon wheel**
+
+An eight-slot weapon wheel on the bottom screen, for both GTA IV and GTA V. Tap the weapon card to open it, or hold LB / L1 on the pad. Tap a slot to switch weapon; tap the selected slot again to step through its other weapons.
+
+**GTA IV never had a weapon wheel in-game** — now it does, carrying every weapon from the base game, The Lost and Damned, and The Ballad of Gay Tony.
+
+**GTA V** keeps its own wheel on the top screen; this is the touch-friendly mirror on the bottom.
+
+**TLAD and TBoGT weapons by name**
+
+Weapons from the two episodes now show their actual name on the HUD and in the wheel (assault SMG, sticky bomb, grenade launcher, pipe bomb, and so on) instead of the "episodic N" placeholder they used before. The id-11 shotgun also now correctly reads "combat shotgun" instead of "sawed-off shotgun".
+
 ## v0.4.0
 
 **First-run swipe hint**

@@ -62,8 +62,6 @@ Plus, for either game: the GTC app, and a launcher that lets you set per-game en
 
 ## Roadmap
 
-- **Weapon picker**
-
 - **Broader device coverage** — only tested on the AYN Thor with
   GameHub Lite. The code paths are generic (secondary-display
   detection enumerates `FLAG_PRESENTATION` displays rather than
@@ -199,6 +197,20 @@ The app picks the layout from the plugin's hello frame. Both layouts share the s
 - **Radio picker built from the running game's own station list**, matched by station name rather than index, so DLC stations and build-to-build reordering don't break it.
 - Tags for mission / cutscene / animal form; non-protagonist peds (Director Mode) get a neutral palette with cash and special hidden.
 - **Story mode only.** In GTA Online the plugin publishes nothing but an "online" flag (and Script Hook V itself closes the game on entering Online).
+
+### Weapon wheel
+
+<p align="center">
+  <img src="assets/weapon-wheel.png" alt="GTC's eight-slot weapon wheel on the Thor's bottom screen" width="420"/>
+</p>
+
+An eight-slot wheel on the bottom screen, laid out like GTA V's: pistols right, rifles down, melee left, heavy up. Tap a slot to switch weapon; tap the already-selected slot again to step through its other weapons.
+
+Opens two ways: tap the on-foot weapon card, or **hold LB / L1** on the pad. Releasing LB closes it. A tap-opened wheel closes by itself after a few seconds of no input. There are no weapon icons — the game's are Rockstar's artwork and this project ships none, so slots are labelled in text.
+
+**GTA IV is the one that benefits most**: it has no in-game weapon wheel. Rockstar's HUD only cycles through the slots one at a time with the shoulder buttons, so picking a specific weapon in a hurry means tapping through everything you own. GTC gives it the direct-pick wheel the base game never had, carrying every weapon from the base game, The Lost and Damned and The Ballad of Gay Tony.
+
+**GTA V** keeps its own wheel on the top screen; the companion's is a touch-friendly mirror on the bottom. The equipped weapon follows whichever wheel finishes last, so you can start with the pad and finish with a tap, or the other way around.
 
 ### Map page (experimental)
 
