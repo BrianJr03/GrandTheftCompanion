@@ -24,6 +24,13 @@ import jr.brian.thorhud.ui.MainViewModel
 import jr.brian.thorhud.ui.components.CardAlign
 import jr.brian.thorhud.ui.components.StatusBar
 
+/** True when V would render a full-screen notice instead of the HUD. */
+internal fun vIsNoticeState(hello: GameState?, state: GameState?): Boolean =
+    hello?.supported == false ||
+        state?.online == true ||
+        (state != null && state.inGame && (state.paused || state.stalled)) ||
+        state?.switching == true
+
 /**
  * GTA V HUD. Reached from ui/MainScreen.kt when the plugin's hello
  * frame says `"game":"v"`; everything GTA V–specific lives in this
@@ -158,6 +165,7 @@ internal fun VMainScreen(
                 wantedLevel = live?.wanted ?: 0,
                 palette = palette,
                 maxStars = 5,   // GTA V: five stars, not six
+                starsRightToLeft = true,   // GTA V HUD fills right-to-left
                 title = stringResource(titleRes),
                 lightsOn = lightsOn,
                 lightsUnavailable = lightsStatus.isUnavailable,

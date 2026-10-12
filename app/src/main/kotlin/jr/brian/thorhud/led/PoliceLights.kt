@@ -12,8 +12,11 @@ import jr.brian.thorhud.model.GameState
  */
 internal object PoliceLights {
 
-    const val RED = 0xFFFF0000.toInt()
-    const val BLUE = 0xFF0000FF.toInt()
+    // Half-brightness red/blue. Full brightness read as too harsh on
+    // the AMOLED thumbsticks at arm's length. ARGB: alpha stays 0xFF,
+    // the colour channel is 0x80 (~50%).
+    const val RED = 0xFF800000.toInt()
+    const val BLUE = 0xFF000080.toInt()
 
     /**
      * Beat length at one star. Bifrost takes the sticks back from an

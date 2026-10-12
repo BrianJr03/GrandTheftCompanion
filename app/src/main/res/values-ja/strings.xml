@@ -9,6 +9,11 @@
     <string name="tab_hud">HUD</string>
     <string name="tab_map">マップ</string>
 
+    <!-- One-time swipe hint -->
+    <string name="swipe_hint_title">ヒント</string>
+    <string name="swipe_hint_body">左右にスワイプしてHUDとミニマップを切り替えます。</string>
+    <string name="swipe_hint_dismiss">OK</string>
+
     <!-- Map page: mirrors the minimap from the top screen -->
     <string name="map_title">ミニマップミラー</string>
     <string name="map_explain">ゲームのミニマップを上画面から拡大して表示します。起動のたびにAndroidが画面キャプチャの許可を求めます。</string>

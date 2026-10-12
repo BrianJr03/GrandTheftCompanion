@@ -106,6 +106,20 @@ internal fun MirrorMapScreen(
         contentAlignment = Alignment.Center,
     ) {
         val size = captureSize
+        // Hint lives at the top-right of the whole map tab, visible
+        // only while the user is actively adjusting the mirror.
+        if (status == ScreenMirror.Status.Active && size != null && !isLocked) {
+            Text(
+                text = stringResource(R.string.map_gesture_hint),
+                color = accent,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 2.dp, end = 2.dp),
+            )
+        }
         when {
             status == ScreenMirror.Status.Active && size != null -> {
                 val baseCrop = minimapCropFor(game)

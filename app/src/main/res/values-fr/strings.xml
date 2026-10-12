@@ -9,6 +9,11 @@
     <string name="tab_hud">hud</string>
     <string name="tab_map">carte</string>
 
+    <!-- One-time swipe hint -->
+    <string name="swipe_hint_title">Astuce</string>
+    <string name="swipe_hint_body">Glissez à gauche ou à droite entre le hud et la minicarte.</string>
+    <string name="swipe_hint_dismiss">Compris</string>
+
     <!-- Map page: mirrors the minimap from the top screen -->
     <string name="map_title">miroir de la minicarte</string>
     <string name="map_explain">Affiche la minicarte du jeu depuis l\'écran du haut, agrandie. Android demande la permission de capturer l\'écran à chaque démarrage.</string>

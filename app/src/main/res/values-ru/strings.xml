@@ -9,6 +9,11 @@
     <string name="tab_hud">худ</string>
     <string name="tab_map">карта</string>
 
+    <!-- One-time swipe hint -->
+    <string name="swipe_hint_title">Совет</string>
+    <string name="swipe_hint_body">Смахните влево или вправо между худом и миникартой.</string>
+    <string name="swipe_hint_dismiss">Понятно</string>
+
     <!-- Map page: mirrors the minimap from the top screen -->
     <string name="map_title">зеркало миникарты</string>
     <string name="map_explain">Показывает миникарту игры с верхнего экрана, увеличенную. Android запрашивает разрешение на запись экрана при каждом запуске.</string>

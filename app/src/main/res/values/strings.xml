@@ -9,6 +9,11 @@
     <string name="tab_hud">hud</string>
     <string name="tab_map">map</string>
 
+    <!-- One-time hint shown on first connect, explaining the pager. -->
+    <string name="swipe_hint_title">Tip</string>
+    <string name="swipe_hint_body">Swipe left or right between the hud and the minimap.</string>
+    <string name="swipe_hint_dismiss">Got it</string>
+
     <!-- Map page: mirrors the minimap from the top screen -->
     <string name="map_title">minimap mirror</string>
     <string name="map_explain">Shows the game\'s minimap from the top screen, enlarged. Android asks for permission to capture the screen each time you start it.</string>

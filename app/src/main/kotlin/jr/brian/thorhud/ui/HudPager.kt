@@ -51,18 +51,15 @@ internal enum class HudPage(@StringRes val labelRes: Int) {
 
 @Composable
 internal fun HudPager(
-    accent: Color,
     initialPage: Int,
     onPageSettled: (Int) -> Unit,
     hud: @Composable () -> Unit,
     map: @Composable () -> Unit,
-    trailingHeader: @Composable (currentPage: Int) -> Unit = {},
 ) {
     val pages = HudPage.entries
     val pagerState = rememberPagerState(
         initialPage = initialPage.coerceIn(0, pages.lastIndex),
     ) { pages.size }
-    val scope = rememberCoroutineScope()
 
     // settledPage only changes once a swipe has come to rest, so a
     // half-finished drag is never saved. drop(1) skips the initial
@@ -74,89 +71,16 @@ internal fun HudPager(
             .collect { currentOnPageSettled(it) }
     }
 
-    Column(
+    HorizontalPager(
+        state = pagerState,
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            // Pages used to own the top inset via their own Scaffolds;
-            // the tab strip is topmost now, so apply it here.
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top)),
-    ) {
-        HudTabStrip(
-            pages = pages,
-            selectedIndex = pagerState.currentPage,
-            accent = accent,
-            onSelect = { index ->
-                scope.launch { pagerState.animateScrollToPage(index) }
-            },
-            trailing = { trailingHeader(pagerState.currentPage) },
-        )
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-        ) { page ->
-            when (pages[page]) {
-                HudPage.Hud -> hud()
-                HudPage.Map -> map()
-            }
+    ) { page ->
+        when (pages[page]) {
+            HudPage.Hud -> hud()
+            HudPage.Map -> map()
         }
-    }
-}
-
-@Composable
-private fun HudTabStrip(
-    pages: List<HudPage>,
-    selectedIndex: Int,
-    accent: Color,
-    onSelect: (Int) -> Unit,
-    trailing: @Composable () -> Unit = {},
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp)
-            .selectableGroup(),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        pages.forEachIndexed { index, page ->
-            val selected = index == selectedIndex
-            Column(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .selectable(
-                        selected = selected,
-                        role = Role.Tab,
-                        onClick = { onSelect(index) },
-                    )
-                    .heightIn(min = 44.dp)
-                    .padding(horizontal = 14.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    stringResource(page.labelRes),
-                    color = if (selected) accent else Color(0xFF6A7A6E),
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                )
-                Spacer(Modifier.height(4.dp))
-                Box(
-                    Modifier
-                        .width(24.dp)
-                        .height(2.dp)
-                        .background(
-                            color = if (selected) accent else Color.Transparent,
-                            shape = RoundedCornerShape(1.dp),
-                        ),
-                )
-            }
-        }
-        Spacer(Modifier.weight(1f))
-        trailing()
     }
 }

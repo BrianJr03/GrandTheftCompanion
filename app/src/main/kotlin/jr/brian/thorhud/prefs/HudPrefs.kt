@@ -19,6 +19,13 @@ class HudPrefs @Inject constructor(
         prefs.edit().putInt("${KEY_PAGER_PAGE}_$gameKey", page).apply()
     }
 
+    /** True after the user has dismissed the one-time swipe-hint dialog. */
+    var hasSeenSwipeHint: Boolean
+        get() = prefs.getBoolean(KEY_SEEN_SWIPE_HINT, false)
+        set(value) {
+            prefs.edit().putBoolean(KEY_SEEN_SWIPE_HINT, value).apply()
+        }
+
     /** User zoom factor on top of the preset mirror crop (1.0 = preset). */
     fun mirrorScale(gameKey: String): Float =
         prefs.getFloat("${KEY_MIRROR_SCALE}_$gameKey", 1f)
@@ -49,6 +56,7 @@ class HudPrefs @Inject constructor(
     private companion object {
         const val FILE = "hud_prefs"
         const val KEY_PAGER_PAGE = "pager_page"
+        const val KEY_SEEN_SWIPE_HINT = "seen_swipe_hint"
         const val KEY_MIRROR_SCALE = "mirror_scale"
         const val KEY_MIRROR_OFFSET_X = "mirror_offset_x"
         const val KEY_MIRROR_OFFSET_Y = "mirror_offset_y"

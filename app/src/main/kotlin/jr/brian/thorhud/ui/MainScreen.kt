@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,10 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import jr.brian.thorhud.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,11 +42,11 @@ import jr.brian.thorhud.ui.components.VehiclePanel
 import jr.brian.thorhud.ui.components.WeaponPanel
 import jr.brian.thorhud.ui.components.paletteFor
 import jr.brian.thorhud.ui.components.stationListFor
-import jr.brian.thorhud.ui.map.MapViewModel
 import jr.brian.thorhud.ui.map.MirrorGame
 import jr.brian.thorhud.ui.map.MirrorMapScreen
 import jr.brian.thorhud.ui.v.VMainScreen
 import jr.brian.thorhud.ui.v.vCharacterOf
+import jr.brian.thorhud.ui.v.vIsNoticeState
 import jr.brian.thorhud.update.UpdateDialog
 import kotlinx.coroutines.delay
 
@@ -97,9 +96,10 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         paletteFor(liveState?.episode ?: state?.episode).accent
     }
 
-    // Pause takes over the whole bottom screen — tabs and map included.
-    // Only applies to GTA IV; V has its own notice flow inside VMainScreen
-    // that covers pause + stalled + online + character-switch.
+    // Pause (and the V-specific notices: unsupported, online, stalled,
+    // character-switch) take over the whole bottom screen. Rendering
+    // these above HudPager means both tabs are replaced and swipe is
+    // disabled while the notice is up.
     if (!isGtaV && state?.paused == true) {
         PausedScreen(
             hello = hello,
@@ -107,34 +107,48 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         )
         return
     }
+    if (isGtaV && vIsNoticeState(hello, state)) {
+        VMainScreen(
+            viewModel = viewModel,
+            hello = hello,
+            state = state,
+            isStale = isStale,
+            updateAvailable = updateInfo.isUpdateAvailable,
+            onOpenUpdate = { showUpdateDialog = true },
+        )
+        return
+    }
 
     val gameKey = if (isGtaV) "v" else "iv"
     val initialPage = remember(gameKey) { viewModel.pagerPage(gameKey) }
 
-    val mapViewModel: MapViewModel = hiltViewModel()
-    val mirrorLocked by mapViewModel.isLocked.collectAsStateWithLifecycle()
+    // One-time swipe hint on the first connected run. Dismissing
+    // writes a prefs flag so it never shows again.
+    var showSwipeHint by remember { mutableStateOf(!viewModel.hasSeenSwipeHint) }
+    if (showSwipeHint) {
+        AlertDialog(
+            onDismissRequest = {
+                showSwipeHint = false
+                viewModel.hasSeenSwipeHint = true
+            },
+            title = { Text(stringResource(R.string.swipe_hint_title)) },
+            text = { Text(stringResource(R.string.swipe_hint_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showSwipeHint = false
+                    viewModel.hasSeenSwipeHint = true
+                }) { Text(stringResource(R.string.swipe_hint_dismiss)) }
+            },
+        )
+    }
 
     // key(gameKey) rebuilds HudPager (and its PagerState) when the
     // connected game changes, so the restored page actually takes
     // effect instead of staying on the previous game's page.
     key(gameKey) {
     HudPager(
-        accent = accent,
         initialPage = initialPage,
         onPageSettled = { viewModel.setPagerPage(gameKey, it) },
-        trailingHeader = { currentPage ->
-            // Pager page 1 is the map. Show the gesture hint only when
-            // the map is on-screen AND the user has unlocked gestures.
-            if (currentPage == 1 && !mirrorLocked) {
-                Text(
-                    text = stringResource(R.string.map_gesture_hint),
-                    color = accent,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
-                )
-            }
-        },
         hud = {
             if (isGtaV) {
                 VMainScreen(
@@ -199,6 +213,7 @@ private fun IvHudScreen(
                 inGame = liveState?.inGame == true,
                 wantedLevel = liveState?.wanted ?: 0,
                 palette = palette,
+                starsRightToLeft = true,
                 title = stringResource(titleRes),
                 lightsOn = lightsOn,
                 lightsUnavailable = lightsUnavailable,

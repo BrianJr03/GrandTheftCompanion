@@ -48,6 +48,10 @@ class MainViewModel @Inject constructor(
     fun pagerPage(gameKey: String): Int = prefs.pagerPage(gameKey)
     fun setPagerPage(gameKey: String, page: Int) = prefs.setPagerPage(gameKey, page)
 
+    var hasSeenSwipeHint: Boolean
+        get() = prefs.hasSeenSwipeHint
+        set(value) { prefs.hasSeenSwipeHint = value }
+
     fun setRadio(stationIndex: Int) {
         viewModelScope.launch { repository.setRadio(stationIndex) }
     }

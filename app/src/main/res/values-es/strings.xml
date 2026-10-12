@@ -9,6 +9,11 @@
     <string name="tab_hud">hud</string>
     <string name="tab_map">mapa</string>
 
+    <!-- One-time swipe hint -->
+    <string name="swipe_hint_title">Consejo</string>
+    <string name="swipe_hint_body">Desliza a izquierda o derecha entre el hud y el minimapa.</string>
+    <string name="swipe_hint_dismiss">Entendido</string>
+
     <!-- Map page: mirrors the minimap from the top screen -->
     <string name="map_title">espejo del minimapa</string>
     <string name="map_explain">Muestra el minimapa del juego desde la pantalla superior, ampliado. Android pide permiso para capturar la pantalla cada vez que lo inicias.</string>

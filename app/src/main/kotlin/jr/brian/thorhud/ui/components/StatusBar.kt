@@ -41,6 +41,9 @@ internal fun StatusBar(
     palette: HudPalette,
     // GTA IV has six wanted stars; GTA V passes 5.
     maxStars: Int = 6,
+    // GTA V renders stars right-to-left in the game HUD; mirror that
+    // here so the companion matches the player's expectations.
+    starsRightToLeft: Boolean = false,
     // Routed screens pass brand_iv / brand_v so the title names the
     // game. Default keeps backward compat if a new caller forgets.
     title: String = stringResource(R.string.brand),
@@ -83,7 +86,7 @@ internal fun StatusBar(
             enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
             exit  = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
         ) {
-            WantedStars(level = wantedLevel, palette = palette, maxStars = maxStars)
+            WantedStars(level = wantedLevel, palette = palette, maxStars = maxStars, rightToLeft = starsRightToLeft)
         }
         // Update chip is only there when a newer release is out, so
         // it fades in beside the lights toggle and doesn't take a
@@ -176,10 +179,10 @@ private fun LightsToggle(
 }
 
 @Composable
-private fun WantedStars(level: Int, palette: HudPalette, maxStars: Int) {
+private fun WantedStars(level: Int, palette: HudPalette, maxStars: Int, rightToLeft: Boolean) {
     Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         repeat(maxStars) { i ->
-            val lit = i < level
+            val lit = if (rightToLeft) i >= (maxStars - level) else i < level
             Icon(
                 imageVector = Icons.Filled.Star,
                 contentDescription = stringResource(

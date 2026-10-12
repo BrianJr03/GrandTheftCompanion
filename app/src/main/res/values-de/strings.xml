@@ -9,6 +9,11 @@
     <string name="tab_hud">HUD</string>
     <string name="tab_map">Karte</string>
 
+    <!-- One-time swipe hint -->
+    <string name="swipe_hint_title">Tipp</string>
+    <string name="swipe_hint_body">Wische nach links oder rechts zwischen dem HUD und der Minimap.</string>
+    <string name="swipe_hint_dismiss">Verstanden</string>
+
     <!-- Map page: mirrors the minimap from the top screen -->
     <string name="map_title">Minimap-Spiegel</string>
     <string name="map_explain">Zeigt die Minimap des Spiels vom oberen Bildschirm vergrößert an. Android fragt bei jedem Start nach der Berechtigung zur Bildschirmaufnahme.</string>
