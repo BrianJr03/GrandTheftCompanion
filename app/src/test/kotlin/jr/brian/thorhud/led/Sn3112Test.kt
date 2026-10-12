@@ -62,4 +62,55 @@ class Sn3112Test {
         assertTrue(cmd.contains("1-17:34:51:255 > /sys/class/sn3112r"))
         assertTrue(cmd.contains("2-17:34:51:255 > /sys/class/sn3112r"))
     }
+
+    // ---- restoreCommand (ambient-snapshot replay) -------------------
+
+    @Test
+    fun restoreReplaysBothZonesPerStickFromRawReads() {
+        // The sysfs read format matches the write format on the Thor.
+        // Replay captures both zone lines verbatim and sends them to
+        // the right node.
+        val left = "1-10:20:30:255\n2-10:20:30:255"
+        val right = "1-40:50:60:255\n2-40:50:60:255"
+        assertEquals(
+            "echo 1-10:20:30:255 > /sys/class/sn3112l/led/brightness && " +
+                "echo 2-10:20:30:255 > /sys/class/sn3112l/led/brightness && " +
+                "echo 1-40:50:60:255 > /sys/class/sn3112r/led/brightness && " +
+                "echo 2-40:50:60:255 > /sys/class/sn3112r/led/brightness",
+            Sn3112.restoreCommand(left, right),
+        )
+    }
+
+    @Test
+    fun restoreToleratesTrailingNewlinesAndBlankLines() {
+        val left = "\n1-5:5:5:255\n\n2-5:5:5:255\n"
+        val right = "1-7:7:7:255\n"
+        val cmd = Sn3112.restoreCommand(left, right)
+        assertEquals(
+            "echo 1-5:5:5:255 > /sys/class/sn3112l/led/brightness && " +
+                "echo 2-5:5:5:255 > /sys/class/sn3112l/led/brightness && " +
+                "echo 1-7:7:7:255 > /sys/class/sn3112r/led/brightness",
+            cmd,
+        )
+    }
+
+    @Test
+    fun restoreSkipsCommentLinesIfDriverAnnotatesReads() {
+        // Not every SN3112 revision emits comments, but the hotfix is
+        // defensive: a '#' at the start of a line means metadata, drop
+        // it so we don't try to `echo #...` into the node.
+        val left = "# zone map\n1-9:9:9:255\n2-9:9:9:255"
+        val right = "1-9:9:9:255\n2-9:9:9:255"
+        val cmd = Sn3112.restoreCommand(left, right)
+        assertTrue(!cmd.contains("#"))
+        assertTrue(cmd.contains("echo 1-9:9:9:255 > /sys/class/sn3112l"))
+    }
+
+    @Test
+    fun restoreFallsBackToBlackWhenBothReadsWereAllCommentsOrBlank() {
+        // If the sysfs returned nothing we can replay, don't build an
+        // empty command — the SN3112 would do nothing and the sticks
+        // would be stuck on whatever the beat loop last showed.
+        assertEquals(Sn3112.clearCommand(), Sn3112.restoreCommand("# only metadata", "\n\n"))
+    }
 }

@@ -1,3 +1,11 @@
+## v0.3.2
+
+**Hotfix: stick lights restore the ambient colour**
+
+When the wanted level dropped, GTC was leaving the thumbsticks dark. The direct LED driver now snapshots the current SN3112 state on the first beat of each chase and replays it on clear — so the sticks return to whatever you had before the sirens started, not to black.
+
+If the sysfs reads come back empty (older firmware, SELinux denial), GTC falls back to the pre-hotfix behaviour and clears to black.
+
 ## v0.3.1
 
 **Wanted lights**

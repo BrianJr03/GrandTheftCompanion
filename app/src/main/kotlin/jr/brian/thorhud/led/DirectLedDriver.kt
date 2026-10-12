@@ -7,6 +7,7 @@ import jr.brian.thorhud.led.StickLights.Status
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -46,20 +47,52 @@ class DirectLedDriver @Inject constructor() : StickLights {
      *  prefer the direct path over Bifrost. */
     fun isAvailable(): Boolean = _status.value == Status.Ready
 
+    // Whatever the SN3112 nodes were showing when we first grabbed
+    // the sticks for this flash sequence. Captured once per override
+    // (sysfs stays current between beats because we don't touch
+    // state between show() calls), replayed on clear(). Null when
+    // we're not currently overriding OR the sysfs reads failed.
+    private var ambientSnapshot: String? = null
+    private var overriding = false
+
     override fun show(left: Int, right: Int) {
+        if (!overriding) {
+            // The first beat of each sequence is our only chance to
+            // see the user's resting colour before our own writes
+            // overwrite it. Reads may silently fail (sysfs 0644 /
+            // SELinux); null just means we fall back to black.
+            ambientSnapshot = runCatching { snapshotAmbient() }.getOrNull()
+            overriding = true
+        }
         transact(Sn3112.dualCommand(left, right))
     }
 
-    // No prior-state to restore to without Bifrost's layering, so clear
-    // means "sticks off" — black on both. If the user also runs
-    // Bifrost, its own render loop writes back ~every 16 ms and takes
-    // the sticks over again on its next tick.
+    // Restore whatever the sticks were showing before this flash
+    // sequence began. Nothing captured (sysfs unreadable, or we were
+    // never overriding) falls through to black — the pre-hotfix
+    // behaviour.
     override fun clear() {
-        transact(Sn3112.clearCommand())
+        val snapshot = ambientSnapshot
+        transact(snapshot ?: Sn3112.clearCommand())
+        ambientSnapshot = null
+        overriding = false
     }
 
     // No separate probe to run: binder is bound (or not) at init.
     override fun refreshStatus() = Unit
+
+    /**
+     * Read both SN3112 nodes and build a shell command that re-sends
+     * exactly what they currently hold. Returns null when either
+     * read fails (file permissions, missing device, SELinux denial),
+     * which keeps the caller on the black-fallback path.
+     */
+    private fun snapshotAmbient(): String? {
+        val left = File(Sn3112.LEFT_NODE).takeIf { it.canRead() }?.readText()
+        val right = File(Sn3112.RIGHT_NODE).takeIf { it.canRead() }?.readText()
+        if (left.isNullOrBlank() || right.isNullOrBlank()) return null
+        return Sn3112.restoreCommand(left, right)
+    }
 
     private fun transact(command: String) {
         val b = binder ?: return
@@ -121,4 +154,25 @@ internal object Sn3112 {
     }
 
     fun clearCommand(): String = dualCommand(0, 0)
+
+    /**
+     * Rebuild an echo-chain that re-writes whatever [left] and
+     * [right] were just read from the sysfs nodes. The kernel driver
+     * accepts the same `zone-R:G:B:A` lines it emits on read, so no
+     * parsing is needed — any blank or `#`-prefixed lines are
+     * dropped (defensive against drivers that annotate reads).
+     */
+    fun restoreCommand(left: String, right: String): String = buildString(256) {
+        appendZones(left, LEFT_NODE)
+        appendZones(right, RIGHT_NODE)
+    }.ifBlank { clearCommand() }
+
+    private fun StringBuilder.appendZones(raw: String, node: String) {
+        for (line in raw.lineSequence()) {
+            val trimmed = line.trim()
+            if (trimmed.isEmpty() || trimmed.startsWith('#')) continue
+            if (isNotEmpty()) append(" && ")
+            append("echo ").append(trimmed).append(" > ").append(node)
+        }
+    }
 }
