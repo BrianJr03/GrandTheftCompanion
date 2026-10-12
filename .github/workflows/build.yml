@@ -214,6 +214,19 @@ jobs:
     permissions:
       contents: write
     steps:
+      # Pull the per-release notes out of the APK sources first:
+      # actions/checkout cleans the workspace by default, so running
+      # it after the artifact downloads would wipe dist/ and fail the
+      # release step with "Pattern does not match any files". Whatever
+      # is in app/src/main/res/raw/patch_notes.md becomes the release
+      # body; generate_release_notes appends the auto commit list
+      # under it.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            app/src/main/res/raw/patch_notes.md
+          sparse-checkout-cone-mode: false
+
       - uses: actions/download-artifact@v4
         with:
           name: ThorBridge.asi
@@ -228,16 +241,6 @@ jobs:
         with:
           name: GTC-release.apk
           path: dist
-
-      # Pull the per-release notes out of the APK sources: whatever is
-      # in app/src/main/res/raw/patch_notes.md becomes the release body.
-      # Falls back to just the auto-generated commit summary (via
-      # generate_release_notes) if the file is missing on a given tag.
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            app/src/main/res/raw/patch_notes.md
-          sparse-checkout-cone-mode: false
 
       - name: Create / update release
         uses: softprops/action-gh-release@v2
