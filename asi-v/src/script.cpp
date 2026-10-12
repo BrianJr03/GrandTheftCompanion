@@ -10,7 +10,8 @@
 //   * GTA Online session -> publish {online} and touch nothing else.
 //   * No player ped / loading screen -> publish {in_game=false}.
 //   * Otherwise read character, stats, special ability, weapon,
-//     vehicle and radio, publish, then run queued client commands.
+//     vehicle, radio and the weapon-wheel control, publish, then run
+//     queued client commands.
 //   * Owned weapons (~1 Hz) and the radio station list (~0.2 Hz) are
 //     scanned on a slower clock and published as versioned lists.
 //
@@ -48,6 +49,11 @@ constexpr DWORD    kTickIntervalMs = 40;     // 25 Hz
 constexpr uint64_t kWeaponScanMs  = 1000;
 constexpr uint64_t kStationScanMs = 5000;
 constexpr int32_t  kRadioOffIndex = 255;
+// INPUT_SELECT_WEAPON has to stay down this long before `wheel` is
+// reported. A quick tap is the game's holster shortcut and must not
+// flash the companion's wheel. Tune on-device against how soon the
+// game's own wheel appears.
+constexpr uint64_t kWheelHoldMs   = 120;
 
 constexpr uint32_t kModelMichael  = joaat("player_zero");
 constexpr uint32_t kModelFranklin = joaat("player_one");
@@ -64,6 +70,8 @@ volatile LONG g_started = 0;
 
 uint64_t g_next_weapon_scan = 0;
 uint64_t g_next_station_scan = 0;
+uint64_t g_select_since = 0;       // tick the wheel control went down, 0 = up
+bool     g_wheel_logged = false;   // this hold already has its log line
 int8_t   g_last_character = snapshot::kCharOther;
 bool     g_logged_first_in_game = false;
 
@@ -196,6 +204,36 @@ void read_radio(snapshot::State& s) {
              shv::call<const char*>(natives::GET_PLAYER_RADIO_STATION_NAME));
 }
 
+// Weapon-wheel control. Needs the session flags and in_vehicle already
+// filled in. On foot only for now: commands:: refuses set_weapon in a
+// vehicle, so showing a wheel there would only offer taps that fail.
+void read_wheel(snapshot::State& s, uint64_t now) {
+    const bool usable = !s.in_vehicle && !s.paused && !s.switching &&
+                        !s.cutscene && !s.animal;
+    s.select_held = usable &&
+        shv::call_bool(natives::IS_CONTROL_PRESSED,
+                       static_cast<int32_t>(natives::kPlayerControl),
+                       static_cast<int32_t>(natives::kInputSelectWeapon));
+    if (!s.select_held) {
+        g_select_since = 0;
+        g_wheel_logged = false;
+        return;
+    }
+    if (g_select_since == 0) {
+        g_select_since = now;
+        // The companion is about to draw the loadout: make sure the
+        // list (and its ammo counts) is this tick's, not up to 1 s old.
+        g_next_weapon_scan = 0;
+    }
+    s.wheel = now - g_select_since >= kWheelHoldMs;
+    if (s.wheel && !g_wheel_logged) {
+        // One line per hold: on a device this is the only way to tell
+        // "the control is never seen" from "the companion ignores it".
+        g_wheel_logged = true;
+        thor_log("[script] weapon-wheel control held -> wheel on");
+    }
+}
+
 void scan_weapons(int32_t ped) {
     static snapshot::Weapon list[snapshot::kMaxWeapons];
     uint32_t n = 0;
@@ -273,6 +311,7 @@ void tick() {
     read_weapon(s, ped);
     read_vehicle(s, ped);
     read_radio(s);
+    read_wheel(s, now);
 
     // A character switch swaps the whole loadout; rescan immediately
     // rather than showing the previous character's weapons for a second.

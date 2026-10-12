@@ -53,6 +53,12 @@ enum : uint64_t {
     GET_VEHICLE_BODY_HEALTH            = 0xF271147EB7B40F12,  // float (Vehicle), 0..1000
     GET_DISPLAY_NAME_FROM_VEHICLE_MODEL = 0xB215AAC32D25D019, // const char* (Hash model) -> GXT key
 
+    // PAD
+    // Answers false while the game itself has the control disabled
+    // (cutscenes, scripted sequences), which is what the weapon-wheel
+    // flag wants: it should only light up when the game would react.
+    IS_CONTROL_PRESSED                 = 0xF3A21BCD95725A4A,  // BOOL (int control, int action)
+
     // HUD
     // NativeDB's current name for what the SDK calls _GET_LABEL_TEXT:
     // resolves a GXT key ("ADDER", "RADIO_01_CLASS_ROCK") to the
@@ -78,6 +84,15 @@ enum : uint64_t {
     GET_IS_PLAYER_IN_ANIMAL_FORM       = 0x9689123E3F213AA5,  // BOOL ()
     GET_MISSION_FLAG                   = 0xA33CDCCDA663159E,  // BOOL ()
     NETWORK_IS_SESSION_STARTED         = 0x9DE624D2FC4B603F,  // BOOL ()
+};
+
+// IS_CONTROL_PRESSED arguments. `control` is the input group, `action`
+// the control index. INPUT_SELECT_WEAPON is the hold-for-weapon-wheel
+// control: LB / L1 on a pad, Tab on a keyboard, and it follows whatever
+// the player rebound it to.
+enum Control : int32_t {
+    kPlayerControl     = 0,
+    kInputSelectWeapon = 37,
 };
 
 // GET_VEHICLE_CLASS values the HUD cares about.

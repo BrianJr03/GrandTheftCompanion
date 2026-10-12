@@ -37,6 +37,17 @@ struct State {
     bool mission;         // GET_MISSION_FLAG
     bool animal;          // peyote / Director Mode animal form
 
+    // --- weapon wheel ---
+    // select_held: INPUT_SELECT_WEAPON (LB / L1 / Tab) is down this tick
+    //   and the player is in a state where a weapon can be picked. Not
+    //   sent to clients; commands:: uses it to defer a touch pick.
+    // wheel: the same, but only once it has been down long enough that
+    //   the game's own weapon wheel is on screen (a quick tap is the
+    //   game's holster/unholster shortcut, not a wheel). Sent to clients
+    //   so the companion can show its wheel for as long as it is held.
+    bool select_held;
+    bool wheel;
+
     // --- who ---
     int8_t   character;   // Character
     uint32_t ped_model;   // raw model hash, for the "other" case

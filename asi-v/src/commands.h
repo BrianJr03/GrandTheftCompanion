@@ -53,7 +53,14 @@ bool take_ack(uint32_t client, Ack* out);
 //   set_radio  arg0 = index into the published station list
 //              (snapshot::Lists::stations), or 255 for "radio off".
 //              Requires the player to be in a vehicle with a radio.
-//   set_weapon arg0 = weapon hash. Requires the ped to own it.
+//   set_weapon arg0 = weapon hash. Requires the ped to own it and to
+//              be on foot. Normally equips at once. While the player is
+//              holding the weapon-wheel control (s.select_held) the pick
+//              is only recorded and acked ok, then equipped when the
+//              control is released — the same "applies on release" rule
+//              as the game's own wheel, and it keeps the game's wheel
+//              from overwriting the pick when it closes. A later pick
+//              during the same hold replaces the earlier one.
 void drain(int32_t player, int32_t ped, const snapshot::State& s);
 
 // Script fiber, for frames where the game state is not usable (online,

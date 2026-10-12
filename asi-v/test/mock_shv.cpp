@@ -14,6 +14,11 @@
 //   loading loading screen never clears
 //   other   player ped is not one of the three protagonists
 //   stall   script fiber stops being resumed after 3 s (pause menu)
+//   wheel   Michael on foot throughout; the weapon-wheel control is held
+//           from 3.0 s to 5.5 s, and shortly after it is released the
+//           mock "game" re-selects the weapon that was in hand when the
+//           wheel opened (what the real wheel is expected to do when it
+//           closes on its unchanged highlight)
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -30,7 +35,7 @@ namespace {
 
 using ScriptMain = void (*)();
 
-enum Scenario { kStory, kOnline, kLoading, kOther, kStall };
+enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel };
 Scenario g_scenario = kStory;
 uint64_t g_t0 = 0;
 
@@ -73,6 +78,33 @@ uint32_t ped_model() {
     if (g_scenario == kOther) return joaat("a_c_deer");
     return elapsed_ms() > 5500 && g_scenario == kStory
         ? joaat("player_one") : joaat("player_zero");
+}
+
+// wheel timeline
+constexpr uint64_t kWheelDownMs   = 3000;
+constexpr uint64_t kWheelUpMs     = 5500;
+constexpr uint64_t kWheelCommitMs = 100;   // release -> game commits highlight
+bool select_held() { uint64_t t = elapsed_ms();
+                     return g_scenario == kWheel && t >= kWheelDownMs
+                         && t < kWheelUpMs; }
+bool     g_was_held = false;
+uint32_t g_wheel_weapon = 0;      // in hand when the wheel opened
+uint64_t g_wheel_commit_at = 0;   // elapsed_ms deadline, 0 = none pending
+
+// Once per mock frame: stand in for the game's own weapon wheel.
+void wheel_step() {
+    if (g_scenario != kWheel) return;
+    const bool held = select_held();
+    if (held && !g_was_held) g_wheel_weapon = g_weapon;
+    if (!held && g_was_held) g_wheel_commit_at = elapsed_ms() + kWheelCommitMs;
+    g_was_held = held;
+    if (g_wheel_commit_at && elapsed_ms() >= g_wheel_commit_at) {
+        g_wheel_commit_at = 0;
+        std::fprintf(stderr, "[mock] wheel commit 0x%08X -> 0x%08X\n",
+                     g_weapon, g_wheel_weapon);
+        std::fflush(stderr);
+        g_weapon = g_wheel_weapon;
+    }
 }
 
 // ---- native call plumbing --------------------------------------------
@@ -165,6 +197,16 @@ void dispatch() {
         ret_bool(has); break; }
     case SET_CURRENT_PED_WEAPON: expect_argc(3, "SET_CURRENT_PED_WEAPON");
         g_weapon = arg<uint32_t>(1); break;
+    case IS_CONTROL_PRESSED: { expect_argc(2, "IS_CONTROL_PRESSED");
+        // Only the weapon-wheel control is ever polled; anything else
+        // is a wrong constant in the plugin.
+        if (arg<int>(0) != kPlayerControl || arg<int>(1) != kInputSelectWeapon) {
+            std::fprintf(stderr, "[mock] UNEXPECTED CONTROL %d/%d\n",
+                         arg<int>(0), arg<int>(1));
+            std::fflush(stderr);
+            ExitProcess(3);
+        }
+        ret_bool(select_held()); break; }
     case IS_PED_IN_ANY_VEHICLE: expect_argc(2, "IS_PED_IN_ANY_VEHICLE");
         ret_bool(in_vehicle()); break;
     case GET_VEHICLE_PED_IS_IN: expect_argc(2, "GET_VEHICLE_PED_IS_IN");
@@ -238,6 +280,7 @@ void mock_scriptRegister(HMODULE /*module*/, ScriptMain fn) {
         if (!std::strcmp(buf, "loading")) g_scenario = kLoading;
         if (!std::strcmp(buf, "other"))   g_scenario = kOther;
         if (!std::strcmp(buf, "stall"))   g_scenario = kStall;
+        if (!std::strcmp(buf, "wheel"))   g_scenario = kWheel;
     }
     std::fprintf(stderr, "[mock] scriptRegister, scenario=%d\n", g_scenario);
     std::fflush(stderr);
@@ -253,6 +296,7 @@ void mock_scriptWait(DWORD ms) {
     if (g_scenario == kStall && elapsed_ms() > 3000) {
         Sleep(INFINITE);   // the game stopped resuming script fibers
     }
+    wheel_step();
     Sleep(ms < 16 ? 16 : ms);   // ~60 fps
 }
 

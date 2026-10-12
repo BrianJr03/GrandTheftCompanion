@@ -18,10 +18,14 @@
 // Client -> server:
 //   {"v":1,"type":"cmd","id":N,"name":"set_radio","args":{"station":I}}
 //   {"v":1,"type":"cmd","id":N,"name":"set_weapon","args":{"weapon":H}}
+//
+// H is the weapon's joaat hash as an UNSIGNED decimal (0..4294967295).
+// About half of all weapon hashes are above 2^31, so a client that
+// formats it from a signed 32-bit int sends garbage.
 
 namespace bridge {
 
-constexpr const char* kPluginVersion = "0.1.0";
+constexpr const char* kPluginVersion = "0.2.0";
 
 // Spawn the listener thread. Returns immediately.
 void start(const VersionInfo& vi);

@@ -19,6 +19,11 @@ constexpr unsigned kAckCap   = 32;
 // worse than no retune.
 constexpr uint64_t kStaleMs  = 2000;
 constexpr uint32_t kRadioOff = 255;
+// How long after the weapon-wheel control is released a deferred pick
+// keeps being enforced. The game's wheel commits its own highlighted
+// slot as it closes, possibly a few frames after the release; anything
+// it selects inside this window is put back to the companion's pick.
+constexpr uint64_t kPickSettleMs = 500;
 
 CRITICAL_SECTION g_cs;
 bool g_inited = false;
@@ -39,6 +44,17 @@ struct Lock {
     Lock()  { EnterCriticalSection(&g_cs); }
     ~Lock() { LeaveCriticalSection(&g_cs); }
 };
+
+// A weapon picked on the companion while the weapon-wheel control was
+// held. Script-fiber state only (set and consumed inside drain()), so
+// it needs no lock.
+struct WheelPick {
+    bool     active;
+    uint32_t hash;
+    uint64_t released_ms;   // 0 while the control is still held
+    bool     logged;        // "applied" already written to the log
+};
+WheelPick g_pick{};
 
 void post_ack(uint32_t client, uint32_t id, bool ok, const char* err) {
     if (!g_inited) return;
@@ -114,9 +130,55 @@ void do_set_weapon(const commands::Cmd& c, int32_t ped,
         post_ack(c.client, c.id, false, "weapon not owned");
         return;
     }
+    if (s.select_held) {
+        // The game's weapon wheel is (about to be) open. Equipping now
+        // would be undone when it closes and commits its own highlight,
+        // so hold the pick until the control is released.
+        g_pick = WheelPick{true, hash, 0, false};
+        thor_log("[cmd] set_weapon 0x%08X -> ok (on wheel release)", hash);
+        post_ack(c.client, c.id, true, "");
+        return;
+    }
+    g_pick = WheelPick{};   // an immediate pick supersedes a pending one
     shv::call<void>(natives::SET_CURRENT_PED_WEAPON, ped, hash, 1);
     thor_log("[cmd] set_weapon 0x%08X -> ok", hash);
     post_ack(c.client, c.id, true, "");
+}
+
+// Runs once per tick, before new commands: equip a pick made while the
+// weapon wheel was open, once the wheel has closed.
+void settle_wheel_pick(int32_t ped, const snapshot::State& s, uint64_t now) {
+    if (!g_pick.active) return;
+    if (blocked_reason(s) || s.in_vehicle) {
+        g_pick = WheelPick{};
+        return;
+    }
+    if (s.select_held) {
+        g_pick.released_ms = 0;   // still (or again) held: keep waiting
+        return;
+    }
+    if (g_pick.released_ms == 0) g_pick.released_ms = now;
+    if (now - g_pick.released_ms > kPickSettleMs) {
+        g_pick = WheelPick{};
+        return;
+    }
+    // s.weapon is this tick's GET_SELECTED_PED_WEAPON. Equal means the
+    // pick is in place; stay armed for the rest of the window in case
+    // the game's wheel commits after us.
+    if (s.weapon == g_pick.hash) return;
+    if (g_pick.hash != weapons::kUnarmed &&
+        !shv::call_bool(natives::HAS_PED_GOT_WEAPON, ped, g_pick.hash, 0)) {
+        g_pick = WheelPick{};
+        return;
+    }
+    shv::call<void>(natives::SET_CURRENT_PED_WEAPON, ped, g_pick.hash, 1);
+    if (!g_pick.logged) {
+        g_pick.logged = true;
+        thor_log("[cmd] wheel pick 0x%08X applied on release", g_pick.hash);
+    } else {
+        thor_log("[cmd] wheel pick 0x%08X re-applied (game changed it)",
+                 g_pick.hash);
+    }
 }
 
 }  // namespace
@@ -162,6 +224,7 @@ bool take_ack(uint32_t client, Ack* out) {
 void drain(int32_t /*player*/, int32_t ped, const snapshot::State& s) {
     if (!g_inited) return;
     const uint64_t now = GetTickCount64();
+    settle_wheel_pick(ped, s, now);
     Cmd c;
     while (pop_cmd(&c)) {
         if (now - c.queued_ms > kStaleMs) {
@@ -186,6 +249,7 @@ void drain(int32_t /*player*/, int32_t ped, const snapshot::State& s) {
 
 void reject_all(const char* reason) {
     if (!g_inited) return;
+    g_pick = WheelPick{};   // script fiber, same as drain()
     Cmd c;
     while (pop_cmd(&c)) post_ack(c.client, c.id, false, reason);
 }

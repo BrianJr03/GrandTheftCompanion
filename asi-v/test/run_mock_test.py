@@ -193,6 +193,8 @@ def test_story():
     check(last.get("character") == 1 and last.get("money") == 7654321,
           "ends as Franklin with Franklin's cash")
     check(not any(f.get("stalled") for _, f in states), "never stalled")
+    check(all(f.get("wheel") is False for _, f in states),
+          "wheel flag present and false while the control is never held")
 
     st = by_type.get("stations", [])
     check(len(st) == 1, "stations list sent exactly once (%d)" % len(st))
@@ -235,6 +237,91 @@ def test_story():
         print("---- ThorBridgeV.log ----\n" + log[-3000:])
 
 
+def test_wheel():
+    """On foot throughout. The mock holds the weapon-wheel control from
+    3.0 s to 5.5 s and, 100 ms after release, re-selects whatever was in
+    hand when the wheel opened."""
+    print("scenario: wheel")
+    knife = joaat("weapon_knife")            # above 2^31: must stay unsigned
+    grenade = joaat("weapon_grenade")
+    rifle = joaat("weapon_assaultrifle")
+    s = Session("wheel", 12)
+    check(s.sock is not None, "bridge accepts a connection")
+    if not s.sock:
+        print(s.close())
+        return
+    states = []
+    acks = {}
+    have_weapons = False
+    sent_foot = sent_wheel = False
+    for f in s.frames(9):
+        if f["type"] == "weapons":
+            have_weapons = True
+        if f["type"] == "ack":
+            acks[f["id"]] = f
+        if f["type"] != "state":
+            continue
+        states.append(f)
+        if not f.get("in_game"):
+            continue
+        if not sent_foot and have_weapons and not f.get("wheel"):
+            sent_foot = True
+            s.send_cmd(1, "set_weapon", "weapon", knife)
+        if not sent_wheel and f.get("wheel"):
+            sent_wheel = True
+            s.send_cmd(2, "set_weapon", "weapon", grenade)
+            s.send_cmd(3, "set_weapon", "weapon", joaat("weapon_rpg"))
+            s.send_cmd(4, "set_weapon", "weapon", rifle)   # replaces 2
+    rc, err, log = s.close()
+
+    live = [f for f in states if f.get("in_game")]
+    check(knife > 0x7FFFFFFF, "test weapon hash really is above 2^31")
+    check(bool(live) and live[0].get("wheel") is False
+          and live[0].get("weapon_hash") == joaat("weapon_pistol"),
+          "starts with the pistol, wheel flag false")
+    check(sent_foot and acks.get(1, {}).get("ok") is True,
+          "set_weapon on foot -> ok")
+    held = [f for f in live if f.get("wheel")]
+    before = live[:live.index(held[0])] if held else live
+    check(any(f.get("weapon_hash") == knife
+              and f.get("weapon_name") == "weapon_knife" for f in before),
+          "on-foot pick equips at once, before the wheel opens")
+    span = (held[-1]["t"] - held[0]["t"]) if held else 0
+    check(1800 <= span <= 2600,
+          "wheel flag true for the hold, minus the tap filter (%d ms)" % span)
+    check(sent_wheel and acks.get(2, {}).get("ok") is True
+          and acks.get(4, {}).get("ok") is True,
+          "set_weapon while the wheel is held -> ok")
+    check(acks.get(3, {}).get("ok") is False
+          and acks.get(3, {}).get("err") == "weapon not owned",
+          "set_weapon for an unowned weapon is still refused on the wheel")
+    check(bool(held) and all(f.get("weapon_hash") == knife for f in held),
+          "pick made on the wheel is deferred while the control is held")
+    last = live[-1] if live else {}
+    check(last.get("wheel") is False and last.get("weapon_hash") == rifle
+          and last.get("weapon_name") == "weapon_assaultrifle",
+          "after release the LAST wheel pick is equipped (0x%08X)"
+          % last.get("weapon_hash", 0))
+    check("[mock] wheel commit" in err,
+          "mock game re-selected its own highlight after the release")
+    check("re-applied" in log,
+          "plugin put the companion's pick back after the game's commit")
+    check(log.count("weapon-wheel control held") == 1,
+          "one log line for the one hold")
+    tail = [f for f in live if not f.get("wheel")
+            and f["t"] > (held[-1]["t"] + 1000 if held else 0)]
+    check(bool(tail) and all(f.get("weapon_hash") == rifle for f in tail),
+          "pick is stable once the settle window has passed")
+
+    check("UNKNOWN NATIVE" not in err and "ARITY MISMATCH" not in err
+          and "UNEXPECTED CONTROL" not in err,
+          "mock saw no unknown native / arity mismatch / wrong control")
+    check(rc == 0, "host exited cleanly (rc=%s)" % rc)
+    if failures:
+        print("---- stderr ----\n" + err[-2000:])
+        print("---- ThorBridgeV.log ----\n" + log[-3000:])
+
+
 def simple(scenario, seconds, predicate, what, with_shv=True):
     print("scenario: %s%s" % (scenario, "" if with_shv else " (no Script Hook V)"))
     s = Session(scenario, seconds + 3, with_shv)
@@ -259,6 +346,7 @@ def main():
                      % (f, BUILD))
 
     test_story()
+    test_wheel()
 
     def states(fr):
         return [f for f in fr if f["type"] == "state"]
