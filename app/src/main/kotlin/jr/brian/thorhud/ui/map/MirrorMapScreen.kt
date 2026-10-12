@@ -113,7 +113,7 @@ internal fun MirrorMapScreen(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 2.dp, end = 2.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                horizontalAlignment = Alignment.End,
             ) {
                 Text(
                     text = stringResource(R.string.map_gesture_hint_zoom),
