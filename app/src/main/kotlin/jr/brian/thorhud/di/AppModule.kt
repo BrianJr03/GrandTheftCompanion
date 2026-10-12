@@ -5,7 +5,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jr.brian.thorhud.led.BifrostClient
+import jr.brian.thorhud.led.DirectLedDriver
 import jr.brian.thorhud.led.StickLights
+import javax.inject.Singleton
 
 /**
  * Hilt is wired for @Inject constructors in the Singleton scope. This module
@@ -16,7 +18,17 @@ import jr.brian.thorhud.led.StickLights
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
-    /** The thumbstick lights are driven through Bifrost. */
+    /**
+     * Prefer the direct SN3112 writer on an AYN Thor; fall back to
+     * Bifrost's broadcast API everywhere else. The direct driver's
+     * constructor resolves PServerBinder once and reports back through
+     * [DirectLedDriver.isAvailable], so this picks the real answer
+     * without probing.
+     */
     @Provides
-    fun provideStickLights(bifrost: BifrostClient): StickLights = bifrost
+    @Singleton
+    fun provideStickLights(
+        direct: DirectLedDriver,
+        bifrost: BifrostClient,
+    ): StickLights = if (direct.isAvailable()) direct else bifrost
 }

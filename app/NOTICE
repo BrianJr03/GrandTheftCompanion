@@ -1,0 +1,28 @@
+Grand Theft Companion (app/)
+
+Copyright (C) 2026 Brian Jr. (BrianJr03).
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version. See LICENSE at the repo root.
+
+------------------------------------------------------------------------
+Third-party attributions
+------------------------------------------------------------------------
+
+The direct LED path on the AYN Thor — PServerBinder resolution via
+reflection, the Parcel protocol it accepts, and the SN3112 sysfs shell
+format — is derived from:
+
+  Bifrost  (Pollux-MoonBench, archived)
+    https://github.com/Pollux-MoonBench/Bifrost
+    tools/LedController.kt
+    Copyright (C) its contributors.
+    Licensed under GNU General Public License v3.0.
+
+GTC's reimplementation in app/src/main/kotlin/jr/brian/thorhud/led/
+(DirectLedDriver.kt, Sn3112) keeps only the one-shot "draw a frame on
+both sticks" slice of Bifrost's controller — no master-fade baseline,
+no 16 ms de-dup, no layering — because the police-light beat loop
+drives the animation here.
