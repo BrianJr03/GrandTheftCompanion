@@ -1,3 +1,11 @@
+## v0.3.3
+
+**Minimap mirror (experimental)**
+
+The bottom screen now has a second **map** page. Swipe or tap the tabs to switch. It shows the game's own minimap, enlarged. Android asks for screen-capture permission once per session.
+
+Pinch to zoom, drag to pan if the map isn't quite centered. Tap **lock** when you're happy with it so swiping between pages won't nudge it, **reset** to go back to the default. GTA IV and GTA V remember their own position and preferred tab separately.
+
 ## v0.3.2
 
 **Hotfix: stick lights restore the ambient colour**
