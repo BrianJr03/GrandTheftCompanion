@@ -52,6 +52,8 @@ internal fun VMainScreen(
     isStale: Boolean,
 ) {
     val stations by viewModel.stations.collectAsStateWithLifecycle()
+    val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
+    val lightsStatus by viewModel.stickLightsStatus.collectAsStateWithLifecycle()
 
     // `state` sticks across stale periods (same as GTA IV) so the
     // palette and notices don't flicker; `live` is null while stale so
@@ -155,6 +157,9 @@ internal fun VMainScreen(
                 palette = palette,
                 maxStars = 5,   // GTA V: five stars, not six
                 title = stringResource(titleRes),
+                lightsOn = lightsOn,
+                lightsUnavailable = lightsStatus.isUnavailable,
+                onToggleLights = viewModel::togglePoliceLights,
             )
             if (tags.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))

@@ -45,6 +45,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val lastUpdateMs by viewModel.lastUpdateMs.collectAsStateWithLifecycle()
     val lastError by viewModel.lastError.collectAsStateWithLifecycle()
+    val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
+    val lightsStatus by viewModel.stickLightsStatus.collectAsStateWithLifecycle()
 
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
@@ -97,6 +99,9 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 wantedLevel = liveState?.wanted ?: 0,
                 palette = palette,
                 title = stringResource(titleRes),
+                lightsOn = lightsOn,
+                lightsUnavailable = lightsStatus.isUnavailable,
+                onToggleLights = viewModel::togglePoliceLights,
             )
             Spacer(Modifier.height(8.dp))
             val inVehicle = liveState?.inVehicle == true

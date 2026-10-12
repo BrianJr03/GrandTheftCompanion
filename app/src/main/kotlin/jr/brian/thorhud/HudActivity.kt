@@ -7,8 +7,11 @@ import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import jr.brian.thorhud.led.PoliceLightsController
 import jr.brian.thorhud.net.GameStateClient
 import jr.brian.thorhud.net.GameStateRepository
 import jr.brian.thorhud.ui.MainScreen
@@ -31,6 +34,7 @@ class HudActivity : ComponentActivity() {
 
     @Inject lateinit var client: GameStateClient
     @Inject lateinit var repository: GameStateRepository
+    @Inject lateinit var policeLights: PoliceLightsController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +43,13 @@ class HudActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             client.frames().collect { repository.update(it) }
+        }
+
+        // Thumbstick lights follow the wanted level, but only while the
+        // HUD is on screen. Leaving STARTED cancels the controller,
+        // which hands the sticks back on its way out.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) { policeLights.run() }
         }
 
         setContent {

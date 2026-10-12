@@ -5,6 +5,18 @@
     <!-- Loopback TCP from Android still requires the INTERNET permission. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Thumbstick lights go through Bifrost, the Thor's LED app, if the
+         user has it. This is Bifrost's own install-time permission for
+         sending it LED commands; the user still has to allow
+         third-party control inside Bifrost before anything lights up. -->
+    <uses-permission android:name="com.moonbench.bifrost.permission.CONTROL_LEDS" />
+
+    <!-- Lets us tell "Bifrost is not installed" from "Bifrost did not
+         answer". -->
+    <queries>
+        <package android:name="com.moonbench.bifrost" />
+    </queries>
+
     <application
         android:name=".GtcApp"
         android:allowBackup="true"
