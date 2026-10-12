@@ -93,6 +93,12 @@
     <string name="update_ready_subtitle">Android gestirà l\'installazione effettiva.</string>
     <string name="update_error_title">Download non riuscito</string>
     <string name="update_error_fallback">Qualcosa è andato storto. Riprova o apri la pagina della release nel browser.</string>
+    <string name="update_download_asi">Scarica gli ASI</string>
+    <string name="update_asi_downloading_title">Download degli ASI in corso…</string>
+    <string name="update_asi_downloading_which">%1$d di %2$d · %3$s</string>
+    <string name="update_asi_ready_title">ASI salvati</string>
+    <string name="update_asi_ready_subtitle">Salvati in Downloads/gtc-downloads/%1$s. Copiali accanto a GTAIV.exe nella cartella del gioco.</string>
+    <string name="update_done">Fatto</string>
 
     <!-- Wanted star descriptions -->
     <string name="wanted_star_lit">stella di ricerca %1$d accesa</string>

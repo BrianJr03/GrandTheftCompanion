@@ -93,6 +93,12 @@
     <string name="update_ready_subtitle">この後は Android がインストールを行います。</string>
     <string name="update_error_title">ダウンロードに失敗</string>
     <string name="update_error_fallback">問題が発生しました。もう一度試すか、ブラウザでリリースページを開いてください。</string>
+    <string name="update_download_asi">ASI をダウンロード</string>
+    <string name="update_asi_downloading_title">ASI をダウンロード中…</string>
+    <string name="update_asi_downloading_which">%1$d / %2$d · %3$s</string>
+    <string name="update_asi_ready_title">ASI を保存しました</string>
+    <string name="update_asi_ready_subtitle">Downloads/gtc-downloads/%1$s に保存しました。ゲームフォルダの GTAIV.exe の隣にコピーしてください。</string>
+    <string name="update_done">完了</string>
 
     <!-- Wanted star descriptions -->
     <string name="wanted_star_lit">指名手配の星 %1$d 点灯</string>

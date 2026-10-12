@@ -93,6 +93,12 @@
     <string name="update_ready_subtitle">Фактическую установку выполнит Android.</string>
     <string name="update_error_title">Загрузка не удалась</string>
     <string name="update_error_fallback">Что-то пошло не так. Попробуйте ещё раз или откройте страницу релиза в браузере.</string>
+    <string name="update_download_asi">Скачать ASI</string>
+    <string name="update_asi_downloading_title">Загрузка ASI…</string>
+    <string name="update_asi_downloading_which">%1$d из %2$d · %3$s</string>
+    <string name="update_asi_ready_title">ASI сохранены</string>
+    <string name="update_asi_ready_subtitle">Сохранены в Downloads/gtc-downloads/%1$s. Скопируйте их рядом с GTAIV.exe в папке игры.</string>
+    <string name="update_done">Готово</string>
 
     <!-- Wanted star descriptions -->
     <string name="wanted_star_lit">звезда розыска %1$d горит</string>
