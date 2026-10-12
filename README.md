@@ -220,7 +220,7 @@ Opens two ways: tap the on-foot weapon card, or **hold LB / L1** on the pad. Rel
 
 **GTA V** keeps its own wheel on the top screen; the companion's is a touch-friendly mirror on the bottom. The equipped weapon follows whichever wheel finishes last, so you can start with the pad and finish with a tap, or the other way around.
 
-### Map page (experimental)
+### MiniMap View
 
 Once connected, the bottom screen is a two-page pager. Swipe between the HUD and the **map** page. A one-time **Tip** dialog on first connect points this out. Each game (IV and V) remembers which page it was on independently.
 
@@ -230,6 +230,14 @@ The map page mirrors the game's own minimap from the top screen and enlarges it,
 - It is a magnified copy of a small patch of the screen, so it is soft, and it shows whatever is in that patch when the game hides the minimap (cutscenes, pause menu).
 - Frames are only mirrored while the map page is visible, but the capture session (and Android's capture indicator) stays until you tap **stop** or close the app.
 - When the game is paused (or GTA V shows an on-screen notice like a character switch), the pause screen takes over both pages. Swipe is disabled until the game resumes.
+
+### Wanted stick lights (AYN Thor)
+
+When the player picks up a wanted level, the Thor's analog-stick RGB rings flash red and blue like a police light bar, one stick red and the other blue, trading places on each beat. More stars means a faster beat (around 600 ms at one star, down to 400 ms at full stars). The sticks go dark again the moment you lose the cops, and stay off during pause, loading, GTA Online, or a character switch.
+
+- Driven through AYN's **Bifrost** service, so it only lights up on a Thor. Other devices just ignore it.
+- Toggle it from the small lights icon in the HUD status bar. The icon also shows if Bifrost is not accepting commands right now.
+- Half brightness on purpose. Full-brightness red and blue reads as harsh on the AMOLED stick rings at arm's length.
 
 ## A note on AI usage
 
