@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Status badges -->
+    <string name="status_disconnected">DESCONECTADO</string>
+    <string name="status_stale">OBSOLETO</string>
+    <string name="status_waiting">ESPERANDO</string>
+
+    <!-- Setup-screen info dialog -->
+    <string name="info_icon_cd">diagnóstico de conexión</string>
+    <string name="info_dialog_title">Diagnóstico de conexión</string>
+    <string name="info_dialog_no_error">Aún no hay errores — nada ha intentado conectarse, o cada intento ha expirado antes de generar una línea de error.</string>
+    <string name="info_dialog_last_error">Último error:\n%1$s</string>
+    <string name="info_dialog_dismiss">Cerrar</string>
+
+    <!-- HUD panel titles -->
+    <string name="panel_coin">dinero</string>
+    <string name="panel_weapon">arma</string>
+    <string name="panel_vehicle">vehículo</string>
+
+    <!-- HUD sublabels -->
+    <string name="label_radio">radio</string>
+    <string name="label_radio_stations">emisoras de radio</string>
+    <string name="label_clip">cargador</string>
+    <string name="label_speed">velocidad</string>
+
+    <!-- HUD bar labels -->
+    <string name="label_health">salud</string>
+    <string name="label_armor">blindaje</string>
+    <string name="label_engine">motor</string>
+
+    <!-- Vehicle panel -->
+    <string name="on_foot">a pie</string>
+    <string name="model_fallback">modelo %1$d</string>
+
+    <!-- Setup screen -->
+    <string name="setup_title">GTC: NO CONECTADO</string>
+    <string name="setup_subtitle">Se espera ThorBridge.asi en 127.0.0.1:47801.</string>
+    <string name="setup_section">lista de configuración</string>
+
+    <string name="setup_step2_title">Lanzador de la familia Winlator con variables de entorno</string>
+    <string name="setup_step2_detail">GameHub Lite, Winlator / Winlator Cmod o GameNative. Añade WINEDLLOVERRIDES=dinput8=n,b en las variables de entorno del juego.</string>
+    <string name="setup_step3_title">ThorBridge.asi + dinput8.dll en la carpeta del juego</string>
+    <string name="setup_step3_detail">Coloca ambos junto a GTAIV.exe. dinput8.dll es Ultimate ASI Loader (ThirteenAG, 32 bits); descárgalo desde la página de releases de UAL.</string>
+    <string name="setup_step4_title">Inicia GTA IV y carga una partida</string>
+    <string name="setup_step4_detail">El ASI permanece en modo seguro hasta que el motor de script esté activo. Al cargar una partida esta pantalla desaparece automáticamente.</string>
+
+    <string name="setup_lights_section">opcional</string>
+    <string name="setup_lights_title">Bifrost, para luces de stick rojas y azules</string>
+    <string name="setup_lights_detail">Con Bifrost en ejecución y \"Allow third-party LED control\" activado en sus ajustes, los sticks parpadean en rojo y azul cuando estás en busca y captura. La bombilla en la esquina superior derecha del HUD lo desactiva.</string>
+
+    <!-- Stick-lights switch -->
+    <string name="lights_on">luces de stick de búsqueda activadas, toca para desactivar</string>
+    <string name="lights_off">luces de stick de búsqueda desactivadas, toca para activar</string>
+    <string name="lights_unavailable">luces de stick de búsqueda activadas pero Bifrost no las acepta, toca para desactivar</string>
+
+    <!-- Update chip + dialog -->
+    <string name="update_chip_cd">actualización disponible, toca para ver</string>
+    <string name="update_available_title">Actualización disponible</string>
+    <string name="update_no_notes">Sin notas de la versión.</string>
+    <string name="update_download">Descargar</string>
+    <string name="update_open_release">Abrir versión</string>
+    <string name="update_later">Más tarde</string>
+    <string name="update_cancel">Cancelar</string>
+    <string name="update_retry">Reintentar</string>
+    <string name="update_install">Instalar</string>
+    <string name="update_permission_title">¿Permitir instalaciones?</string>
+    <string name="update_permission_body">Android necesita el permiso de GTC para instalar el nuevo APK. Abre Ajustes, permite \"Install unknown apps\" y vuelve aquí.</string>
+    <string name="update_open_settings">Abrir Ajustes</string>
+    <string name="update_downloading_title">Descargando…</string>
+    <string name="update_downloading_progress">%1$s de %2$s</string>
+    <string name="update_ready_title">Listo para instalar</string>
+    <string name="update_ready_subtitle">Android se encargará de la instalación.</string>
+    <string name="update_error_title">Error de descarga</string>
+    <string name="update_error_fallback">Algo ha salido mal. Inténtalo de nuevo o abre la página de la versión en tu navegador.</string>
+
+    <!-- Wanted star descriptions -->
+    <string name="wanted_star_lit">estrella de búsqueda %1$d encendida</string>
+    <string name="wanted_star_dim">estrella de búsqueda %1$d apagada</string>
+
+    <!-- Weapon names -->
+    <string-array name="weapon_names">
+        <item>desarmado</item>
+        <item>bate de béisbol</item>
+        <item>taco de billar</item>
+        <item>cuchillo</item>
+        <item>granada</item>
+        <item>molotov</item>
+        <item>cohete</item>
+        <item>pistola</item>
+        <item>arma 8</item>
+        <item>Desert Eagle</item>
+        <item>escopeta de bombeo</item>
+        <item>escopeta recortada</item>
+        <item>Micro-SMG</item>
+        <item>MP5</item>
+        <item>AK-47</item>
+        <item>M4</item>
+        <item>rifle de francotirador</item>
+        <item>francotirador de combate</item>
+        <item>RPG</item>
+        <item>lanzallamas</item>
+        <item>minigun</item>
+    </string-array>
+    <string name="weapon_episodic">episódica %1$d</string>
+    <string name="weapon_unknown">arma %1$d</string>
+
+    <string name="radio_off">apagada</string>
+    <string name="radio_unknown">emisora %1$d</string>
+</resources>

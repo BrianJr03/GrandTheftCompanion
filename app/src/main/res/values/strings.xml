@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand -->
-    <string name="brand">Grand Theft Companion</string>
-    <string name="brand_iv">Grand Theft Companion IV</string>
-    <string name="brand_v">Grand Theft Companion V</string>
+    <string name="brand" translatable="false">Grand Theft Companion</string>
+    <string name="brand_iv" translatable="false">Grand Theft Companion IV</string>
+    <string name="brand_v" translatable="false">Grand Theft Companion V</string>
 
     <!-- Status badges (right of the brand when something isn't live) -->
     <string name="status_disconnected">DISCONNECTED</string>
@@ -35,25 +35,25 @@
 
     <!-- Vehicle panel -->
     <string name="on_foot">on foot</string>
-    <string name="mph_value">%1$d mph</string>
+    <string name="mph_value" translatable="false">%1$d mph</string>
     <string name="model_fallback">model %1$d</string>
 
     <!-- Money -->
-    <string name="money_value">$%1$s</string>
-    <string name="money_empty">—</string>
+    <string name="money_value" translatable="false">$%1$s</string>
+    <string name="money_empty" translatable="false">—</string>
 
     <!-- Weapon panel -->
-    <string name="clip_value">%1$d / %2$d</string>
+    <string name="clip_value" translatable="false">%1$d / %2$d</string>
 
     <!-- Paused view -->
-    <string name="paused_version">GTA IV v%1$s</string>
+    <string name="paused_version" translatable="false">GTA IV v%1$s</string>
 
     <!-- Setup screen -->
     <string name="setup_title">GTC: NOT CONNECTED</string>
     <string name="setup_subtitle">Expecting ThorBridge.asi on 127.0.0.1:47801.</string>
     <string name="setup_section">setup checklist</string>
 
-    <string name="setup_step1_title">GTA IV: Complete Edition 1.2.0.59</string>
+    <string name="setup_step1_title" translatable="false">GTA IV: Complete Edition 1.2.0.59</string>
     <string name="setup_step1_detail">The ASI pattern-scans this exact build. Other versions won\'t light up the HUD.</string>
     <string name="setup_step2_title">Winlator-family launcher with env vars</string>
     <string name="setup_step2_detail">GameHub Lite, Winlator / Winlator Cmod, or GameNative. Add WINEDLLOVERRIDES=dinput8=n,b in the per-game Environment variables.</string>
@@ -93,16 +93,19 @@
     <string name="update_error_fallback">Something went wrong. Try again or open the release page in your browser.</string>
 
     <!-- Episode labels -->
-    <string name="episode_iv">GTA IV</string>
-    <string name="episode_tlad">The Lost and Damned</string>
-    <string name="episode_tbogt">The Ballad of Gay Tony</string>
+    <string name="episode_iv" translatable="false">GTA IV</string>
+    <string name="episode_tlad" translatable="false">The Lost and Damned</string>
+    <string name="episode_tbogt" translatable="false">The Ballad of Gay Tony</string>
 
     <!-- Content descriptions for the wanted-level star icons -->
     <string name="wanted_star_lit">wanted star %1$d lit</string>
     <string name="wanted_star_dim">wanted star %1$d dim</string>
 
     <!-- Weapon names, indexed by eWeapon enum value (0..20). Values past
-         20 are TLAD/TBoGT episodic weapons; those use weapon_episodic. -->
+         20 are TLAD/TBoGT episodic weapons; those use weapon_episodic.
+         Brand/model names (Desert Eagle, Micro-SMG, MP5, AK-47, M4,
+         RPG) stay in English in every locale — localised arrays only
+         translate the common nouns. -->
     <string-array name="weapon_names">
         <item>unarmed</item>
         <item>baseball bat</item>
@@ -134,7 +137,7 @@
          eRadioStation). 20 stations, indices 0..19. Episodic DLC
          stations (San Juan Sounds, Electro-Choc) use the same numeric
          indices as the base game — all 20 share one table. -->
-    <string-array name="radio_names">
+    <string-array name="radio_names" translatable="false">
         <item>The Vibe 98.8</item>
         <item>Liberty Rock 97.8</item>
         <item>Jazz Nation 108.5</item>
@@ -162,7 +165,7 @@
     <!-- Short labels for the picker buttons. Frequency when the station
          is music + the game displays one, callsign/abbreviation
          otherwise. Indexed by enum (same order as radio_names). -->
-    <string-array name="radio_short">
+    <string-array name="radio_short" translatable="false">
         <item>98.8</item>    <!-- 0  The Vibe -->
         <item>97.8</item>    <!-- 1  Liberty Rock -->
         <item>108.5</item>   <!-- 2  Jazz Nation -->

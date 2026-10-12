@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Status badges -->
+    <string name="status_disconnected">切断</string>
+    <string name="status_stale">古い情報</string>
+    <string name="status_waiting">待機中</string>
+
+    <!-- Setup-screen info dialog -->
+    <string name="info_icon_cd">接続診断</string>
+    <string name="info_dialog_title">接続診断</string>
+    <string name="info_dialog_no_error">まだエラーはありません — まだ接続を試みていないか、エラーが出る前にタイムアウトしています。</string>
+    <string name="info_dialog_last_error">最新のエラー：\n%1$s</string>
+    <string name="info_dialog_dismiss">閉じる</string>
+
+    <!-- HUD panel titles -->
+    <string name="panel_coin">所持金</string>
+    <string name="panel_weapon">武器</string>
+    <string name="panel_vehicle">車両</string>
+
+    <!-- HUD sublabels -->
+    <string name="label_radio">ラジオ</string>
+    <string name="label_radio_stations">ラジオ局</string>
+    <string name="label_clip">マガジン</string>
+    <string name="label_speed">速度</string>
+
+    <!-- HUD bar labels -->
+    <string name="label_health">HP</string>
+    <string name="label_armor">アーマー</string>
+    <string name="label_engine">エンジン</string>
+
+    <!-- Vehicle panel -->
+    <string name="on_foot">徒歩</string>
+    <string name="model_fallback">モデル %1$d</string>
+
+    <!-- Setup screen -->
+    <string name="setup_title">GTC: 未接続</string>
+    <string name="setup_subtitle">127.0.0.1:47801 で ThorBridge.asi を待機中。</string>
+    <string name="setup_section">セットアップチェックリスト</string>
+
+    <string name="setup_step2_title">Winlator 系ランチャー（環境変数を設定）</string>
+    <string name="setup_step2_detail">GameHub Lite、Winlator / Winlator Cmod、または GameNative。ゲームごとの環境変数に WINEDLLOVERRIDES=dinput8=n,b を追加してください。</string>
+    <string name="setup_step3_title">ThorBridge.asi と dinput8.dll をゲームフォルダに配置</string>
+    <string name="setup_step3_detail">両方を GTAIV.exe の隣に配置してください。dinput8.dll は Ultimate ASI Loader（ThirteenAG、32ビット）です。UAL のリリースページからダウンロードしてください。</string>
+    <string name="setup_step4_title">GTA IV を起動してセーブを読み込む</string>
+    <string name="setup_step4_detail">スクリプトエンジンが起動するまで ASI はセーフモードのままです。セーブを読み込むとこの画面は自動的に消えます。</string>
+
+    <string name="setup_lights_section">オプション</string>
+    <string name="setup_lights_title">Bifrost — スティックの赤と青のライト用</string>
+    <string name="setup_lights_detail">Bifrost を起動し、設定で \"Allow third-party LED control\" を有効にすると、指名手配中にサムスティックが赤と青に点滅します。HUD 右上の電球アイコンでオフにできます。</string>
+
+    <!-- Stick-lights switch -->
+    <string name="lights_on">指名手配のスティックライトがオン、タップでオフ</string>
+    <string name="lights_off">指名手配のスティックライトがオフ、タップでオン</string>
+    <string name="lights_unavailable">指名手配のスティックライトはオンですが Bifrost が受け付けていません、タップでオフ</string>
+
+    <!-- Update chip + dialog -->
+    <string name="update_chip_cd">アップデートあり、タップで表示</string>
+    <string name="update_available_title">アップデートがあります</string>
+    <string name="update_no_notes">リリースノートはありません。</string>
+    <string name="update_download">ダウンロード</string>
+    <string name="update_open_release">リリースを開く</string>
+    <string name="update_later">後で</string>
+    <string name="update_cancel">キャンセル</string>
+    <string name="update_retry">再試行</string>
+    <string name="update_install">インストール</string>
+    <string name="update_permission_title">インストールを許可しますか？</string>
+    <string name="update_permission_body">新しい APK をインストールするには Android で GTC を許可する必要があります。設定を開き、\"Install unknown apps\" を許可してからここに戻ってください。</string>
+    <string name="update_open_settings">設定を開く</string>
+    <string name="update_downloading_title">ダウンロード中…</string>
+    <string name="update_downloading_progress">%1$s / %2$s</string>
+    <string name="update_ready_title">インストール準備完了</string>
+    <string name="update_ready_subtitle">この後は Android がインストールを行います。</string>
+    <string name="update_error_title">ダウンロードに失敗</string>
+    <string name="update_error_fallback">問題が発生しました。もう一度試すか、ブラウザでリリースページを開いてください。</string>
+
+    <!-- Wanted star descriptions -->
+    <string name="wanted_star_lit">指名手配の星 %1$d 点灯</string>
+    <string name="wanted_star_dim">指名手配の星 %1$d 消灯</string>
+
+    <!-- Weapon names -->
+    <string-array name="weapon_names">
+        <item>素手</item>
+        <item>バット</item>
+        <item>ビリヤードキュー</item>
+        <item>ナイフ</item>
+        <item>手榴弾</item>
+        <item>火炎瓶</item>
+        <item>ロケット</item>
+        <item>ピストル</item>
+        <item>武器 8</item>
+        <item>Desert Eagle</item>
+        <item>ポンプアクション</item>
+        <item>ソードオフショットガン</item>
+        <item>Micro-SMG</item>
+        <item>MP5</item>
+        <item>AK-47</item>
+        <item>M4</item>
+        <item>スナイパーライフル</item>
+        <item>コンバットスナイパー</item>
+        <item>RPG</item>
+        <item>火炎放射器</item>
+        <item>ミニガン</item>
+    </string-array>
+    <string name="weapon_episodic">エピソード武器 %1$d</string>
+    <string name="weapon_unknown">武器 %1$d</string>
+
+    <string name="radio_off">オフ</string>
+    <string name="radio_unknown">ラジオ局 %1$d</string>
+</resources>

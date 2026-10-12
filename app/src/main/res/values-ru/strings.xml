@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Status badges -->
+    <string name="status_disconnected">ОТКЛЮЧЕНО</string>
+    <string name="status_stale">УСТАРЕЛО</string>
+    <string name="status_waiting">ОЖИДАНИЕ</string>
+
+    <!-- Setup-screen info dialog -->
+    <string name="info_icon_cd">диагностика подключения</string>
+    <string name="info_dialog_title">Диагностика подключения</string>
+    <string name="info_dialog_no_error">Ошибок пока нет — ничего не пыталось подключиться, либо каждая попытка истекла до появления ошибки.</string>
+    <string name="info_dialog_last_error">Последняя ошибка:\n%1$s</string>
+    <string name="info_dialog_dismiss">Закрыть</string>
+
+    <!-- HUD panel titles -->
+    <string name="panel_coin">деньги</string>
+    <string name="panel_weapon">оружие</string>
+    <string name="panel_vehicle">транспорт</string>
+
+    <!-- HUD sublabels -->
+    <string name="label_radio">радио</string>
+    <string name="label_radio_stations">радиостанции</string>
+    <string name="label_clip">обойма</string>
+    <string name="label_speed">скорость</string>
+
+    <!-- HUD bar labels -->
+    <string name="label_health">здоровье</string>
+    <string name="label_armor">броня</string>
+    <string name="label_engine">двигатель</string>
+
+    <!-- Vehicle panel -->
+    <string name="on_foot">пешком</string>
+    <string name="model_fallback">модель %1$d</string>
+
+    <!-- Setup screen -->
+    <string name="setup_title">GTC: НЕ ПОДКЛЮЧЕНО</string>
+    <string name="setup_subtitle">Ожидается ThorBridge.asi на 127.0.0.1:47801.</string>
+    <string name="setup_section">список настройки</string>
+
+    <string name="setup_step2_title">Лаунчер семейства Winlator с переменными окружения</string>
+    <string name="setup_step2_detail">GameHub Lite, Winlator / Winlator Cmod или GameNative. Добавьте WINEDLLOVERRIDES=dinput8=n,b в переменные окружения для игры.</string>
+    <string name="setup_step3_title">ThorBridge.asi + dinput8.dll в папке игры</string>
+    <string name="setup_step3_detail">Поместите оба рядом с GTAIV.exe. dinput8.dll — это Ultimate ASI Loader (ThirteenAG, 32-бит); скачайте со страницы релизов UAL.</string>
+    <string name="setup_step4_title">Запустите GTA IV и загрузите сохранение</string>
+    <string name="setup_step4_detail">ASI остаётся в безопасном режиме, пока не запустится скриптовый движок. После загрузки сохранения этот экран исчезает автоматически.</string>
+
+    <string name="setup_lights_section">необязательно</string>
+    <string name="setup_lights_title">Bifrost — для красных и синих огней стиков</string>
+    <string name="setup_lights_detail">При запущенном Bifrost и включённом параметре \"Allow third-party LED control\" в его настройках стики мигают красным и синим, пока вы в розыске. Лампочка в правом верхнем углу HUD выключает это.</string>
+
+    <!-- Stick-lights switch -->
+    <string name="lights_on">подсветка стиков розыска включена, нажмите, чтобы выключить</string>
+    <string name="lights_off">подсветка стиков розыска выключена, нажмите, чтобы включить</string>
+    <string name="lights_unavailable">подсветка стиков розыска включена, но Bifrost её не принимает, нажмите, чтобы выключить</string>
+
+    <!-- Update chip + dialog -->
+    <string name="update_chip_cd">доступно обновление, нажмите для просмотра</string>
+    <string name="update_available_title">Доступно обновление</string>
+    <string name="update_no_notes">Примечаний к выпуску нет.</string>
+    <string name="update_download">Скачать</string>
+    <string name="update_open_release">Открыть релиз</string>
+    <string name="update_later">Позже</string>
+    <string name="update_cancel">Отмена</string>
+    <string name="update_retry">Повторить</string>
+    <string name="update_install">Установить</string>
+    <string name="update_permission_title">Разрешить установки?</string>
+    <string name="update_permission_body">Android требуется разрешение GTC для установки нового APK. Откройте Настройки, разрешите \"Install unknown apps\" и вернитесь сюда.</string>
+    <string name="update_open_settings">Открыть настройки</string>
+    <string name="update_downloading_title">Загрузка…</string>
+    <string name="update_downloading_progress">%1$s из %2$s</string>
+    <string name="update_ready_title">Готово к установке</string>
+    <string name="update_ready_subtitle">Фактическую установку выполнит Android.</string>
+    <string name="update_error_title">Загрузка не удалась</string>
+    <string name="update_error_fallback">Что-то пошло не так. Попробуйте ещё раз или откройте страницу релиза в браузере.</string>
+
+    <!-- Wanted star descriptions -->
+    <string name="wanted_star_lit">звезда розыска %1$d горит</string>
+    <string name="wanted_star_dim">звезда розыска %1$d не горит</string>
+
+    <!-- Weapon names -->
+    <string-array name="weapon_names">
+        <item>без оружия</item>
+        <item>бейсбольная бита</item>
+        <item>кий</item>
+        <item>нож</item>
+        <item>граната</item>
+        <item>коктейль Молотова</item>
+        <item>ракета</item>
+        <item>пистолет</item>
+        <item>оружие 8</item>
+        <item>Desert Eagle</item>
+        <item>помповый дробовик</item>
+        <item>обрез</item>
+        <item>Micro-SMG</item>
+        <item>MP5</item>
+        <item>AK-47</item>
+        <item>M4</item>
+        <item>снайперская винтовка</item>
+        <item>боевой снайпер</item>
+        <item>RPG</item>
+        <item>огнемёт</item>
+        <item>миниган</item>
+    </string-array>
+    <string name="weapon_episodic">эпизодическое %1$d</string>
+    <string name="weapon_unknown">оружие %1$d</string>
+
+    <string name="radio_off">выкл.</string>
+    <string name="radio_unknown">станция %1$d</string>
+</resources>
