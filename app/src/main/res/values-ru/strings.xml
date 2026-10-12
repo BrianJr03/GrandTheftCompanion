@@ -44,10 +44,6 @@
     <string name="setup_step4_title">Запустите GTA IV и загрузите сохранение</string>
     <string name="setup_step4_detail">ASI остаётся в безопасном режиме, пока не запустится скриптовый движок. После загрузки сохранения этот экран исчезает автоматически.</string>
 
-    <string name="setup_lights_section">необязательно</string>
-    <string name="setup_lights_title">Bifrost — для красных и синих огней стиков</string>
-    <string name="setup_lights_detail">При запущенном Bifrost и включённом параметре \"Allow third-party LED control\" в его настройках стики мигают красным и синим, пока вы в розыске. Лампочка в правом верхнем углу HUD выключает это.</string>
-
     <!-- Stick-lights switch -->
     <string name="lights_on">подсветка стиков розыска включена, нажмите, чтобы выключить</string>
     <string name="lights_off">подсветка стиков розыска выключена, нажмите, чтобы включить</string>

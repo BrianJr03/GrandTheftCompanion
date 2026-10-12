@@ -93,17 +93,6 @@ internal fun SetupScreen(lastError: String?) {
                 )
                 Spacer(Modifier.height(10.dp))
                 ChecklistItem("V", R.string.setup_v_title, R.string.setup_v_detail)
-
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    stringResource(R.string.setup_lights_section),
-                    color = Color(0xFF6A7A6E),
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(Modifier.height(10.dp))
-                ChecklistItem("+", R.string.setup_lights_title, R.string.setup_lights_detail)
             }
             // Info chip at the top-right. Tap for the last connection
             // error — tinted red when there's actually an error to show,

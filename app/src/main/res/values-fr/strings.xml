@@ -44,10 +44,6 @@
     <string name="setup_step4_title">Lancez GTA IV et chargez une sauvegarde</string>
     <string name="setup_step4_detail">L\'ASI reste en mode sans échec jusqu\'au démarrage du moteur de script. Une fois la sauvegarde chargée, cet écran disparaît automatiquement.</string>
 
-    <string name="setup_lights_section">optionnel</string>
-    <string name="setup_lights_title">Bifrost, pour les sticks rouges et bleus</string>
-    <string name="setup_lights_detail">Avec Bifrost en cours d\'exécution et \"Allow third-party LED control\" activé dans ses paramètres, les sticks clignotent en rouge et bleu lorsque vous êtes recherché. L\'ampoule en haut à droite du HUD permet de désactiver.</string>
-
     <!-- Stick-lights switch -->
     <string name="lights_on">lumières de stick de recherche activées, appuyez pour désactiver</string>
     <string name="lights_off">lumières de stick de recherche désactivées, appuyez pour activer</string>

@@ -62,10 +62,6 @@
     <string name="setup_step4_title">Launch GTA IV and load a save</string>
     <string name="setup_step4_detail">The ASI stays in safe mode until the script engine is up. On a loaded save this screen clears automatically.</string>
 
-    <string name="setup_lights_section">optional</string>
-    <string name="setup_lights_title">Bifrost, for red and blue stick lights</string>
-    <string name="setup_lights_detail">With Bifrost running and \"Allow third-party LED control\" switched on in its settings, the thumbsticks flash red and blue while you are wanted. The bulb at the top right of the HUD turns it off.</string>
-
     <!-- Content descriptions for the stick-lights switch in the status bar -->
     <string name="lights_on">wanted stick lights on, tap to turn off</string>
     <string name="lights_off">wanted stick lights off, tap to turn on</string>

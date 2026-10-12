@@ -44,10 +44,6 @@
     <string name="setup_step4_title">GTA IV を起動してセーブを読み込む</string>
     <string name="setup_step4_detail">スクリプトエンジンが起動するまで ASI はセーフモードのままです。セーブを読み込むとこの画面は自動的に消えます。</string>
 
-    <string name="setup_lights_section">オプション</string>
-    <string name="setup_lights_title">Bifrost — スティックの赤と青のライト用</string>
-    <string name="setup_lights_detail">Bifrost を起動し、設定で \"Allow third-party LED control\" を有効にすると、指名手配中にサムスティックが赤と青に点滅します。HUD 右上の電球アイコンでオフにできます。</string>
-
     <!-- Stick-lights switch -->
     <string name="lights_on">指名手配のスティックライトがオン、タップでオフ</string>
     <string name="lights_off">指名手配のスティックライトがオフ、タップでオン</string>

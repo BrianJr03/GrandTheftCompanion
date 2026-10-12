@@ -44,10 +44,6 @@
     <string name="setup_step4_title">GTA IV starten und einen Spielstand laden</string>
     <string name="setup_step4_detail">Das ASI bleibt im abgesicherten Modus, bis die Script-Engine läuft. Nach dem Laden eines Spielstands verschwindet dieser Bildschirm automatisch.</string>
 
-    <string name="setup_lights_section">optional</string>
-    <string name="setup_lights_title">Bifrost — für rote und blaue Stick-Lichter</string>
-    <string name="setup_lights_detail">Wenn Bifrost läuft und \"Allow third-party LED control\" in dessen Einstellungen aktiviert ist, blinken die Thumbsticks rot und blau, solange du gesucht wirst. Die Glühbirne oben rechts im HUD schaltet es aus.</string>
-
     <!-- Stick-lights switch -->
     <string name="lights_on">Fahndungs-Stick-Lichter an, zum Ausschalten tippen</string>
     <string name="lights_off">Fahndungs-Stick-Lichter aus, zum Einschalten tippen</string>
