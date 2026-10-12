@@ -2,24 +2,27 @@ package jr.brian.thorhud.update
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -27,6 +30,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,11 +41,10 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import jr.brian.thorhud.R
 import jr.brian.thorhud.ui.components.HudPalette
@@ -59,11 +62,13 @@ private enum class UpdatePhase {
 
 /**
  * The update dialog, hosted over the HUD when the user taps the
- * download chip in the status bar. One screen per phase, swapped by
- * state — info, permission ask, download progress, install prompt,
- * error. Styled to the OLED HUD: pure-black card, accent border, no
- * fancy gradients.
+ * download chip in the status bar or when a newer release lands at
+ * launch. A fullscreen modal bottom sheet so long release notes have
+ * room to breathe; one screen per phase, swapped by state — info,
+ * permission ask, download progress, install prompt, error. Styled to
+ * the OLED HUD: pure-black container, accent drag handle, no gradients.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun UpdateDialog(
     updateInfo: UpdateInfo,
@@ -174,27 +179,37 @@ internal fun UpdateDialog(
         }
     }
 
-    val dismissible =
-        phase != UpdatePhase.Downloading && phase != UpdatePhase.AsiDownloading
-    Dialog(
-        onDismissRequest = { if (dismissible) onDismiss() },
-        properties = DialogProperties(
-            dismissOnBackPress = dismissible,
-            dismissOnClickOutside = false,
-            usePlatformDefaultWidth = true,
-        ),
+    // Block scrim-tap and swipe-down from closing the sheet while a
+    // download is running; reading latestPhase through
+    // rememberUpdatedState keeps the check tracking the current state
+    // instead of the value captured at sheet construction.
+    val latestPhase by rememberUpdatedState(phase)
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { target ->
+            if (target == SheetValue.Hidden) {
+                latestPhase != UpdatePhase.Downloading &&
+                    latestPhase != UpdatePhase.AsiDownloading
+            } else {
+                true
+            }
+        },
+    )
+    ModalBottomSheet(
+        onDismissRequest = {
+            if (phase != UpdatePhase.Downloading && phase != UpdatePhase.AsiDownloading) {
+                onDismiss()
+            }
+        },
+        sheetState = sheetState,
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.Black,
+        scrimColor = Color.Black.copy(alpha = 0.6f),
+        dragHandle = {
+            BottomSheetDefaults.DragHandle(color = palette.accent.copy(alpha = 0.5f))
+        },
     ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .border(
-                    width = 1.dp,
-                    color = palette.accent.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(16.dp),
-                ),
-            shape = RoundedCornerShape(16.dp),
-            color = Color.Black,
-        ) {
+        Column(Modifier.fillMaxSize()) {
             when (phase) {
                 UpdatePhase.Info -> InfoPhase(
                     updateInfo = updateInfo,
@@ -270,7 +285,11 @@ private fun InfoPhase(
     onOpenInBrowser: () -> Unit,
     onLater: () -> Unit,
 ) {
-    Column(Modifier.padding(16.dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+    ) {
         Header(
             title = stringResource(R.string.update_available_title),
             subtitle = stringResource(
@@ -284,12 +303,15 @@ private fun InfoPhase(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 320.dp)
+                .weight(1f)
                 .verticalScroll(rememberScrollState()),
         ) {
-            MarkdownBlock(updateInfo.releaseNotes.ifBlank {
-                stringResource(R.string.update_no_notes)
-            })
+            MarkdownBlock(
+                text = updateInfo.releaseNotes.ifBlank {
+                    stringResource(R.string.update_no_notes)
+                },
+                palette = palette,
+            )
         }
         Spacer(Modifier.height(16.dp))
         Row(
@@ -596,16 +618,20 @@ private fun Header(title: String, subtitle: String?, palette: HudPalette) {
 }
 
 /**
- * Tiny Markdown-ish renderer for release notes. Enough to make the
- * bundled `patch_notes.md` look like patch notes: `##` / `###`
- * headers, `-` or `*` bullets, bold spans, inline code. Anything else
- * falls through as plain text. On purpose — the release body round-
- * trips through GitHub's rendering, which also keeps it simple.
+ * Tiny Markdown-ish renderer for release notes. Covers everything our
+ * bundled `patch_notes.md` + GitHub-hosted release bodies actually use:
+ * `#` / `##` / `###` headers, `-` or `*` bullets (with two-space
+ * indentation for nesting), `>` blockquotes, fenced ```` ``` ```` code
+ * blocks, inline `**bold**`, and inline `` `code` ``. Anything else
+ * falls through as plain text. The releases also render through
+ * GitHub's own pass, which keeps the input simple on both ends.
  */
 @Composable
-private fun MarkdownBlock(text: String) {
+private fun MarkdownBlock(text: String, palette: HudPalette) {
     val lines = text.split("\n")
-    for (line in lines) {
+    var i = 0
+    while (i < lines.size) {
+        val line = lines[i]
         when {
             line.startsWith("### ") -> Text(
                 line.removePrefix("### "),
@@ -628,29 +654,95 @@ private fun MarkdownBlock(text: String) {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
             )
-            line.trimStart().startsWith("- ") || line.trimStart().startsWith("* ") -> Row(
-                modifier = Modifier.padding(vertical = 2.dp),
-                verticalAlignment = Alignment.Top,
-            ) {
-                Text("• ", color = Color(0xFFC0CFC8))
-                Text(
-                    parseInline(line.trimStart().removePrefix("- ").removePrefix("* ")),
-                    color = Color(0xFFEDEDED),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
+            line.trim().startsWith("```") -> {
+                i++
+                val codeLines = mutableListOf<String>()
+                while (i < lines.size && !lines[i].trim().startsWith("```")) {
+                    codeLines.add(lines[i])
+                    i++
+                }
+                CodeBlock(codeLines)
+            }
+            line.trim().startsWith(">") -> Blockquote(
+                text = line.trim().removePrefix(">").trimStart(),
+                palette = palette,
+            )
+            line.trimStart().startsWith("- ") || line.trimStart().startsWith("* ") -> {
+                val leading = line.length - line.trimStart().length
+                val indent = (leading / 2).coerceAtMost(4)
+                val body = line.trimStart().removePrefix("- ").removePrefix("* ")
+                Row(
+                    modifier = Modifier
+                        .padding(vertical = 2.dp)
+                        .padding(start = (indent * 12).dp),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    Text(
+                        if (indent > 0) "◦ " else "• ",
+                        color = palette.accent.copy(alpha = 0.9f),
+                    )
+                    Text(
+                        parseInline(body, palette),
+                        color = Color(0xFFEDEDED),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
             }
             line.isBlank() -> Spacer(Modifier.height(6.dp))
             else -> Text(
-                parseInline(line),
+                parseInline(line, palette),
                 color = Color(0xFFEDEDED),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(vertical = 2.dp),
             )
         }
+        i++
     }
 }
 
-private fun parseInline(text: String): AnnotatedString = buildAnnotatedString {
+@Composable
+private fun Blockquote(text: String, palette: HudPalette) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Surface(
+            modifier = Modifier
+                .width(3.dp)
+                .height(20.dp),
+            color = palette.accent.copy(alpha = 0.6f),
+        ) {}
+        Spacer(Modifier.width(10.dp))
+        Text(
+            parseInline(text, palette),
+            color = Color(0xFFB8C4BE),
+            style = MaterialTheme.typography.bodyMedium,
+            fontStyle = FontStyle.Italic,
+        )
+    }
+}
+
+@Composable
+private fun CodeBlock(lines: List<String>) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        color = Color.White.copy(alpha = 0.06f),
+    ) {
+        Text(
+            lines.joinToString("\n"),
+            color = Color(0xFFEDEDED),
+            fontFamily = FontFamily.Monospace,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(10.dp),
+        )
+    }
+}
+
+private fun parseInline(text: String, palette: HudPalette): AnnotatedString = buildAnnotatedString {
     var i = 0
     while (i < text.length) {
         when {
@@ -668,7 +760,13 @@ private fun parseInline(text: String): AnnotatedString = buildAnnotatedString {
             text[i] == '`' -> {
                 val end = text.indexOf('`', i + 1)
                 if (end != -1) {
-                    withStyle(SpanStyle(fontFamily = FontFamily.Monospace)) {
+                    withStyle(
+                        SpanStyle(
+                            fontFamily = FontFamily.Monospace,
+                            background = Color.White.copy(alpha = 0.12f),
+                            color = palette.accent,
+                        ),
+                    ) {
                         append(text.substring(i + 1, end))
                     }
                     i = end + 1
