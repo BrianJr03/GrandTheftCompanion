@@ -1,6 +1,7 @@
 # Build output
 asi/build/
 app/build/
+app/release/
 build/
 .gradle/
 .cxx/
