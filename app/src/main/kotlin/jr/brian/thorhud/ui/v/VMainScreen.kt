@@ -1,5 +1,6 @@
 package jr.brian.thorhud.ui.v
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -50,6 +51,7 @@ internal fun vIsNoticeState(hello: GameState?, state: GameState?): Boolean =
  *   - cash per character; hidden for non-protagonists
  *   - radio picker built from the game's own station list
  *   - special-ability bar; engine bar hidden on bicycles
+ *   - on foot, tapping the weapon card opens the weapon wheel
  */
 @Composable
 internal fun VMainScreen(
@@ -59,6 +61,9 @@ internal fun VMainScreen(
     isStale: Boolean,
     updateAvailable: Boolean = false,
     onOpenUpdate: (() -> Unit)? = null,
+    // Tapping the on-foot weapon card opens the weapon wheel
+    // (VWeaponWheel.kt). Null leaves the card inert.
+    onOpenWeaponWheel: (() -> Unit)? = null,
 ) {
     val stations by viewModel.stations.collectAsStateWithLifecycle()
     val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
@@ -209,8 +214,16 @@ internal fun VMainScreen(
                     VCashPanel(live, character, characterKnown,
                                align = CardAlign.Start,
                                modifier = Modifier.weight(1f))
+                    // On foot only: the plugin refuses set_weapon in a
+                    // vehicle, so the in-vehicle card above stays inert.
+                    val weaponCard = if (onOpenWeaponWheel != null &&
+                                         live?.inGame == true) {
+                        Modifier.weight(1f).clickable(onClick = onOpenWeaponWheel)
+                    } else {
+                        Modifier.weight(1f)
+                    }
                     VWeaponPanel(live, align = CardAlign.End,
-                                 modifier = Modifier.weight(1f))
+                                 modifier = weaponCard)
                 }
                 Spacer(Modifier.height(16.dp))
                 Row(

@@ -86,6 +86,10 @@ data class GameState(
     @SerialName("cutscene") val cutscene: Boolean = false,
     @SerialName("mission") val mission: Boolean = false,
     @SerialName("animal") val animal: Boolean = false,
+    // The player is holding the game's weapon-wheel control (LB / L1 /
+    // Tab) on foot, so the companion shows its own wheel. Plugin 0.2.0+;
+    // older plugins never send it and the wheel is opened by tap only.
+    @SerialName("wheel") val wheel: Boolean = false,
 
     // 0 = Michael, 1 = Franklin, 2 = Trevor, -1 = anyone else
     // (Director Mode actor, animal). Drives the accent palette the way

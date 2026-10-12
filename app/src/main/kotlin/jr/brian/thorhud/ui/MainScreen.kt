@@ -1,6 +1,7 @@
 package jr.brian.thorhud.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,6 +46,8 @@ import jr.brian.thorhud.ui.components.stationListFor
 import jr.brian.thorhud.ui.map.MirrorGame
 import jr.brian.thorhud.ui.map.MirrorMapScreen
 import jr.brian.thorhud.ui.v.VMainScreen
+import jr.brian.thorhud.ui.v.VWeaponWheelOverlay
+import jr.brian.thorhud.ui.v.rememberVWheelMemory
 import jr.brian.thorhud.ui.v.vCharacterOf
 import jr.brian.thorhud.ui.v.vIsNoticeState
 import jr.brian.thorhud.update.UpdateDialog
@@ -94,6 +97,46 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         vCharacterOf(state?.character).palette.accent
     } else {
         paletteFor(liveState?.episode ?: state?.episode).accent
+    }
+
+    // GTA V weapon wheel (ui/v/VWeaponWheel.kt). It is on screen while
+    // the player holds the game's weapon-wheel button (`wheel` in the
+    // state frame, plugin 0.2.0+) or after a tap on the weapon card.
+    // Collected up here, ahead of the early returns below, so the
+    // per-slot memory keeps following the equipped weapon across pause
+    // and notice screens.
+    val weapons by viewModel.weapons.collectAsStateWithLifecycle()
+    val weaponPick by viewModel.weaponPick.collectAsStateWithLifecycle()
+    val equippedHash = liveState?.weaponHash.takeIf { isGtaV }
+    val wheelMemory = rememberVWheelMemory(weapons, equippedHash)
+    var wheelOpenedByTap by remember { mutableStateOf(false) }
+    val wheelHeld = isGtaV && liveState?.wheel == true
+    // On foot only: the plugin refuses set_weapon in a vehicle.
+    val wheelUsable = isGtaV && liveState?.inGame == true &&
+        liveState?.inVehicle == false && !vIsNoticeState(hello, state)
+    val showWheel = wheelUsable && (wheelHeld || wheelOpenedByTap)
+
+    // Releasing the button closes the wheel however it was opened, and
+    // a tap-opened wheel does not outlive the situation it was opened
+    // in (got in a car, paused, lost the connection).
+    LaunchedEffect(wheelHeld, wheelUsable) {
+        if (!wheelHeld || !wheelUsable) wheelOpenedByTap = false
+    }
+    // A tap-opened wheel left alone closes by itself; every pick
+    // restarts the clock.
+    LaunchedEffect(wheelOpenedByTap, wheelHeld, weaponPick) {
+        if (wheelOpenedByTap && !wheelHeld) {
+            delay(WHEEL_IDLE_CLOSE_MS)
+            wheelOpenedByTap = false
+        }
+    }
+    // The pick only means something while the wheel is up, and only
+    // until the game reports that weapon in hand.
+    LaunchedEffect(showWheel, weaponPick, equippedHash) {
+        val pick = weaponPick ?: return@LaunchedEffect
+        if (!showWheel || (pick.error == null && pick.hash == equippedHash)) {
+            viewModel.clearWeaponPick()
+        }
     }
 
     // Pause (and the V-specific notices: unsupported, online, stalled,
@@ -146,6 +189,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     // connected game changes, so the restored page actually takes
     // effect instead of staying on the previous game's page.
     key(gameKey) {
+    Box(Modifier.fillMaxSize()) {
     HudPager(
         initialPage = initialPage,
         onPageSettled = { viewModel.setPagerPage(gameKey, it) },
@@ -158,6 +202,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     isStale = isStale,
                     updateAvailable = updateInfo.isUpdateAvailable,
                     onOpenUpdate = { showUpdateDialog = true },
+                    onOpenWeaponWheel = { wheelOpenedByTap = true },
                 )
             } else {
                 IvHudScreen(
@@ -179,8 +224,26 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             )
         },
     )
+    // Drawn over the pager so it covers both pages and swallows the
+    // swipe between them while it is up.
+    if (showWheel) {
+        VWeaponWheelOverlay(
+            weapons = weapons,
+            equippedHash = equippedHash,
+            pick = weaponPick,
+            memory = wheelMemory,
+            held = wheelHeld,
+            palette = vCharacterOf(state?.character).palette,
+            onPick = viewModel::pickWeapon,
+            onDismiss = { wheelOpenedByTap = false },
+        )
+    }
+    }
     }
 }
+
+/** How long a tap-opened weapon wheel stays up with no further taps. */
+private const val WHEEL_IDLE_CLOSE_MS = 6000L
 
 @Composable
 private fun IvHudScreen(

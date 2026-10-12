@@ -11,11 +11,25 @@ import jr.brian.thorhud.net.GameStateRepository
 import jr.brian.thorhud.prefs.HudPrefs
 import jr.brian.thorhud.update.UpdateChecker
 import jr.brian.thorhud.update.UpdateInfo
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
+
+/**
+ * A weapon tapped on the GTA V weapon wheel.
+ *
+ * With [error] null the request is on its way or was accepted; the wheel
+ * shows [hash] as selected even before the game reports it equipped
+ * (while the wheel button is held, the plugin only equips on release).
+ * [error] is the reason the request failed, in the plugin's words
+ * ("not on foot", "weapon not owned") or the app's ("not connected").
+ */
+data class WeaponPick(val hash: Long, val error: String? = null)
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -56,8 +70,37 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch { repository.setRadio(stationIndex) }
     }
 
-    fun setWeapon(weaponId: Int) {
-        viewModelScope.launch { repository.setWeapon(weaponId) }
+    // ---- GTA V weapon wheel ----
+    private val _weaponPick = MutableStateFlow<WeaponPick?>(null)
+    val weaponPick: StateFlow<WeaponPick?> = _weaponPick.asStateFlow()
+    private var pickJob: Job? = null
+
+    /**
+     * Ask the game to equip [hash] and track the answer in [weaponPick].
+     * A newer pick replaces one that is still waiting for its ack.
+     */
+    fun pickWeapon(hash: Long) {
+        pickJob?.cancel()
+        _weaponPick.value = WeaponPick(hash)
+        pickJob = viewModelScope.launch {
+            val id = repository.setWeapon(hash)
+            val ack = if (id == null) null else withTimeoutOrNull(ACK_TIMEOUT_MS) {
+                repository.ack.first { it?.ackId == id }
+            }
+            val error = when {
+                id == null     -> "not connected"
+                ack == null    -> "no reply from the game"
+                ack.ok != true -> ack.err?.takeIf { it.isNotBlank() } ?: "refused"
+                else           -> null
+            }
+            if (error != null) _weaponPick.value = WeaponPick(hash, error)
+        }
+    }
+
+    /** Forget the pick: the wheel closed, or the game confirmed it. */
+    fun clearWeaponPick() {
+        pickJob?.cancel()
+        _weaponPick.value = null
     }
 
     // ---- In-app updates ----
@@ -75,5 +118,12 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             _updateInfo.value = UpdateChecker.checkForUpdate(currentVersionName)
         }
+    }
+
+    private companion object {
+        // The plugin answers on its next script tick (25 Hz) and refuses
+        // commands that sat for 2 s itself, so anything slower than this
+        // is not coming.
+        const val ACK_TIMEOUT_MS = 2500L
     }
 }

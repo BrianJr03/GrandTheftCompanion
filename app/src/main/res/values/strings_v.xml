@@ -17,6 +17,13 @@
     <!-- Weapon card: thrown weapons have a count but no clip. -->
     <string name="v_label_ammo">ammo</string>
 
+    <!-- Weapon wheel: opened by tapping the weapon card, or shown for as
+         long as the game's weapon-wheel button is held. The second hint
+         is for the held case, where the pick is equipped on release. -->
+    <string name="v_wheel_hint_open">tap a weapon · tap here to close</string>
+    <string name="v_wheel_hint_held">tap a weapon · release to equip</string>
+    <string name="v_wheel_failed">can\'t switch: %1$s</string>
+
     <!-- Vehicle card -->
     <string name="v_panel_vehicle_class">vehicle · %1$s</string>
     <string name="v_model_fallback">model %1$d</string>
