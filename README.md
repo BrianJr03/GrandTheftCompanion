@@ -4,6 +4,14 @@
 
 # Grand Theft Companion
 
+<p align="center">
+  <a href="https://github.com/BrianJr03/GrandTheftCompanion/releases"><img src="https://img.shields.io/github/downloads/BrianJr03/GrandTheftCompanion/total?style=flat&label=downloads&color=4F8FD0" alt="Total downloads"/></a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/BrianJr03/GrandTheftCompanion/releases/latest"><img src="https://img.shields.io/github/downloads/BrianJr03/GrandTheftCompanion/latest/total?style=flat&label=downloads%20%40%20latest&color=4F8FD0" alt="Downloads for the latest release"/></a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/BrianJr03/GrandTheftCompanion/releases/latest"><img src="https://img.shields.io/github/v/release/BrianJr03/GrandTheftCompanion?style=flat&label=latest&color=C46A2A" alt="Latest release"/></a>
+</p>
+
 AYN Thor bottom-screen companion for GTA IV and GTA V. Live HUD on the Thor's bottom screen while the game plays on the main screen via [GameHub Lite](https://www.gamehublite.com/), [GameNative](https://github.com/utkarshdalal/GameNative), or any Winlator-family launcher.
 
 The repo contains the **GTC** Android companion app and two game plugins: **ThorBridge.asi** for GTA IV and **ThorBridgeV.asi** for GTA V. Each plugin reads game state from inside its game's process. The app is the same for both games and picks the right layout by itself.
