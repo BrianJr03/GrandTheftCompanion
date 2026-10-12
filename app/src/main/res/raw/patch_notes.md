@@ -4,8 +4,6 @@
 
 The Thor's thumbsticks now flash red and blue while you have a wanted level. Tempo scales with stars — 600 ms per swap at 1★, dropping to 400 ms at full stars. Toggle from the bulb icon at the top right of the HUD.
 
-The preferred path writes straight to the Thor's SN3112 LED drivers, so Bifrost is no longer required. If Bifrost is installed, GTC falls back to its broadcast API cleanly.
-
 **In-app updates**
 
 GTC now checks for new GitHub releases in the background. When one is out, an arrow chip appears in the status bar — tap to download and install from inside the app. No more sideloading by hand.
