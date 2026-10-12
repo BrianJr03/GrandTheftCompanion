@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowCircleDown
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
@@ -49,6 +50,10 @@ internal fun StatusBar(
     lightsOn: Boolean = false,
     lightsUnavailable: Boolean = false,
     onToggleLights: (() -> Unit)? = null,
+    // In-app update chip, shown between the stars and the lights
+    // toggle when the GitHub Releases API reports a newer version.
+    updateAvailable: Boolean = false,
+    onOpenUpdate: (() -> Unit)? = null,
 ) {
     val mono = FontFamily.Monospace
     Row(
@@ -80,6 +85,12 @@ internal fun StatusBar(
         ) {
             WantedStars(level = wantedLevel, palette = palette, maxStars = maxStars)
         }
+        // Update chip is only there when a newer release is out, so
+        // it fades in beside the lights toggle and doesn't take a
+        // permanent slot in the row.
+        if (updateAvailable && onOpenUpdate != null) {
+            UpdateChip(palette = palette, onTap = onOpenUpdate)
+        }
         // Last in the row so it stays put while the stars slide in and
         // out beside it.
         onToggleLights?.let { onToggle ->
@@ -90,6 +101,28 @@ internal fun StatusBar(
                 onToggle = onToggle,
             )
         }
+    }
+}
+
+/**
+ * The "download arrow" that lights up in the status bar when
+ * UpdateChecker finds a newer release. Tap opens the update dialog.
+ */
+@Composable
+private fun UpdateChip(palette: HudPalette, onTap: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .clickable(onClick = onTap),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.ArrowCircleDown,
+            contentDescription = stringResource(R.string.update_chip_cd),
+            tint = palette.accent,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 

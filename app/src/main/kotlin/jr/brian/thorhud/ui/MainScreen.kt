@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -37,6 +38,7 @@ import jr.brian.thorhud.ui.components.WeaponPanel
 import jr.brian.thorhud.ui.components.paletteFor
 import jr.brian.thorhud.ui.components.stationListFor
 import jr.brian.thorhud.ui.v.VMainScreen
+import jr.brian.thorhud.update.UpdateDialog
 import kotlinx.coroutines.delay
 
 @Composable
@@ -47,6 +49,12 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     val lastError by viewModel.lastError.collectAsStateWithLifecycle()
     val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
     val lightsStatus by viewModel.stickLightsStatus.collectAsStateWithLifecycle()
+    val updateInfo by viewModel.updateInfo.collectAsStateWithLifecycle()
+
+    // One-shot update check on first composition. Fires regardless of
+    // which screen the HUD is on — the chip surfaces in the StatusBar
+    // wherever that lands.
+    LaunchedEffect(Unit) { viewModel.checkForUpdate() }
 
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
@@ -55,6 +63,19 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     val isStale = lastUpdateMs > 0 && (now - lastUpdateMs) > 1500
     val isDisconnected = lastUpdateMs == 0L
     val liveState = if (!isDisconnected && !isStale) state else null
+
+    // Hoisted so SetupScreen, the IV HUD and the V HUD share one
+    // instance; palette uses whichever episode we know about so the
+    // dialog's accent matches the HUD below it.
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    if (showUpdateDialog && updateInfo.isUpdateAvailable) {
+        UpdateDialog(
+            updateInfo = updateInfo,
+            currentVersion = viewModel.currentVersionName,
+            palette = paletteFor(state?.episode),
+            onDismiss = { showUpdateDialog = false },
+        )
+    }
 
     if (isDisconnected) {
         SetupScreen(lastError)
@@ -69,6 +90,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             hello = hello,
             state = state,
             isStale = isStale,
+            updateAvailable = updateInfo.isUpdateAvailable,
+            onOpenUpdate = { showUpdateDialog = true },
         )
         return
     }
@@ -102,6 +125,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 lightsOn = lightsOn,
                 lightsUnavailable = lightsStatus.isUnavailable,
                 onToggleLights = viewModel::togglePoliceLights,
+                updateAvailable = updateInfo.isUpdateAvailable,
+                onOpenUpdate = { showUpdateDialog = true },
             )
             Spacer(Modifier.height(8.dp))
             val inVehicle = liveState?.inVehicle == true

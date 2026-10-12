@@ -71,6 +71,27 @@
     <string name="lights_off">wanted stick lights off, tap to turn on</string>
     <string name="lights_unavailable">wanted stick lights on but Bifrost is not accepting them, tap to turn off</string>
 
+    <!-- Update chip + dialog -->
+    <string name="update_chip_cd">update available, tap to view</string>
+    <string name="update_available_title">Update available</string>
+    <string name="update_available_subtitle">v%1$s → v%2$s</string>
+    <string name="update_no_notes">No release notes.</string>
+    <string name="update_download">Download</string>
+    <string name="update_open_release">Open release</string>
+    <string name="update_later">Later</string>
+    <string name="update_cancel">Cancel</string>
+    <string name="update_retry">Retry</string>
+    <string name="update_install">Install</string>
+    <string name="update_permission_title">Allow installs?</string>
+    <string name="update_permission_body">Android needs GTC\'s permission to install the new APK. Open Settings, allow "Install unknown apps", then come back here.</string>
+    <string name="update_open_settings">Open Settings</string>
+    <string name="update_downloading_title">Downloading…</string>
+    <string name="update_downloading_progress">%1$s of %2$s</string>
+    <string name="update_ready_title">Ready to install</string>
+    <string name="update_ready_subtitle">Android will take over for the actual install.</string>
+    <string name="update_error_title">Download failed</string>
+    <string name="update_error_fallback">Something went wrong. Try again or open the release page in your browser.</string>
+
     <!-- Episode labels -->
     <string name="episode_iv">GTA IV</string>
     <string name="episode_tlad">The Lost and Damned</string>

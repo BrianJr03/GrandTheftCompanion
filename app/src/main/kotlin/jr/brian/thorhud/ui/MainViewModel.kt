@@ -3,11 +3,16 @@ package jr.brian.thorhud.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jr.brian.thorhud.BuildConfig
 import jr.brian.thorhud.GtcSettings
 import jr.brian.thorhud.led.StickLights
 import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.net.GameStateRepository
+import jr.brian.thorhud.update.UpdateChecker
+import jr.brian.thorhud.update.UpdateInfo
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -43,5 +48,22 @@ class MainViewModel @Inject constructor(
 
     fun setWeapon(weaponId: Int) {
         viewModelScope.launch { repository.setWeapon(weaponId) }
+    }
+
+    // ---- In-app updates ----
+    private val _updateInfo = MutableStateFlow(UpdateInfo.EMPTY)
+    val updateInfo: StateFlow<UpdateInfo> = _updateInfo.asStateFlow()
+
+    /** Current running version (release) with any -debug/-rc suffix
+     *  intact; the comparator strips suffixes itself. */
+    val currentVersionName: String = BuildConfig.VERSION_NAME
+
+    /** Fire-and-forget check against the GitHub Releases API. Called
+     *  once from HudActivity on first start; safe to call again — it
+     *  just overwrites the flow with whatever the API returns. */
+    fun checkForUpdate() {
+        viewModelScope.launch {
+            _updateInfo.value = UpdateChecker.checkForUpdate(currentVersionName)
+        }
     }
 }

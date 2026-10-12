@@ -50,6 +50,8 @@ internal fun VMainScreen(
     hello: GameState?,
     state: GameState?,
     isStale: Boolean,
+    updateAvailable: Boolean = false,
+    onOpenUpdate: (() -> Unit)? = null,
 ) {
     val stations by viewModel.stations.collectAsStateWithLifecycle()
     val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
@@ -160,6 +162,8 @@ internal fun VMainScreen(
                 lightsOn = lightsOn,
                 lightsUnavailable = lightsStatus.isUnavailable,
                 onToggleLights = viewModel::togglePoliceLights,
+                updateAvailable = updateAvailable,
+                onOpenUpdate = onOpenUpdate,
             )
             if (tags.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))

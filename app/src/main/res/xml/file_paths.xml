@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the single "updates" cache folder is shared. The APK the
+     updater just downloaded lives there and is handed to Android's
+     package installer by content:// URI. -->
+<paths>
+    <cache-path name="updates" path="updates/" />
+</paths>

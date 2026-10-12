@@ -229,6 +229,16 @@ jobs:
           name: GTC-release.apk
           path: dist
 
+      # Pull the per-release notes out of the APK sources: whatever is
+      # in app/src/main/res/raw/patch_notes.md becomes the release body.
+      # Falls back to just the auto-generated commit summary (via
+      # generate_release_notes) if the file is missing on a given tag.
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            app/src/main/res/raw/patch_notes.md
+          sparse-checkout-cone-mode: false
+
       - name: Create / update release
         uses: softprops/action-gh-release@v2
         with:
@@ -236,5 +246,6 @@ jobs:
             dist/ThorBridge.asi
             dist/ThorBridgeV.asi
             dist/GTC-release.apk
+          body_path: app/src/main/res/raw/patch_notes.md
           generate_release_notes: true
           fail_on_unmatched_files: true

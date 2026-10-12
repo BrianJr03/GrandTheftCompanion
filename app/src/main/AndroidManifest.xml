@@ -2,7 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Loopback TCP from Android still requires the INTERNET permission. -->
+    <!-- Loopback TCP from Android still requires the INTERNET permission.
+         Also used by the in-app updater to talk to the GitHub Releases
+         API and pull the signed APK. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Thumbstick lights go through Bifrost, the Thor's LED app, if the
@@ -10,6 +12,11 @@
          sending it LED commands; the user still has to allow
          third-party control inside Bifrost before anything lights up. -->
     <uses-permission android:name="com.moonbench.bifrost.permission.CONTROL_LEDS" />
+
+    <!-- Hand the downloaded APK to Android's package installer. The
+         user still has to grant GTC "Install unknown apps" the first
+         time; the updater sends them to Settings if they haven't. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- Lets us tell "Bifrost is not installed" from "Bifrost did not
          answer". -->
@@ -60,5 +67,20 @@
             android:resizeableActivity="true"
             android:supportsPictureInPicture="false"
             android:theme="@style/Theme.Gtc" />
+
+        <!-- FileProvider only shares the single "updates" cache folder,
+             where UpdateDownloader stashes the downloaded APK before
+             handing a content:// URI to the package installer.
+             Authority stays stable across debug/release because the
+             suffix is a literal, not the applicationId. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.updates.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>
