@@ -1,33 +1,17 @@
-## v0.3.3
+## v0.4.0
 
-**Minimap mirror (experimental)**
+**First-run swipe hint**
 
-The bottom screen now has a second **map** page. Swipe or tap the tabs to switch. It shows the game's own minimap, enlarged. Android asks for screen-capture permission once per session.
+A small "Tip" dialog appears the first time you connect, pointing out the HUD and the mirrored minimap pages. It shows once and is remembered.
 
-Pinch to zoom, drag to pan if the map isn't quite centered. Tap **lock** when you're happy with it so swiping between pages won't nudge it, **reset** to go back to the default. GTA IV and GTA V remember their own position and preferred tab separately.
+**Minimap mirror polish**
 
-## v0.3.2
+The HUD and map tabs no longer have labels at the top; just swipe to switch. The pinch-to-zoom and drag-to-pan hint moved to the corner of the map page and only appears while you're actively adjusting.
 
-**Hotfix: stick lights restore the ambient colour**
+**Pause takes over both pages**
 
-When the wanted level dropped, GTC was leaving the thumbsticks dark. The direct LED driver now snapshots the current SN3112 state on the first beat of each chase and replays it on clear — so the sticks return to whatever you had before the sirens started, not to black.
+When GTA IV is paused, or GTA V shows an on-screen notice (online, cutscene switch, pause), the whole bottom screen now shows that state instead of letting you swipe to a half-live map.
 
-If the sysfs reads come back empty (older firmware, SELinux denial), GTC falls back to the pre-hotfix behaviour and clears to black.
+**Wanted level polish**
 
-## v0.3.1
-
-**Wanted lights**
-
-The Thor's thumbsticks now flash red and blue while you have a wanted level. Tempo scales with stars — 600 ms per swap at 1★, dropping to 400 ms at full stars. Toggle from the bulb icon at the top right of the HUD.
-
-**In-app updates**
-
-GTC now checks for new GitHub releases in the background. When one is out, an arrow chip appears in the status bar — tap to download and install from inside the app. No more sideloading by hand.
-
-**Translations**
-
-HUD text is now localised in French, Spanish, German, Italian, Russian and Japanese — the languages Rockstar ships with GTA IV. Switch under Settings → Apps → GTC → App language on Android 13+.
-
-**Credits**
-
-The direct LED path is adapted from Pollux-MoonBench's Bifrost (archived). GPL-3.0, attributed in `app/NOTICE`.
+Thumbstick police lights are dimmer now so they're easier on the eyes at arm's length. Stars fill from the right in both GTA IV and GTA V, matching how the game draws them on the top screen.
