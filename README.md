@@ -202,13 +202,14 @@ The app picks the layout from the plugin's hello frame. Both layouts share the s
 
 ### Map page (experimental)
 
-Once connected, the bottom screen is a two-page pager: **hud** (everything above) and **map**. Swipe or tap the tabs; the app remembers the page you left it on.
+Once connected, the bottom screen is a two-page pager. Swipe between the HUD and the **map** page. A one-time **Tip** dialog on first connect points this out. Each game (IV and V) remembers which page it was on independently.
 
-The map page mirrors the game's own minimap from the top screen and enlarges it, using Android's screen-capture permission. Tap **start mirroring** and approve the system prompt (Android asks again each session). It needs no plugin update and ships no map imagery — it shows exactly what the game draws, blips and GPS route included.
+The map page mirrors the game's own minimap from the top screen and enlarges it, using Android's screen-capture permission. Tap **start mirroring** and approve the system prompt. Android asks again each session. It needs no plugin update and ships no map imagery. It shows exactly what the game draws, blips and GPS route included. GTA IV is clipped to a circle to match its native radar; GTA V stays rectangular to match its map.
 
-- The crop is a fixed per-game preset measured on a Thor at default HUD settings. If your game resolution, aspect ratio or safe-zone differs, the minimap may sit off-centre; **full screen** shows the whole capture so you can check.
+- The crop is a per-game preset measured at default HUD settings. If yours is off, **unlock** the map and pinch to zoom or drag to pan until it fits. Tap **lock** when you are happy with it so swiping between pages won't nudge it. Positions are saved per game and persist across restarts. **Reset** returns to the preset.
 - It is a magnified copy of a small patch of the screen, so it is soft, and it shows whatever is in that patch when the game hides the minimap (cutscenes, pause menu).
 - Frames are only mirrored while the map page is visible, but the capture session (and Android's capture indicator) stays until you tap **stop** or close the app.
+- When the game is paused (or GTA V shows an on-screen notice like a character switch), the pause screen takes over both pages. Swipe is disabled until the game resumes.
 
 ## A note on AI usage
 
