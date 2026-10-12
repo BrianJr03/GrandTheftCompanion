@@ -1,3 +1,9 @@
+## v0.6.1
+
+**Nicer release notes in the update dialog**
+
+The update popup now renders patch notes with proper formatting. Headers look like headers, quoted lines get a colored side bar, code snippets show in a monospace box, and nested bullets indent cleanly. Inline code picks up your episode's accent color, so patch notes feel at home on the HUD.
+
 ## v0.6.0
 
 **Update popup on launch**
