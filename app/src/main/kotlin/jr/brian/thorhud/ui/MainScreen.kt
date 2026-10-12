@@ -1,5 +1,6 @@
 package jr.brian.thorhud.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,6 +34,7 @@ import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.components.CardAlign
 import jr.brian.thorhud.ui.components.CoinPanel
 import jr.brian.thorhud.ui.components.FullWidthStats
+import jr.brian.thorhud.ui.components.IvWeaponWheelOverlay
 import jr.brian.thorhud.ui.components.MoneyRadioPanel
 import jr.brian.thorhud.ui.components.PausedScreen
 import jr.brian.thorhud.ui.components.RadioPanel
@@ -99,22 +101,38 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         paletteFor(liveState?.episode ?: state?.episode).accent
     }
 
-    // GTA V weapon wheel (ui/v/VWeaponWheel.kt). It is on screen while
-    // the player holds the game's weapon-wheel button (`wheel` in the
-    // state frame, plugin 0.2.0+) or after a tap on the weapon card.
-    // Collected up here, ahead of the early returns below, so the
+    // Weapon wheel, both games (ui/v/VWeaponWheel.kt draws it;
+    // components/IvWeaponWheel.kt is the GTA IV side). It is on screen
+    // while the player holds the wheel button (`wheel` in the state
+    // frame: GTA V plugin 0.2.0+, GTA IV plugin natives level 4) or
+    // after a tap on the weapon card.
+    // Collected up here, ahead of the early returns below, so GTA V's
     // per-slot memory keeps following the equipped weapon across pause
     // and notice screens.
     val weapons by viewModel.weapons.collectAsStateWithLifecycle()
     val weaponPick by viewModel.weaponPick.collectAsStateWithLifecycle()
-    val equippedHash = liveState?.weaponHash.takeIf { isGtaV }
-    val wheelMemory = rememberVWheelMemory(weapons, equippedHash)
+    // What is in hand, in the game's own terms: a weapon hash in GTA V,
+    // a small weapon id in GTA IV. Same terms as WeaponPick.hash.
+    val equippedWeapon = if (isGtaV) liveState?.weaponHash
+                         else liveState?.weaponId?.toLong()
+    val wheelMemory = rememberVWheelMemory(weapons, equippedWeapon.takeIf { isGtaV })
     var wheelOpenedByTap by remember { mutableStateOf(false) }
-    val wheelHeld = isGtaV && liveState?.wheel == true
-    // On foot only: the plugin refuses set_weapon in a vehicle.
-    val wheelUsable = isGtaV && liveState?.inGame == true &&
-        liveState?.inVehicle == false && !vIsNoticeState(hello, state)
+    val wheelHeld = liveState?.wheel == true
+    // On foot only: both plugins refuse set_weapon in a vehicle.
+    val onFoot = liveState?.inGame == true && liveState?.inVehicle == false
+    val wheelUsable = onFoot && if (isGtaV) {
+        !vIsNoticeState(hello, state)
+    } else {
+        // A GTA IV plugin that does not scan owned weapons (natives
+        // level below 4, which includes every release so far) sends an
+        // empty list. Keep the wheel off then, rather than opening one
+        // with nothing on it but fists.
+        liveState?.ownedWeapons?.isNotEmpty() == true
+    }
     val showWheel = wheelUsable && (wheelHeld || wheelOpenedByTap)
+    // What a tap on the weapon card does; null leaves the card inert.
+    val openWheel: (() -> Unit)? =
+        if (wheelUsable) { { wheelOpenedByTap = true } } else null
 
     // Releasing the button closes the wheel however it was opened, and
     // a tap-opened wheel does not outlive the situation it was opened
@@ -132,9 +150,9 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     }
     // The pick only means something while the wheel is up, and only
     // until the game reports that weapon in hand.
-    LaunchedEffect(showWheel, weaponPick, equippedHash) {
+    LaunchedEffect(showWheel, weaponPick, equippedWeapon) {
         val pick = weaponPick ?: return@LaunchedEffect
-        if (!showWheel || (pick.error == null && pick.hash == equippedHash)) {
+        if (!showWheel || (pick.error == null && pick.hash == equippedWeapon)) {
             viewModel.clearWeaponPick()
         }
     }
@@ -202,7 +220,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     isStale = isStale,
                     updateAvailable = updateInfo.isUpdateAvailable,
                     onOpenUpdate = { showUpdateDialog = true },
-                    onOpenWeaponWheel = { wheelOpenedByTap = true },
+                    onOpenWeaponWheel = openWheel,
                 )
             } else {
                 IvHudScreen(
@@ -214,6 +232,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     lightsUnavailable = lightsStatus.isUnavailable,
                     updateAvailable = updateInfo.isUpdateAvailable,
                     onOpenUpdate = { showUpdateDialog = true },
+                    onOpenWeaponWheel = openWheel,
                 )
             }
         },
@@ -226,14 +245,24 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     )
     // Drawn over the pager so it covers both pages and swallows the
     // swipe between them while it is up.
-    if (showWheel) {
+    if (showWheel && isGtaV) {
         VWeaponWheelOverlay(
             weapons = weapons,
-            equippedHash = equippedHash,
+            equippedHash = equippedWeapon,
             pick = weaponPick,
             memory = wheelMemory,
             held = wheelHeld,
             palette = vCharacterOf(state?.character).palette,
+            onPick = viewModel::pickWeapon,
+            onDismiss = { wheelOpenedByTap = false },
+        )
+    } else if (showWheel) {
+        IvWeaponWheelOverlay(
+            owned = liveState?.ownedWeapons.orEmpty(),
+            equippedId = liveState?.weaponId,
+            pick = weaponPick,
+            held = wheelHeld,
+            palette = paletteFor(liveState?.episode ?: state?.episode),
             onPick = viewModel::pickWeapon,
             onDismiss = { wheelOpenedByTap = false },
         )
@@ -255,6 +284,9 @@ private fun IvHudScreen(
     lightsUnavailable: Boolean,
     updateAvailable: Boolean,
     onOpenUpdate: () -> Unit,
+    // Tapping the on-foot weapon card opens the weapon wheel. Null
+    // leaves the card inert (in a vehicle, or nothing to pick from).
+    onOpenWeaponWheel: (() -> Unit)?,
 ) {
     val palette = paletteFor(liveState?.episode ?: state?.episode)
 
@@ -323,9 +355,16 @@ private fun IvHudScreen(
                     CoinPanel(liveState, align = CardAlign.Start,
                               verticalCenter = true,
                               modifier = Modifier.weight(1f).fillMaxHeight())
+                    val weaponCard = Modifier.weight(1f).fillMaxHeight().let {
+                        if (onOpenWeaponWheel != null) {
+                            it.clickable(onClick = onOpenWeaponWheel)
+                        } else {
+                            it
+                        }
+                    }
                     WeaponPanel(liveState, align = CardAlign.End,
                                 verticalCenter = true,
-                                modifier = Modifier.weight(1f).fillMaxHeight())
+                                modifier = weaponCard)
                 }
                 Spacer(Modifier.height(16.dp))
                 Row(

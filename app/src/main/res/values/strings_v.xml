@@ -18,10 +18,13 @@
     <string name="v_label_ammo">ammo</string>
 
     <!-- Weapon wheel: opened by tapping the weapon card, or shown for as
-         long as the game's weapon-wheel button is held. The second hint
-         is for the held case, where the pick is equipped on release. -->
+         long as the wheel button is held (the game's own weapon-wheel
+         button in GTA V, LB / L1 in GTA IV). The wheel is shared with
+         the GTA IV HUD; its strings live here with the wheel itself.
+         Held hints: GTA V equips the pick on release, GTA IV at once. -->
     <string name="v_wheel_hint_open">tap a weapon · tap here to close</string>
     <string name="v_wheel_hint_held">tap a weapon · release to equip</string>
+    <string name="v_wheel_hint_held_iv">tap a weapon · release to close</string>
     <string name="v_wheel_failed">can\'t switch: %1$s</string>
 
     <!-- Vehicle card -->

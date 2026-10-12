@@ -65,9 +65,10 @@ internal fun WeaponPanel(
 // GTA IV eWeapon enum, authoritative from Aru's ScriptHook SDK
 // (violetfrost/gtaiv-scripthook-sdk, ScriptHook/ScriptingEnums.h). The
 // mapping lives in res/values/strings.xml as a string-array so it can
-// be localised / corrected without a code change.
+// be localised / corrected without a code change. Also labels the weapon
+// wheel (IvWeaponWheel.kt).
 @Composable
-private fun weaponName(id: Int?): String {
+internal fun weaponName(id: Int?): String {
     val table = stringArrayResource(R.array.weapon_names)
     return when {
         id == null       -> table[0]

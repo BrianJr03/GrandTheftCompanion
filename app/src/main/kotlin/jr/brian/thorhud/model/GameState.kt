@@ -65,6 +65,8 @@ data class GameState(
     @SerialName("weapon") val weaponId: Int? = null,
     @SerialName("ammo_total") val ammoTotal: Int? = null,
     @SerialName("ammo_clip") val ammoClip: Int? = null,
+    // GTA IV: what the player carries, one weapon per game slot. Empty
+    // unless the plugin was built at natives level 4.
     @SerialName("owned") val ownedWeapons: List<OwnedWeapon> = emptyList(),
 
     // state — vehicle
@@ -89,6 +91,8 @@ data class GameState(
     // The player is holding the game's weapon-wheel control (LB / L1 /
     // Tab) on foot, so the companion shows its own wheel. Plugin 0.2.0+;
     // older plugins never send it and the wheel is opened by tap only.
+    // GTA IV sends the same flag for LB / L1 (it has no wheel of its
+    // own) from a plugin built at natives level 4.
     @SerialName("wheel") val wheel: Boolean = false,
 
     // 0 = Michael, 1 = Franklin, 2 = Trevor, -1 = anyone else

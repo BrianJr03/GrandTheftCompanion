@@ -122,6 +122,19 @@ class GameStateVTest {
     }
 
     @Test
+    fun gtaIvWheelAndOwnedListDecode() {
+        val f = decode(IV_STATE_WHEEL_HELD)
+        assertFalse(f.isGtaV)
+        assertTrue(f.wheel)
+        assertFalse(f.inVehicle)
+        assertEquals(7, f.weaponId)
+        assertEquals(3, f.ownedWeapons.size)
+        assertEquals(2, f.ownedWeapons[1].slot)
+        assertEquals(7, f.ownedWeapons[1].id)
+        assertEquals(120, f.ownedWeapons[1].ammo)
+    }
+
+    @Test
     fun tickDecodes() {
         val f = decode(V_TICK)
         assertTrue(f.isTick)
@@ -195,6 +208,9 @@ class GameStateVTest {
         const val V_STATIONS = """{"v":1,"type":"stations","game":"v","stations":[{"name":"RADIO_01_CLASS_ROCK","label":"Los Santos Rock Radio"},{"name":"RADIO_02_POP","label":"Non-Stop-Pop FM"},{"name":"RADIO_03_HIPHOP_NEW","label":"Radio Los Santos"},{"name":"RADIO_19_USER","label":"Self Radio"},{"name":"RADIO_99_MOCK_UNLABELLED","label":""}]}"""
         const val V_WEAPONS = """{"v":1,"type":"weapons","game":"v","weapons":[{"hash":2578778090,"group":416676503,"ammo":120,"name":"weapon_knife"},{"hash":453432689,"group":416676503,"ammo":120,"name":"weapon_pistol"},{"hash":3220176749,"group":416676503,"ammo":120,"name":"weapon_assaultrifle"},{"hash":2481070269,"group":416676503,"ammo":120,"name":"weapon_grenade"}]}"""
         const val IV_HELLO = """{"v":1,"type":"hello","crc32":"0x1A2B3C4D","size":15628696,"file_version":"1.2.0.59","supported":true}"""
+        // Natives level 4, LB held on foot. Follows format_state in
+        // asi/src/bridge.cpp; not captured from a running game.
+        const val IV_STATE_WHEEL_HELD = """{"v":1,"type":"state","t":223344,"in_game":true,"in_vehicle":false,"paused":false,"wheel":true,"money":2500,"health":180.0,"max_health":200,"armor":50,"max_armor":100,"wanted":0,"weapon":7,"ammo_total":120,"ammo_clip":12,"owned":[{"slot":1,"id":1,"ammo":1},{"slot":2,"id":7,"ammo":120},{"slot":8,"id":4,"ammo":5}],"vehicle":{"model":0,"name":"","speed_mps":0.00,"engine_hp":0.0},"radio":-1,"episode":0}"""
         const val IV_STATE = """{"v":1,"type":"state","t":123456,"in_game":true,"in_vehicle":true,"paused":false,"money":2500,"health":180.0,"max_health":200,"armor":50,"max_armor":100,"wanted":2,"weapon":7,"ammo_total":60,"ammo_clip":12,"owned":[{"slot":2,"id":7,"ammo":60}],"vehicle":{"model":1348744438,"name":"ORACLE","speed_mps":12.50,"engine_hp":950.0},"radio":3,"episode":0}"""
     }
 }

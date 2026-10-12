@@ -39,12 +39,17 @@ import jr.brian.thorhud.ui.components.HudPalette
 import kotlin.math.cos
 import kotlin.math.sin
 
-// --- GTA V weapon wheel: drawing ----------------------------------------
+// --- Weapon wheel: drawing ----------------------------------------------
 //
-// A full-screen overlay shaped like the game's weapon wheel: eight slots
+// A full-screen overlay shaped like GTA V's weapon wheel: eight slots
 // around a hub. What goes in which slot, what a tap means and which slot
 // a touch lands in are all decided in VWeaponWheelModel.kt; this file
 // only draws that and forwards taps.
+//
+// [WeaponWheel] is the wheel itself and knows nothing about either game.
+// [VWeaponWheelOverlay] feeds it GTA V's loadout; GTA IV's wrapper is
+// components/IvWeaponWheel.kt. (The shared wheel lives in this GTA V
+// package only because GTA V got it first.)
 //
 // There are no weapon icons: the game's are Rockstar's artwork and this
 // project ships none of it (LEGAL.md), so slots are labelled in text.
@@ -88,18 +93,16 @@ internal fun rememberVWheelMemory(
 }
 
 /**
- * The weapon wheel.
+ * The GTA V weapon wheel.
  *
  * @param weapons the plugin's owned-weapon list
  * @param equippedHash `weapon_hash` from the live state frame
  * @param pick the weapon last tapped here, if any (see [WeaponPick])
  * @param memory from [rememberVWheelMemory]
  * @param held true while the player holds the game's weapon-wheel
- *             button. The wheel is then closed by releasing the button,
- *             not by a tap, and picks are equipped on release.
+ *             button. Picks are then equipped on release.
  * @param onPick called with the hash of the weapon to equip
- * @param onDismiss called on a tap on the hub or outside the wheel,
- *                  unless [held]
+ * @param onDismiss see [WeaponWheel]
  */
 @Composable
 internal fun VWeaponWheelOverlay(
@@ -117,7 +120,56 @@ internal fun VWeaponWheelOverlay(
     // game catches up (immediately, or on release while held).
     val selectedHash = pick?.takeIf { it.error == null }?.hash ?: equippedHash
     val segments = vBuildWheel(weapons.map { it.toWheel() }, selectedHash, memory)
+    WeaponWheel(
+        segments = segments,
+        // A weapon the plugin's table does not know is on no slot;
+        // still name what is in hand.
+        selectedLabel = vWeaponLabel(
+            segments.firstOrNull { it.isSelected }?.shown?.name, selectedHash),
+        labelOf = { vWeaponLabel(it.name, it.hash) },
+        error = pick?.error,
+        // GTA V has its own wheel open while the button is held, so a
+        // pick made then only lands when the button is released.
+        hint = stringResource(
+            if (held) R.string.v_wheel_hint_held else R.string.v_wheel_hint_open,
+        ),
+        held = held,
+        palette = palette,
+        onPick = onPick,
+        onDismiss = onDismiss,
+        modifier = modifier,
+    )
+}
 
+/**
+ * The wheel, for either game.
+ *
+ * @param segments eight slots from the game's model (`vBuildWheel`,
+ *                 `ivBuildWheel`), indexed by [VWheelSlot.ordinal]
+ * @param selectedLabel name of the selected weapon, for the hub
+ * @param labelOf display name for a weapon on a slot
+ * @param error why the last pick was refused, if it was
+ * @param hint one line telling the player how to pick and how to leave
+ * @param held true while the player holds the wheel button on the
+ *             controller. The wheel is then closed by releasing the
+ *             button, not by a tap.
+ * @param onPick called with the `hash` of the weapon to equip
+ * @param onDismiss called on a tap on the hub or outside the wheel,
+ *                  unless [held]
+ */
+@Composable
+internal fun WeaponWheel(
+    segments: List<VWheelSegment>,
+    selectedLabel: String,
+    labelOf: @Composable (VWheelWeapon) -> String,
+    error: String?,
+    hint: String,
+    held: Boolean,
+    palette: HudPalette,
+    onPick: (Long) -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val currentSegments by rememberUpdatedState(segments)
     val currentHeld by rememberUpdatedState(held)
     val currentOnPick by rememberUpdatedState(onPick)
@@ -190,6 +242,7 @@ internal fun VWeaponWheelOverlay(
             val angle = Math.toRadians((index * V_WHEEL_SWEEP_DEG).toDouble())
             VWheelSlotLabel(
                 segment = segment,
+                labelOf = labelOf,
                 modifier = Modifier
                     .offset(
                         x = midRadius * cos(angle).toFloat(),
@@ -203,9 +256,9 @@ internal fun VWeaponWheelOverlay(
 
         VWheelHub(
             selected = segments.firstOrNull { it.isSelected },
-            selectedHash = selectedHash,
-            error = pick?.error,
-            held = held,
+            selectedLabel = selectedLabel,
+            error = error,
+            hint = hint,
             modifier = Modifier.width(innerRadius * 1.7f),
         )
     }
@@ -214,11 +267,15 @@ internal fun VWeaponWheelOverlay(
 /** What a slot holds: the weapon it would equip, and where it is among
  *  the slot's weapons when there are several to step through. */
 @Composable
-private fun VWheelSlotLabel(segment: VWheelSegment, modifier: Modifier) {
+private fun VWheelSlotLabel(
+    segment: VWheelSegment,
+    labelOf: @Composable (VWheelWeapon) -> String,
+    modifier: Modifier,
+) {
     val weapon = segment.shown
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            weapon?.let { vWeaponLabel(it.name, it.hash) } ?: "—",
+            if (weapon != null) labelOf(weapon) else "—",
             color = when {
                 segment.isSelected -> TextOnAccent
                 weapon == null     -> TextDim
@@ -251,9 +308,9 @@ private fun VWheelSlotLabel(segment: VWheelSegment, modifier: Modifier) {
 @Composable
 private fun VWheelHub(
     selected: VWheelSegment?,
-    selectedHash: Long?,
+    selectedLabel: String,
     error: String?,
-    held: Boolean,
+    hint: String,
     modifier: Modifier,
 ) {
     val weapon = selected?.shown
@@ -268,9 +325,7 @@ private fun VWheelHub(
             )
         }
         Text(
-            // A weapon the plugin's table does not know is on no slot;
-            // still name what is in hand.
-            vWeaponLabel(weapon?.name, selectedHash),
+            selectedLabel,
             color = TextBright,
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold,
@@ -301,9 +356,7 @@ private fun VWheelHub(
             )
         }
         Text(
-            stringResource(
-                if (held) R.string.v_wheel_hint_held else R.string.v_wheel_hint_open,
-            ),
+            hint,
             color = TextDim,
             fontFamily = FontFamily.Monospace,
             fontSize = 10.sp,

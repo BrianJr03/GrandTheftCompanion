@@ -35,7 +35,11 @@ internal enum class VWheelSlot(val label: String) {
     Thrown("thrown"),
 }
 
-/** One owned weapon, as the `weapons` frame describes it. */
+/**
+ * One owned weapon. For GTA V this is an entry of the `weapons` frame.
+ * For GTA IV, [hash] is the small weapon id and [name] / [group] are
+ * unused (left "" and 0): IV names come from string resources by id.
+ */
 internal data class VWheelWeapon(
     val hash: Long,
     val name: String,
@@ -155,8 +159,25 @@ internal fun vBuildWheel(
     }
     val selected = if (vIsUnarmed(null, selectedHash)) V_WEAPON_UNARMED_HASH
                    else selectedHash
-    return VWheelSlot.entries.map { slot ->
-        val weapons = bySlot.getValue(slot)
+    return wheelSegments(bySlot, selected, remembered)
+}
+
+/**
+ * The part of laying out a wheel that is the same for both games: given
+ * which weapons sit in which slot, decide what each slot displays and
+ * which one holds the selected weapon. [vBuildWheel] feeds it GTA V's
+ * loadout; GTA IV's comes from components/IvWeaponWheelModel.kt.
+ *
+ * @param selected hash (GTA V) or id (GTA IV) of the selected weapon,
+ *                 already normalised to whatever [bySlot] uses for fists
+ */
+internal fun wheelSegments(
+    bySlot: Map<VWheelSlot, List<VWheelWeapon>>,
+    selected: Long?,
+    remembered: Map<VWheelSlot, Long>,
+): List<VWheelSegment> =
+    VWheelSlot.entries.map { slot ->
+        val weapons = bySlot[slot].orEmpty()
         val selectedIndex = weapons.indexOfFirst { it.hash == selected }
         val rememberedIndex = weapons.indexOfFirst { it.hash == remembered[slot] }
         val shownIndex = when {
@@ -167,7 +188,6 @@ internal fun vBuildWheel(
         }
         VWheelSegment(slot, weapons, shownIndex, isSelected = selectedIndex >= 0)
     }
-}
 
 /**
  * The weapon a tap on [segment] asks for, or null if the tap does
