@@ -41,7 +41,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-i686.cmake \
             -DCMAKE_BUILD_TYPE=Release \
             -DTHORBRIDGE_ENABLE_HOOK=ON \
-            -DTHORBRIDGE_NATIVES_LEVEL=3
+            -DTHORBRIDGE_NATIVES_LEVEL=4
 
       - name: Build
         working-directory: asi

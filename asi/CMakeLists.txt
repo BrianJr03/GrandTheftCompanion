@@ -36,9 +36,9 @@ option(THORBRIDGE_HOOK_NO_NATIVES "If hook is on, skip native invocations" OFF)
 # 2 = stats + current weapon + ammo (no owned-slots scan)
 # 3 = stats + weapon + vehicle + radio — the full HUD
 # 4 = 3 + owned-weapon scan + LB poll, for the companion's weapon wheel.
-#     Not the default until it has been proven on a device: the scan's
-#     first incarnation crashed the game (see src/weapons.h).
-set(THORBRIDGE_NATIVES_LEVEL "3" CACHE STRING "Which native groups on_frame invokes")
+#     Default after on-device validation; the scan's first incarnation
+#     crashed the game, see src/weapons.h for the slot cap that fixed it.
+set(THORBRIDGE_NATIVES_LEVEL "4" CACHE STRING "Which native groups on_frame invokes")
 if(THORBRIDGE_ENABLE_HOOK)
     target_compile_definitions(ThorBridge PRIVATE THORBRIDGE_ENABLE_HOOK=1)
 endif()
