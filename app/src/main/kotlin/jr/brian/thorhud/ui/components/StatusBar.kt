@@ -91,15 +91,25 @@ internal fun StatusBar(
         if (updateAvailable && onOpenUpdate != null) {
             UpdateChip(palette = palette, onTap = onOpenUpdate)
         }
-        // Last in the row so it stays put while the stars slide in and
-        // out beside it.
+        // Lights toggle rides with the wanted stars: wanted-level 0 is
+        // "nothing is happening", so the whole flash feature folds
+        // away. The service's enabled/disabled preference lives in
+        // settings, not here — turning off because the stars dropped
+        // never flips that bit. When the next star lights up the icon
+        // slides back in with whatever colour the preference says.
         onToggleLights?.let { onToggle ->
-            LightsToggle(
-                on = lightsOn,
-                unavailable = lightsUnavailable,
-                palette = palette,
-                onToggle = onToggle,
-            )
+            AnimatedVisibility(
+                visible = wantedLevel >= 1,
+                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+            ) {
+                LightsToggle(
+                    on = lightsOn,
+                    unavailable = lightsUnavailable,
+                    palette = palette,
+                    onToggle = onToggle,
+                )
+            }
         }
     }
 }
