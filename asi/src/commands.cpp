@@ -10,6 +10,7 @@
 #include "commands.h"
 #include "log.h"
 #include "natives.h"
+#include "weapons.h"
 
 namespace {
 
@@ -116,7 +117,7 @@ void enqueue(const Cmd& c) {
     LeaveCriticalSection(&g_cmd_cs);
 }
 
-void drain(uint32_t ped_handle) {
+void drain(uint32_t ped_handle, const snapshot::Player& p) {
     ensure_cmd_cs();
     Cmd c;
     while (pop_cmd(&c)) {
@@ -125,8 +126,11 @@ void drain(uint32_t ped_handle) {
                 post_err_ack(c.id, c.ack_queue, "no player ped");
                 continue;
             }
-            if (c.arg0 == 0 || c.arg0 >= 200) {
-                post_err_ack(c.id, c.ack_queue, "weapon id out of range");
+            // Id 0 (fists) is allowed: SET_CURRENT_CHAR_WEAPON with
+            // WEAPON_UNARMED is how the game's own scripts holster. It
+            // is the ammo natives that must never see weapon 0.
+            if (const char* why = weapons::set_weapon_error(p, c.arg0)) {
+                post_err_ack(c.id, c.ack_queue, why);
                 continue;
             }
             natives::Context ctx;

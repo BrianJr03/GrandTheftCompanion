@@ -31,10 +31,21 @@ struct Player {
     int32_t ammo_total;    // GET_AMMO_IN_CHAR_WEAPON
     int32_t ammo_clip;     // GET_AMMO_IN_CLIP
 
-    // Up to 13 weapon slots on IV (slot 0 is unarmed/fist). Values are
-    // weapon ids. 0 slots mean no weapon in that slot.
+    // Indexed by the scripting eWeaponSlot (13 names; slot 0 is
+    // unarmed/fist). Values are weapon ids, 0 = nothing in that slot.
+    // Only slots weapons::kFirstSlot..kLastSlot are ever filled: see
+    // weapons.h for why the scan stops short of 13.
     int32_t owned_weapons[13];
     int32_t owned_ammo[13];
+    // True when owned_weapons is a real scan result (natives level 4).
+    // False in builds without the scan, where the arrays are all zero
+    // and say nothing about what the player carries.
+    bool owned_valid;
+
+    // --- weapon wheel ---
+    // LB / L1 held on foot for long enough that the companion should
+    // show its weapon wheel. Natives level 4 only.
+    bool wheel;
 
     // --- vehicle (meaningful iff in_vehicle) ---
     uint32_t vehicle_model;    // GET_CAR_MODEL

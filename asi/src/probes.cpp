@@ -30,6 +30,7 @@
 #include "patterns.h"
 #include "probes.h"
 #include "snapshot.h"
+#include "weapons.h"
 
 // Round-2 safety: the per-frame hook is only installed if this is set
 // at build time. Default OFF after Phase-2 round 1 crashed Brian's
@@ -83,7 +84,8 @@ constexpr unsigned kStableFramesRequired = 15;  // ~0.25s at 60fps
 // Which native-group is enabled for this build. Round 5 starts narrow
 // to isolate any further misbehavior.
 #ifndef THORBRIDGE_NATIVES_LEVEL
-#define THORBRIDGE_NATIVES_LEVEL 1  // 1=stats, 2=stats+weapon, 3=all
+#define THORBRIDGE_NATIVES_LEVEL 1  // 1=stats, 2=stats+weapon, 3=full HUD,
+                                    // 4=3+weapon wheel (owned scan, LB)
 #endif
 
 // Last episode value from a successful on_frame read. We echo it on
@@ -232,12 +234,11 @@ void on_frame() {
         natives::invoke(natives::GET_AMMO_IN_CLIP, ctx);
         p.ammo_clip = static_cast<int32_t>(out);
     }
-    // NOTE: GET_CHAR_WEAPON_IN_SLOT (owned-weapons scan across 13 slots)
-    // is deliberately NOT called here. First L2 attempt crashed the
-    // game very shortly after enabling it; prime suspect is either an
-    // out-of-range slot index or the natives themselves. The weapon
-    // picker in Phase 5 only needs owned weapons on demand, not every
-    // frame, so this is low priority.
+    // NOTE: the owned-weapons scan (GET_CHAR_WEAPON_IN_SLOT) is not
+    // part of this level. Its first attempt here, across 13 slots,
+    // crashed the game very shortly after being enabled. It now lives
+    // in weapons.cpp behind level 4, bounded to the slots the ped
+    // really has and run once a second instead of every frame.
 #endif  // THORBRIDGE_NATIVES_LEVEL >= 2
 
 #if THORBRIDGE_NATIVES_LEVEL >= 3
@@ -300,11 +301,19 @@ void on_frame() {
     }
 #endif  // THORBRIDGE_NATIVES_LEVEL >= 3
 
+#if THORBRIDGE_NATIVES_LEVEL >= 4
+    // Weapon wheel: is LB held, and what is the player carrying. The
+    // wheel goes first so that pressing LB rescans in this same frame.
+    // Both need in_vehicle from the level-3 block above.
+    weapons::read_wheel(static_cast<uint32_t>(p.ts_ms), p);
+    weapons::read_owned(ped_handle, static_cast<uint32_t>(p.ts_ms), p);
+#endif  // THORBRIDGE_NATIVES_LEVEL >= 4
+
     snapshot::publish(p);
 
     // Phase 3: drain any client->server commands on the game thread
     // using the ped we just confirmed is live.
-    commands::drain(ped_handle);
+    commands::drain(ped_handle, p);
 }
 
 DWORD WINAPI startup_worker(LPVOID /*unused*/) {

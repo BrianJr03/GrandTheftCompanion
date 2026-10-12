@@ -43,6 +43,7 @@ enum : uint32_t {
     SET_CURRENT_CHAR_WEAPON             = 0x6CF44DD6,
     RETUNE_RADIO_TO_STATION_INDEX       = 0x48ED6432,
     GET_CURRENT_EPISODE                 = 0x7D7619D2,  // 0=IV, 1=TLAD, 2=TBoGT
+    IS_BUTTON_PRESSED                   = 0x7FF21081,  // bool (padIndex, button)
 };
 
 // rage::scrNativeCallContext layout, per FusionFix (source/natives.ixx).

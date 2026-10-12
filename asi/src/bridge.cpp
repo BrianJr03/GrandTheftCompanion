@@ -66,7 +66,8 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
     char veh_name[64] = {0};
     json_escape(veh_name, sizeof(veh_name), p.vehicle_name);
 
-    char weapons[256];
+    // Nine scanned slots at up to ~32 bytes each.
+    char weapons[512];
     {
         size_t w = 0;
         weapons[w++] = '[';
@@ -90,6 +91,7 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
     return std::snprintf(buf, cap,
         "{\"v\":1,\"type\":\"state\","
         "\"t\":%llu,\"in_game\":%s,\"in_vehicle\":%s,\"paused\":%s,"
+        "\"wheel\":%s,"
         "\"money\":%u,\"health\":%.1f,\"max_health\":%u,"
         "\"armor\":%u,\"max_armor\":%u,\"wanted\":%u,"
         "\"weapon\":%d,\"ammo_total\":%d,\"ammo_clip\":%d,"
@@ -101,6 +103,7 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         p.in_game ? "true" : "false",
         p.in_vehicle ? "true" : "false",
         p.paused ? "true" : "false",
+        p.wheel ? "true" : "false",
         p.money,
         static_cast<double>(p.health),
         static_cast<unsigned>(p.max_health),

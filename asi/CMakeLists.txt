@@ -16,6 +16,8 @@ add_library(ThorBridge SHARED
     src/probes.cpp
     src/snapshot.cpp
     src/version_detect.cpp
+    src/weapon_natives.cpp
+    src/weapons.cpp
 )
 
 target_compile_options(ThorBridge PRIVATE
@@ -33,6 +35,9 @@ option(THORBRIDGE_HOOK_NO_NATIVES "If hook is on, skip native invocations" OFF)
 # 1 = core stats only (health/armor/money/wanted)
 # 2 = stats + current weapon + ammo (no owned-slots scan)
 # 3 = stats + weapon + vehicle + radio — the full HUD
+# 4 = 3 + owned-weapon scan + LB poll, for the companion's weapon wheel.
+#     Not the default until it has been proven on a device: the scan's
+#     first incarnation crashed the game (see src/weapons.h).
 set(THORBRIDGE_NATIVES_LEVEL "3" CACHE STRING "Which native groups on_frame invokes")
 if(THORBRIDGE_ENABLE_HOOK)
     target_compile_definitions(ThorBridge PRIVATE THORBRIDGE_ENABLE_HOOK=1)

@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "snapshot.h"
+
 // commands:: — thread-safe producer/consumer queue for client->server
 // commands. Produced by the per-client socket reader threads; consumed
 // once per frame on the game thread via drain(ped_handle). drain()
@@ -48,8 +50,15 @@ void enqueue(const Cmd& c);
 
 // Drain and dispatch pending commands. Must run on the game thread
 // AFTER the per-frame snapshot read (so we have a fresh ped handle).
-// Pass the current ped handle; commands requiring a ped use it.
+// Pass the current ped handle and this frame's snapshot; commands use
+// the snapshot to refuse what makes no sense right now.
 // Posts an Ack per command to the originating client's queue.
-void drain(uint32_t ped_handle);
+//
+// Commands:
+//   set_weapon arg0 = weapon id, 0 for fists. On foot only. When the
+//              build scans owned weapons (p.owned_valid) the player
+//              must be carrying it.
+//   set_radio  arg0 = station index.
+void drain(uint32_t ped_handle, const snapshot::Player& p);
 
 }  // namespace commands
