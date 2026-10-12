@@ -1,4 +1,4 @@
-## v0.3.0
+## v0.3.1
 
 **Wanted lights**
 
@@ -9,6 +9,10 @@ The preferred path writes straight to the Thor's SN3112 LED drivers, so Bifrost 
 **In-app updates**
 
 GTC now checks for new GitHub releases in the background. When one is out, an arrow chip appears in the status bar — tap to download and install from inside the app. No more sideloading by hand.
+
+**Translations**
+
+HUD text is now localised in French, Spanish, German, Italian, Russian and Japanese — the languages Rockstar ships with GTA IV. Switch under Settings → Apps → GTC → App language on Android 13+.
 
 **Credits**
 
