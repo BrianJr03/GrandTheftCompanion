@@ -111,7 +111,7 @@
         <item>arme 8</item>
         <item>Desert Eagle</item>
         <item>fusil à pompe</item>
-        <item>fusil à canon scié</item>
+        <item>fusil de combat</item>
         <item>Micro-SMG</item>
         <item>MP5</item>
         <item>AK-47</item>
@@ -122,7 +122,6 @@
         <item>lance-flammes</item>
         <item>minigun</item>
     </string-array>
-    <string name="weapon_episodic">épisodique %1$d</string>
     <string name="weapon_unknown">arme %1$d</string>
 
     <string name="radio_off">éteinte</string>

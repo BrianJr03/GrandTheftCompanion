@@ -111,7 +111,7 @@
         <item>武器 8</item>
         <item>Desert Eagle</item>
         <item>ポンプアクション</item>
-        <item>ソードオフショットガン</item>
+        <item>コンバットショットガン</item>
         <item>Micro-SMG</item>
         <item>MP5</item>
         <item>AK-47</item>
@@ -122,7 +122,6 @@
         <item>火炎放射器</item>
         <item>ミニガン</item>
     </string-array>
-    <string name="weapon_episodic">エピソード武器 %1$d</string>
     <string name="weapon_unknown">武器 %1$d</string>
 
     <string name="radio_off">オフ</string>

@@ -122,8 +122,16 @@
     <string name="wanted_star_lit">wanted star %1$d lit</string>
     <string name="wanted_star_dim">wanted star %1$d dim</string>
 
-    <!-- Weapon names, indexed by eWeapon enum value (0..20). Values past
-         20 are TLAD/TBoGT episodic weapons; those use weapon_episodic.
+    <!-- Weapon names, indexed by eWeapon enum value. Base ids 0..20
+         come from Aru's ScriptHook SDK
+         (violetfrost/gtaiv-scripthook-sdk, ScriptHook/ScriptingEnums.h);
+         the TLAD/TBoGT additions 21..41 (WEAPON_EPISODIC_1..21) are
+         from PliskinDev/GTAIV/enums.h, cross-checked against
+         ClonkAndre/ClonksCodingLib.GTAIV. A few DLC ids are
+         vehicle-only (helicopter rockets, APC cannon) or
+         undocumented; those stay as "weapon N" because they should
+         never land in the player's wheel.
+
          Brand/model names (Desert Eagle, Micro-SMG, MP5, AK-47, M4,
          RPG) stay in English in every locale — localised arrays only
          translate the common nouns. -->
@@ -139,7 +147,7 @@
         <item>weapon 8</item>
         <item>Desert Eagle</item>
         <item>pump shotgun</item>
-        <item>sawed-off shotgun</item>
+        <item>combat shotgun</item>
         <item>Micro-SMG</item>
         <item>MP5</item>
         <item>AK-47</item>
@@ -149,8 +157,29 @@
         <item>RPG</item>
         <item>flamethrower</item>
         <item>minigun</item>
+        <!-- 21..41: TLAD / TBoGT. Translations pending. -->
+        <item>grenade launcher</item>
+        <item>assault shotgun</item>
+        <item>weapon 23</item>
+        <item>pool cue</item>
+        <item>weapon 25</item>
+        <item>sawed-off shotgun</item>
+        <item>automatic 9mm</item>
+        <item>pipe bomb</item>
+        <item>.44 pistol</item>
+        <item>explosive shotgun</item>
+        <item>automatic shotgun</item>
+        <item>assault SMG</item>
+        <item>gold SMG</item>
+        <item>advanced MG</item>
+        <item>advanced sniper</item>
+        <item>sticky bomb</item>
+        <item>weapon 37</item>
+        <item>weapon 38</item>
+        <item>weapon 39</item>
+        <item>weapon 40</item>
+        <item>parachute</item>
     </string-array>
-    <string name="weapon_episodic">episodic %1$d</string>
     <string name="weapon_unknown">weapon %1$d</string>
 
     <!-- Radio station names, authoritative from Aru's ScriptHook SDK

@@ -71,9 +71,8 @@ internal fun WeaponPanel(
 internal fun weaponName(id: Int?): String {
     val table = stringArrayResource(R.array.weapon_names)
     return when {
-        id == null       -> table[0]
+        id == null          -> table[0]
         id in table.indices -> table[id]
-        id in 21..38     -> stringResource(R.string.weapon_episodic, id - 20)
-        else             -> stringResource(R.string.weapon_unknown, id)
+        else                -> stringResource(R.string.weapon_unknown, id)
     }
 }

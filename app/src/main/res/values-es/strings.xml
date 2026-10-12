@@ -111,7 +111,7 @@
         <item>arma 8</item>
         <item>Desert Eagle</item>
         <item>escopeta de bombeo</item>
-        <item>escopeta recortada</item>
+        <item>escopeta de combate</item>
         <item>Micro-SMG</item>
         <item>MP5</item>
         <item>AK-47</item>
@@ -122,7 +122,6 @@
         <item>lanzallamas</item>
         <item>minigun</item>
     </string-array>
-    <string name="weapon_episodic">episódica %1$d</string>
     <string name="weapon_unknown">arma %1$d</string>
 
     <string name="radio_off">apagada</string>

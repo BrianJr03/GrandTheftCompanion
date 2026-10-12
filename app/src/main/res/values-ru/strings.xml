@@ -111,7 +111,7 @@
         <item>оружие 8</item>
         <item>Desert Eagle</item>
         <item>помповый дробовик</item>
-        <item>обрез</item>
+        <item>боевой дробовик</item>
         <item>Micro-SMG</item>
         <item>MP5</item>
         <item>AK-47</item>
@@ -122,7 +122,6 @@
         <item>огнемёт</item>
         <item>миниган</item>
     </string-array>
-    <string name="weapon_episodic">эпизодическое %1$d</string>
     <string name="weapon_unknown">оружие %1$d</string>
 
     <string name="radio_off">выкл.</string>

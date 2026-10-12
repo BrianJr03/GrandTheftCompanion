@@ -111,7 +111,7 @@
         <item>arma 8</item>
         <item>Desert Eagle</item>
         <item>fucile a pompa</item>
-        <item>fucile a canne mozze</item>
+        <item>fucile da combattimento</item>
         <item>Micro-SMG</item>
         <item>MP5</item>
         <item>AK-47</item>
@@ -122,7 +122,6 @@
         <item>lanciafiamme</item>
         <item>minigun</item>
     </string-array>
-    <string name="weapon_episodic">episodica %1$d</string>
     <string name="weapon_unknown">arma %1$d</string>
 
     <string name="radio_off">spenta</string>

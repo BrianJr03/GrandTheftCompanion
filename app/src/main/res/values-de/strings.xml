@@ -111,7 +111,7 @@
         <item>Waffe 8</item>
         <item>Desert Eagle</item>
         <item>Pump-Shotgun</item>
-        <item>abgesägte Schrotflinte</item>
+        <item>Kampf-Shotgun</item>
         <item>Micro-SMG</item>
         <item>MP5</item>
         <item>AK-47</item>
@@ -122,7 +122,6 @@
         <item>Flammenwerfer</item>
         <item>Minigun</item>
     </string-array>
-    <string name="weapon_episodic">episodisch %1$d</string>
     <string name="weapon_unknown">Waffe %1$d</string>
 
     <string name="radio_off">aus</string>
