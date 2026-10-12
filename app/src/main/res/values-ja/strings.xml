@@ -5,6 +5,25 @@
     <string name="status_stale">古い情報</string>
     <string name="status_waiting">待機中</string>
 
+    <!-- Pager tabs -->
+    <string name="tab_hud">HUD</string>
+    <string name="tab_map">マップ</string>
+
+    <!-- Map page: mirrors the minimap from the top screen -->
+    <string name="map_title">ミニマップミラー</string>
+    <string name="map_explain">ゲームのミニマップを上画面から拡大して表示します。起動のたびにAndroidが画面キャプチャの許可を求めます。</string>
+    <string name="map_start">ミラー開始</string>
+    <string name="map_starting">開始中…</string>
+    <string name="map_stop">停止</string>
+    <string name="map_reset">リセット</string>
+    <string name="map_lock">ロック</string>
+    <string name="map_unlock">ロック解除</string>
+    <string name="map_gesture_hint">ピンチでズーム・ドラッグで移動</string>
+    <string name="map_view_cd">上画面のミラー;ピンチでズーム、ドラッグで移動</string>
+    <string name="mirror_channel_name">マップミラー</string>
+    <string name="mirror_notification_title">GTCが上画面をミラーリング中</string>
+    <string name="mirror_notification_text">マップページを開き、停止をタップして終了します。</string>
+
     <!-- Setup-screen info dialog -->
     <string name="info_icon_cd">接続診断</string>
     <string name="info_dialog_title">接続診断</string>

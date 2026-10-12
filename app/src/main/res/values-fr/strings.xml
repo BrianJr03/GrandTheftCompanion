@@ -5,6 +5,25 @@
     <string name="status_stale">OBSOLÈTE</string>
     <string name="status_waiting">EN ATTENTE</string>
 
+    <!-- Pager tabs -->
+    <string name="tab_hud">hud</string>
+    <string name="tab_map">carte</string>
+
+    <!-- Map page: mirrors the minimap from the top screen -->
+    <string name="map_title">miroir de la minicarte</string>
+    <string name="map_explain">Affiche la minicarte du jeu depuis l\'écran du haut, agrandie. Android demande la permission de capturer l\'écran à chaque démarrage.</string>
+    <string name="map_start">démarrer le miroir</string>
+    <string name="map_starting">démarrage…</string>
+    <string name="map_stop">arrêter</string>
+    <string name="map_reset">réinitialiser</string>
+    <string name="map_lock">verrouiller</string>
+    <string name="map_unlock">déverrouiller</string>
+    <string name="map_gesture_hint">pincer pour zoomer · glisser pour déplacer</string>
+    <string name="map_view_cd">miroir de l\'écran du haut ; pincer pour zoomer, glisser pour déplacer</string>
+    <string name="mirror_channel_name">Miroir de la carte</string>
+    <string name="mirror_notification_title">GTC reflète l\'écran du haut</string>
+    <string name="mirror_notification_text">Ouvrez la page carte et appuyez sur arrêter pour terminer.</string>
+
     <!-- Setup-screen info dialog -->
     <string name="info_icon_cd">diagnostics de connexion</string>
     <string name="info_dialog_title">Diagnostics de connexion</string>

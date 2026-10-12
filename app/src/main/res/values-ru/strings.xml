@@ -5,6 +5,25 @@
     <string name="status_stale">УСТАРЕЛО</string>
     <string name="status_waiting">ОЖИДАНИЕ</string>
 
+    <!-- Pager tabs -->
+    <string name="tab_hud">худ</string>
+    <string name="tab_map">карта</string>
+
+    <!-- Map page: mirrors the minimap from the top screen -->
+    <string name="map_title">зеркало миникарты</string>
+    <string name="map_explain">Показывает миникарту игры с верхнего экрана, увеличенную. Android запрашивает разрешение на запись экрана при каждом запуске.</string>
+    <string name="map_start">включить зеркало</string>
+    <string name="map_starting">запуск…</string>
+    <string name="map_stop">остановить</string>
+    <string name="map_reset">сброс</string>
+    <string name="map_lock">заблокировать</string>
+    <string name="map_unlock">разблокировать</string>
+    <string name="map_gesture_hint">свести для зума · перетащить для сдвига</string>
+    <string name="map_view_cd">зеркало верхнего экрана; свести пальцы для зума, перетащить для сдвига</string>
+    <string name="mirror_channel_name">Зеркало карты</string>
+    <string name="mirror_notification_title">GTC отражает верхний экран</string>
+    <string name="mirror_notification_text">Откройте страницу карты и нажмите остановить, чтобы завершить.</string>
+
     <!-- Setup-screen info dialog -->
     <string name="info_icon_cd">диагностика подключения</string>
     <string name="info_dialog_title">Диагностика подключения</string>

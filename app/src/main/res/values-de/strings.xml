@@ -5,6 +5,25 @@
     <string name="status_stale">VERALTET</string>
     <string name="status_waiting">WARTEN</string>
 
+    <!-- Pager tabs -->
+    <string name="tab_hud">HUD</string>
+    <string name="tab_map">Karte</string>
+
+    <!-- Map page: mirrors the minimap from the top screen -->
+    <string name="map_title">Minimap-Spiegel</string>
+    <string name="map_explain">Zeigt die Minimap des Spiels vom oberen Bildschirm vergrößert an. Android fragt bei jedem Start nach der Berechtigung zur Bildschirmaufnahme.</string>
+    <string name="map_start">Spiegelung starten</string>
+    <string name="map_starting">wird gestartet…</string>
+    <string name="map_stop">stoppen</string>
+    <string name="map_reset">zurücksetzen</string>
+    <string name="map_lock">sperren</string>
+    <string name="map_unlock">entsperren</string>
+    <string name="map_gesture_hint">zusammenziehen zum zoomen · ziehen zum verschieben</string>
+    <string name="map_view_cd">Spiegelung des oberen Bildschirms; zusammenziehen zum zoomen, ziehen zum verschieben</string>
+    <string name="mirror_channel_name">Karten-Spiegelung</string>
+    <string name="mirror_notification_title">GTC spiegelt den oberen Bildschirm</string>
+    <string name="mirror_notification_text">Öffne die Kartenseite und tippe auf Stoppen zum Beenden.</string>
+
     <!-- Setup-screen info dialog -->
     <string name="info_icon_cd">Verbindungsdiagnose</string>
     <string name="info_dialog_title">Verbindungsdiagnose</string>

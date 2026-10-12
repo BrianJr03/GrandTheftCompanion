@@ -5,6 +5,25 @@
     <string name="status_stale">OBSOLETO</string>
     <string name="status_waiting">IN ATTESA</string>
 
+    <!-- Pager tabs -->
+    <string name="tab_hud">hud</string>
+    <string name="tab_map">mappa</string>
+
+    <!-- Map page: mirrors the minimap from the top screen -->
+    <string name="map_title">specchio minimappa</string>
+    <string name="map_explain">Mostra la minimappa del gioco dallo schermo superiore, ingrandita. Android chiede il permesso di catturare lo schermo a ogni avvio.</string>
+    <string name="map_start">avvia specchio</string>
+    <string name="map_starting">avvio…</string>
+    <string name="map_stop">ferma</string>
+    <string name="map_reset">ripristina</string>
+    <string name="map_lock">blocca</string>
+    <string name="map_unlock">sblocca</string>
+    <string name="map_gesture_hint">pizzica per zoom · trascina per spostare</string>
+    <string name="map_view_cd">specchio dello schermo superiore; pizzica per zoom, trascina per spostare</string>
+    <string name="mirror_channel_name">Specchio mappa</string>
+    <string name="mirror_notification_title">GTC sta rispecchiando lo schermo superiore</string>
+    <string name="mirror_notification_text">Apri la pagina mappa e tocca ferma per terminare.</string>
+
     <!-- Setup-screen info dialog -->
     <string name="info_icon_cd">diagnostica di connessione</string>
     <string name="info_dialog_title">Diagnostica di connessione</string>
