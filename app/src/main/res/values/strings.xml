@@ -5,6 +5,25 @@
     <string name="brand_iv" translatable="false">Grand Theft Companion IV</string>
     <string name="brand_v" translatable="false">Grand Theft Companion V</string>
 
+    <!-- Pager tabs. Lower-case to match the card-title styling. -->
+    <string name="tab_hud">hud</string>
+    <string name="tab_map">map</string>
+
+    <!-- Map page: mirrors the minimap from the top screen -->
+    <string name="map_title">minimap mirror</string>
+    <string name="map_explain">Shows the game\'s minimap from the top screen, enlarged. Android asks for permission to capture the screen each time you start it.</string>
+    <string name="map_start">start mirroring</string>
+    <string name="map_starting">starting…</string>
+    <string name="map_stop">stop</string>
+    <string name="map_reset">reset</string>
+    <string name="map_lock">lock</string>
+    <string name="map_unlock">unlock</string>
+    <string name="map_gesture_hint">pinch to zoom · drag to pan</string>
+    <string name="map_view_cd">mirror of the top screen; pinch to zoom, drag to pan</string>
+    <string name="mirror_channel_name">Map mirroring</string>
+    <string name="mirror_notification_title">GTC is mirroring the top screen</string>
+    <string name="mirror_notification_text">Open the map page and tap stop to end it.</string>
+
     <!-- Status badges (right of the brand when something isn't live) -->
     <string name="status_disconnected">DISCONNECTED</string>
     <string name="status_stale">STALE</string>

@@ -8,6 +8,7 @@ import jr.brian.thorhud.GtcSettings
 import jr.brian.thorhud.led.StickLights
 import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.net.GameStateRepository
+import jr.brian.thorhud.prefs.HudPrefs
 import jr.brian.thorhud.update.UpdateChecker
 import jr.brian.thorhud.update.UpdateInfo
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val repository: GameStateRepository,
     private val settings: GtcSettings,
+    private val prefs: HudPrefs,
     stickLights: StickLights,
 ) : ViewModel() {
     val hello: StateFlow<GameState?> = repository.hello
@@ -41,6 +43,10 @@ class MainViewModel @Inject constructor(
     fun togglePoliceLights() {
         settings.setPoliceLightsEnabled(!settings.policeLightsEnabled.value)
     }
+
+    /** Pager page to open on (per game). Persisted. */
+    fun pagerPage(gameKey: String): Int = prefs.pagerPage(gameKey)
+    fun setPagerPage(gameKey: String, page: Int) = prefs.setPagerPage(gameKey, page)
 
     fun setRadio(stationIndex: Int) {
         viewModelScope.launch { repository.setRadio(stationIndex) }

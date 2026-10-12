@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import jr.brian.thorhud.led.PoliceLightsController
+import jr.brian.thorhud.mirror.ScreenMirror
 import jr.brian.thorhud.net.GameStateClient
 import jr.brian.thorhud.net.GameStateRepository
 import jr.brian.thorhud.ui.MainScreen
@@ -35,6 +36,7 @@ class HudActivity : ComponentActivity() {
     @Inject lateinit var client: GameStateClient
     @Inject lateinit var repository: GameStateRepository
     @Inject lateinit var policeLights: PoliceLightsController
+    @Inject lateinit var mirror: ScreenMirror
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +59,13 @@ class HudActivity : ComponentActivity() {
                 MainScreen()
             }
         }
+    }
+
+    override fun onDestroy() {
+        // Keep capture across config changes; drop it when the Activity
+        // is really going away.
+        if (isFinishing) mirror.stop()
+        super.onDestroy()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

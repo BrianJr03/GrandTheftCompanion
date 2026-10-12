@@ -18,6 +18,12 @@
          time; the updater sends them to Settings if they haven't. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- Map page mirrors the top screen via MediaProjection, which
+         Android only allows from a foreground service of type
+         mediaProjection. The user approves each session in a dialog. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+
     <!-- Lets us tell "Bifrost is not installed" from "Bifrost did not
          answer". -->
     <queries>
@@ -83,5 +89,12 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- Owns the screen-capture session for the map page. Started
+             only after the user approves capture; stopped with it. -->
+        <service
+            android:name=".mirror.MirrorService"
+            android:exported="false"
+            android:foregroundServiceType="mediaProjection" />
     </application>
 </manifest>

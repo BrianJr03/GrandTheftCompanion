@@ -200,6 +200,16 @@ The app picks the layout from the plugin's hello frame. Both layouts share the s
 - Tags for mission / cutscene / animal form; non-protagonist peds (Director Mode) get a neutral palette with cash and special hidden.
 - **Story mode only.** In GTA Online the plugin publishes nothing but an "online" flag (and Script Hook V itself closes the game on entering Online).
 
+### Map page (experimental)
+
+Once connected, the bottom screen is a two-page pager: **hud** (everything above) and **map**. Swipe or tap the tabs; the app remembers the page you left it on.
+
+The map page mirrors the game's own minimap from the top screen and enlarges it, using Android's screen-capture permission. Tap **start mirroring** and approve the system prompt (Android asks again each session). It needs no plugin update and ships no map imagery — it shows exactly what the game draws, blips and GPS route included.
+
+- The crop is a fixed per-game preset measured on a Thor at default HUD settings. If your game resolution, aspect ratio or safe-zone differs, the minimap may sit off-centre; **full screen** shows the whole capture so you can check.
+- It is a magnified copy of a small patch of the screen, so it is soft, and it shows whatever is in that patch when the game hides the minimap (cutscenes, pause menu).
+- Frames are only mirrored while the map page is visible, but the capture session (and Android's capture indicator) stays until you tap **stop** or close the app.
+
 ## A note on AI usage
 
 This app was built, tested, and iterated on this project (both C++ ASI plugins and the Android companion) in collaboration with Anthropic's Claude. Pattern-scan work, the Script Hook V binding, Compose UI, release signing, and most of what's in `git log` was pair-programmed with it.

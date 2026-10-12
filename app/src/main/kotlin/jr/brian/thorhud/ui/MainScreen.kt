@@ -10,20 +10,26 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import jr.brian.thorhud.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.components.CardAlign
 import jr.brian.thorhud.ui.components.CoinPanel
 import jr.brian.thorhud.ui.components.FullWidthStats
@@ -37,7 +43,11 @@ import jr.brian.thorhud.ui.components.VehiclePanel
 import jr.brian.thorhud.ui.components.WeaponPanel
 import jr.brian.thorhud.ui.components.paletteFor
 import jr.brian.thorhud.ui.components.stationListFor
+import jr.brian.thorhud.ui.map.MapViewModel
+import jr.brian.thorhud.ui.map.MirrorGame
+import jr.brian.thorhud.ui.map.MirrorMapScreen
 import jr.brian.thorhud.ui.v.VMainScreen
+import jr.brian.thorhud.ui.v.vCharacterOf
 import jr.brian.thorhud.update.UpdateDialog
 import kotlinx.coroutines.delay
 
@@ -51,9 +61,6 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     val lightsStatus by viewModel.stickLightsStatus.collectAsStateWithLifecycle()
     val updateInfo by viewModel.updateInfo.collectAsStateWithLifecycle()
 
-    // One-shot update check on first composition. Fires regardless of
-    // which screen the HUD is on — the chip surfaces in the StatusBar
-    // wherever that lands.
     LaunchedEffect(Unit) { viewModel.checkForUpdate() }
 
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -82,26 +89,97 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         return
     }
 
-    // GTA V has its own layout (ui/v/). The plugin names its game in
-    // the hello frame that opens every connection.
-    if (hello?.isGtaV == true) {
-        VMainScreen(
-            viewModel = viewModel,
+    // GTA V has its own HUD layout (ui/v/); hello frame names the game.
+    val isGtaV = hello?.isGtaV == true
+    val accent = if (isGtaV) {
+        vCharacterOf(state?.character).palette.accent
+    } else {
+        paletteFor(liveState?.episode ?: state?.episode).accent
+    }
+
+    // Pause takes over the whole bottom screen — tabs and map included.
+    // Only applies to GTA IV; V has its own notice flow inside VMainScreen
+    // that covers pause + stalled + online + character-switch.
+    if (!isGtaV && state?.paused == true) {
+        PausedScreen(
             hello = hello,
-            state = state,
-            isStale = isStale,
-            updateAvailable = updateInfo.isUpdateAvailable,
-            onOpenUpdate = { showUpdateDialog = true },
+            palette = paletteFor(liveState?.episode ?: state?.episode),
         )
         return
     }
 
-    val palette = paletteFor(liveState?.episode ?: state?.episode)
+    val gameKey = if (isGtaV) "v" else "iv"
+    val initialPage = remember(gameKey) { viewModel.pagerPage(gameKey) }
 
-    if (state?.paused == true) {
-        PausedScreen(hello = hello, palette = palette)
-        return
+    val mapViewModel: MapViewModel = hiltViewModel()
+    val mirrorLocked by mapViewModel.isLocked.collectAsStateWithLifecycle()
+
+    // key(gameKey) rebuilds HudPager (and its PagerState) when the
+    // connected game changes, so the restored page actually takes
+    // effect instead of staying on the previous game's page.
+    key(gameKey) {
+    HudPager(
+        accent = accent,
+        initialPage = initialPage,
+        onPageSettled = { viewModel.setPagerPage(gameKey, it) },
+        trailingHeader = { currentPage ->
+            // Pager page 1 is the map. Show the gesture hint only when
+            // the map is on-screen AND the user has unlocked gestures.
+            if (currentPage == 1 && !mirrorLocked) {
+                Text(
+                    text = stringResource(R.string.map_gesture_hint),
+                    color = accent,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                )
+            }
+        },
+        hud = {
+            if (isGtaV) {
+                VMainScreen(
+                    viewModel = viewModel,
+                    hello = hello,
+                    state = state,
+                    isStale = isStale,
+                    updateAvailable = updateInfo.isUpdateAvailable,
+                    onOpenUpdate = { showUpdateDialog = true },
+                )
+            } else {
+                IvHudScreen(
+                    viewModel = viewModel,
+                    state = state,
+                    liveState = liveState,
+                    isStale = isStale,
+                    lightsOn = lightsOn,
+                    lightsUnavailable = lightsStatus.isUnavailable,
+                    updateAvailable = updateInfo.isUpdateAvailable,
+                    onOpenUpdate = { showUpdateDialog = true },
+                )
+            }
+        },
+        map = {
+            MirrorMapScreen(
+                game = if (isGtaV) MirrorGame.V else MirrorGame.IV,
+                accent = accent,
+            )
+        },
+    )
     }
+}
+
+@Composable
+private fun IvHudScreen(
+    viewModel: MainViewModel,
+    state: GameState?,
+    liveState: GameState?,
+    isStale: Boolean,
+    lightsOn: Boolean,
+    lightsUnavailable: Boolean,
+    updateAvailable: Boolean,
+    onOpenUpdate: () -> Unit,
+) {
+    val palette = paletteFor(liveState?.episode ?: state?.episode)
 
     Scaffold(containerColor = Color.Black) { padding ->
         Column(
@@ -116,17 +194,17 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             val titleRes = if (liveState?.money != null) R.string.brand_iv
                            else R.string.brand
             StatusBar(
-                isDisconnected = isDisconnected,
+                isDisconnected = false,
                 isStale = isStale,
                 inGame = liveState?.inGame == true,
                 wantedLevel = liveState?.wanted ?: 0,
                 palette = palette,
                 title = stringResource(titleRes),
                 lightsOn = lightsOn,
-                lightsUnavailable = lightsStatus.isUnavailable,
+                lightsUnavailable = lightsUnavailable,
                 onToggleLights = viewModel::togglePoliceLights,
-                updateAvailable = updateInfo.isUpdateAvailable,
-                onOpenUpdate = { showUpdateDialog = true },
+                updateAvailable = updateAvailable,
+                onOpenUpdate = onOpenUpdate,
             )
             Spacer(Modifier.height(8.dp))
             val inVehicle = liveState?.inVehicle == true
