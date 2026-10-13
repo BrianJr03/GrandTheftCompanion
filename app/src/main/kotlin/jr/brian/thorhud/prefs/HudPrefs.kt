@@ -14,14 +14,6 @@ class HudPrefs @Inject constructor(
 ) {
     private val prefs = context.getSharedPreferences(FILE, Context.MODE_PRIVATE)
 
-    /** Last-selected pager page per game (0 = HUD, 1 = Map). */
-    fun pagerPage(gameKey: String): Int =
-        prefs.getInt("${KEY_PAGER_PAGE}_$gameKey", 0)
-
-    fun setPagerPage(gameKey: String, page: Int) {
-        prefs.edit().putInt("${KEY_PAGER_PAGE}_$gameKey", page).apply()
-    }
-
     /** True after the user has dismissed the one-time swipe-hint dialog. */
     var hasSeenSwipeHint: Boolean
         get() = prefs.getBoolean(KEY_SEEN_SWIPE_HINT, false)
@@ -104,7 +96,6 @@ class HudPrefs @Inject constructor(
 
     private companion object {
         const val FILE = "hud_prefs"
-        const val KEY_PAGER_PAGE = "pager_page"
         const val KEY_SEEN_SWIPE_HINT = "seen_swipe_hint"
         const val KEY_DISMISSED_UPDATE_VERSION = "dismissed_update_version"
         const val KEY_MIRROR_SCALE = "mirror_scale"

@@ -58,10 +58,6 @@ class MainViewModel @Inject constructor(
         settings.setPoliceLightsEnabled(!settings.policeLightsEnabled.value)
     }
 
-    /** Pager page to open on (per game). Persisted. */
-    fun pagerPage(gameKey: String): Int = prefs.pagerPage(gameKey)
-    fun setPagerPage(gameKey: String, page: Int) = prefs.setPagerPage(gameKey, page)
-
     var hasSeenSwipeHint: Boolean
         get() = prefs.hasSeenSwipeHint
         set(value) { prefs.hasSeenSwipeHint = value }

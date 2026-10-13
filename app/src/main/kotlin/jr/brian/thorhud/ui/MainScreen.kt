@@ -238,7 +238,6 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     }
 
     val gameKey = if (isGtaV) "v" else "iv"
-    val initialPage = remember(gameKey) { viewModel.pagerPage(gameKey) }
 
     // One-time swipe hint on the first connected run. Dismissing
     // writes a prefs flag so it never shows again.
@@ -287,11 +286,11 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             )
             else -> {
                 // key(gameKey) rebuilds HudPager (and its PagerState)
-                // when the connected game changes, so the restored
-                // page takes effect instead of staying on the previous
-                // game's page.
+                // when the connected game changes, so a V→IV switch
+                // (or vice versa) always lands on the HUD tab of the
+                // new game.
                 key(gameKey) {
-                    val pagerState = rememberHudPagerState(initialPage)
+                    val pagerState = rememberHudPagerState()
                     val scope = rememberCoroutineScope()
                     val scrollToMap: () -> Unit = {
                         scope.launch { pagerState.animateScrollToPage(1) }
@@ -307,7 +306,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     //    where they are, don't yank them around.
                     val inVehicleNow = liveState?.inVehicle == true
                     var preDrivePage by rememberSaveable(gameKey) {
-                        mutableStateOf(initialPage.coerceIn(0, 1))
+                        mutableStateOf(0)
                     }
                     LaunchedEffect(inVehicleNow, autoSwipeOnDrive,
                                    alwaysReturnToHud, gameKey) {
@@ -349,7 +348,6 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     Box(Modifier.fillMaxSize()) {
                         HudPager(
                             pagerState = pagerState,
-                            onPageSettled = { viewModel.setPagerPage(gameKey, it) },
                             hud = {
                                 if (isGtaV) {
                                     VMainScreen(

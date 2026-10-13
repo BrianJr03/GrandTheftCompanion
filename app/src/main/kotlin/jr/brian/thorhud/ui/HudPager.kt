@@ -26,11 +26,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,7 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 internal enum class HudPage(@StringRes val labelRes: Int) {
@@ -51,27 +46,18 @@ internal enum class HudPage(@StringRes val labelRes: Int) {
 }
 
 @Composable
-internal fun rememberHudPagerState(initialPage: Int) = rememberPagerState(
-    initialPage = initialPage.coerceIn(0, HudPage.entries.lastIndex),
+internal fun rememberHudPagerState() = rememberPagerState(
+    // Every app load lands on the HUD tab. In-session swipes still
+    // update the state, but the next cold start resets to page 0.
+    initialPage = 0,
 ) { HudPage.entries.size }
 
 @Composable
 internal fun HudPager(
     pagerState: PagerState,
-    onPageSettled: (Int) -> Unit,
     hud: @Composable () -> Unit,
     map: @Composable () -> Unit,
 ) {
-    // settledPage only changes once a swipe has come to rest, so a
-    // half-finished drag is never saved. drop(1) skips the initial
-    // emission (the restored value, not a settle).
-    val currentOnPageSettled by rememberUpdatedState(onPageSettled)
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.settledPage }
-            .drop(1)
-            .collect { currentOnPageSettled(it) }
-    }
-
     HorizontalPager(
         state = pagerState,
         modifier = Modifier
