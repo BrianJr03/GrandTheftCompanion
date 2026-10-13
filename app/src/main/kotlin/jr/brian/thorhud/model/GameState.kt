@@ -23,6 +23,12 @@ import kotlinx.serialization.Serializable
  * Its extra `state` fields are grouped under "GTA V only" below. GTA IV
  * frames simply never carry them, so one model serves both games.
  *
+ * Both plugins (ThorBridgeV 0.3.0+, ThorBridge at natives level 5) add:
+ *   - "blips":    the map's blips, nearest first, re-sent whenever the
+ *                 plugin's census changes. See [blips] and [Blip].
+ * and route-related `state` fields: [waypoint] (GTA V), [routeBlip] and
+ * [mission] (GTA IV).
+ *
  * Fields beyond [v] and [type] are optional and nullable, parser is
  * configured with `ignoreUnknownKeys` so new fields never break the client.
  */
@@ -79,6 +85,10 @@ data class GameState(
     // Drives the HUD's accent palette.
     @SerialName("episode") val episode: Int? = null,
 
+    // state — GTA IV: the blip the companion last pointed the game's
+    // GPS route at (`route_blip` command), 0 = none. Natives level 5.
+    @SerialName("route_blip") val routeBlip: Int? = null,
+
     // ---- GTA V only ------------------------------------------------
     // Session flags. `stalled` = the plugin is alive but the game has
     // stopped running scripts (pause menu, loading); shown like paused.
@@ -113,9 +123,15 @@ data class GameState(
     // the index order differs between game builds.
     @SerialName("radio_name") val radioName: String? = null,
 
-    // "stations" / "weapons" list frames.
+    // state — GTA V: the player's map waypoint. See [Waypoint].
+    @SerialName("waypoint") val waypoint: Waypoint? = null,
+
+    // "stations" / "weapons" / "blips" list frames.
     @SerialName("stations") val stations: List<Station> = emptyList(),
     @SerialName("weapons") val weapons: List<VWeapon> = emptyList(),
+    @SerialName("blips") val blips: List<Blip> = emptyList(),
+    // "blips": the plugin's version counter for the list.
+    @SerialName("ver") val listVersion: Int? = null,
 
     // ack (Phase 3) — correlation id matches the cmd id, ok=true on
     // success, err carries a short reason string on failure.
@@ -129,7 +145,18 @@ data class GameState(
     val isAck: Boolean get() = type == "ack"
     val isStations: Boolean get() = type == "stations"
     val isWeapons: Boolean get() = type == "weapons"
+    val isBlips: Boolean get() = type == "blips"
     val isGtaV: Boolean get() = game == GAME_V
+
+    /** The blip id the game is currently routing to on the companion's
+     *  behalf, or null. GTA V: the waypoint it set and that the player
+     *  has not moved since. GTA IV: the blip whose GPS route it turned
+     *  on. */
+    val routedBlipId: Int?
+        get() = when {
+            waypoint != null -> waypoint.blip.takeIf { waypoint.active && waypoint.ours && it != 0 }
+            else -> routeBlip?.takeIf { it != 0 }
+        }
 
     @Serializable
     data class OwnedWeapon(
@@ -168,6 +195,40 @@ data class GameState(
     data class Station(
         @SerialName("name") val name: String = "",
         @SerialName("label") val label: String = "",
+    )
+
+    /**
+     * One blip on the game's map, as the plugin's census saw it. Raw:
+     * [sprite], [colour], [blipType] and [display] are the game's own
+     * enums. Which sprites are mission starts is being worked out from
+     * this data on-device; see ui/map/BlipLabels.kt for the current
+     * (provisional) names.
+     */
+    @Serializable
+    data class Blip(
+        @SerialName("id") val id: Int = 0,
+        @SerialName("sprite") val sprite: Int = 0,
+        @SerialName("colour") val colour: Int = 0,
+        @SerialName("type") val blipType: Int = 0,
+        @SerialName("display") val display: Int = 0,
+        @SerialName("x") val x: Float = 0f,
+        @SerialName("y") val y: Float = 0f,
+        @SerialName("z") val z: Float = 0f,
+        @SerialName("dist_m") val distM: Float = 0f,
+    )
+
+    /**
+     * GTA V: the player's map waypoint. [active] whoever set it; [ours]
+     * when the companion set it (via `route_blip`) and it has not been
+     * moved since, in which case [blip] is the blip it points at. A
+     * hand-placed waypoint is never [ours], so the companion leaves
+     * it alone.
+     */
+    @Serializable
+    data class Waypoint(
+        @SerialName("active") val active: Boolean = false,
+        @SerialName("ours") val ours: Boolean = false,
+        @SerialName("blip") val blip: Int = 0,
     )
 
     /** One weapon the current GTA V character owns. */

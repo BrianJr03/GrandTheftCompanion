@@ -17,6 +17,8 @@ import javax.inject.Singleton
  *  [ack]   — latest `ack` frame received for a client->server command.
  *  [stations] / [weapons] — GTA V only: latest radio-station list and
  *            owned-weapon list. Empty for GTA IV.
+ *  [blips] — both games: the map's blips, nearest first, from the
+ *            plugin's last census. Empty until the plugin sends one.
  *  [lastUpdateMs] — wall clock of the last frame; the UI compares against
  *                   System.currentTimeMillis() to decide "stale."
  */
@@ -43,6 +45,9 @@ class GameStateRepository @Inject constructor(
     private val _weapons = MutableStateFlow<List<GameState.VWeapon>>(emptyList())
     val weapons: StateFlow<List<GameState.VWeapon>> = _weapons.asStateFlow()
 
+    private val _blips = MutableStateFlow<List<GameState.Blip>>(emptyList())
+    val blips: StateFlow<List<GameState.Blip>> = _blips.asStateFlow()
+
     private val _lastUpdateMs = MutableStateFlow(0L)
     val lastUpdateMs: StateFlow<Long> = _lastUpdateMs.asStateFlow()
 
@@ -62,6 +67,7 @@ class GameStateRepository @Inject constructor(
             _state.value = null
             _stations.value = emptyList()
             _weapons.value = emptyList()
+            _blips.value = emptyList()
             _ack.value = null
             _last.value = GameState.WAITING
             _lastUpdateMs.value = 0L
@@ -73,6 +79,7 @@ class GameStateRepository @Inject constructor(
         if (frame.isAck) _ack.value = frame
         if (frame.isStations) _stations.value = frame.stations
         if (frame.isWeapons) _weapons.value = frame.weapons
+        if (frame.isBlips) _blips.value = frame.blips
         _last.value = frame
         _lastUpdateMs.value = System.currentTimeMillis()
     }
@@ -82,4 +89,12 @@ class GameStateRepository @Inject constructor(
     suspend fun setWeapon(weapon: Long): Int? = client.send("set_weapon", weapon)
     suspend fun setRadio(stationIndex: Int): Int? =
         client.send("set_radio", stationIndex.toLong())
+
+    /** Point the game's route at a blip from [blips]: GTA V sets the
+     *  map waypoint on it, GTA IV turns its GPS route on. */
+    suspend fun routeBlip(blipId: Int): Int? = client.send("route_blip", blipId.toLong())
+    /** Undo [routeBlip]: remove the waypoint / turn the route off. */
+    suspend fun routeClear(): Int? = client.send("route_clear", 0L)
+    /** Ask the plugin to write its blip census to its log file. */
+    suspend fun blipCensus(): Int? = client.send("blip_census", 0L)
 }

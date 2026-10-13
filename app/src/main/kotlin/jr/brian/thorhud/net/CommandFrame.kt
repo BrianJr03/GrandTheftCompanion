@@ -22,7 +22,8 @@ internal fun commandFrame(id: Int, name: String, arg: Long): String? {
     val argKey = when (name) {
         "set_weapon" -> "weapon"
         "set_radio"  -> "station"
-        else         -> "value"
+        "route_blip" -> "blip"
+        else         -> "value"   // route_clear / blip_census ignore it
     }
     return "{\"v\":1,\"type\":\"cmd\",\"id\":$id,\"name\":\"$name\"," +
             "\"args\":{\"$argKey\":$arg}}\n"

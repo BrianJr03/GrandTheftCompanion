@@ -26,6 +26,18 @@
     <string name="map_gesture_hint_zoom">pinch to zoom</string>
     <string name="map_gesture_hint_pan">drag to pan</string>
     <string name="map_view_cd">mirror of the top screen; pinch to zoom, drag to pan</string>
+    <!-- Blip list (route to mission). Provisional UI: raw sprite ids stay
+         visible until the mission sprites are confirmed on-device. -->
+    <string name="map_blips">blips</string>
+    <string name="map_blips_title">map blips</string>
+    <string name="map_blips_none">no blips yet — needs the game loaded and ThorBridgeV 0.3.0+ / ThorBridge at natives level 5</string>
+    <string name="map_blips_count">%1$d blips, nearest first</string>
+    <string name="map_blips_route">route</string>
+    <string name="map_blips_routed">routed</string>
+    <string name="map_blips_clear">clear route</string>
+    <string name="map_blips_log">log census</string>
+    <string name="map_blips_close">close</string>
+    <string name="map_blips_meta">#%1$d · sprite %2$d · colour %3$d · type %4$d</string>
     <string name="mirror_channel_name">Map mirroring</string>
     <string name="mirror_notification_title">GTC is mirroring the top screen</string>
     <string name="mirror_notification_text">Open the map page and tap stop to end it.</string>
