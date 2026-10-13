@@ -1,8 +1,11 @@
 package jr.brian.thorhud.net
 
 import jr.brian.thorhud.model.GameState
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,6 +54,14 @@ class GameStateRepository @Inject constructor(
     private val _lastUpdateMs = MutableStateFlow(0L)
     val lastUpdateMs: StateFlow<Long> = _lastUpdateMs.asStateFlow()
 
+    // Dpad-down presses, one event per state frame that carries
+    // dpad_down=true. SharedFlow (not StateFlow) so the one-frame-wide
+    // edge is never conflated with the surrounding false frames —
+    // every press reaches a collector in order, even if it fires
+    // between recomposition reads.
+    private val _dpadDownPressed = MutableSharedFlow<Unit>(extraBufferCapacity = 16)
+    val dpadDownPressed: SharedFlow<Unit> = _dpadDownPressed.asSharedFlow()
+
     /** Latest connection-level error for the setup screen. */
     val lastError: StateFlow<String?> = client.lastError
 
@@ -75,7 +86,15 @@ class GameStateRepository @Inject constructor(
             return
         }
         if (frame.isHello) _hello.value = frame
-        if (frame.isState) _state.value = frame
+        if (frame.isState) {
+            _state.value = frame
+            // Fire the dpad-press event here, not off a Compose
+            // observer: the plugin only publishes dpad_down=true for
+            // one state frame per press, and a StateFlow conflates
+            // transient values. SharedFlow guarantees every true
+            // reaches the collector.
+            if (frame.dpadDown) _dpadDownPressed.tryEmit(Unit)
+        }
         if (frame.isAck) _ack.value = frame
         if (frame.isStations) _stations.value = frame.stations
         if (frame.isWeapons) _weapons.value = frame.weapons

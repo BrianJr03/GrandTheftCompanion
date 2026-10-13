@@ -176,14 +176,13 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
 
     // Dpad-down toggles the blips panel. Android key routing goes to
     // the game (on the top display), not to this Activity, so we
-    // can't catch it in dispatchKeyEvent. Instead the ThorBridge plugin
-    // reads the game's own pad state (IS_BUTTON_PRESSED, pad 0, button
-    // 9) and sets dpad_down for the one frame right after the press.
-    // Here we fire toggleBlips on each such edge. The key is the
-    // whole state object, so Compose dedupes identical values and we
-    // only fire once per real transition.
-    LaunchedEffect(state?.dpadDown) {
-        if (state?.dpadDown == true) viewModel.toggleBlips()
+    // can't catch it in dispatchKeyEvent. Instead the ThorBridge
+    // plugin reads the game's own pad state and emits a one-frame
+    // dpad_down=true on the state frame right after the press.
+    // Collect through a SharedFlow (not sampled Compose state) so a
+    // transient one-frame true never gets conflated.
+    LaunchedEffect(Unit) {
+        viewModel.dpadDownPressed.collect { viewModel.toggleBlips() }
     }
 
     // A tap-opened wheel left alone closes by itself; every pick

@@ -86,9 +86,17 @@ internal fun StatusBar(
         Spacer(Modifier.weight(1f))
         // Blips chip rides between the title/status cluster and the
         // wanted stars so it is reachable from any screen that shows
-        // the status bar (both game HUDs, both pager pages).
+        // the status bar (both game HUDs, both pager pages). Dimmed
+        // and non-interactive while the connection is dead, stale,
+        // or the game is not loaded in — there would be nothing to
+        // route to anyway.
         onOpenBlips?.let { onOpen ->
-            BlipsChip(palette = palette, open = blipsOpen, onTap = onOpen)
+            BlipsChip(
+                palette = palette,
+                open = blipsOpen,
+                enabled = !isDisconnected && !isStale && inGame,
+                onTap = onOpen,
+            )
         }
         // Stars only make sense once the player has heat; hide the whole
         // widget below wanted=1 and slide it in from the right edge
@@ -131,21 +139,31 @@ internal fun StatusBar(
 
 /**
  * Map-blips chip. Accent while the panel is open, dim grey otherwise.
+ * When [enabled] is false the icon fades further and the tap is a
+ * no-op — nothing to list / route to without a live connection.
  * Matches [UpdateChip] / [LightsToggle] size so the three sit evenly.
  */
 @Composable
-private fun BlipsChip(palette: HudPalette, open: Boolean, onTap: () -> Unit) {
+private fun BlipsChip(
+    palette: HudPalette,
+    open: Boolean,
+    enabled: Boolean,
+    onTap: () -> Unit,
+) {
+    // Live connection: accent, same as the title. Dead/stale/pre-game:
+    // the dim grey the unlit wanted stars use.
+    val tint = if (enabled) palette.accent else Color(0xFF2A332D)
     Box(
         modifier = Modifier
             .size(32.dp)
             .clip(CircleShape)
-            .clickable(onClick = onTap),
+            .clickable(enabled = enabled, onClick = onTap),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = Icons.Filled.Place,
             contentDescription = stringResource(R.string.map_blips_cd),
-            tint = if (open) palette.accent else Color(0xFF4A574F),
+            tint = tint,
             modifier = Modifier.size(20.dp),
         )
     }
