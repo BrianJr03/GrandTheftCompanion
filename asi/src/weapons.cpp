@@ -18,6 +18,9 @@ bool     g_lb_down = false;
 uint32_t g_lb_since = 0;
 bool     g_wheel_logged = false;
 
+bool     g_dpad_down_prev = false;
+bool     g_dpad_down_logged = false;
+
 void scan(uint32_t ped) {
     for (int i = 0; i < kSlotCap; ++i) {
         g_weapons[i] = 0;
@@ -45,6 +48,16 @@ namespace weapons {
 
 static_assert(kLastSlot < kPedSlots, "scan would read past the ped's slots");
 static_assert(kLastSlot < kSlotCap, "scan would not fit the snapshot");
+
+void read_dpad_down(snapshot::Player& p) {
+    const bool held = game::is_button_pressed(kPad, kButtonDpadDown);
+    p.dpad_down_edge = held && !g_dpad_down_prev;
+    if (p.dpad_down_edge && !g_dpad_down_logged) {
+        g_dpad_down_logged = true;
+        thor_log("[input] dpad-down observed on pad 0, button 9");
+    }
+    g_dpad_down_prev = held;
+}
 
 void read_wheel(uint32_t now_ms, snapshot::Player& p) {
     p.wheel = false;

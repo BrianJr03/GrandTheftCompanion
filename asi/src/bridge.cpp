@@ -91,7 +91,7 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
     return std::snprintf(buf, cap,
         "{\"v\":1,\"type\":\"state\","
         "\"t\":%llu,\"in_game\":%s,\"in_vehicle\":%s,\"paused\":%s,"
-        "\"wheel\":%s,"
+        "\"wheel\":%s,\"dpad_down\":%s,"
         "\"money\":%u,\"health\":%.1f,\"max_health\":%u,"
         "\"armor\":%u,\"max_armor\":%u,\"wanted\":%u,"
         "\"weapon\":%d,\"ammo_total\":%d,\"ammo_clip\":%d,"
@@ -105,6 +105,7 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         p.in_vehicle ? "true" : "false",
         p.paused ? "true" : "false",
         p.wheel ? "true" : "false",
+        p.dpad_down_edge ? "true" : "false",
         p.money,
         static_cast<double>(p.health),
         static_cast<unsigned>(p.max_health),

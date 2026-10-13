@@ -46,6 +46,13 @@ struct Player {
     // LB / L1 held on foot for long enough that the companion should
     // show its weapon wheel. Natives level 4 only.
     bool wheel;
+    // Dpad-down just-pressed this frame (edge-triggered — true for the
+    // first frame of a hold, false while held, false on release). The
+    // companion toggles its blips panel on each true. Natives level 4
+    // only (needs IS_BUTTON_PRESSED). Pad 0, button 9: confirmed by
+    // Rockstar's cellphone script pairing the hash with
+    // IS_GAME_KEYBOARD_NAV_DOWN_PRESSED.
+    bool dpad_down_edge;
 
     // --- map / route (natives level 5 only) ---
     bool    mission;       // GET_MISSION_FLAG: a mission script is running

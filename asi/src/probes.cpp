@@ -309,6 +309,10 @@ void on_frame() {
     // Both need in_vehicle from the level-3 block above.
     weapons::read_wheel(static_cast<uint32_t>(p.ts_ms), p);
     weapons::read_owned(ped_handle, static_cast<uint32_t>(p.ts_ms), p);
+    // Dpad-down just-pressed: companion toggles the blips panel on
+    // each edge. Independent of in_game / in_vehicle so it works on
+    // the paused screen too.
+    weapons::read_dpad_down(p);
 #endif  // THORBRIDGE_NATIVES_LEVEL >= 4
 
 #if THORBRIDGE_NATIVES_LEVEL >= 5
