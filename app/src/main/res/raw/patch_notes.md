@@ -1,28 +1,19 @@
-## v0.7.0
+## v0.8.0
 
-**NOTE:** both plugins changed in this release — download **ThorBridge.asi** (GTA IV) and **ThorBridgeV.asi** (GTA V) from the release assets and drop them next to `GTAIV.exe` / `GTA5.exe`. The APK update alone won't pick them up.
+**Map tab facelift**
 
-**Blips panel — route from the bottom screen**
+The lock, reset, pin, and stop buttons are now icon chips in the game's accent colour, stacked vertically on the side instead of taking a row at the bottom. The map itself sits centred in the free space with a bit of breathing room on the far edge.
 
-Every icon on the game's map, nearest first, grouped by name, with a one-tap **route** button per row. Opens the game's own GPS to that spot without pausing or dragging a cursor around. Works on GTA IV and GTA V.
+New setting under **Minimap → Map controls on the right** moves the whole icon column to the right of the map. Default stays on the left.
 
-Tap the pin icon in the status bar to open it. On GTA IV, dpad-down on the controller also toggles it (reads the game's own pad state, so it works even while you're playing). Multiple instances of the same icon collapse into one row with a count badge; expand to pick which one. Tapping an already-routed row clears the route.
+**Status bar reorg**
 
-**Car chip + auto-swipe to the map**
+The chip cluster (map pin, car, update, lights) now sits in the middle of the bar, with the wanted stars pinned to the far right so your eye always finds them in the same spot. When you don't have stars, the chips slide to the right so the bar never looks half-empty.
 
-A car icon slides in next to the pin whenever you're in a vehicle. Tap it to jump straight to the minimap. Or flip on **Auto-swipe to map while driving** in the new settings sheet and it does it for you.
+**Wanted lights stay on through pause**
 
-**Settings sheet**
-
-Gear icon in the top-right of the paused / setup / character-switch screens. Expandable sections (Minimap first) with three toggles:
-- Auto-swipe to the map tab when you get in a vehicle.
-- Always return to the HUD on exit (overrides the default smart-restore).
-- Start the mirror automatically when the connection goes live.
-
-**GTA IV fixes**
-
-Two bugs the first on-device run surfaced: the blip walk was reading only two of the game's internal icons (now reads them all), and every blip's distance was reading the same number because the coord native wanted a different argument shape than documented. Both fixed.
+The red/blue stick lights used to go dark the moment you paused. They stay lit now — pause is deliberate and the heat is still on you.
 
 **Translations**
 
-Full fr/es/de/it/ru/ja for everything new.
+Full fr/es/de/it/ru/ja for the new setting.
