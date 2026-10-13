@@ -34,6 +34,15 @@ class CommandFrameTest {
     }
 
     @Test
+    fun routeBlipCarriesTheBlipId() {
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":4,\"name\":\"route_blip\"," +
+                "\"args\":{\"blip\":301}}\n",
+            commandFrame(4, "route_blip", 301L),
+        )
+    }
+
+    @Test
     fun unknownCommandUsesGenericArgumentName() {
         val line = commandFrame(9, "future_cmd", 1L)
         assertNotNull(line)
