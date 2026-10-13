@@ -66,6 +66,9 @@ internal fun VMainScreen(
     onOpenWeaponWheel: (() -> Unit)? = null,
     blipsOpen: Boolean = false,
     onOpenBlips: (() -> Unit)? = null,
+    inVehicle: Boolean = false,
+    onScrollToMap: (() -> Unit)? = null,
+    onOpenSettings: (() -> Unit)? = null,
 ) {
     val stations by viewModel.stations.collectAsStateWithLifecycle()
     val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
@@ -97,6 +100,7 @@ internal fun VMainScreen(
                     hello?.err?.takeIf { it.isNotBlank() }
                         ?: stringResource(R.string.v_notice_unsupported_unknown),
                 ),
+                onOpenSettings = onOpenSettings,
             )
             return
         }
@@ -106,6 +110,7 @@ internal fun VMainScreen(
                 title = stringResource(R.string.v_notice_online_title),
                 accent = palette.accent,
                 detail = stringResource(R.string.v_notice_online_detail),
+                onOpenSettings = onOpenSettings,
             )
             return
         }
@@ -116,6 +121,7 @@ internal fun VMainScreen(
                 title = characterName.replaceFirstChar { it.titlecase() },
                 accent = palette.accent,
                 detail = versionLine,
+                onOpenSettings = onOpenSettings,
             )
             return
         }
@@ -126,6 +132,7 @@ internal fun VMainScreen(
             VNoticeScreen(
                 title = stringResource(R.string.v_notice_switching_title),
                 accent = palette.accent,
+                onOpenSettings = onOpenSettings,
             )
             return
         }
@@ -181,6 +188,8 @@ internal fun VMainScreen(
                 onOpenUpdate = onOpenUpdate,
                 blipsOpen = blipsOpen,
                 onOpenBlips = onOpenBlips,
+                inVehicle = inVehicle,
+                onScrollToMap = onScrollToMap,
             )
             if (tags.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))

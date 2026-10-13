@@ -1,12 +1,17 @@
 package jr.brian.thorhud.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,12 +29,19 @@ import jr.brian.thorhud.R
 import jr.brian.thorhud.model.GameState
 
 @Composable
-internal fun PausedScreen(hello: GameState?, palette: HudPalette) {
+internal fun PausedScreen(
+    hello: GameState?,
+    palette: HudPalette,
+    onOpenSettings: (() -> Unit)? = null,
+) {
     Scaffold(containerColor = Color.Black) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
+        ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -57,6 +69,21 @@ internal fun PausedScreen(hello: GameState?, palette: HudPalette) {
                     fontSize = 12.sp,
                 )
             }
+        }
+        onOpenSettings?.let { open ->
+            IconButton(
+                onClick = open,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 16.dp, end = 16.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Settings,
+                    contentDescription = stringResource(R.string.settings_icon_cd),
+                    tint = Color(0xFF6A7A6E),
+                )
+            }
+        }
         }
     }
 }

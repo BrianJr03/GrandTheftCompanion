@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,7 +40,7 @@ import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
 
 @Composable
-internal fun SetupScreen(lastError: String?) {
+internal fun SetupScreen(lastError: String?, onOpenSettings: (() -> Unit)? = null) {
     var showInfo by remember { mutableStateOf(false) }
 
     Scaffold(containerColor = Color.Black) { padding ->
@@ -94,21 +96,32 @@ internal fun SetupScreen(lastError: String?) {
                 Spacer(Modifier.height(10.dp))
                 ChecklistItem("V", R.string.setup_v_title, R.string.setup_v_detail)
             }
-            // Info chip at the top-right. Tap for the last connection
-            // error — tinted red when there's actually an error to show,
-            // grey otherwise.
-            IconButton(
-                onClick = { showInfo = true },
+            // Top-right chip row: settings gear (if the caller wired
+            // one) and the info icon that opens the last connection
+            // error. Info stays red when there is something to show.
+            Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 16.dp, end = 16.dp),
+                    .padding(top = 8.dp, end = 8.dp),
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Info,
-                    contentDescription = stringResource(R.string.info_icon_cd),
-                    tint = if (lastError.isNullOrBlank()) Color(0xFF6A7A6E)
-                           else Color(0xFFB04040),
-                )
+                onOpenSettings?.let { open ->
+                    IconButton(onClick = open) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = stringResource(R.string.settings_icon_cd),
+                            tint = Color(0xFF6A7A6E),
+                        )
+                    }
+                    Spacer(Modifier.width(4.dp))
+                }
+                IconButton(onClick = { showInfo = true }) {
+                    Icon(
+                        imageVector = Icons.Filled.Info,
+                        contentDescription = stringResource(R.string.info_icon_cd),
+                        tint = if (lastError.isNullOrBlank()) Color(0xFF6A7A6E)
+                               else Color(0xFFB04040),
+                    )
+                }
             }
         }
     }

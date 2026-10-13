@@ -1,8 +1,5 @@
 package jr.brian.thorhud.ui.map
 
-import android.app.Activity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -79,21 +76,13 @@ internal fun minimapCropFor(game: MirrorGame): CropRect = when (game) {
 internal fun MirrorMapScreen(
     game: MirrorGame,
     accent: Color,
+    onRequestConsent: () -> Unit,
     viewModel: MapViewModel = hiltViewModel(),
 ) {
     val status by viewModel.status.collectAsStateWithLifecycle()
     val captureSize by viewModel.captureSize.collectAsStateWithLifecycle()
     val transforms by viewModel.transforms.collectAsStateWithLifecycle()
     val isLocked by viewModel.isLocked.collectAsStateWithLifecycle()
-
-    val consentLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
-    ) { result ->
-        val data = result.data
-        if (result.resultCode == Activity.RESULT_OK && data != null) {
-            viewModel.start(result.resultCode, data)
-        }
-    }
 
     Box(
         modifier = Modifier
@@ -257,7 +246,7 @@ internal fun MirrorMapScreen(
                         label = stringResource(R.string.map_start),
                         highlighted = true,
                         accent = accent,
-                        onClick = { consentLauncher.launch(viewModel.consentIntent()) },
+                        onClick = onRequestConsent,
                     )
                 }
             }

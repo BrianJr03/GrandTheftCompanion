@@ -26,10 +26,15 @@ import androidx.compose.foundation.verticalScroll
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.LocationOff
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.platform.LocalContext
@@ -123,18 +128,35 @@ internal fun BlipListPanel(
                     fontSize = 11.sp,
                 )
             }
-            SmallButton(stringResource(R.string.map_blips_clear), accent, onClear)
-            Spacer(Modifier.width(8.dp))
-            SmallButton(stringResource(R.string.map_blips_info), accent, { showInfo = true })
-            Spacer(Modifier.width(8.dp))
+            HeaderIcon(
+                icon = Icons.Filled.LocationOff,
+                cd = stringResource(R.string.map_blips_clear),
+                tint = accent,
+                onClick = onClear,
+            )
+            HeaderIcon(
+                icon = Icons.Filled.Info,
+                cd = stringResource(R.string.map_blips_info),
+                tint = accent,
+                onClick = { showInfo = true },
+            )
             // Writing the full census table to the plugin log is a dev
             // affordance for seeding sprite labels — not useful to the
-            // player, so hide outside debug builds.
+            // player, hide outside debug builds.
             if (BuildConfig.DEBUG) {
-                SmallButton(stringResource(R.string.map_blips_log), accent, onLogCensus)
-                Spacer(Modifier.width(8.dp))
+                HeaderIcon(
+                    icon = Icons.Filled.Receipt,
+                    cd = stringResource(R.string.map_blips_log),
+                    tint = accent,
+                    onClick = onLogCensus,
+                )
             }
-            SmallButton(stringResource(R.string.map_blips_close), accent, onClose)
+            HeaderIcon(
+                icon = Icons.Filled.Close,
+                cd = stringResource(R.string.map_blips_close),
+                tint = accent,
+                onClick = onClose,
+            )
         }
         Spacer(Modifier.height(8.dp))
         Column(
@@ -384,6 +406,23 @@ private fun ChildRow(
             highlighted = row.routed,
             onClick = tap,
         )
+    }
+}
+
+/**
+ * Compact icon-button for the panel's header actions (clear route,
+ * info, log census, close). Tint uses the current accent so the row
+ * reads as part of the title cluster.
+ */
+@Composable
+private fun HeaderIcon(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    cd: String,
+    tint: Color,
+    onClick: () -> Unit,
+) {
+    IconButton(onClick = onClick) {
+        Icon(imageVector = icon, contentDescription = cd, tint = tint)
     }
 }
 
