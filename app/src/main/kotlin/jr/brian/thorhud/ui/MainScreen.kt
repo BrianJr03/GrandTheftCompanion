@@ -1,5 +1,7 @@
 package jr.brian.thorhud.ui
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,8 +11,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -22,7 +28,9 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -38,6 +46,7 @@ import jr.brian.thorhud.ui.components.IvWeaponWheelOverlay
 import jr.brian.thorhud.ui.components.MoneyRadioPanel
 import jr.brian.thorhud.ui.components.PausedScreen
 import jr.brian.thorhud.ui.components.RadioPanel
+import jr.brian.thorhud.ui.components.SettingsSheet
 import jr.brian.thorhud.ui.components.RadioPicker
 import jr.brian.thorhud.ui.components.SetupScreen
 import jr.brian.thorhud.ui.components.StatusBar
@@ -45,8 +54,11 @@ import jr.brian.thorhud.ui.components.VehiclePanel
 import jr.brian.thorhud.ui.components.WeaponPanel
 import jr.brian.thorhud.ui.components.paletteFor
 import jr.brian.thorhud.ui.components.stationListFor
+import jr.brian.thorhud.ui.map.BlipListPanel
+import jr.brian.thorhud.ui.map.MapViewModel
 import jr.brian.thorhud.ui.map.MirrorGame
 import jr.brian.thorhud.ui.map.MirrorMapScreen
+import jr.brian.thorhud.ui.map.blipGroups
 import jr.brian.thorhud.ui.v.VMainScreen
 import jr.brian.thorhud.ui.v.VWeaponWheelOverlay
 import jr.brian.thorhud.ui.v.rememberVWheelMemory
@@ -105,12 +117,9 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         )
     }
 
-    if (isDisconnected) {
-        SetupScreen(lastError)
-        return
-    }
-
     // GTA V has its own HUD layout (ui/v/); hello frame names the game.
+    // Also computed when disconnected (hello is null) so the whole tree
+    // can see a stable accent; defaults to GTA IV neutral.
     val isGtaV = hello?.isGtaV == true
     val accent = if (isGtaV) {
         vCharacterOf(state?.character).palette.accent
@@ -157,6 +166,56 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     LaunchedEffect(wheelHeld, wheelUsable) {
         if (!wheelHeld || !wheelUsable) wheelOpenedByTap = false
     }
+    // The blips panel rides over everything so it is reachable from
+    // either pager page and either game's HUD. State lives on the VM
+    // so a hardware key (dpad-down on the Thor; see HudActivity's
+    // dispatchKeyEvent) can toggle it even when Compose does not have
+    // focus.
+    val showBlips by viewModel.showBlips.collectAsStateWithLifecycle()
+    val toggleBlips: () -> Unit = { viewModel.toggleBlips() }
+
+    // The companion runs on the Thor's bottom panel while the player
+    // is playing on the top screen. An accidental back swipe should
+    // never kill the HUD mid-mission: if the blips panel is open, back
+    // dismisses it, otherwise we just swallow the event.
+    BackHandler { if (showBlips) viewModel.setBlips(false) }
+
+    // Dpad-down toggles the blips panel. Android key routing goes to
+    // the game (on the top display), not to this Activity, so we
+    // can't catch it in dispatchKeyEvent. Instead the ThorBridge
+    // plugin reads the game's own pad state and emits a one-frame
+    // dpad_down=true on the state frame right after the press.
+    // Collect through a SharedFlow (not sampled Compose state) so a
+    // transient one-frame true never gets conflated.
+    LaunchedEffect(Unit) {
+        viewModel.dpadDownPressed.collect { viewModel.toggleBlips() }
+    }
+
+    // Settings sheet (open from the gear icon on paused / setup /
+    // notice screens). State lives here so one sheet instance covers
+    // every surface that can open it.
+    var showSettings by rememberSaveable { mutableStateOf(false) }
+    val openSettings: () -> Unit = { showSettings = true }
+    val autoSwipeOnDrive by viewModel.autoSwipeOnDrive.collectAsStateWithLifecycle()
+    val autoStartMirror by viewModel.autoStartMirror.collectAsStateWithLifecycle()
+    val alwaysReturnToHud by viewModel.alwaysReturnToHud.collectAsStateWithLifecycle()
+
+    // Hoisted mirror-consent launcher so both MirrorMapScreen's
+    // "start mirroring" button and the auto-start-when-connected
+    // effect use the same path.
+    val mapViewModel: MapViewModel = hiltViewModel()
+    val consentLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        val data = result.data
+        if (result.resultCode == Activity.RESULT_OK && data != null) {
+            mapViewModel.start(result.resultCode, data)
+        }
+    }
+    val requestMirrorConsent: () -> Unit = {
+        consentLauncher.launch(mapViewModel.consentIntent())
+    }
+
     // A tap-opened wheel left alone closes by itself; every pick
     // restarts the clock.
     LaunchedEffect(wheelOpenedByTap, wheelHeld, weaponPick) {
@@ -174,36 +233,13 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         }
     }
 
-    // Pause (and the V-specific notices: unsupported, online, stalled,
-    // character-switch) take over the whole bottom screen. Rendering
-    // these above HudPager means both tabs are replaced and swipe is
-    // disabled while the notice is up.
-    if (!isGtaV && state?.paused == true) {
-        PausedScreen(
-            hello = hello,
-            palette = paletteFor(liveState?.episode ?: state?.episode),
-        )
-        return
-    }
-    if (isGtaV && vIsNoticeState(hello, state)) {
-        VMainScreen(
-            viewModel = viewModel,
-            hello = hello,
-            state = state,
-            isStale = isStale,
-            updateAvailable = updateInfo.isUpdateAvailable,
-            onOpenUpdate = { showUpdateDialog = true },
-        )
-        return
-    }
-
     val gameKey = if (isGtaV) "v" else "iv"
     val initialPage = remember(gameKey) { viewModel.pagerPage(gameKey) }
 
     // One-time swipe hint on the first connected run. Dismissing
     // writes a prefs flag so it never shows again.
     var showSwipeHint by remember { mutableStateOf(!viewModel.hasSeenSwipeHint) }
-    if (showSwipeHint) {
+    if (showSwipeHint && !isDisconnected) {
         AlertDialog(
             onDismissRequest = {
                 showSwipeHint = false
@@ -220,71 +256,227 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         )
     }
 
-    // key(gameKey) rebuilds HudPager (and its PagerState) when the
-    // connected game changes, so the restored page actually takes
-    // effect instead of staying on the previous game's page.
-    key(gameKey) {
+    // Single composition root for the whole screen so BlipsOverlay
+    // keeps a stable identity across every state transition
+    // (disconnect, pause, V notice, HUD). Earlier the overlay was
+    // instantiated inside each branch separately; a pause → unpause
+    // dropped and re-created it, which reset its internal state and
+    // in some cases dropped the live subscriptions it depends on.
     Box(Modifier.fillMaxSize()) {
-    HudPager(
-        initialPage = initialPage,
-        onPageSettled = { viewModel.setPagerPage(gameKey, it) },
-        hud = {
-            if (isGtaV) {
-                VMainScreen(
-                    viewModel = viewModel,
-                    hello = hello,
-                    state = state,
-                    isStale = isStale,
-                    updateAvailable = updateInfo.isUpdateAvailable,
-                    onOpenUpdate = { showUpdateDialog = true },
-                    onOpenWeaponWheel = openWheel,
-                )
-            } else {
-                IvHudScreen(
-                    viewModel = viewModel,
-                    state = state,
-                    liveState = liveState,
-                    isStale = isStale,
-                    lightsOn = lightsOn,
-                    lightsUnavailable = lightsStatus.isUnavailable,
-                    updateAvailable = updateInfo.isUpdateAvailable,
-                    onOpenUpdate = { showUpdateDialog = true },
-                    onOpenWeaponWheel = openWheel,
-                )
-            }
-        },
-        map = {
-            MirrorMapScreen(
-                game = if (isGtaV) MirrorGame.V else MirrorGame.IV,
-                accent = accent,
+        when {
+            isDisconnected -> SetupScreen(lastError, onOpenSettings = openSettings)
+            !isGtaV && state?.paused == true -> PausedScreen(
+                hello = hello,
+                palette = paletteFor(liveState?.episode ?: state?.episode),
+                onOpenSettings = openSettings,
             )
-        },
-    )
-    // Drawn over the pager so it covers both pages and swallows the
-    // swipe between them while it is up.
-    if (showWheel && isGtaV) {
-        VWeaponWheelOverlay(
-            weapons = weapons,
-            equippedHash = equippedWeapon,
-            pick = weaponPick,
-            memory = wheelMemory,
-            held = wheelHeld,
-            palette = vCharacterOf(state?.character).palette,
-            onPick = viewModel::pickWeapon,
-            onDismiss = { wheelOpenedByTap = false },
+            isGtaV && vIsNoticeState(hello, state) -> VMainScreen(
+                viewModel = viewModel,
+                hello = hello,
+                state = state,
+                isStale = isStale,
+                updateAvailable = updateInfo.isUpdateAvailable,
+                onOpenUpdate = { showUpdateDialog = true },
+                blipsOpen = showBlips,
+                onOpenBlips = toggleBlips,
+                onOpenSettings = openSettings,
+            )
+            else -> {
+                // key(gameKey) rebuilds HudPager (and its PagerState)
+                // when the connected game changes, so the restored
+                // page takes effect instead of staying on the previous
+                // game's page.
+                key(gameKey) {
+                    val pagerState = rememberHudPagerState(initialPage)
+                    val scope = rememberCoroutineScope()
+                    val scrollToMap: () -> Unit = {
+                        scope.launch { pagerState.animateScrollToPage(1) }
+                    }
+                    // Auto-swipe behaviour (settings toggle, both
+                    // games):
+                    //  Enter vehicle: remember the tab the user is on
+                    //    right now, then jump to the map tab.
+                    //  Exit vehicle, user is still on the map tab: go
+                    //    back to the remembered pre-drive tab.
+                    //  Exit vehicle, user has manually swiped away
+                    //    from the map during the drive: leave them
+                    //    where they are, don't yank them around.
+                    val inVehicleNow = liveState?.inVehicle == true
+                    var preDrivePage by rememberSaveable(gameKey) {
+                        mutableStateOf(initialPage.coerceIn(0, 1))
+                    }
+                    LaunchedEffect(inVehicleNow, autoSwipeOnDrive,
+                                   alwaysReturnToHud, gameKey) {
+                        if (!autoSwipeOnDrive) return@LaunchedEffect
+                        if (inVehicleNow) {
+                            preDrivePage = pagerState.currentPage
+                            if (pagerState.currentPage != 1) {
+                                pagerState.animateScrollToPage(1)
+                            }
+                        } else {
+                            // Exit vehicle. With the override on, go
+                            // to the HUD tab regardless of where the
+                            // user was. Without it, only pull back if
+                            // the user is still sitting on the map;
+                            // a manual swipe during the drive wins.
+                            val target = if (alwaysReturnToHud) 0 else preDrivePage
+                            val onMap = pagerState.currentPage == 1
+                            if (target != pagerState.currentPage &&
+                                (alwaysReturnToHud || onMap)
+                            ) {
+                                pagerState.animateScrollToPage(target)
+                            }
+                        }
+                    }
+                    // Auto-launch the mirror consent prompt when the
+                    // setting is on, the connection is live, and the
+                    // mirror hasn't been started yet. One shot per
+                    // Idle-to-live transition so the user is not
+                    // nagged over and over.
+                    val mirrorStatus by mapViewModel.status.collectAsStateWithLifecycle()
+                    LaunchedEffect(autoStartMirror, liveState?.inGame == true, mirrorStatus) {
+                        if (autoStartMirror &&
+                            liveState?.inGame == true &&
+                            mirrorStatus == jr.brian.thorhud.mirror.ScreenMirror.Status.Idle
+                        ) {
+                            requestMirrorConsent()
+                        }
+                    }
+                    Box(Modifier.fillMaxSize()) {
+                        HudPager(
+                            pagerState = pagerState,
+                            onPageSettled = { viewModel.setPagerPage(gameKey, it) },
+                            hud = {
+                                if (isGtaV) {
+                                    VMainScreen(
+                                        viewModel = viewModel,
+                                        hello = hello,
+                                        state = state,
+                                        isStale = isStale,
+                                        updateAvailable = updateInfo.isUpdateAvailable,
+                                        onOpenUpdate = { showUpdateDialog = true },
+                                        onOpenWeaponWheel = openWheel,
+                                        blipsOpen = showBlips,
+                                        onOpenBlips = toggleBlips,
+                                        inVehicle = inVehicleNow,
+                                        onScrollToMap = scrollToMap,
+                                    )
+                                } else {
+                                    IvHudScreen(
+                                        viewModel = viewModel,
+                                        state = state,
+                                        liveState = liveState,
+                                        isStale = isStale,
+                                        lightsOn = lightsOn,
+                                        lightsUnavailable = lightsStatus.isUnavailable,
+                                        updateAvailable = updateInfo.isUpdateAvailable,
+                                        onOpenUpdate = { showUpdateDialog = true },
+                                        onOpenWeaponWheel = openWheel,
+                                        blipsOpen = showBlips,
+                                        onOpenBlips = toggleBlips,
+                                        inVehicle = inVehicleNow,
+                                        onScrollToMap = scrollToMap,
+                                    )
+                                }
+                            },
+                            map = {
+                                MirrorMapScreen(
+                                    game = if (isGtaV) MirrorGame.V else MirrorGame.IV,
+                                    accent = accent,
+                                    onRequestConsent = requestMirrorConsent,
+                                )
+                            },
+                        )
+                        // Drawn over the pager so it covers both pages
+                        // and swallows the swipe between them.
+                        if (showWheel && isGtaV) {
+                            VWeaponWheelOverlay(
+                                weapons = weapons,
+                                equippedHash = equippedWeapon,
+                                pick = weaponPick,
+                                memory = wheelMemory,
+                                held = wheelHeld,
+                                palette = vCharacterOf(state?.character).palette,
+                                onPick = viewModel::pickWeapon,
+                                onDismiss = { wheelOpenedByTap = false },
+                            )
+                        } else if (showWheel) {
+                            IvWeaponWheelOverlay(
+                                owned = liveState?.ownedWeapons.orEmpty(),
+                                equippedId = liveState?.weaponId,
+                                pick = weaponPick,
+                                held = wheelHeld,
+                                palette = paletteFor(liveState?.episode ?: state?.episode),
+                                onPick = viewModel::pickWeapon,
+                                onDismiss = { wheelOpenedByTap = false },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        // Stable, always-composed: reachable from any state, keeps its
+        // scroll / expand / dialog state across state transitions.
+        BlipsOverlay(
+            isGtaV = isGtaV,
+            accent = accent,
+            show = showBlips,
+            onClose = { viewModel.setBlips(false) },
         )
-    } else if (showWheel) {
-        IvWeaponWheelOverlay(
-            owned = liveState?.ownedWeapons.orEmpty(),
-            equippedId = liveState?.weaponId,
-            pick = weaponPick,
-            held = wheelHeld,
-            palette = paletteFor(liveState?.episode ?: state?.episode),
-            onPick = viewModel::pickWeapon,
-            onDismiss = { wheelOpenedByTap = false },
+        if (showSettings) {
+            SettingsSheet(
+                palette = if (isGtaV) vCharacterOf(state?.character).palette
+                          else paletteFor(liveState?.episode ?: state?.episode),
+                autoSwipeOnDrive = autoSwipeOnDrive,
+                onAutoSwipeChange = viewModel::setAutoSwipeOnDrive,
+                autoStartMirror = autoStartMirror,
+                onAutoStartMirrorChange = viewModel::setAutoStartMirror,
+                alwaysReturnToHud = alwaysReturnToHud,
+                onAlwaysReturnToHudChange = viewModel::setAlwaysReturnToHud,
+                onDismiss = { showSettings = false },
+            )
+        }
+    }
+}
+
+/**
+ * The blips panel, drawn above everything else when [show] is true.
+ * Reads from the same MapViewModel the mirror page uses, so the list
+ * and the routed-blip highlight stay in sync whichever surface opened
+ * the panel.
+ */
+@Composable
+private fun BlipsOverlay(
+    isGtaV: Boolean,
+    accent: Color,
+    show: Boolean,
+    onClose: () -> Unit,
+) {
+    if (!show) return
+    val mapViewModel: MapViewModel = hiltViewModel()
+    val blips by mapViewModel.blips.collectAsStateWithLifecycle()
+    val gameState by mapViewModel.state.collectAsStateWithLifecycle()
+    val groups = blipGroups(isGtaV, blips, gameState?.routedBlipId)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .padding(12.dp),
+    ) {
+        BlipListPanel(
+            groups = groups,
+            accent = accent,
+            // GTA IV: GET_BLIP_COORDS only returns real coords for
+            // type-4 (coord) and type-5 (contact) blips; the type-1/2/
+            // 3/6 crowd (car/char/object/pickup) all read (0,0,0) so
+            // their distances are meaningless. Hide the distance for
+            // the whole IV list — groups still sort by it internally.
+            showDistance = isGtaV,
+            onRoute = mapViewModel::routeBlip,
+            onClear = mapViewModel::routeClear,
+            onLogCensus = mapViewModel::blipCensus,
+            onClose = onClose,
         )
-    }
-    }
     }
 }
 
@@ -304,6 +496,10 @@ private fun IvHudScreen(
     // Tapping the on-foot weapon card opens the weapon wheel. Null
     // leaves the card inert (in a vehicle, or nothing to pick from).
     onOpenWeaponWheel: (() -> Unit)?,
+    blipsOpen: Boolean = false,
+    onOpenBlips: (() -> Unit)? = null,
+    inVehicle: Boolean = false,
+    onScrollToMap: (() -> Unit)? = null,
 ) {
     val palette = paletteFor(liveState?.episode ?: state?.episode)
 
@@ -332,6 +528,10 @@ private fun IvHudScreen(
                 onToggleLights = viewModel::togglePoliceLights,
                 updateAvailable = updateAvailable,
                 onOpenUpdate = onOpenUpdate,
+                blipsOpen = blipsOpen,
+                onOpenBlips = onOpenBlips,
+                inVehicle = inVehicle,
+                onScrollToMap = onScrollToMap,
             )
             Spacer(Modifier.height(8.dp))
             val inVehicle = liveState?.inVehicle == true

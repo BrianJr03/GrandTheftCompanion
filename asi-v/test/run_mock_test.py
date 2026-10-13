@@ -322,6 +322,94 @@ def test_wheel():
         print("---- ThorBridgeV.log ----\n" + log[-3000:])
 
 
+def test_blips():
+    """On foot throughout, three blips on the map. The plugin's census
+    must list them nearest first; route_blip must set the waypoint and
+    report it as ours; at 4 s the mock player drags the waypoint by
+    hand, after which it is no longer ours; route_clear removes it."""
+    print("scenario: blips")
+    s = Session("blips", 13)
+    check(s.sock is not None, "bridge accepts a connection")
+    if not s.sock:
+        print(s.close())
+        return
+    blips_frames = []
+    acks = {}
+    phase = 0            # 0 wait census, 1 routed, 2 dragged, 3 cleared, 4 rerouted
+    seen = {}            # phase -> first state frame seen in it
+    for f in s.frames(10):
+        if f["type"] == "blips":
+            blips_frames.append(f)
+        if f["type"] == "ack":
+            acks[f["id"]] = f
+        if f["type"] != "state" or not f.get("in_game"):
+            continue
+        wp = f.get("waypoint", {})
+        if phase == 0 and blips_frames:
+            s.send_cmd(1, "route_blip", "blip", 301)
+            s.send_cmd(2, "route_blip", "blip", 999)
+            phase = 1
+        elif phase == 1 and wp.get("active") and wp.get("ours"):
+            seen.setdefault(1, f)
+        if phase == 1 and 1 in seen and wp.get("active") and not wp.get("ours"):
+            seen[2] = f
+            phase = 2
+            s.send_cmd(3, "route_clear", "value", 0)
+        elif phase == 2 and not wp.get("active"):
+            seen[3] = f
+            phase = 3
+            s.send_cmd(4, "route_blip", "blip", 302)
+        elif phase == 3 and wp.get("active") and wp.get("ours"):
+            seen[4] = f
+            phase = 4
+            s.send_cmd(5, "blip_census", "value", 0)
+    rc, err, log = s.close()
+
+    check(bool(blips_frames), "a blips frame arrived")
+    first = blips_frames[0] if blips_frames else {"blips": []}
+    ids = [b["id"] for b in first["blips"]]
+    check(ids == [302, 301, 303], "census lists the three blips nearest first (%s)" % ids)
+    if ids == [302, 301, 303]:
+        b = {x["id"]: x for x in first["blips"]}
+        check(b[301]["sprite"] == 78 and b[302]["sprite"] == 1 and b[303]["sprite"] == 52,
+              "sprites are the game's raw ids")
+        check(abs(b[301]["dist_m"] - 500) < 2 and abs(b[302]["dist_m"] - 50) < 2
+              and abs(b[303]["dist_m"] - 5000) < 2,
+              "distances measured from the player ped")
+        check(b[301]["x"] == 300.0 and b[301]["y"] == 400.0 and b[301]["z"] == 10.0,
+              "Vector3 returns read all three components")
+    check(len(blips_frames) == 1,
+          "an unchanged census is not re-sent (%d frames)" % len(blips_frames))
+    check(acks.get(1, {}).get("ok") is True, "route_blip on a listed blip -> ok")
+    check(acks.get(2, {}).get("ok") is False
+          and acks.get(2, {}).get("err") == "blip not in the last scan",
+          "route_blip on an unlisted id is refused")
+    check(1 in seen and seen[1]["waypoint"].get("blip") == 301,
+          "state reports the waypoint as active, ours, on blip 301")
+    check("[mock] waypoint set at (300, 400)" in err,
+          "SET_NEW_WAYPOINT was called with the blip's x/y")
+    check(2 in seen and seen[2]["waypoint"].get("blip") == 0,
+          "after the player drags it, the waypoint is active but not ours")
+    check("moved by the player" in log, "plugin logged the hand move")
+    check(acks.get(3, {}).get("ok") is True and 3 in seen,
+          "route_clear -> ok and the waypoint goes inactive")
+    check(acks.get(4, {}).get("ok") is True and 4 in seen
+          and seen[4]["waypoint"].get("blip") == 302,
+          "a second route_blip works after the clear")
+    check(acks.get(5, {}).get("ok") is True and "census ver=" in log
+          and "id=301 sprite=78" in log,
+          "blip_census writes the table to the log")
+    check("first census: 3 blip(s)" in log, "first pass logged once")
+
+    check("UNKNOWN NATIVE" not in err and "ARITY MISMATCH" not in err
+          and "without FIRST" not in err and "unknown blip" not in err,
+          "mock saw no unknown native / arity mismatch / bad blip walk")
+    check(rc == 0, "host exited cleanly (rc=%s)" % rc)
+    if failures:
+        print("---- stderr ----\n" + err[-2000:])
+        print("---- ThorBridgeV.log ----\n" + log[-3000:])
+
+
 def simple(scenario, seconds, predicate, what, with_shv=True):
     print("scenario: %s%s" % (scenario, "" if with_shv else " (no Script Hook V)"))
     s = Session(scenario, seconds + 3, with_shv)
@@ -347,6 +435,7 @@ def main():
 
     test_story()
     test_wheel()
+    test_blips()
 
     def states(fr):
         return [f for f in fr if f["type"] == "state"]

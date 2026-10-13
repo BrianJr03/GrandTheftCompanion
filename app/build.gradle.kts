@@ -53,12 +53,16 @@ android {
             resValue("string", "app_name", "GTC Debug")
         }
         release {
-            // Minification is off for now. Hilt + Compose + kotlinx-
-            // serialization need carefully-tuned R8 rules and the first
-            // release should prove signing/plumbing end-to-end before
-            // taking on that risk. Flip on later with the right rules.
-            isMinifyEnabled = false
-            isShrinkResources = false
+            // R8 full-mode shrink + resource shrink. Hilt/Compose/Material3
+            // ship consumer rules, MirrorService is kept via the manifest,
+            // and kotlinx-serialization @Serializable classes (all under
+            // jr.brian.thorhud.model) are covered by proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             resValue("string", "app_name", "GTC")
             if (releaseSigningReady) {
                 signingConfig = signingConfigs.getByName("release")

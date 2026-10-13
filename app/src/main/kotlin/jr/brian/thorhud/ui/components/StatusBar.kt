@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -57,6 +59,17 @@ internal fun StatusBar(
     // toggle when the GitHub Releases API reports a newer version.
     updateAvailable: Boolean = false,
     onOpenUpdate: (() -> Unit)? = null,
+    // Blip-list chip. Opens the map blips panel from any screen that
+    // shows the status bar. [blipsOpen] colours the icon with the
+    // accent while the panel is up.
+    blipsOpen: Boolean = false,
+    onOpenBlips: (() -> Unit)? = null,
+    // Jump-to-map chip, between the pin and the stars. Only shows
+    // when the player is in a vehicle AND the caller supplies
+    // [onScrollToMap]; notice-state callers (where no pager is
+    // visible) leave the handler null so the chip stays hidden.
+    inVehicle: Boolean = false,
+    onScrollToMap: (() -> Unit)? = null,
 ) {
     val mono = FontFamily.Monospace
     Row(
@@ -78,6 +91,33 @@ internal fun StatusBar(
                  fontFamily = mono, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.weight(1f))
+        // Blips chip rides between the title/status cluster and the
+        // wanted stars so it is reachable from any screen that shows
+        // the status bar (both game HUDs, both pager pages). Dimmed
+        // and non-interactive while the connection is dead, stale,
+        // or the game is not loaded in — there would be nothing to
+        // route to anyway.
+        onOpenBlips?.let { onOpen ->
+            BlipsChip(
+                palette = palette,
+                open = blipsOpen,
+                enabled = !isDisconnected && !isStale && inGame,
+                onTap = onOpen,
+            )
+        }
+        // Car chip: appears beside the pin only while the player is
+        // in a vehicle on the HUD tab. Tap scrolls the pager to the
+        // mirror. The slide/fade animation keeps it from popping in
+        // the moment a car is entered.
+        onScrollToMap?.let { onScroll ->
+            AnimatedVisibility(
+                visible = inVehicle,
+                enter = slideInHorizontally(initialOffsetX = { it / 2 }) + fadeIn(),
+                exit = slideOutHorizontally(targetOffsetX = { it / 2 }) + fadeOut(),
+            ) {
+                CarChip(palette = palette, onTap = onScroll)
+            }
+        }
         // Stars only make sense once the player has heat; hide the whole
         // widget below wanted=1 and slide it in from the right edge
         // when the first star lights up.
@@ -114,6 +154,63 @@ internal fun StatusBar(
                 )
             }
         }
+    }
+}
+
+/**
+ * Map-blips chip. Accent while the panel is open, dim grey otherwise.
+ * When [enabled] is false the icon fades further and the tap is a
+ * no-op — nothing to list / route to without a live connection.
+ * Matches [UpdateChip] / [LightsToggle] size so the three sit evenly.
+ */
+@Composable
+private fun BlipsChip(
+    palette: HudPalette,
+    open: Boolean,
+    enabled: Boolean,
+    onTap: () -> Unit,
+) {
+    // Live connection: accent, same as the title. Dead/stale/pre-game:
+    // the dim grey the unlit wanted stars use. ([open] is kept in the
+    // signature in case a future variant wants to tint-differentiate.)
+    val tint = if (enabled) palette.accent else Color(0xFF2A332D)
+    Box(
+        modifier = Modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .clickable(enabled = enabled, onClick = onTap),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Place,
+            contentDescription = stringResource(R.string.map_blips_cd),
+            tint = tint,
+            modifier = Modifier.size(20.dp),
+        )
+    }
+}
+
+/**
+ * Jump-to-map chip. Only drawn (via AnimatedVisibility above) while
+ * the player is in a vehicle, so tapping does the natural thing of
+ * taking the player to the mirror. Accent tint, same size as the
+ * other chips.
+ */
+@Composable
+private fun CarChip(palette: HudPalette, onTap: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .clickable(onClick = onTap),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.DirectionsCar,
+            contentDescription = stringResource(R.string.car_chip_cd),
+            tint = palette.accent,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 

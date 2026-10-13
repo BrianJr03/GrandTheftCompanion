@@ -2,6 +2,9 @@ package jr.brian.thorhud.prefs
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -63,6 +66,34 @@ class HudPrefs @Inject constructor(
             .apply()
     }
 
+    // StateFlow-backed so Compose redraws immediately when the user
+    // flips a switch in the settings sheet. The prefs file is still
+    // the source of truth on next launch.
+
+    private val _autoSwipeOnDrive =
+        MutableStateFlow(prefs.getBoolean(KEY_AUTO_SWIPE_ON_DRIVE, false))
+    val autoSwipeOnDrive: StateFlow<Boolean> = _autoSwipeOnDrive.asStateFlow()
+    fun setAutoSwipeOnDrive(enabled: Boolean) {
+        _autoSwipeOnDrive.value = enabled
+        prefs.edit().putBoolean(KEY_AUTO_SWIPE_ON_DRIVE, enabled).apply()
+    }
+
+    private val _autoStartMirror =
+        MutableStateFlow(prefs.getBoolean(KEY_AUTO_START_MIRROR, false))
+    val autoStartMirror: StateFlow<Boolean> = _autoStartMirror.asStateFlow()
+    fun setAutoStartMirror(enabled: Boolean) {
+        _autoStartMirror.value = enabled
+        prefs.edit().putBoolean(KEY_AUTO_START_MIRROR, enabled).apply()
+    }
+
+    private val _alwaysReturnToHud =
+        MutableStateFlow(prefs.getBoolean(KEY_ALWAYS_RETURN_TO_HUD, false))
+    val alwaysReturnToHud: StateFlow<Boolean> = _alwaysReturnToHud.asStateFlow()
+    fun setAlwaysReturnToHud(enabled: Boolean) {
+        _alwaysReturnToHud.value = enabled
+        prefs.edit().putBoolean(KEY_ALWAYS_RETURN_TO_HUD, enabled).apply()
+    }
+
     private companion object {
         const val FILE = "hud_prefs"
         const val KEY_PAGER_PAGE = "pager_page"
@@ -71,5 +102,8 @@ class HudPrefs @Inject constructor(
         const val KEY_MIRROR_SCALE = "mirror_scale"
         const val KEY_MIRROR_OFFSET_X = "mirror_offset_x"
         const val KEY_MIRROR_OFFSET_Y = "mirror_offset_y"
+        const val KEY_AUTO_SWIPE_ON_DRIVE = "auto_swipe_on_drive"
+        const val KEY_AUTO_START_MIRROR = "auto_start_mirror"
+        const val KEY_ALWAYS_RETURN_TO_HUD = "always_return_to_hud"
     }
 }

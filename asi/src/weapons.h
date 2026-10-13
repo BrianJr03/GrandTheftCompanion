@@ -50,12 +50,18 @@ constexpr uint32_t kWheelHoldMs = 150;
 
 // IS_BUTTON_PRESSED arguments (iv-sdk eButton; FusionFix polls the same
 // pair for its turn indicators).
-constexpr uint32_t kPad      = 0;
-constexpr uint32_t kButtonLB = 4;
+constexpr uint32_t kPad             = 0;
+constexpr uint32_t kButtonLB        = 4;
+constexpr uint32_t kButtonDpadDown  = 9;
 
 // Set p.wheel. Needs p.in_game and p.in_vehicle already filled in. On
 // foot only: in a vehicle LB belongs to the game.
 void read_wheel(uint32_t now_ms, snapshot::Player& p);
+
+// Set p.dpad_down_edge: true for the first frame of a dpad-down hold,
+// false otherwise. Works on foot or in-vehicle (dpad has no stock
+// meaning on either) and does not require p.in_game.
+void read_dpad_down(snapshot::Player& p);
 
 // Fill p.owned_weapons / p.owned_ammo (indexed by game slot) from the
 // last scan, rescanning first if it is due, and set p.owned_valid.

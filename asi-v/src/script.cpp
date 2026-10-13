@@ -10,10 +10,11 @@
 //   * GTA Online session -> publish {online} and touch nothing else.
 //   * No player ped / loading screen -> publish {in_game=false}.
 //   * Otherwise read character, stats, special ability, weapon,
-//     vehicle, radio and the weapon-wheel control, publish, then run
-//     queued client commands.
+//     vehicle, radio, the weapon-wheel control and the map waypoint,
+//     publish, then run queued client commands.
 //   * Owned weapons (~1 Hz) and the radio station list (~0.2 Hz) are
-//     scanned on a slower clock and published as versioned lists.
+//     scanned on a slower clock and published as versioned lists; the
+//     map blips are walked a slice per tick (blips.cpp).
 //
 // What happens while the game is paused is deliberately not assumed:
 // if the fiber keeps ticking, `paused` comes from IS_PAUSE_MENU_ACTIVE;
@@ -28,6 +29,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "blips.h"
 #include "commands.h"
 #include "joaat.h"
 #include "log.h"
@@ -204,6 +206,17 @@ void read_radio(snapshot::State& s) {
              shv::call<const char*>(natives::GET_PLAYER_RADIO_STATION_NAME));
 }
 
+// Dpad-down toggle disabled on GTA V: no control id gives a stable
+// physical-dpad-DOWN press across on-foot and in-vehicle contexts.
+// INPUT_CELLPHONE_DOWN (174) is clean on-foot but aliases to dpad-
+// LEFT in a vehicle (radio-prev); INPUT_SCRIPT_PAD_* is consumed by
+// the game before any script sees it. The V companion uses the pin
+// icon in the status bar instead. The IV plugin still ships the
+// feature because IS_BUTTON_PRESSED(0, 9) is context-stable on IV.
+void read_dpad_down(snapshot::State& s) {
+    s.dpad_down_edge = false;
+}
+
 // Weapon-wheel control. Needs the session flags and in_vehicle already
 // filled in. On foot only for now: commands:: refuses set_weapon in a
 // vehicle, so showing a wheel there would only offer taps that fail.
@@ -312,6 +325,8 @@ void tick() {
     read_vehicle(s, ped);
     read_radio(s);
     read_wheel(s, now);
+    read_dpad_down(s);
+    blips::tick(ped, s);
 
     // A character switch swaps the whole loadout; rescan immediately
     // rather than showing the previous character's weapons for a second.

@@ -154,4 +154,30 @@
 
     <string name="radio_off">apagada</string>
     <string name="radio_unknown">emisora %1$d</string>
+
+    <!-- Blip list + settings -->
+    <string name="map_blips_cd">iconos del mapa, tocar para abrir</string>
+    <string name="map_blips_title">iconos del mapa</string>
+    <string name="map_blips_none">sin iconos todavía — requiere el juego cargado y ThorBridgeV 0.3.0+ / ThorBridge en nivel nativos 5</string>
+    <string name="map_blips_count">%1$d iconos, los más cercanos primero</string>
+    <string name="map_blips_route">ruta</string>
+    <string name="map_blips_routed">en ruta</string>
+    <string name="map_blips_clear">borrar ruta</string>
+    <string name="map_blips_log">registrar</string>
+    <string name="map_blips_info">info</string>
+    <string name="map_blips_info_title">Acerca de los iconos</string>
+    <string name="map_blips_info_body">Los nombres aún se están definiendo. Si una fila muestra \"sprite N\" en vez de un nombre legible, pulsa ruta, llega allí y mira qué encuentras. Luego abre un ticket con el número de sprite y lo que era. Se añadirá al próximo build una vez verificado.</string>
+    <string name="map_blips_info_open_issue">Abrir ticket</string>
+    <string name="map_blips_close">cerrar</string>
+    <string name="car_chip_cd">en vehículo, tocar para ir al minimapa</string>
+    <string name="settings_icon_cd">ajustes del compañero</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_auto_swipe_title">Pasar al mapa al conducir</string>
+    <string name="settings_auto_swipe_body">Al subir a un vehículo, la pantalla inferior salta a la pestaña del minimapa. Al bajar, vuelve a la pestaña anterior. El espejo debe estar activo para mostrar algo.</string>
+    <string name="settings_auto_mirror_title">Iniciar el espejo automáticamente</string>
+    <string name="settings_auto_mirror_body">En la pestaña del mapa, lanza el permiso de captura de pantalla en cuanto la conexión esté activa, para no tener que tocar iniciar. Android lo pregunta cada vez que inicia una sesión.</string>
+    <string name="settings_always_return_hud_title">Volver siempre al HUD al bajar</string>
+    <string name="settings_always_return_hud_body">Al bajar de un vehículo, vuelve a la pestaña HUD sin importar la pestaña actual. Anula el comportamiento por defecto (que solo te devuelve si sigues mirando el mapa).</string>
+    <string name="settings_section_minimap">Minimapa</string>
+    <string name="settings_close">Cerrar</string>
 </resources>

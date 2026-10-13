@@ -8,9 +8,10 @@
 //
 // Two things are published:
 //   * State — small, rewritten every frame, sent to clients at 20 Hz.
-//   * Lists — the owned-weapon list and the radio-station list. Both
-//     are bulky and change rarely, so they carry version counters and
-//     the bridge only sends them on connect and when a counter moves.
+//   * Lists — the owned-weapon list, the radio-station list and the
+//     map-blip list. All are bulky and change rarely, so they carry
+//     version counters and the bridge only sends them on connect and
+//     when a counter moves.
 
 namespace snapshot {
 
@@ -18,6 +19,10 @@ constexpr size_t kNameLen     = 48;   // GXT keys / station ids
 constexpr size_t kLabelLen    = 64;   // localised display strings (UTF-8)
 constexpr size_t kMaxWeapons  = 128;
 constexpr size_t kMaxStations = 64;
+// Story mode keeps well under a hundred blips on the map at once
+// (shops, properties, contacts, activities); the scan keeps the
+// nearest ones when there are more.
+constexpr size_t kMaxBlips    = 96;
 
 // Which protagonist the player ped currently is.
 enum Character : int8_t {
@@ -47,6 +52,14 @@ struct State {
     //   so the companion can show its wheel for as long as it is held.
     bool select_held;
     bool wheel;
+
+    // Dpad-down just-pressed this frame (edge-triggered — true for the
+    // one frame right after a press, false otherwise). Companion
+    // toggles its blips panel on each true. Reads
+    // INPUT_CELLPHONE_DOWN which is always bound to the dpad-down
+    // button in GTA V regardless of what the player assigned to the
+    // in-game crouch action.
+    bool dpad_down_edge;
 
     // --- who ---
     int8_t   character;   // Character
@@ -92,6 +105,16 @@ struct State {
     int32_t radio_index;                  // -1 = off
     char    radio_name[kNameLen];         // "RADIO_01_CLASS_ROCK", "" = off
 
+    // --- map waypoint ---
+    // waypoint_active: IS_WAYPOINT_ACTIVE, whoever placed it.
+    // waypoint_ours: it sits where the last route_blip command put it,
+    //   so the companion may move or clear it without stepping on one
+    //   the player placed by hand.
+    // route_blip: the blip id that command targeted, 0 = none.
+    bool    waypoint_active;
+    bool    waypoint_ours;
+    int32_t route_blip;
+
     uint64_t ts_ms;                       // GetTickCount64 at publish
 };
 
@@ -107,6 +130,19 @@ struct Station {
     char label[kLabelLen];  // localised ("Los Santos Rock Radio"), may be ""
 };
 
+// One map blip as the game reports it. Raw on purpose: which sprites
+// are mission starts is settled on-device from this census, so nothing
+// here interprets them.
+struct Blip {
+    int32_t id;        // blip handle; valid while the blip exists
+    int32_t sprite;    // GET_BLIP_SPRITE (radar_* index)
+    int32_t colour;    // GET_BLIP_COLOUR
+    int32_t type;      // GET_BLIP_INFO_ID_TYPE
+    int32_t display;   // GET_BLIP_INFO_ID_DISPLAY
+    float   x, y, z;
+    float   dist_m;    // from the player ped at scan time
+};
+
 struct Lists {
     uint32_t weapons_ver;   // bumped whenever weapons[] content changes
     uint32_t n_weapons;
@@ -115,6 +151,10 @@ struct Lists {
     uint32_t stations_ver;  // bumped whenever stations[] content changes
     uint32_t n_stations;
     Station  stations[kMaxStations];
+
+    uint32_t blips_ver;     // bumped whenever blips[] content changes
+    uint32_t n_blips;
+    Blip     blips[kMaxBlips];
 };
 
 // Call once before any other function (startup worker).
@@ -126,16 +166,23 @@ void publish(const State& s);
 // content actually differs from what is already published.
 void publish_weapons(const Weapon* list, uint32_t n);
 void publish_stations(const Station* list, uint32_t n);
+void publish_blips(const Blip* list, uint32_t n);
 
 // Reader side. read() returns the ts_ms of the sample (0 = nothing
 // published yet). read_lists() copies both lists out.
 uint64_t read(State& out);
 void read_lists(Lists& out);
-// Cheap version peek so the bridge can skip copying ~15 KB at 20 Hz.
-void list_versions(uint32_t* weapons_ver, uint32_t* stations_ver);
+// Cheap version peek so the bridge can skip copying ~20 KB at 20 Hz.
+void list_versions(uint32_t* weapons_ver, uint32_t* stations_ver,
+                   uint32_t* blips_ver);
 
 // Station id for a published index, copied into `out`. False if out of
 // range. Used by commands:: to turn a client's index into a name.
 bool station_name(uint32_t index, char* out, size_t cap);
+
+// The published blip with handle `id`, copied into `out`. False if the
+// last scan did not see it. Used by commands:: so a client can only
+// route to a blip it was told about.
+bool blip_by_id(int32_t id, Blip* out);
 
 }  // namespace snapshot

@@ -154,4 +154,30 @@
 
     <string name="radio_off">aus</string>
     <string name="radio_unknown">Sender %1$d</string>
+
+    <!-- Blip list + settings -->
+    <string name="map_blips_cd">Karten-Icons, zum Öffnen tippen</string>
+    <string name="map_blips_title">Karten-Icons</string>
+    <string name="map_blips_none">noch keine Icons — benötigt geladenes Spiel und ThorBridgeV 0.3.0+ / ThorBridge auf Natives-Level 5</string>
+    <string name="map_blips_count">%1$d Icons, nächste zuerst</string>
+    <string name="map_blips_route">Route</string>
+    <string name="map_blips_routed">unterwegs</string>
+    <string name="map_blips_clear">Route löschen</string>
+    <string name="map_blips_log">protokollieren</string>
+    <string name="map_blips_info">Info</string>
+    <string name="map_blips_info_title">Über die Icons</string>
+    <string name="map_blips_info_body">Die Namen sind in Arbeit. Zeigt eine Zeile \"sprite N\" statt eines lesbaren Namens, tippe auf Route, fahre dorthin und schau, was dort ist. Dann öffne ein Ticket mit der Sprite-Nummer und was es war. Nach der Prüfung wird es im nächsten Build ergänzt.</string>
+    <string name="map_blips_info_open_issue">Ticket öffnen</string>
+    <string name="map_blips_close">schließen</string>
+    <string name="car_chip_cd">im Fahrzeug, tippen zur Minikarte</string>
+    <string name="settings_icon_cd">Companion-Einstellungen</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_auto_swipe_title">Beim Fahren zur Karte wechseln</string>
+    <string name="settings_auto_swipe_body">Beim Einsteigen springt der untere Bildschirm zur Minikarten-Registerkarte. Beim Aussteigen kehrt er zur vorherigen Registerkarte zurück. Der Spiegel muss laufen, um etwas anzuzeigen.</string>
+    <string name="settings_auto_mirror_title">Spiegel automatisch starten</string>
+    <string name="settings_auto_mirror_body">Startet auf der Kartenregisterkarte die Bildschirmaufnahme-Berechtigung, sobald die Verbindung aktiv ist, damit du nicht auf Start tippen musst. Android fragt bei jeder neuen Sitzung erneut.</string>
+    <string name="settings_always_return_hud_title">Beim Aussteigen immer zum HUD zurück</string>
+    <string name="settings_always_return_hud_body">Beim Aussteigen aus einem Fahrzeug zurück zur HUD-Registerkarte, egal welche gerade offen ist. Überschreibt das Standardverhalten (das dich nur zurückholt, wenn du noch auf der Karte bist).</string>
+    <string name="settings_section_minimap">Minikarte</string>
+    <string name="settings_close">Schließen</string>
 </resources>

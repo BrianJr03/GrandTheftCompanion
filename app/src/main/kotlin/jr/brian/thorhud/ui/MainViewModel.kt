@@ -49,6 +49,12 @@ class MainViewModel @Inject constructor(
     val stations: StateFlow<List<GameState.Station>> = repository.stations
     val weapons: StateFlow<List<GameState.VWeapon>> = repository.weapons
 
+    // One event per dpad-down press the plugin reports. SharedFlow so
+    // each press reaches a collector in order — the equivalent read via
+    // state.dpadDown misses presses whose single-frame true value gets
+    // conflated by the StateFlow.
+    val dpadDownPressed = repository.dpadDownPressed
+
     // Red/blue thumbstick lights while wanted: the user's switch, and
     // whether the commands have anywhere to go.
     val policeLightsEnabled: StateFlow<Boolean> = settings.policeLightsEnabled
@@ -65,6 +71,23 @@ class MainViewModel @Inject constructor(
     var hasSeenSwipeHint: Boolean
         get() = prefs.hasSeenSwipeHint
         set(value) { prefs.hasSeenSwipeHint = value }
+
+    // Settings sheet toggles. Backed by HudPrefs StateFlows so Compose
+    // sees every flip and the choice survives process death.
+    val autoSwipeOnDrive: StateFlow<Boolean> = prefs.autoSwipeOnDrive
+    val autoStartMirror: StateFlow<Boolean> = prefs.autoStartMirror
+    val alwaysReturnToHud: StateFlow<Boolean> = prefs.alwaysReturnToHud
+    fun setAutoSwipeOnDrive(enabled: Boolean) = prefs.setAutoSwipeOnDrive(enabled)
+    fun setAutoStartMirror(enabled: Boolean) = prefs.setAutoStartMirror(enabled)
+    fun setAlwaysReturnToHud(enabled: Boolean) = prefs.setAlwaysReturnToHud(enabled)
+
+    // Blips-panel visibility, hoisted to the ViewModel so a hardware
+    // key (dpad-down on the Thor) can toggle it from HudActivity's
+    // dispatchKeyEvent before Compose even sees the event.
+    private val _showBlips = MutableStateFlow(false)
+    val showBlips: StateFlow<Boolean> = _showBlips.asStateFlow()
+    fun toggleBlips() { _showBlips.value = !_showBlips.value }
+    fun setBlips(open: Boolean) { _showBlips.value = open }
 
     fun setRadio(stationIndex: Int) {
         viewModelScope.launch { repository.setRadio(stationIndex) }

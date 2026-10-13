@@ -1,8 +1,11 @@
 package jr.brian.thorhud.net
 
 import jr.brian.thorhud.model.GameState
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,6 +20,8 @@ import javax.inject.Singleton
  *  [ack]   — latest `ack` frame received for a client->server command.
  *  [stations] / [weapons] — GTA V only: latest radio-station list and
  *            owned-weapon list. Empty for GTA IV.
+ *  [blips] — both games: the map's blips, nearest first, from the
+ *            plugin's last census. Empty until the plugin sends one.
  *  [lastUpdateMs] — wall clock of the last frame; the UI compares against
  *                   System.currentTimeMillis() to decide "stale."
  */
@@ -43,8 +48,19 @@ class GameStateRepository @Inject constructor(
     private val _weapons = MutableStateFlow<List<GameState.VWeapon>>(emptyList())
     val weapons: StateFlow<List<GameState.VWeapon>> = _weapons.asStateFlow()
 
+    private val _blips = MutableStateFlow<List<GameState.Blip>>(emptyList())
+    val blips: StateFlow<List<GameState.Blip>> = _blips.asStateFlow()
+
     private val _lastUpdateMs = MutableStateFlow(0L)
     val lastUpdateMs: StateFlow<Long> = _lastUpdateMs.asStateFlow()
+
+    // Dpad-down presses, one event per state frame that carries
+    // dpad_down=true. SharedFlow (not StateFlow) so the one-frame-wide
+    // edge is never conflated with the surrounding false frames —
+    // every press reaches a collector in order, even if it fires
+    // between recomposition reads.
+    private val _dpadDownPressed = MutableSharedFlow<Unit>(extraBufferCapacity = 16)
+    val dpadDownPressed: SharedFlow<Unit> = _dpadDownPressed.asSharedFlow()
 
     /** Latest connection-level error for the setup screen. */
     val lastError: StateFlow<String?> = client.lastError
@@ -62,6 +78,7 @@ class GameStateRepository @Inject constructor(
             _state.value = null
             _stations.value = emptyList()
             _weapons.value = emptyList()
+            _blips.value = emptyList()
             _ack.value = null
             _last.value = GameState.WAITING
             _lastUpdateMs.value = 0L
@@ -69,10 +86,19 @@ class GameStateRepository @Inject constructor(
             return
         }
         if (frame.isHello) _hello.value = frame
-        if (frame.isState) _state.value = frame
+        if (frame.isState) {
+            _state.value = frame
+            // Fire the dpad-press event here, not off a Compose
+            // observer: the plugin only publishes dpad_down=true for
+            // one state frame per press, and a StateFlow conflates
+            // transient values. SharedFlow guarantees every true
+            // reaches the collector.
+            if (frame.dpadDown) _dpadDownPressed.tryEmit(Unit)
+        }
         if (frame.isAck) _ack.value = frame
         if (frame.isStations) _stations.value = frame.stations
         if (frame.isWeapons) _weapons.value = frame.weapons
+        if (frame.isBlips) _blips.value = frame.blips
         _last.value = frame
         _lastUpdateMs.value = System.currentTimeMillis()
     }
@@ -82,4 +108,12 @@ class GameStateRepository @Inject constructor(
     suspend fun setWeapon(weapon: Long): Int? = client.send("set_weapon", weapon)
     suspend fun setRadio(stationIndex: Int): Int? =
         client.send("set_radio", stationIndex.toLong())
+
+    /** Point the game's route at a blip from [blips]: GTA V sets the
+     *  map waypoint on it, GTA IV turns its GPS route on. */
+    suspend fun routeBlip(blipId: Int): Int? = client.send("route_blip", blipId.toLong())
+    /** Undo [routeBlip]: remove the waypoint / turn the route off. */
+    suspend fun routeClear(): Int? = client.send("route_clear", 0L)
+    /** Ask the plugin to write its blip census to its log file. */
+    suspend fun blipCensus(): Int? = client.send("blip_census", 0L)
 }

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -50,17 +51,17 @@ internal enum class HudPage(@StringRes val labelRes: Int) {
 }
 
 @Composable
+internal fun rememberHudPagerState(initialPage: Int) = rememberPagerState(
+    initialPage = initialPage.coerceIn(0, HudPage.entries.lastIndex),
+) { HudPage.entries.size }
+
+@Composable
 internal fun HudPager(
-    initialPage: Int,
+    pagerState: PagerState,
     onPageSettled: (Int) -> Unit,
     hud: @Composable () -> Unit,
     map: @Composable () -> Unit,
 ) {
-    val pages = HudPage.entries
-    val pagerState = rememberPagerState(
-        initialPage = initialPage.coerceIn(0, pages.lastIndex),
-    ) { pages.size }
-
     // settledPage only changes once a swipe has come to rest, so a
     // half-finished drag is never saved. drop(1) skips the initial
     // emission (the restored value, not a settle).
@@ -78,7 +79,7 @@ internal fun HudPager(
             .background(Color.Black)
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top)),
     ) { page ->
-        when (pages[page]) {
+        when (HudPage.entries[page]) {
             HudPage.Hud -> hud()
             HudPage.Map -> map()
         }

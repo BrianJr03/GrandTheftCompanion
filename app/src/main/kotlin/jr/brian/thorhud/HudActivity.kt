@@ -1,9 +1,11 @@
 package jr.brian.thorhud
 
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -16,6 +18,7 @@ import jr.brian.thorhud.mirror.ScreenMirror
 import jr.brian.thorhud.net.GameStateClient
 import jr.brian.thorhud.net.GameStateRepository
 import jr.brian.thorhud.ui.MainScreen
+import jr.brian.thorhud.ui.MainViewModel
 import jr.brian.thorhud.ui.theme.GtcTheme
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -37,6 +40,11 @@ class HudActivity : ComponentActivity() {
     @Inject lateinit var repository: GameStateRepository
     @Inject lateinit var policeLights: PoliceLightsController
     @Inject lateinit var mirror: ScreenMirror
+
+    // Same instance Compose gets via hiltViewModel(); exposes
+    // toggleBlips() so dpad-down can open/close the blips panel
+    // without the companion needing input focus.
+    private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +74,20 @@ class HudActivity : ComponentActivity() {
         // is really going away.
         if (isFinishing) mirror.stop()
         super.onDestroy()
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Dpad-down on the Thor's physical gamepad toggles the blips
+        // panel. One edge per press (ignore repeats and the up event)
+        // so holding dpad-down does not thrash open/close.
+        if (event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN &&
+            event.action == KeyEvent.ACTION_DOWN &&
+            event.repeatCount == 0
+        ) {
+            mainViewModel.toggleBlips()
+            return true
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {

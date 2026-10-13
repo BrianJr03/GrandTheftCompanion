@@ -154,4 +154,30 @@
 
     <string name="radio_off">выкл.</string>
     <string name="radio_unknown">станция %1$d</string>
+
+    <!-- Blip list + settings -->
+    <string name="map_blips_cd">иконки карты, нажмите, чтобы открыть</string>
+    <string name="map_blips_title">иконки карты</string>
+    <string name="map_blips_none">иконок пока нет — требуется загруженная игра и ThorBridgeV 0.3.0+ / ThorBridge на уровне нативов 5</string>
+    <string name="map_blips_count">%1$d иконок, сначала ближайшие</string>
+    <string name="map_blips_route">маршрут</string>
+    <string name="map_blips_routed">в маршруте</string>
+    <string name="map_blips_clear">сбросить маршрут</string>
+    <string name="map_blips_log">записать</string>
+    <string name="map_blips_info">инфо</string>
+    <string name="map_blips_info_title">Об иконках карты</string>
+    <string name="map_blips_info_body">Названия ещё дорабатываются. Если строка показывает \"sprite N\" вместо читаемого имени, нажмите \"маршрут\", доедьте и посмотрите, что это. Затем откройте тикет с номером спрайта и названием. После проверки добавится в следующую сборку.</string>
+    <string name="map_blips_info_open_issue">Открыть тикет</string>
+    <string name="map_blips_close">закрыть</string>
+    <string name="car_chip_cd">в транспорте, нажмите, чтобы перейти к миникарте</string>
+    <string name="settings_icon_cd">настройки компаньона</string>
+    <string name="settings_title">Настройки</string>
+    <string name="settings_auto_swipe_title">Переходить к карте при вождении</string>
+    <string name="settings_auto_swipe_body">При посадке в транспорт нижний экран переключается на вкладку миникарты. При выходе возвращается на предыдущую вкладку. Для отображения нужен запущенный зеркал.</string>
+    <string name="settings_auto_mirror_title">Запускать зеркало автоматически</string>
+    <string name="settings_auto_mirror_body">На вкладке карты запрашивает разрешение на захват экрана, как только соединение активно, чтобы не нажимать «Старт». Android всё равно спрашивает в каждой новой сессии.</string>
+    <string name="settings_always_return_hud_title">Всегда возвращаться к HUD при выходе</string>
+    <string name="settings_always_return_hud_body">При выходе из транспорта возвращаться к вкладке HUD независимо от текущей вкладки. Переопределяет поведение по умолчанию (которое возвращает только если вы остались на карте).</string>
+    <string name="settings_section_minimap">Миникарта</string>
+    <string name="settings_close">Закрыть</string>
 </resources>

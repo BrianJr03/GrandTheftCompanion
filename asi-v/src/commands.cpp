@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "blips.h"
 #include "commands.h"
 #include "log.h"
 #include "natives.h"
@@ -239,6 +240,18 @@ void drain(int32_t /*player*/, int32_t ped, const snapshot::State& s) {
             do_set_radio(c, s);
         } else if (std::strcmp(c.name, "set_weapon") == 0) {
             do_set_weapon(c, ped, s);
+        } else if (std::strcmp(c.name, "route_blip") == 0) {
+            char err[kMaxErrLen] = {0};
+            const bool ok = blips::route_to(static_cast<int32_t>(c.arg0),
+                                            err, sizeof(err));
+            if (!ok) thor_log("[cmd] route_blip %u -> %s", c.arg0, err);
+            post_ack(c.client, c.id, ok, err);
+        } else if (std::strcmp(c.name, "route_clear") == 0) {
+            blips::route_clear();
+            post_ack(c.client, c.id, true, "");
+        } else if (std::strcmp(c.name, "blip_census") == 0) {
+            blips::log_census();
+            post_ack(c.client, c.id, true, "");
         } else {
             char err[kMaxErrLen];
             std::snprintf(err, sizeof(err), "unknown command: %.20s", c.name);

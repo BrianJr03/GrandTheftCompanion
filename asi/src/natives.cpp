@@ -205,7 +205,10 @@ bool debug_read_pause(bool* user_paused, bool* script_paused) {
 // 32-entry array is faster than a hash probe.
 namespace {
 struct CacheEntry { uint32_t hash; natives::Handler fn; };
-CacheEntry g_cache[32] = {};
+// Every distinct native the plugin calls needs a slot; lookup() answers
+// nullptr (and the native silently never runs) once this is full. Level
+// 5 brought the count past 32.
+CacheEntry g_cache[64] = {};
 unsigned   g_cache_count = 0;
 }  // namespace
 

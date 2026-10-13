@@ -5,11 +5,15 @@ import android.util.Size
 import android.view.Surface
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import androidx.lifecycle.viewModelScope
 import jr.brian.thorhud.mirror.ScreenMirror
+import jr.brian.thorhud.model.GameState
+import jr.brian.thorhud.net.GameStateRepository
 import jr.brian.thorhud.prefs.HudPrefs
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** User's pinch/drag transform over the preset mirror crop, per game. */
@@ -23,9 +27,29 @@ data class MirrorTransform(
 class MapViewModel @Inject constructor(
     private val mirror: ScreenMirror,
     private val prefs: HudPrefs,
+    private val repository: GameStateRepository,
 ) : ViewModel() {
     val status: StateFlow<ScreenMirror.Status> = mirror.status
     val captureSize: StateFlow<Size?> = mirror.captureSize
+
+    // ---- map blips / route ----
+    /** The plugin's blip census, nearest first; empty until it sends one. */
+    val blips: StateFlow<List<GameState.Blip>> = repository.blips
+    /** Latest state frame, for which blip is routed (see
+     *  [GameState.routedBlipId]). */
+    val state: StateFlow<GameState?> = repository.state
+
+    // Fire-and-forget like setRadio: the state frame is the feedback
+    // (the routed blip lights up), and the plugin logs any refusal.
+    fun routeBlip(id: Int) {
+        viewModelScope.launch { repository.routeBlip(id) }
+    }
+    fun routeClear() {
+        viewModelScope.launch { repository.routeClear() }
+    }
+    fun blipCensus() {
+        viewModelScope.launch { repository.blipCensus() }
+    }
 
     private val _transforms = MutableStateFlow(
         mapOf(

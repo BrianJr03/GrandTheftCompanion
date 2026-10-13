@@ -59,6 +59,12 @@ void enqueue(const Cmd& c);
 //              build scans owned weapons (p.owned_valid) the player
 //              must be carrying it.
 //   set_radio  arg0 = station index.
+//   route_blip arg0 = blip id from the published blip list. Turns the
+//              game's GPS route on for that blip (SET_ROUTE), off for
+//              the one routed before. Natives level 5; refused for an
+//              id the last census did not list.
+//   route_clear no arg. Turns the route off.
+//   blip_census no arg. Writes the last census to the log.
 void drain(uint32_t ped_handle, const snapshot::Player& p);
 
 }  // namespace commands

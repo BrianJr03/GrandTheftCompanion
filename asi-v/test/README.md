@@ -15,14 +15,19 @@ Scenarios (`MOCK_SCENARIO`): `story` (Michael on foot → in a car → switch
 to Franklin), `online`, `loading`, `other` (non-protagonist ped), `stall`
 (game stops resuming the script fiber), `wheel` (on foot; the weapon-wheel
 control is held for 2.5 s, and after release the mock re-selects the weapon
-that was in hand when the wheel opened). The test also runs once with no
+that was in hand when the wheel opened), `blips` (on foot; three blips on
+the map, and at 4 s the mock player drags the waypoint by hand). Every
+scenario has the same three map blips. The test also runs once with no
 `ScriptHookV.dll` present to check safe mode.
 
 **What this proves:** export binding, native argument/return marshalling
-(the mock aborts on an unknown native or a wrong argument count), JSON
-framing and escaping, list versioning, command round-trips, stall
-detection, and that a weapon picked while the wheel control is held is
-deferred to release and survives the mock's own re-selection.
+(the mock aborts on an unknown native or a wrong argument count; Vector3
+returns are three padded slots), JSON framing and escaping, list
+versioning, command round-trips, stall detection, that a weapon picked
+while the wheel control is held is deferred to release and survives the
+mock's own re-selection, and that the blip census lists the map nearest
+first, `route_blip` sets the waypoint on a blip's coordinates, a waypoint
+the player moves stops being "ours", and `route_clear` removes it.
 
 **What it cannot prove:** anything about the real game or the real
 Script Hook V — whether it loads under Wine on the device, what the
