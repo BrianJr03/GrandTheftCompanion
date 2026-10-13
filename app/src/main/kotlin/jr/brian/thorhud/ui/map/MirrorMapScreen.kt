@@ -9,16 +9,25 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -77,6 +86,8 @@ internal fun MirrorMapScreen(
     game: MirrorGame,
     accent: Color,
     onRequestConsent: () -> Unit,
+    onOpenBlips: (() -> Unit)? = null,
+    controlsRight: Boolean = false,
     viewModel: MapViewModel = hiltViewModel(),
 ) {
     val status by viewModel.status.collectAsStateWithLifecycle()
@@ -119,105 +130,16 @@ internal fun MirrorMapScreen(
         }
         when {
             status == ScreenMirror.Status.Active && size != null -> {
-                val baseCrop = minimapCropFor(game)
-                val userT = transforms[game] ?: MirrorTransform()
-                val crop = baseCrop.applyTransform(userT)
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        val description = stringResource(R.string.map_view_cd)
-                        val shape = if (game == MirrorGame.IV) CircleShape
-                                    else RoundedCornerShape(10.dp)
-                        val gestureModifier = if (isLocked) {
-                            Modifier
-                        } else {
-                            Modifier.pointerInput(game) {
-                                detectTransformGestures { _, pan, zoom, _ ->
-                                    val current = viewModel.transformFor(game)
-                                    val newScale = (current.scale * zoom).coerceIn(0.3f, 5f)
-                                    // Convert pan from view px to source frac.
-                                    // Drag RIGHT (positive pan.x) should move the
-                                    // mirrored content RIGHT — i.e. shift the crop
-                                    // window LEFT.
-                                    val viewW = this.size.width.toFloat()
-                                    val viewH = this.size.height.toFloat()
-                                    val cropW = (baseCrop.right - baseCrop.left) / newScale
-                                    val cropH = (baseCrop.bottom - baseCrop.top) / newScale
-                                    val dOffX = if (viewW > 0f) -pan.x / viewW * cropW else 0f
-                                    val dOffY = if (viewH > 0f) -pan.y / viewH * cropH else 0f
-                                    viewModel.updateTransform(
-                                        game,
-                                        MirrorTransform(
-                                            scale = newScale,
-                                            offsetX = current.offsetX + dOffX,
-                                            offsetY = current.offsetY + dOffY,
-                                        ),
-                                    )
-                                }
-                            }
-                        }
-                        // GTA V's rectangular mirror sits in a wide 16:9-ish
-                        // box; cap it smaller than the available space.
-                        // IV's circular view uses the full box.
-                        val sizeModifier = if (game == MirrorGame.IV) {
-                            Modifier
-                        } else {
-                            Modifier.fillMaxSize(0.70f)
-                        }
-                        AndroidView(
-                            modifier = sizeModifier
-                                .aspectRatio(crop.aspectRatio(size.width, size.height))
-                                .clip(shape)
-                                .then(gestureModifier)
-                                .semantics { contentDescription = description },
-                            factory = { context ->
-                                MirrorTextureView(context).apply {
-                                    this.captureSize = size
-                                    onSurfaceReady = viewModel::attach
-                                    onSurfaceGone = viewModel::detach
-                                }
-                            },
-                            update = { view ->
-                                view.setCrop(crop.left, crop.top, crop.right, crop.bottom)
-                            },
-                        )
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        MapButton(
-                            label = stringResource(
-                                if (isLocked) R.string.map_unlock else R.string.map_lock,
-                            ),
-                            highlighted = !isLocked,
-                            accent = accent,
-                            onClick = { viewModel.toggleLock() },
-                        )
-                        MapButton(
-                            label = stringResource(R.string.map_reset),
-                            highlighted = false,
-                            accent = accent,
-                            onClick = { viewModel.resetTransform(game) },
-                        )
-                        Spacer(Modifier.weight(1f))
-                        MapButton(
-                            label = stringResource(R.string.map_stop),
-                            highlighted = false,
-                            accent = accent,
-                            onClick = { viewModel.stop() },
-                        )
-                    }
-                }
+                MirrorMapLayout(
+                    game = game,
+                    accent = accent,
+                    isLocked = isLocked,
+                    userTransform = transforms[game] ?: MirrorTransform(),
+                    captureSize = size,
+                    onOpenBlips = onOpenBlips,
+                    controlsRight = controlsRight,
+                    viewModel = viewModel,
+                )
             }
 
             status == ScreenMirror.Status.Idle -> {
@@ -286,6 +208,178 @@ private fun MapButton(
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp,
             maxLines = 1,
+        )
+    }
+}
+
+/**
+ * Active-mirror layout for both games: an icon column (lock, reset,
+ * blips, stop) on one side and the mirror centred horizontally and
+ * vertically in the remaining space, with 16dp breathing room on the
+ * far side so the map doesn't sit flush against the panel edge.
+ * [controlsRight] flips the column from the left to the right side;
+ * the mirror padding mirrors with it so the gap stays consistent.
+ */
+@Composable
+private fun MirrorMapLayout(
+    game: MirrorGame,
+    accent: Color,
+    isLocked: Boolean,
+    userTransform: MirrorTransform,
+    captureSize: android.util.Size,
+    onOpenBlips: (() -> Unit)?,
+    controlsRight: Boolean,
+    viewModel: MapViewModel,
+) {
+    val baseCrop = minimapCropFor(game)
+    val crop = baseCrop.applyTransform(userTransform)
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (!controlsRight) {
+            MapControlsColumn(
+                game = game,
+                accent = accent,
+                isLocked = isLocked,
+                onOpenBlips = onOpenBlips,
+                viewModel = viewModel,
+            )
+        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .padding(
+                    start = if (controlsRight) 16.dp else 0.dp,
+                    end = if (controlsRight) 0.dp else 16.dp,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            val description = stringResource(R.string.map_view_cd)
+            val shape = if (game == MirrorGame.IV) CircleShape
+                        else RoundedCornerShape(10.dp)
+            val gestureModifier = if (isLocked) {
+                Modifier
+            } else {
+                Modifier.pointerInput(game) {
+                    detectTransformGestures { _, pan, zoom, _ ->
+                        val current = viewModel.transformFor(game)
+                        val newScale = (current.scale * zoom).coerceIn(0.3f, 5f)
+                        // Convert pan from view px to source frac. Drag
+                        // RIGHT (positive pan.x) should move the mirrored
+                        // content RIGHT, i.e. shift the crop window LEFT.
+                        val viewW = this.size.width.toFloat()
+                        val viewH = this.size.height.toFloat()
+                        val cropW = (baseCrop.right - baseCrop.left) / newScale
+                        val cropH = (baseCrop.bottom - baseCrop.top) / newScale
+                        val dOffX = if (viewW > 0f) -pan.x / viewW * cropW else 0f
+                        val dOffY = if (viewH > 0f) -pan.y / viewH * cropH else 0f
+                        viewModel.updateTransform(
+                            game,
+                            MirrorTransform(
+                                scale = newScale,
+                                offsetX = current.offsetX + dOffX,
+                                offsetY = current.offsetY + dOffY,
+                            ),
+                        )
+                    }
+                }
+            }
+            AndroidView(
+                modifier = Modifier
+                    .aspectRatio(crop.aspectRatio(captureSize.width, captureSize.height))
+                    .clip(shape)
+                    .then(gestureModifier)
+                    .semantics { contentDescription = description },
+                factory = { context ->
+                    MirrorTextureView(context).apply {
+                        this.captureSize = captureSize
+                        onSurfaceReady = viewModel::attach
+                        onSurfaceGone = viewModel::detach
+                    }
+                },
+                update = { view ->
+                    view.setCrop(crop.left, crop.top, crop.right, crop.bottom)
+                },
+            )
+        }
+        if (controlsRight) {
+            MapControlsColumn(
+                game = game,
+                accent = accent,
+                isLocked = isLocked,
+                onOpenBlips = onOpenBlips,
+                viewModel = viewModel,
+            )
+        }
+    }
+}
+
+@Composable
+private fun MapControlsColumn(
+    game: MirrorGame,
+    accent: Color,
+    isLocked: Boolean,
+    onOpenBlips: (() -> Unit)?,
+    viewModel: MapViewModel,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalAlignment = Alignment.Start,
+    ) {
+        MapIconButton(
+            icon = if (isLocked) Icons.Filled.Lock
+                   else Icons.Filled.LockOpen,
+            contentDescription = stringResource(
+                if (isLocked) R.string.map_unlock else R.string.map_lock,
+            ),
+            accent = accent,
+            onClick = { viewModel.toggleLock() },
+        )
+        MapIconButton(
+            icon = Icons.Filled.Refresh,
+            contentDescription = stringResource(R.string.map_reset),
+            accent = accent,
+            onClick = { viewModel.resetTransform(game) },
+        )
+        onOpenBlips?.let { open ->
+            MapIconButton(
+                icon = Icons.Filled.Place,
+                contentDescription = stringResource(R.string.map_blips_cd),
+                accent = accent,
+                onClick = open,
+            )
+        }
+        MapIconButton(
+            icon = Icons.Filled.Stop,
+            contentDescription = stringResource(R.string.map_stop),
+            accent = accent,
+            onClick = { viewModel.stop() },
+        )
+    }
+}
+
+@Composable
+private fun MapIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    accent: Color,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = accent,
+            modifier = Modifier.size(24.dp),
         )
     }
 }

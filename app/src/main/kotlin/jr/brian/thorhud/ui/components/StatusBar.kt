@@ -90,69 +90,79 @@ internal fun StatusBar(
             Text(stringResource(labelRes), color = color,
                  fontFamily = mono, fontWeight = FontWeight.Bold)
         }
+        // Chip cluster sits between two weighted spacers. The trailing
+        // spacer only appears while the wanted stars are visible — that
+        // way chips centre themselves between the title and the stars,
+        // but drift to the right edge when the stars fold away so the
+        // bar never looks half-empty.
         Spacer(Modifier.weight(1f))
-        // Blips chip rides between the title/status cluster and the
-        // wanted stars so it is reachable from any screen that shows
-        // the status bar (both game HUDs, both pager pages). Dimmed
-        // and non-interactive while the connection is dead, stale,
-        // or the game is not loaded in — there would be nothing to
-        // route to anyway.
-        onOpenBlips?.let { onOpen ->
-            BlipsChip(
-                palette = palette,
-                open = blipsOpen,
-                enabled = !isDisconnected && !isStale && inGame,
-                onTap = onOpen,
-            )
-        }
-        // Car chip: appears beside the pin only while the player is
-        // in a vehicle on the HUD tab. Tap scrolls the pager to the
-        // mirror. The slide/fade animation keeps it from popping in
-        // the moment a car is entered.
-        onScrollToMap?.let { onScroll ->
-            AnimatedVisibility(
-                visible = inVehicle,
-                enter = slideInHorizontally(initialOffsetX = { it / 2 }) + fadeIn(),
-                exit = slideOutHorizontally(targetOffsetX = { it / 2 }) + fadeOut(),
-            ) {
-                CarChip(palette = palette, onTap = onScroll)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Blips chip. Dimmed and non-interactive while the connection
+            // is dead, stale, or the game is not loaded in — nothing to
+            // route to anyway.
+            onOpenBlips?.let { onOpen ->
+                BlipsChip(
+                    palette = palette,
+                    open = blipsOpen,
+                    enabled = !isDisconnected && !isStale && inGame,
+                    onTap = onOpen,
+                )
+            }
+            // Update chip is only there when a newer release is out.
+            if (updateAvailable && onOpenUpdate != null) {
+                UpdateChip(palette = palette, onTap = onOpenUpdate)
+            }
+            // Lights toggle rides with the wanted stars: wanted-level 0
+            // is "nothing is happening", so the whole flash feature
+            // folds away. The service's enabled/disabled preference
+            // lives in settings, not here — turning off because the
+            // stars dropped never flips that bit. When the next star
+            // lights up the icon slides back in with whatever colour
+            // the preference says.
+            onToggleLights?.let { onToggle ->
+                AnimatedVisibility(
+                    visible = wantedLevel >= 1,
+                    enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+                    exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+                ) {
+                    LightsToggle(
+                        on = lightsOn,
+                        unavailable = lightsUnavailable,
+                        palette = palette,
+                        onToggle = onToggle,
+                    )
+                }
+            }
+            // Car chip: appears only while the player is in a vehicle
+            // on the HUD tab. Tap scrolls the pager to the mirror. The
+            // slide/fade keeps it from popping in the moment a car is
+            // entered.
+            onScrollToMap?.let { onScroll ->
+                AnimatedVisibility(
+                    visible = inVehicle,
+                    enter = slideInHorizontally(initialOffsetX = { it / 2 }) + fadeIn(),
+                    exit = slideOutHorizontally(targetOffsetX = { it / 2 }) + fadeOut(),
+                ) {
+                    CarChip(palette = palette, onTap = onScroll)
+                }
             }
         }
-        // Stars only make sense once the player has heat; hide the whole
-        // widget below wanted=1 and slide it in from the right edge
-        // when the first star lights up.
+        if (wantedLevel >= 1) {
+            Spacer(Modifier.weight(1f))
+        }
+        // Wanted stars always sit at the far right of the status bar so
+        // the player's eye always lands on them in the same spot. Below
+        // wanted=1 the widget folds away; above it, slides in from the
+        // right edge when the first star lights up.
         AnimatedVisibility(
             visible = wantedLevel >= 1,
             enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
             exit  = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
         ) {
             WantedStars(level = wantedLevel, palette = palette, maxStars = maxStars, rightToLeft = starsRightToLeft)
-        }
-        // Update chip is only there when a newer release is out, so
-        // it fades in beside the lights toggle and doesn't take a
-        // permanent slot in the row.
-        if (updateAvailable && onOpenUpdate != null) {
-            UpdateChip(palette = palette, onTap = onOpenUpdate)
-        }
-        // Lights toggle rides with the wanted stars: wanted-level 0 is
-        // "nothing is happening", so the whole flash feature folds
-        // away. The service's enabled/disabled preference lives in
-        // settings, not here — turning off because the stars dropped
-        // never flips that bit. When the next star lights up the icon
-        // slides back in with whatever colour the preference says.
-        onToggleLights?.let { onToggle ->
-            AnimatedVisibility(
-                visible = wantedLevel >= 1,
-                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
-                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
-            ) {
-                LightsToggle(
-                    on = lightsOn,
-                    unavailable = lightsUnavailable,
-                    palette = palette,
-                    onToggle = onToggle,
-                )
-            }
         }
     }
 }

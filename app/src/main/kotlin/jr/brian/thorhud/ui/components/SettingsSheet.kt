@@ -64,6 +64,8 @@ internal fun SettingsSheet(
     onAutoStartMirrorChange: (Boolean) -> Unit,
     alwaysReturnToHud: Boolean,
     onAlwaysReturnToHudChange: (Boolean) -> Unit,
+    mapControlsRight: Boolean,
+    onMapControlsRightChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val sheet = rememberModalBottomSheetState(
@@ -125,6 +127,14 @@ internal fun SettingsSheet(
                     body = stringResource(R.string.settings_auto_mirror_body),
                     checked = autoStartMirror,
                     onCheckedChange = onAutoStartMirrorChange,
+                    palette = palette,
+                )
+                Spacer(Modifier.height(14.dp))
+                SettingRow(
+                    title = stringResource(R.string.settings_controls_side_title),
+                    body = stringResource(R.string.settings_controls_side_body),
+                    checked = mapControlsRight,
+                    onCheckedChange = onMapControlsRightChange,
                     palette = palette,
                 )
             }

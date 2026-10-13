@@ -77,9 +77,11 @@ class MainViewModel @Inject constructor(
     val autoSwipeOnDrive: StateFlow<Boolean> = prefs.autoSwipeOnDrive
     val autoStartMirror: StateFlow<Boolean> = prefs.autoStartMirror
     val alwaysReturnToHud: StateFlow<Boolean> = prefs.alwaysReturnToHud
+    val mapControlsRight: StateFlow<Boolean> = prefs.mapControlsRight
     fun setAutoSwipeOnDrive(enabled: Boolean) = prefs.setAutoSwipeOnDrive(enabled)
     fun setAutoStartMirror(enabled: Boolean) = prefs.setAutoStartMirror(enabled)
     fun setAlwaysReturnToHud(enabled: Boolean) = prefs.setAlwaysReturnToHud(enabled)
+    fun setMapControlsRight(enabled: Boolean) = prefs.setMapControlsRight(enabled)
 
     // Blips-panel visibility, hoisted to the ViewModel so a hardware
     // key (dpad-down on the Thor) can toggle it from HudActivity's

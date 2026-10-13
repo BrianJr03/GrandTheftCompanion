@@ -178,6 +178,8 @@
     <string name="settings_auto_mirror_body">Nella scheda mappa, avvia la richiesta di cattura schermo appena la connessione è attiva, per non dover toccare avvia. Android chiede comunque a ogni nuova sessione.</string>
     <string name="settings_always_return_hud_title">Torna sempre all\'HUD quando scendi</string>
     <string name="settings_always_return_hud_body">Quando scendi da un veicolo, torna alla scheda HUD indipendentemente dalla scheda attuale. Sostituisce il comportamento predefinito (che ti riporta indietro solo se sei ancora sulla mappa).</string>
+    <string name="settings_controls_side_title">Comandi mappa a destra</string>
+    <string name="settings_controls_side_body">Sposta le icone blocca, azzera, spilla e stop a destra dello specchio. L\'impostazione predefinita le mette a sinistra. La mappa resta centrata e mantiene lo stesso margine sul lato libero.</string>
     <string name="settings_section_minimap">Minimappa</string>
     <string name="settings_close">Chiudi</string>
 </resources>

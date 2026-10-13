@@ -32,10 +32,15 @@ class PoliceLightsTest {
     fun noFlashWhileTheGameIsNotBeingPlayed() {
         val wanted = playing(wanted = 3)
         assertEquals(0, PoliceLights.wantedLevel(wanted.copy(inGame = false)))
-        assertEquals(0, PoliceLights.wantedLevel(wanted.copy(paused = true)))
         assertEquals(0, PoliceLights.wantedLevel(wanted.copy(stalled = true)))
         assertEquals(0, PoliceLights.wantedLevel(wanted.copy(online = true)))
         assertEquals(0, PoliceLights.wantedLevel(wanted.copy(switching = true)))
+    }
+
+    @Test
+    fun pausePreservesWantedLightsBecauseTheHeatPersists() {
+        val wanted = playing(wanted = 3)
+        assertEquals(3, PoliceLights.wantedLevel(wanted.copy(paused = true)))
     }
 
     @Test

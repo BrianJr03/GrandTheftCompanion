@@ -228,11 +228,16 @@ Opens two ways: tap the on-foot weapon card, or **hold LB / L1** on the pad. Rel
 
 ### MiniMap View
 
-<p align="center">
-  <img src="assets/map-iv.png" alt="GTA IV minimap mirrored on the Thor's bottom screen, clipped to a circle" width="420"/>
-  <br/>
-  <em>GTA IV</em>
-</p>
+<table align="center">
+  <tr>
+    <td align="center"><img src="assets/map-iv.png" alt="GTA IV minimap mirrored on the Thor's bottom screen, clipped to a circle" width="400"/></td>
+    <td align="center"><img src="assets/map-v.png" alt="GTA V minimap mirrored on the Thor's bottom screen, rectangular crop" width="400"/></td>
+  </tr>
+  <tr>
+    <td align="center"><em>GTA IV</em></td>
+    <td align="center"><em>GTA V</em></td>
+  </tr>
+</table>
 
 Once connected, the bottom screen is a two-page pager. Swipe between the HUD and the **map** page. A one-time **Tip** dialog on first connect points this out. Each game (IV and V) remembers which page it was on independently.
 
@@ -245,11 +250,16 @@ The map page mirrors the game's own minimap from the top screen and enlarges it,
 
 ### Blips View
 
-<p align="center">
-  <img src="assets/blips-v.png" alt="GTA V blips panel: 52 blips grouped by name, nearest first, each with a route button" width="420"/>
-  &nbsp;
-  <img src="assets/blips-iv.png" alt="GTA IV blips panel: 22 blips with the TBoGT magenta accent, Helitour routed" width="420"/>
-</p>
+<table align="center">
+  <tr>
+    <td align="center"><img src="assets/blips-iv.png" alt="GTA IV blips panel: 22 blips with the TBoGT magenta accent, Helitour routed" width="400"/></td>
+    <td align="center"><img src="assets/blips-v.png" alt="GTA V blips panel: 52 blips grouped by name, nearest first, each with a route button" width="400"/></td>
+  </tr>
+  <tr>
+    <td align="center"><em>GTA IV</em></td>
+    <td align="center"><em>GTA V</em></td>
+  </tr>
+</table>
 
 Every icon on the game's own map, nearest first, grouped by name, with a one-tap **route** button per icon. Opens the game's own GPS to that destination without having to pause and move a map cursor. Works on both games.
 

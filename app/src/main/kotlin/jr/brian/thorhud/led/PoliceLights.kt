@@ -45,12 +45,13 @@ internal object PoliceLights {
     /**
      * The wanted level to flash for, or 0 when the sticks should be
      * left alone: not in the world, no stars, or the game is not
-     * actually being played right now (pause menu, loading, GTA Online,
-     * a character switch).
+     * actually being played right now (loading, GTA Online, a character
+     * switch). Pausing is deliberate and keeps the heat on the player's
+     * head, so the lights stay lit through the pause menu.
      */
     fun wantedLevel(state: GameState?): Int {
         if (state == null || !state.inGame) return 0
-        if (state.paused || state.stalled || state.online || state.switching) return 0
+        if (state.stalled || state.online || state.switching) return 0
         return (state.wanted ?: 0).coerceAtLeast(0)
     }
 

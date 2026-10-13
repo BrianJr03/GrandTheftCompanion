@@ -178,6 +178,8 @@
     <string name="settings_auto_mirror_body">En la pestaña del mapa, lanza el permiso de captura de pantalla en cuanto la conexión esté activa, para no tener que tocar iniciar. Android lo pregunta cada vez que inicia una sesión.</string>
     <string name="settings_always_return_hud_title">Volver siempre al HUD al bajar</string>
     <string name="settings_always_return_hud_body">Al bajar de un vehículo, vuelve a la pestaña HUD sin importar la pestaña actual. Anula el comportamiento por defecto (que solo te devuelve si sigues mirando el mapa).</string>
+    <string name="settings_controls_side_title">Controles del mapa a la derecha</string>
+    <string name="settings_controls_side_body">Mueve los iconos de bloquear, restablecer, chincheta y parar a la derecha del espejo. Por defecto están a la izquierda. El mapa sigue centrado y mantiene el mismo margen en el lado libre.</string>
     <string name="settings_section_minimap">Minimapa</string>
     <string name="settings_close">Cerrar</string>
 </resources>

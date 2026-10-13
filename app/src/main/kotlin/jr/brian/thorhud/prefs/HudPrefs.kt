@@ -94,6 +94,14 @@ class HudPrefs @Inject constructor(
         prefs.edit().putBoolean(KEY_ALWAYS_RETURN_TO_HUD, enabled).apply()
     }
 
+    private val _mapControlsRight =
+        MutableStateFlow(prefs.getBoolean(KEY_MAP_CONTROLS_RIGHT, false))
+    val mapControlsRight: StateFlow<Boolean> = _mapControlsRight.asStateFlow()
+    fun setMapControlsRight(enabled: Boolean) {
+        _mapControlsRight.value = enabled
+        prefs.edit().putBoolean(KEY_MAP_CONTROLS_RIGHT, enabled).apply()
+    }
+
     private companion object {
         const val FILE = "hud_prefs"
         const val KEY_PAGER_PAGE = "pager_page"
@@ -105,5 +113,6 @@ class HudPrefs @Inject constructor(
         const val KEY_AUTO_SWIPE_ON_DRIVE = "auto_swipe_on_drive"
         const val KEY_AUTO_START_MIRROR = "auto_start_mirror"
         const val KEY_ALWAYS_RETURN_TO_HUD = "always_return_to_hud"
+        const val KEY_MAP_CONTROLS_RIGHT = "map_controls_right"
     }
 }

@@ -199,6 +199,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     val autoSwipeOnDrive by viewModel.autoSwipeOnDrive.collectAsStateWithLifecycle()
     val autoStartMirror by viewModel.autoStartMirror.collectAsStateWithLifecycle()
     val alwaysReturnToHud by viewModel.alwaysReturnToHud.collectAsStateWithLifecycle()
+    val mapControlsRight by viewModel.mapControlsRight.collectAsStateWithLifecycle()
 
     // Hoisted mirror-consent launcher so both MirrorMapScreen's
     // "start mirroring" button and the auto-start-when-connected
@@ -384,6 +385,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     game = if (isGtaV) MirrorGame.V else MirrorGame.IV,
                                     accent = accent,
                                     onRequestConsent = requestMirrorConsent,
+                                    onOpenBlips = toggleBlips,
+                                    controlsRight = mapControlsRight,
                                 )
                             },
                         )
@@ -433,6 +436,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 onAutoStartMirrorChange = viewModel::setAutoStartMirror,
                 alwaysReturnToHud = alwaysReturnToHud,
                 onAlwaysReturnToHudChange = viewModel::setAlwaysReturnToHud,
+                mapControlsRight = mapControlsRight,
+                onMapControlsRightChange = viewModel::setMapControlsRight,
                 onDismiss = { showSettings = false },
             )
         }

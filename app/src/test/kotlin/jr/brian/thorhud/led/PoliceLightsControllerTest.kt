@@ -170,18 +170,14 @@ class PoliceLightsControllerTest {
     }
 
     @Test
-    fun pausingStopsTheLightsAndUnpausingBringsThemBack() = runTest {
+    fun pauseKeepsTheLightsFlashingBecauseTheHeatPersists() = runTest {
         state.value = wanted(2)
         val lights = startGame()
         advance(1_000)
+        val shownBeforePause = lights.shows.size
 
         state.value = wanted(2, paused = true)
         advance(5_000)
-        assertTrue(!lights.lit)
-        val shownBeforePause = lights.shows.size
-
-        state.value = wanted(2)
-        advance(1_000)
         assertTrue(lights.lit)
         assertTrue(lights.shows.size > shownBeforePause)
     }
