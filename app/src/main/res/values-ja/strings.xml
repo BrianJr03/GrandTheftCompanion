@@ -59,8 +59,8 @@
 
     <!-- Setup screen -->
     <string name="setup_title">GTC: 未接続</string>
-    <string name="setup_subtitle">127.0.0.1:47801 で ThorBridge.asi を待機中。</string>
-    <string name="setup_section">セットアップチェックリスト</string>
+    <string name="setup_subtitle">GTA IV と GTA V に対応。インストールしたプラグインを 127.0.0.1:47801 で待機します。</string>
+    <string name="setup_section">gta iv セットアップ</string>
 
     <string name="setup_step2_title">Winlator 系ランチャー（環境変数を設定）</string>
     <string name="setup_step2_detail">GameHub Lite、Winlator / Winlator Cmod、または GameNative。ゲームごとの環境変数に WINEDLLOVERRIDES=dinput8=n,b を追加してください。</string>

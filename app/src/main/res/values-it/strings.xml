@@ -59,8 +59,8 @@
 
     <!-- Setup screen -->
     <string name="setup_title">GTC: NON CONNESSO</string>
-    <string name="setup_subtitle">In attesa di ThorBridge.asi su 127.0.0.1:47801.</string>
-    <string name="setup_section">checklist di configurazione</string>
+    <string name="setup_subtitle">Compatibile con GTA IV e GTA V. Il compagno ascolta su 127.0.0.1:47801 il plugin che installi.</string>
+    <string name="setup_section">configurazione gta iv</string>
 
     <string name="setup_step2_title">Launcher della famiglia Winlator con variabili d\'ambiente</string>
     <string name="setup_step2_detail">GameHub Lite, Winlator / Winlator Cmod o GameNative. Aggiungi WINEDLLOVERRIDES=dinput8=n,b nelle variabili d\'ambiente del gioco.</string>

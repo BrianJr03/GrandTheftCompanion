@@ -83,8 +83,8 @@
     <string name="v_notice_unsupported_detail">ThorBridgeV.asi loaded, but Script Hook V is not usable:\n%1$s\n\nInstall the Script Hook V release that matches your game build next to GTA5.exe, then relaunch.</string>
     <string name="v_notice_unsupported_unknown">no reason reported</string>
 
-    <!-- Setup screen: GTA V note under the GTA IV checklist -->
-    <string name="setup_v_section">playing gta v instead?</string>
+    <!-- Setup screen: GTA V sibling section to the GTA IV checklist -->
+    <string name="setup_v_section">gta v setup</string>
     <string name="setup_v_title">ThorBridgeV.asi + Script Hook V</string>
-    <string name="setup_v_detail">Story mode only. Put ThorBridgeV.asi next to GTA5.exe together with Script Hook V (ScriptHookV.dll + its dinput8.dll), keep WINEDLLOVERRIDES=dinput8=n,b, and load a save. The HUD switches to the GTA V layout by itself.</string>
+    <string name="setup_v_detail">Story mode only. Same Winlator-family launcher and WINEDLLOVERRIDES=dinput8=n,b as GTA IV. Put ThorBridgeV.asi next to GTA5.exe together with Script Hook V (ScriptHookV.dll + its dinput8.dll), then load a save. The HUD picks the right layout for the game that connects.</string>
 </resources>

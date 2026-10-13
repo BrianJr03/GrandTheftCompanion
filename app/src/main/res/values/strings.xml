@@ -105,8 +105,8 @@
 
     <!-- Setup screen -->
     <string name="setup_title">GTC: NOT CONNECTED</string>
-    <string name="setup_subtitle">Expecting ThorBridge.asi on 127.0.0.1:47801.</string>
-    <string name="setup_section">setup checklist</string>
+    <string name="setup_subtitle">Works with GTA IV and GTA V. The companion listens on 127.0.0.1:47801 for whichever plugin you install.</string>
+    <string name="setup_section">gta iv setup</string>
 
     <string name="setup_step1_title" translatable="false">GTA IV: Complete Edition 1.2.0.59</string>
     <string name="setup_step1_detail">The ASI pattern-scans this exact build. Other versions won\'t light up the HUD.</string>

@@ -59,8 +59,8 @@
 
     <!-- Setup screen -->
     <string name="setup_title">GTC: НЕ ПОДКЛЮЧЕНО</string>
-    <string name="setup_subtitle">Ожидается ThorBridge.asi на 127.0.0.1:47801.</string>
-    <string name="setup_section">список настройки</string>
+    <string name="setup_subtitle">Работает с GTA IV и GTA V. Компаньон слушает на 127.0.0.1:47801 установленный плагин.</string>
+    <string name="setup_section">настройка gta iv</string>
 
     <string name="setup_step2_title">Лаунчер семейства Winlator с переменными окружения</string>
     <string name="setup_step2_detail">GameHub Lite, Winlator / Winlator Cmod или GameNative. Добавьте WINEDLLOVERRIDES=dinput8=n,b в переменные окружения для игры.</string>
