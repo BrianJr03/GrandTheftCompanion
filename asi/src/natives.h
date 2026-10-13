@@ -44,6 +44,24 @@ enum : uint32_t {
     RETUNE_RADIO_TO_STATION_INDEX       = 0x48ED6432,
     GET_CURRENT_EPISODE                 = 0x7D7619D2,  // 0=IV, 1=TLAD, 2=TBoGT
     IS_BUTTON_PRESSED                   = 0x7FF21081,  // bool (padIndex, button)
+
+    // Map blips and the GPS route (natives level 5). Signatures from
+    // FusionFix natives.ixx; see blip_natives.h. Unlike GTA V, IV's
+    // FIRST/NEXT walk is keyed by blip *type* (car, char, coord,
+    // contact, pickup...), not by sprite, and there is no native that
+    // sets the player's waypoint: SET_ROUTE draws the GPS line to an
+    // existing blip instead.
+    GET_FIRST_BLIP_INFO_ID              = 0x3BD729E9,  // Blip (uint type)
+    GET_NEXT_BLIP_INFO_ID               = 0x154932F0,  // Blip (uint type)
+    DOES_BLIP_EXIST                     = 0x590A6FF4,  // bool (Blip)
+    GET_BLIP_COORDS                     = 0x4C1E75DB,  // void (Blip, Vector3* out)
+    GET_BLIP_SPRITE                     = 0x30B1316B,  // uint (Blip)
+    GET_BLIP_INFO_ID_DISPLAY            = 0x1B731C3F,  // uint (Blip)
+    GET_BLIP_INFO_ID_TYPE               = 0x6A9E5CE5,  // uint (Blip)
+    GET_BLIP_COLOUR                     = 0x59B425DA,  // void (Blip, uint* colour)
+    GET_CHAR_COORDINATES                = 0x2B5C06E6,  // void (Ped, float* x, float* y, float* z)
+    GET_MISSION_FLAG                    = 0x2BC64736,  // bool ()
+    SET_ROUTE                           = 0x7B8D68E7,  // void (Blip, bool on)
 };
 
 // rage::scrNativeCallContext layout, per FusionFix (source/natives.ixx).

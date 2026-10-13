@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <cstring>
 
+#include "blips.h"
 #include "commands.h"
 #include "hook.h"
 #include "log.h"
@@ -85,7 +86,8 @@ constexpr unsigned kStableFramesRequired = 15;  // ~0.25s at 60fps
 // to isolate any further misbehavior.
 #ifndef THORBRIDGE_NATIVES_LEVEL
 #define THORBRIDGE_NATIVES_LEVEL 1  // 1=stats, 2=stats+weapon, 3=full HUD,
-                                    // 4=3+weapon wheel (owned scan, LB)
+                                    // 4=3+weapon wheel (owned scan, LB),
+                                    // 5=4+map blip census, GPS route
 #endif
 
 // Last episode value from a successful on_frame read. We echo it on
@@ -308,6 +310,17 @@ void on_frame() {
     weapons::read_wheel(static_cast<uint32_t>(p.ts_ms), p);
     weapons::read_owned(ped_handle, static_cast<uint32_t>(p.ts_ms), p);
 #endif  // THORBRIDGE_NATIVES_LEVEL >= 4
+
+#if THORBRIDGE_NATIVES_LEVEL >= 5
+    // Map blips (census every 2 s) and the GPS route. New native
+    // chains on the game thread are what crashed earlier rounds, so
+    // this stays behind its own level until it has survived a device.
+    if (blips::read(ped_handle, static_cast<uint32_t>(p.ts_ms), p)) {
+        uint32_t n = 0;
+        const snapshot::Blip* list = blips::list(&n);
+        snapshot::publish_blips(list, n);
+    }
+#endif  // THORBRIDGE_NATIVES_LEVEL >= 5
 
     snapshot::publish(p);
 

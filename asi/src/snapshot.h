@@ -47,6 +47,11 @@ struct Player {
     // show its weapon wheel. Natives level 4 only.
     bool wheel;
 
+    // --- map / route (natives level 5 only) ---
+    bool    mission;       // GET_MISSION_FLAG: a mission script is running
+    int32_t route_blip;    // blip the GPS route was last pointed at by
+                           // route_blip, 0 = none (see blips.h)
+
     // --- vehicle (meaningful iff in_vehicle) ---
     uint32_t vehicle_model;    // GET_CAR_MODEL
     char vehicle_name[32];     // GET_DISPLAY_NAME_FROM_VEHICLE_MODEL
@@ -82,5 +87,33 @@ uint64_t read(Player& out);
 // True once publish() has been called at least once with in_game=true,
 // i.e. we've actually seen a loaded save.
 bool has_ever_been_in_game();
+
+// --- map blips (natives level 5) ---
+// One map blip as the game reports it, nearest first. Raw: which
+// sprites are mission starts is settled on-device from this census.
+struct Blip {
+    int32_t id;        // blip handle; valid while the blip exists
+    int32_t sprite;    // GET_BLIP_SPRITE
+    int32_t colour;    // GET_BLIP_COLOUR
+    int32_t type;      // GET_BLIP_INFO_ID_TYPE (the FIRST/NEXT walk key)
+    int32_t display;   // GET_BLIP_INFO_ID_DISPLAY
+    float   x, y, z;
+    float   dist_m;    // from the player ped at scan time
+};
+
+constexpr uint32_t kMaxBlips = 64;
+
+struct Blips {
+    uint32_t ver;      // bumped whenever the list content changes
+    uint32_t n;
+    Blip     list[kMaxBlips];
+};
+
+// Writer (game thread): replace the list; bumps ver only on change.
+void publish_blips(const Blip* list, uint32_t n);
+// Reader: copy the list out. Version peek so the bridge can skip the
+// copy at 20 Hz.
+void read_blips(Blips& out);
+uint32_t blips_version();
 
 }  // namespace snapshot

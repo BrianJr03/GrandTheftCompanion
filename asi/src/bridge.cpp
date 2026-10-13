@@ -98,7 +98,8 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         "\"owned\":%s,"
         "\"vehicle\":{\"model\":%u,\"name\":\"%s\","
         "\"speed_mps\":%.2f,\"engine_hp\":%.1f},"
-        "\"radio\":%d,\"episode\":%u}\n",
+        "\"radio\":%d,\"episode\":%u,"
+        "\"mission\":%s,\"route_blip\":%d}\n",
         static_cast<unsigned long long>(p.ts_ms),
         p.in_game ? "true" : "false",
         p.in_vehicle ? "true" : "false",
@@ -115,7 +116,34 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         p.vehicle_model, veh_name,
         static_cast<double>(p.vehicle_speed_mps),
         static_cast<double>(p.vehicle_engine_hp),
-        p.radio_station, p.episode);
+        p.radio_station, p.episode,
+        p.mission ? "true" : "false", p.route_blip);
+}
+
+// Raw census of the map's blips, nearest first (natives level 5; an
+// empty list otherwise). Sprite / colour / type / display are the
+// game's own enums, uninterpreted: the first on-device runs of this
+// frame are how the mission-start sprites get identified.
+int format_blips(char* buf, size_t cap, const snapshot::Blips& bl) {
+    size_t w = 0;
+    int n = std::snprintf(buf, cap,
+        "{\"v\":1,\"type\":\"blips\",\"ver\":%u,\"blips\":[", bl.ver);
+    if (n < 0 || static_cast<size_t>(n) >= cap) return -1;
+    w = static_cast<size_t>(n);
+    for (uint32_t i = 0; i < bl.n; ++i) {
+        const snapshot::Blip& b = bl.list[i];
+        n = std::snprintf(buf + w, cap - w,
+            "%s{\"id\":%d,\"sprite\":%d,\"colour\":%d,\"type\":%d,"
+            "\"display\":%d,\"x\":%.1f,\"y\":%.1f,\"z\":%.1f,\"dist_m\":%.0f}",
+            i ? "," : "", b.id, b.sprite, b.colour, b.type, b.display,
+            static_cast<double>(b.x), static_cast<double>(b.y),
+            static_cast<double>(b.z), static_cast<double>(b.dist_m));
+        if (n < 0 || w + static_cast<size_t>(n) + 3 >= cap) return -1;
+        w += static_cast<size_t>(n);
+    }
+    n = std::snprintf(buf + w, cap - w, "]}\n");
+    if (n < 0 || w + static_cast<size_t>(n) >= cap) return -1;
+    return static_cast<int>(w + static_cast<size_t>(n));
 }
 
 int format_ack(char* buf, size_t cap, const commands::Ack& a) {
@@ -240,6 +268,13 @@ DWORD WINAPI serve_client(LPVOID arg) {
         thor_log("[bridge] hello send failed");
     }
 
+    // The blip list is too big for the stack-sized frame buffer (64
+    // entries at ~130 bytes); one heap block per connection.
+    constexpr size_t kBlipBufCap = 12 * 1024;
+    char* blip_buf = static_cast<char*>(std::malloc(kBlipBufCap));
+    auto* blips = static_cast<snapshot::Blips*>(std::malloc(sizeof(snapshot::Blips)));
+    uint32_t sent_blips_ver = 0;
+
     for (;;) {
         // 1. Flush any pending acks first — snappier perceived latency
         //    than letting them wait for the next 50ms state frame.
@@ -251,7 +286,19 @@ DWORD WINAPI serve_client(LPVOID arg) {
             wrote_ack = true;
         }
 
-        // 2. State or tick frame.
+        // 2. Blip list, only when the census changed since we sent it.
+        if (blip_buf && blips && snapshot::blips_version() != sent_blips_ver) {
+            snapshot::read_blips(*blips);
+            n = format_blips(blip_buf, kBlipBufCap, *blips);
+            if (n <= 0) {
+                thor_log("[bridge] blips frame overflow");
+            } else if (!send_all(sock, blip_buf, n)) {
+                goto done;
+            }
+            sent_blips_ver = blips->ver;
+        }
+
+        // 3. State or tick frame.
         snapshot::Player p{};
         uint64_t snap_ts = snapshot::read(p);
         if (snap_ts != 0) {
@@ -282,6 +329,8 @@ done:
     closesocket(sock);
     WaitForSingleObject(reader, 2000);
     CloseHandle(reader);
+    std::free(blips);
+    std::free(blip_buf);
     return 0;
 }
 

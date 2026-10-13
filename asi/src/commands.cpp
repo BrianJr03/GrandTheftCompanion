@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "blips.h"
 #include "commands.h"
 #include "log.h"
 #include "natives.h"
@@ -159,6 +160,34 @@ void drain(uint32_t ped_handle, const snapshot::Player& p) {
             }
             thor_log("[cmd] set_radio station=%u -> ok", c.arg0);
             post_ok_ack(c.id, c.ack_queue);
+
+        } else if (std::strcmp(c.name, "route_blip") == 0) {
+#if THORBRIDGE_NATIVES_LEVEL >= 5
+            if (const char* why = blips::route_to(static_cast<int32_t>(c.arg0))) {
+                thor_log("[cmd] route_blip %u -> %s", c.arg0, why);
+                post_err_ack(c.id, c.ack_queue, why);
+                continue;
+            }
+            post_ok_ack(c.id, c.ack_queue);
+#else
+            post_err_ack(c.id, c.ack_queue, "route_blip: not in this build");
+#endif
+
+        } else if (std::strcmp(c.name, "route_clear") == 0) {
+#if THORBRIDGE_NATIVES_LEVEL >= 5
+            blips::route_clear();
+            post_ok_ack(c.id, c.ack_queue);
+#else
+            post_err_ack(c.id, c.ack_queue, "route_clear: not in this build");
+#endif
+
+        } else if (std::strcmp(c.name, "blip_census") == 0) {
+#if THORBRIDGE_NATIVES_LEVEL >= 5
+            blips::log_census();
+            post_ok_ack(c.id, c.ack_queue);
+#else
+            post_err_ack(c.id, c.ack_queue, "blip_census: not in this build");
+#endif
 
         } else {
             char err[kMaxErrLen];
