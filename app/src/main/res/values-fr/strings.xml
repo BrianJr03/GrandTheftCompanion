@@ -178,6 +178,7 @@
     <string name="settings_auto_mirror_body">Sur l\'onglet carte, lance l\'autorisation de capture d\'écran dès que la connexion est active, pour éviter d\'appuyer sur démarrer. Android redemande à chaque nouvelle session.</string>
     <string name="settings_always_return_hud_title">Toujours revenir au HUD en descendant</string>
     <string name="settings_always_return_hud_body">Quand vous descendez d\'un véhicule, retour à l\'onglet HUD quel que soit l\'onglet actuel. Remplace le comportement par défaut (qui ne vous ramène que si vous êtes resté sur la carte).</string>
+    <string name="map_driving_to">direction</string>
     <string name="settings_controls_side_title">Commandes de la carte à droite</string>
     <string name="settings_controls_side_body">Déplace les icônes verrouiller, réinitialiser, épingler et arrêter à droite du miroir. Par défaut, elles sont à gauche. La carte reste centrée et garde la même marge sur le côté libre.</string>
     <string name="settings_section_minimap">Minicarte</string>

@@ -178,6 +178,7 @@
     <string name="settings_auto_mirror_body">マップタブで接続が有効になると、画面キャプチャ許可プロンプトを自動的に表示し、スタートをタップする手間を省きます。Android は新しいセッションごとに毎回確認します。</string>
     <string name="settings_always_return_hud_title">降車時は常に HUD に戻る</string>
     <string name="settings_always_return_hud_body">車から降りた際、現在のタブに関係なく HUD タブに戻ります。既定の動作（マップを表示している時のみ戻る）を上書きします。</string>
+    <string name="map_driving_to">目的地</string>
     <string name="settings_controls_side_title">マップ操作を右に配置</string>
     <string name="settings_controls_side_body">ロック・リセット・ピン・停止のアイコンをマップの右側に移動します。既定は左側です。マップは中央のまま、空いた側に同じ余白が残ります。</string>
     <string name="settings_section_minimap">ミニマップ</string>

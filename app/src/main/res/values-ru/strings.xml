@@ -178,6 +178,7 @@
     <string name="settings_auto_mirror_body">На вкладке карты запрашивает разрешение на захват экрана, как только соединение активно, чтобы не нажимать «Старт». Android всё равно спрашивает в каждой новой сессии.</string>
     <string name="settings_always_return_hud_title">Всегда возвращаться к HUD при выходе</string>
     <string name="settings_always_return_hud_body">При выходе из транспорта возвращаться к вкладке HUD независимо от текущей вкладки. Переопределяет поведение по умолчанию (которое возвращает только если вы остались на карте).</string>
+    <string name="map_driving_to">маршрут</string>
     <string name="settings_controls_side_title">Элементы карты справа</string>
     <string name="settings_controls_side_body">Переносит значки блокировки, сброса, метки и остановки справа от зеркала. По умолчанию они слева. Карта остаётся по центру и сохраняет такой же отступ со свободной стороны.</string>
     <string name="settings_section_minimap">Миникарта</string>

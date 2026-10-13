@@ -39,12 +39,21 @@ class MapViewModel @Inject constructor(
      *  [GameState.routedBlipId]). */
     val state: StateFlow<GameState?> = repository.state
 
+    // The companion-level selection: whichever blip the user last
+    // chose from the panel. Drives the map's "driving to <name>"
+    // overlay immediately on tap, without waiting for the plugin to
+    // echo a route_blip ack back through the state frame.
+    private val _selectedRouteId = MutableStateFlow<Int?>(null)
+    val selectedRouteId: StateFlow<Int?> = _selectedRouteId.asStateFlow()
+
     // Fire-and-forget like setRadio: the state frame is the feedback
     // (the routed blip lights up), and the plugin logs any refusal.
     fun routeBlip(id: Int) {
+        _selectedRouteId.value = id
         viewModelScope.launch { repository.routeBlip(id) }
     }
     fun routeClear() {
+        _selectedRouteId.value = null
         viewModelScope.launch { repository.routeClear() }
     }
     fun blipCensus() {

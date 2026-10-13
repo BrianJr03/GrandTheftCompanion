@@ -88,6 +88,12 @@ internal fun MirrorMapScreen(
     onRequestConsent: () -> Unit,
     onOpenBlips: (() -> Unit)? = null,
     controlsRight: Boolean = false,
+    // In-vehicle gates the speedometer (bottom-right). Routed label
+    // paired with inVehicle gates the "driving to <name>" overlay
+    // (bottom-left). routeName is null when nothing is routed.
+    inVehicle: Boolean = false,
+    routeName: String? = null,
+    speedMps: Float = 0f,
     viewModel: MapViewModel = hiltViewModel(),
 ) {
     val status by viewModel.status.collectAsStateWithLifecycle()
@@ -125,6 +131,53 @@ internal fun MirrorMapScreen(
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
                     fontSize = 11.sp,
+                )
+            }
+        }
+        // "driving to <name>" rides the bottom-left corner, only while
+        // the player is in a vehicle AND the companion knows about a
+        // routed destination. Dim label above the accent-tinted name.
+        if (status == ScreenMirror.Status.Active && size != null &&
+            inVehicle && routeName != null) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(bottom = 2.dp, start = 2.dp),
+                horizontalAlignment = Alignment.Start,
+            ) {
+                Text(
+                    text = stringResource(R.string.map_driving_to),
+                    color = Color(0xFF6A7A6E),
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                )
+                Text(
+                    text = routeName,
+                    color = accent,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                )
+            }
+        }
+        // Speedometer rides the bottom-right, visible whenever the
+        // player is in a vehicle. Converts m/s → integer mph to match
+        // the HUD's vehicle panel.
+        if (status == ScreenMirror.Status.Active && size != null && inVehicle) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 2.dp, end = 2.dp),
+                horizontalAlignment = Alignment.End,
+            ) {
+                val mph = (speedMps * 2.237f).toInt()
+                Text(
+                    text = stringResource(R.string.mph_value, mph),
+                    color = accent,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
                 )
             }
         }

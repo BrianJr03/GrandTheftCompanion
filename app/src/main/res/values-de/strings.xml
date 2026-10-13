@@ -178,6 +178,7 @@
     <string name="settings_auto_mirror_body">Startet auf der Kartenregisterkarte die Bildschirmaufnahme-Berechtigung, sobald die Verbindung aktiv ist, damit du nicht auf Start tippen musst. Android fragt bei jeder neuen Sitzung erneut.</string>
     <string name="settings_always_return_hud_title">Beim Aussteigen immer zum HUD zurück</string>
     <string name="settings_always_return_hud_body">Beim Aussteigen aus einem Fahrzeug zurück zur HUD-Registerkarte, egal welche gerade offen ist. Überschreibt das Standardverhalten (das dich nur zurückholt, wenn du noch auf der Karte bist).</string>
+    <string name="map_driving_to">Fahrt nach</string>
     <string name="settings_controls_side_title">Kartenbedienung rechts</string>
     <string name="settings_controls_side_body">Verschiebt die Symbole Sperren, Zurücksetzen, Pin und Stopp auf die rechte Seite des Spiegels. Standard ist links. Die Karte bleibt zentriert und behält auf der freien Seite denselben Abstand.</string>
     <string name="settings_section_minimap">Minikarte</string>

@@ -59,6 +59,8 @@ import jr.brian.thorhud.ui.map.MapViewModel
 import jr.brian.thorhud.ui.map.MirrorGame
 import jr.brian.thorhud.ui.map.MirrorMapScreen
 import jr.brian.thorhud.ui.map.blipGroups
+import jr.brian.thorhud.ui.map.blipLabel
+import jr.brian.thorhud.ui.map.titleCase
 import jr.brian.thorhud.ui.v.VMainScreen
 import jr.brian.thorhud.ui.v.VWeaponWheelOverlay
 import jr.brian.thorhud.ui.v.rememberVWheelMemory
@@ -381,12 +383,34 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                 }
                             },
                             map = {
+                                // Drive "driving to <name>" off the user's
+                                // own tap in the blips panel, not the
+                                // plugin's routeBlip echo. Blips come in
+                                // their own frame (mapViewModel.blips);
+                                // the per-frame liveState.blips field is
+                                // empty outside the "blips" frame type.
+                                val selectedRouteId by mapViewModel.selectedRouteId
+                                    .collectAsStateWithLifecycle()
+                                val knownBlips by mapViewModel.blips
+                                    .collectAsStateWithLifecycle()
+                                // titleCase matches how the blips panel
+                                // itself renders the name (first letter
+                                // of each word up, existing uppercase
+                                // preserved), so "APC" and "Ammu-Nation"
+                                // stay as-is.
+                                val routeName = selectedRouteId?.let { id ->
+                                    knownBlips.firstOrNull { it.id == id }
+                                        ?.let { blipLabel(isGtaV, it.sprite, it.colour).name.titleCase() }
+                                }
                                 MirrorMapScreen(
                                     game = if (isGtaV) MirrorGame.V else MirrorGame.IV,
                                     accent = accent,
                                     onRequestConsent = requestMirrorConsent,
                                     onOpenBlips = toggleBlips,
                                     controlsRight = mapControlsRight,
+                                    inVehicle = inVehicleNow,
+                                    routeName = routeName,
+                                    speedMps = liveState?.vehicle?.speedMps ?: 0f,
                                 )
                             },
                         )
