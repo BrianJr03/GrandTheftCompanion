@@ -208,9 +208,9 @@ void test_census() {
           "coordinates carried through");
     check(n == 4 && l[0].dist_m > 50.9f && l[0].dist_m < 51.1f,
           "distance is 3-D from the player");
-    check(g_first_calls == static_cast<int>(blips::kMaxType) + 1,
-          "one FIRST per type 0..kMaxType");
-    check((g_types_walked & 0x3Fu) == 0x3Fu, "types 0..5 were walked");
+    check(g_first_calls == static_cast<int>(blips::kMaxSprite),
+          "one FIRST per sprite 0..kMaxSprite-1");
+    check((g_types_walked & 0x3Fu) == 0x3Fu, "sprites 0..5 were walked");
     // Per type with k blips: k-1 NEXTs to reach the rest, one more to
     // hit the 0 that ends the walk.
     check(g_next_calls == 4, "NEXT called k times for a type with k blips");

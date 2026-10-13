@@ -44,8 +44,8 @@ void scan(uint32_t ped) {
     float px = 0.0f, py = 0.0f, pz = 0.0f;
     game::get_char_coordinates(ped, &px, &py, &pz);
     g_n = 0;
-    for (uint32_t type = 0; type <= blips::kMaxType; ++type) {
-        int32_t id = game::get_first_blip_info_id(type);
+    for (uint32_t sprite = 0; sprite < blips::kMaxSprite; ++sprite) {
+        int32_t id = game::get_first_blip_info_id(sprite);
         for (int guard = 0; id != 0 && guard < blips::kWalkGuard; ++guard) {
             if (game::does_blip_exist(id)) {
                 snapshot::Blip b;
@@ -60,7 +60,7 @@ void scan(uint32_t ped) {
                 b.dist_m = std::sqrt(dx * dx + dy * dy + dz * dz);
                 add(b);
             }
-            id = game::get_next_blip_info_id(type);
+            id = game::get_next_blip_info_id(sprite);
         }
     }
     sort_by_distance();

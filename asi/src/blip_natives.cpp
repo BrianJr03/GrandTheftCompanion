@@ -61,16 +61,23 @@ uint32_t get_blip_colour(int32_t blip) {
 }
 
 bool get_blip_coords(int32_t blip, float* x, float* y, float* z) {
-    // rage::Vector3 is 16 bytes, 16-aligned; the native writes x, y, z
-    // into the first three floats.
-    alignas(16) float v[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    // Rockstar's own scripts call `GET_BLIP_COORDS(blip, ref Result)`
+    // where Result is a Vector3 — the SCM compiler splits that into
+    // three float refs, matching GET_CHAR_COORDINATES / GET_OBJECT_
+    // COORDINATES. Passing a Vector3* pointer leaves (0,0,0) across
+    // every blip. Only type-4 (coord) and type-5 (contact) blips have
+    // coords this native can return; types 1/2/3/6 (car/char/object/
+    // pickup) need their own entity-index + coord natives.
+    float ox = 0.0f, oy = 0.0f, oz = 0.0f;
     natives::Context ctx;
     ctx.push(blip);
-    ctx.push(static_cast<void*>(v));
+    ctx.push(&ox);
+    ctx.push(&oy);
+    ctx.push(&oz);
     if (!natives::invoke(natives::GET_BLIP_COORDS, ctx)) return false;
-    *x = v[0];
-    *y = v[1];
-    *z = v[2];
+    *x = ox;
+    *y = oy;
+    *z = oz;
     return true;
 }
 

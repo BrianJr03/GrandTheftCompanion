@@ -24,12 +24,15 @@
 
 namespace blips {
 
-// The FIRST/NEXT walk is keyed by blip type. Known types are 1..8;
-// the walk covers a little past that in case a build has more. A type
-// with no blips costs one native call.
-constexpr uint32_t kMaxType = 12;
+// The FIRST/NEXT walk is keyed by SPRITE id, not blip type. (FusionFix's
+// signature calls the arg `type` but the device census shows otherwise:
+// walking 0..12 only finds sprite 6 (player) and sprite 7 (north) and
+// misses every world icon.) GTAMods documents 0..94 for base IV; the
+// walk covers a bit beyond that for TLAD/TBoGT extras. A sprite with
+// no blips costs one native call per scan.
+constexpr uint32_t kMaxSprite = 128;
 
-// Bound on one type's walk, in case NEXT never answers 0.
+// Bound on one sprite's walk, in case NEXT never answers 0.
 constexpr int kWalkGuard = 256;
 
 // The map changes slowly; one census every two seconds is plenty and
