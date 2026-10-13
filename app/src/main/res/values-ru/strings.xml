@@ -58,7 +58,7 @@
     <string name="model_fallback">модель %1$d</string>
 
     <!-- Setup screen -->
-    <string name="setup_title">GTC: НЕ ПОДКЛЮЧЕНО</string>
+    <string name="setup_title">НЕ ПОДКЛЮЧЕНО</string>
     <string name="setup_subtitle">Работает с GTA IV и GTA V. Компаньон слушает на 127.0.0.1:47801 установленный плагин.</string>
     <string name="setup_section">настройка gta iv</string>
 

@@ -58,7 +58,7 @@
     <string name="model_fallback">モデル %1$d</string>
 
     <!-- Setup screen -->
-    <string name="setup_title">GTC: 未接続</string>
+    <string name="setup_title">未接続</string>
     <string name="setup_subtitle">GTA IV と GTA V に対応。インストールしたプラグインを 127.0.0.1:47801 で待機します。</string>
     <string name="setup_section">gta iv セットアップ</string>
 

@@ -58,7 +58,7 @@
     <string name="model_fallback">Modell %1$d</string>
 
     <!-- Setup screen -->
-    <string name="setup_title">GTC: NICHT VERBUNDEN</string>
+    <string name="setup_title">NICHT VERBUNDEN</string>
     <string name="setup_subtitle">Funktioniert mit GTA IV und GTA V. Der Begleiter hört auf 127.0.0.1:47801 auf das installierte Plugin.</string>
     <string name="setup_section">GTA-IV-Einrichtung</string>
 

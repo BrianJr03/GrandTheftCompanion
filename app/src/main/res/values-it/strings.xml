@@ -58,7 +58,7 @@
     <string name="model_fallback">modello %1$d</string>
 
     <!-- Setup screen -->
-    <string name="setup_title">GTC: NON CONNESSO</string>
+    <string name="setup_title">NON CONNESSO</string>
     <string name="setup_subtitle">Compatibile con GTA IV e GTA V. Il compagno ascolta su 127.0.0.1:47801 il plugin che installi.</string>
     <string name="setup_section">configurazione gta iv</string>
 
