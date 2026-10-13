@@ -85,6 +85,12 @@
 
     <!-- Setup screen: GTA V sibling section to the GTA IV checklist -->
     <string name="setup_v_section">gta v setup</string>
-    <string name="setup_v_title">ThorBridgeV.asi + Script Hook V</string>
-    <string name="setup_v_detail">Story mode only. Same Winlator-family launcher and WINEDLLOVERRIDES=dinput8=n,b as GTA IV. Put ThorBridgeV.asi next to GTA5.exe together with Script Hook V (ScriptHookV.dll + its dinput8.dll), then load a save. The HUD picks the right layout for the game that connects.</string>
+    <string name="setup_v_step1_title" translatable="false">GTA V: Legacy Edition</string>
+    <string name="setup_v_step1_detail">Script Hook V only ships for the Legacy build (the final pre-Enhanced release). The Enhanced edition has no Script Hook V, so ThorBridgeV won\'t load there.</string>
+    <string name="setup_v_step2_title">Winlator-family launcher with env vars</string>
+    <string name="setup_v_step2_detail">Same as GTA IV. GameHub Lite, Winlator / Winlator Cmod, or GameNative. Add WINEDLLOVERRIDES=dinput8=n,b in the per-game Environment variables.</string>
+    <string name="setup_v_step3_title">ThorBridgeV.asi + Script Hook V in the game folder</string>
+    <string name="setup_v_step3_detail">Push ThorBridgeV.asi next to GTA5.exe together with ScriptHookV.dll and its own dinput8.dll from the Script Hook V release that matches your game build.</string>
+    <string name="setup_v_step4_title">Launch GTA V in story mode and load a save</string>
+    <string name="setup_v_step4_detail">The companion is story mode only; nothing happens online. The HUD picks the right layout for whichever game connects.</string>
 </resources>
