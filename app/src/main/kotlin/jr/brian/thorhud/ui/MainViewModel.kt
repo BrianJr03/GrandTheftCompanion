@@ -66,6 +66,14 @@ class MainViewModel @Inject constructor(
         get() = prefs.hasSeenSwipeHint
         set(value) { prefs.hasSeenSwipeHint = value }
 
+    // Blips-panel visibility, hoisted to the ViewModel so a hardware
+    // key (dpad-down on the Thor) can toggle it from HudActivity's
+    // dispatchKeyEvent before Compose even sees the event.
+    private val _showBlips = MutableStateFlow(false)
+    val showBlips: StateFlow<Boolean> = _showBlips.asStateFlow()
+    fun toggleBlips() { _showBlips.value = !_showBlips.value }
+    fun setBlips(open: Boolean) { _showBlips.value = open }
+
     fun setRadio(stationIndex: Int) {
         viewModelScope.launch { repository.setRadio(stationIndex) }
     }

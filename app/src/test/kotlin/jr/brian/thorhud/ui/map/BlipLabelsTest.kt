@@ -70,7 +70,9 @@ class BlipLabelsTest {
         assertEquals("sprite 999", blipLabel(true, 999).name)
         assertFalse(blipLabel(true, 999).missionStart)
         assertEquals("Playboy X", blipLabel(false, 44).name)
-        assertEquals("sprite 78", blipLabel(false, 78).name)   // IV table is separate
+        // IV table is separate: a sprite id V knows but IV does not
+        // falls through to the unknown-sprite fallback.
+        assertEquals("sprite 999", blipLabel(false, 999).name)
     }
 
     @Test

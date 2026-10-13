@@ -23,11 +23,16 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -67,6 +72,10 @@ internal fun BlipListPanel(
     onLogCensus: () -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    // Hide the distance column entirely when the game's blip-coord
+    // natives can't be trusted (currently GTA IV; see MainScreen's
+    // BlipsOverlay for why). Groups are still sorted nearest-first.
+    showDistance: Boolean = true,
 ) {
     val dim = Color(0xFF6A7A6E)
     // One section at a time: expanding a group hides every other
@@ -75,6 +84,7 @@ internal fun BlipListPanel(
     // show every group's header". rememberSaveable so a rotation or
     // census refresh does not snap the list closed.
     var expandedName by rememberSaveable { mutableStateOf<String?>(null) }
+    var showInfo by rememberSaveable { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     // Save the scroll offset when the first expand of a session
     // happens, restore it when the user collapses back to the full
@@ -115,9 +125,11 @@ internal fun BlipListPanel(
             }
             SmallButton(stringResource(R.string.map_blips_clear), accent, onClear)
             Spacer(Modifier.width(8.dp))
+            SmallButton(stringResource(R.string.map_blips_info), accent, { showInfo = true })
+            Spacer(Modifier.width(8.dp))
             // Writing the full census table to the plugin log is a dev
             // affordance for seeding sprite labels — not useful to the
-            // player, hide outside debug builds.
+            // player, so hide outside debug builds.
             if (BuildConfig.DEBUG) {
                 SmallButton(stringResource(R.string.map_blips_log), accent, onLogCensus)
                 Spacer(Modifier.width(8.dp))
@@ -132,6 +144,7 @@ internal fun BlipListPanel(
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
+            if (showInfo) BlipInfoDialog(accent = accent, onDismiss = { showInfo = false })
             for (group in groups) {
                 val isOpen = expandedName == group.name
                 // Hide every other group's header while one is open.
@@ -153,6 +166,7 @@ internal fun BlipListPanel(
                             },
                             onRoute = onRoute,
                             onClear = onClear,
+                            showDistance = showDistance,
                         )
                         AnimatedVisibility(
                             visible = isOpen && group.count > 1,
@@ -163,9 +177,13 @@ internal fun BlipListPanel(
                                 modifier = Modifier.padding(start = 16.dp, top = 4.dp),
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                             ) {
-                                for (row in group.rows) {
-                                    ChildRow(row = row, accent = accent,
-                                             onRoute = onRoute, onClear = onClear)
+                                group.rows.forEachIndexed { i, row ->
+                                    ChildRow(
+                                        row = row, accent = accent,
+                                        onRoute = onRoute, onClear = onClear,
+                                        label = if (showDistance) row.distance
+                                                else "#${i + 1}",
+                                    )
                                 }
                             }
                         }
@@ -184,6 +202,7 @@ private fun GroupHeader(
     onToggle: () -> Unit,
     onRoute: (Int) -> Unit,
     onClear: () -> Unit,
+    showDistance: Boolean,
 ) {
     val text = Color(0xFFB6CCBC)
     val dim = Color(0xFF6A7A6E)
@@ -207,8 +226,10 @@ private fun GroupHeader(
     ) {
         CountBox(count = group.count, accent = accent)
         Spacer(Modifier.width(12.dp))
+        val title = if (showDistance) "${group.name.titleCase()} · ${group.nearest}"
+                    else group.name.titleCase()
         Text(
-            "${group.name.titleCase()} · ${group.nearest}",
+            title,
             color = if (group.missionStart) accent else text,
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold,
@@ -239,6 +260,66 @@ private fun GroupHeader(
             )
         }
     }
+}
+
+/**
+ * The "about the blip list" dialog behind the header's info button.
+ * Blip labels in the companion are provisional (seeded from the FiveM
+ * sprite reference for V and the GTAMods wiki for IV, with the
+ * TBoGT/TLAD contact ids being guessed from decompiled scripts), and
+ * routing to an unknown row is the easiest way to confirm what it
+ * actually is. The dialog explains that and opens the repo's issues
+ * page so a player can send back "sprite N was Mom's House".
+ */
+@Composable
+private fun BlipInfoDialog(accent: Color, onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                stringResource(R.string.map_blips_info_title),
+                color = accent,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            Text(
+                stringResource(R.string.map_blips_info_body),
+                color = Color(0xFFB6CCBC),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 13.sp,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW,
+                           Uri.parse("https://github.com/BrianJr03/GrandTheftCompanion/issues/new"))
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+                onDismiss()
+            }) {
+                Text(
+                    stringResource(R.string.map_blips_info_open_issue),
+                    color = accent,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    stringResource(R.string.map_blips_close),
+                    color = Color(0xFF6A7A6E),
+                    fontFamily = FontFamily.Monospace,
+                )
+            }
+        },
+        containerColor = Color(0xFF101713),
+    )
 }
 
 /** Accent-filled pill with the group's blip count in white. The fill
@@ -272,6 +353,7 @@ private fun ChildRow(
     accent: Color,
     onRoute: (Int) -> Unit,
     onClear: () -> Unit,
+    label: String,
 ) {
     val text = Color(0xFFB6CCBC)
     val tap: () -> Unit = if (row.routed) onClear
@@ -285,7 +367,7 @@ private fun ChildRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            row.distance,
+            label,
             color = text,
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold,
