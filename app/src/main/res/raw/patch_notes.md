@@ -1,25 +1,15 @@
-## v0.8.1
+## v0.9.0
 
-**Driving overlay**
+**NOTE:** the GTA IV plugin changed in this release. Download the new **ThorBridge.asi** from the release assets and drop it next to `GTAIV.exe` to pick up the radio-off support below. GTA V's **ThorBridgeV.asi** is unchanged.
 
-While you're in a vehicle, the map screen now shows a small **speedometer** in the bottom-right (mph, matches the HUD) and **driving to \<name\>** in the bottom-left — the name tracks whatever you tapped in the blips panel and clears the moment you tap clear.
+**Radio sheet on the map**
 
-## v0.8.0
+New radio icon in the map's control column opens a bottom sheet with the same picker that's on the HUD tab. Change stations without swiping back to the HUD.
 
-**Map tab facelift**
+**OFF button**
 
-The lock, reset, pin, and stop buttons are now icon chips in the game's accent colour, stacked vertically on the side instead of taking a row at the bottom. The map itself sits centred in the free space with a bit of breathing room on the far edge.
+A full-width **off** button sits above the stations in both pickers. Tap it to silence the radio; the current station highlight moves to **off** so you can see at a glance what's playing. Works on GTA IV and GTA V.
 
-New setting under **Minimap → Map controls on the right** moves the whole icon column to the right of the map. Default stays on the left.
+**Dpad-down shortcut removed on GTA IV**
 
-**Status bar reorg**
-
-The chip cluster (map pin, car, update, lights) now sits in the middle of the bar, with the wanted stars pinned to the far right so your eye always finds them in the same spot. When you don't have stars, the chips slide to the right so the bar never looks half-empty.
-
-**Wanted lights stay on through pause**
-
-The red/blue stick lights used to go dark the moment you paused. They stay lit now — pause is deliberate and the heat is still on you.
-
-**Translations**
-
-Full fr/es/de/it/ru/ja for the new setting.
+The pin icon in the status bar (and the pin in the map's control column) is now the only way to open the blips panel. The dpad-down toggle was removed.
