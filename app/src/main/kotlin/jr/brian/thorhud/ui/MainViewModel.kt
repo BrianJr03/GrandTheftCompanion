@@ -49,12 +49,6 @@ class MainViewModel @Inject constructor(
     val stations: StateFlow<List<GameState.Station>> = repository.stations
     val weapons: StateFlow<List<GameState.VWeapon>> = repository.weapons
 
-    // One event per dpad-down press the plugin reports. SharedFlow so
-    // each press reaches a collector in order — the equivalent read via
-    // state.dpadDown misses presses whose single-frame true value gets
-    // conflated by the StateFlow.
-    val dpadDownPressed = repository.dpadDownPressed
-
     // Red/blue thumbstick lights while wanted: the user's switch, and
     // whether the commands have anywhere to go.
     val policeLightsEnabled: StateFlow<Boolean> = settings.policeLightsEnabled

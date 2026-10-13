@@ -104,11 +104,6 @@ data class GameState(
     // GTA IV sends the same flag for LB / L1 (it has no wheel of its
     // own) from a plugin built at natives level 4.
     @SerialName("wheel") val wheel: Boolean = false,
-    // Dpad-down edge-trigger from the GTA IV plugin (true for the one
-    // state frame right after the player pressed dpad-down on pad 0).
-    // The companion toggles its blips panel on each true. Older plugins
-    // never send it; it stays false and nothing happens.
-    @SerialName("dpad_down") val dpadDown: Boolean = false,
 
     // 0 = Michael, 1 = Franklin, 2 = Trevor, -1 = anyone else
     // (Director Mode actor, animal). Drives the accent palette the way

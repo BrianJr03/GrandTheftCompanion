@@ -3,6 +3,8 @@ package jr.brian.thorhud.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,9 +20,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,7 +67,9 @@ import jr.brian.thorhud.ui.map.MirrorMapScreen
 import jr.brian.thorhud.ui.map.blipGroups
 import jr.brian.thorhud.ui.map.blipLabel
 import jr.brian.thorhud.ui.map.titleCase
+import jr.brian.thorhud.ui.components.HudPalette
 import jr.brian.thorhud.ui.v.VMainScreen
+import jr.brian.thorhud.ui.v.VRadioPicker
 import jr.brian.thorhud.ui.v.VWeaponWheelOverlay
 import jr.brian.thorhud.ui.v.rememberVWheelMemory
 import jr.brian.thorhud.ui.v.vCharacterOf
@@ -182,22 +190,15 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     // dismisses it, otherwise we just swallow the event.
     BackHandler { if (showBlips) viewModel.setBlips(false) }
 
-    // Dpad-down toggles the blips panel. Android key routing goes to
-    // the game (on the top display), not to this Activity, so we
-    // can't catch it in dispatchKeyEvent. Instead the ThorBridge
-    // plugin reads the game's own pad state and emits a one-frame
-    // dpad_down=true on the state frame right after the press.
-    // Collect through a SharedFlow (not sampled Compose state) so a
-    // transient one-frame true never gets conflated.
-    LaunchedEffect(Unit) {
-        viewModel.dpadDownPressed.collect { viewModel.toggleBlips() }
-    }
-
     // Settings sheet (open from the gear icon on paused / setup /
     // notice screens). State lives here so one sheet instance covers
     // every surface that can open it.
     var showSettings by rememberSaveable { mutableStateOf(false) }
     val openSettings: () -> Unit = { showSettings = true }
+    // Radio bottom sheet opened from the map screen's icon column.
+    // Shows the same picker that lives on the HUD tab, so changing
+    // stations without swiping back is a tap away.
+    var showRadioSheet by rememberSaveable { mutableStateOf(false) }
     val autoSwipeOnDrive by viewModel.autoSwipeOnDrive.collectAsStateWithLifecycle()
     val autoStartMirror by viewModel.autoStartMirror.collectAsStateWithLifecycle()
     val alwaysReturnToHud by viewModel.alwaysReturnToHud.collectAsStateWithLifecycle()
@@ -407,6 +408,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     accent = accent,
                                     onRequestConsent = requestMirrorConsent,
                                     onOpenBlips = toggleBlips,
+                                    onOpenRadio = { showRadioSheet = true },
                                     controlsRight = mapControlsRight,
                                     inVehicle = inVehicleNow,
                                     routeName = routeName,
@@ -463,6 +465,20 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 mapControlsRight = mapControlsRight,
                 onMapControlsRightChange = viewModel::setMapControlsRight,
                 onDismiss = { showSettings = false },
+            )
+        }
+        if (showRadioSheet) {
+            val vStations by viewModel.stations.collectAsStateWithLifecycle()
+            RadioSheet(
+                palette = if (isGtaV) vCharacterOf(state?.character).palette
+                          else paletteFor(liveState?.episode ?: state?.episode),
+                isGtaV = isGtaV,
+                ivStations = stationListFor(liveState?.episode),
+                ivCurrentLocal = liveState?.radio ?: -1,
+                vStations = vStations,
+                vCurrentId = liveState?.radioName,
+                onStationTap = viewModel::setRadio,
+                onDismiss = { showRadioSheet = false },
             )
         }
     }
@@ -624,6 +640,59 @@ private fun IvHudScreen(
                 }
             }
             FullWidthStats(liveState, palette)
+        }
+    }
+}
+
+/**
+ * ModalBottomSheet wrapping the same radio picker shown on the HUD
+ * tab. Dispatches to [RadioPicker] (IV) or [VRadioPicker] (V) so a
+ * tap on either flavour routes through the same [onStationTap] into
+ * `MainViewModel.setRadio`.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RadioSheet(
+    palette: HudPalette,
+    isGtaV: Boolean,
+    ivStations: IntArray,
+    ivCurrentLocal: Int,
+    vStations: List<GameState.Station>,
+    vCurrentId: String?,
+    onStationTap: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val sheet = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { it != SheetValue.PartiallyExpanded },
+    )
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheet,
+        containerColor = Color(0xFF101713),
+        dragHandle = null,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+        ) {
+            if (isGtaV) {
+                VRadioPicker(
+                    stations = vStations,
+                    currentId = vCurrentId,
+                    palette = palette,
+                    onStationTap = onStationTap,
+                )
+            } else {
+                RadioPicker(
+                    stations = ivStations,
+                    currentLocal = ivCurrentLocal,
+                    palette = palette,
+                    onStationTap = onStationTap,
+                )
+            }
         }
     }
 }

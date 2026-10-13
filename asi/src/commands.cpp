@@ -148,7 +148,11 @@ void drain(uint32_t ped_handle, const snapshot::Player& p) {
         } else if (std::strcmp(c.name, "set_radio") == 0) {
             // 0..13 are the IV station indices; a few higher values are
             // DLC-only. Cap at 20 to be generous but reject garbage.
-            if (c.arg0 >= 20) {
+            // 255 is a reserved sentinel for "radio off": the native
+            // accepts it and silences the current station without
+            // tuning a new one.
+            constexpr uint32_t kRadioOff = 255;
+            if (c.arg0 != kRadioOff && c.arg0 >= 20) {
                 post_err_ack(c.id, c.ack_queue, "radio station out of range");
                 continue;
             }

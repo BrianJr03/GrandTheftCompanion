@@ -68,6 +68,11 @@ internal fun RadioPicker(
             fontSize = 11.sp,
             modifier = Modifier.padding(start = 14.dp, bottom = 4.dp),
         )
+        RadioOffButton(
+            isCurrent = currentLocal < 0,
+            palette = palette,
+            onTap = { onStationTap(RADIO_OFF_SENTINEL) },
+        )
         RadioPickerRow(
             start = 0, endExclusive = half,
             stations = stations, currentLocal = currentLocal,
@@ -77,6 +82,40 @@ internal fun RadioPicker(
             start = half, endExclusive = stations.size,
             stations = stations, currentLocal = currentLocal,
             palette = palette, onStationTap = onStationTap,
+        )
+    }
+}
+
+/**
+ * Sentinel the plugins accept to silence the radio without tuning a
+ * new station. GTA V's plugin maps it to SET_RADIO_TO_STATION_NAME("OFF"),
+ * GTA IV's maps it through RETUNE_RADIO_TO_STATION_INDEX(255).
+ */
+internal const val RADIO_OFF_SENTINEL = 255
+
+@Composable
+internal fun RadioOffButton(
+    isCurrent: Boolean,
+    palette: HudPalette,
+    onTap: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(36.dp)
+            .background(
+                color = if (isCurrent) palette.accent else Color(0xFF1F2A24),
+                shape = RoundedCornerShape(6.dp),
+            )
+            .clickable(onClick = onTap),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            stringResource(R.string.radio_off),
+            color = if (isCurrent) Color(0xFF000000) else Color(0xFFB6CCBC),
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            fontSize = 13.sp,
         )
     }
 }

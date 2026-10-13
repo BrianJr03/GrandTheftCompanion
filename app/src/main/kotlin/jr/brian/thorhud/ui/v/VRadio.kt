@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
 import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.components.HudPalette
+import jr.brian.thorhud.ui.components.RADIO_OFF_SENTINEL
+import jr.brian.thorhud.ui.components.RadioOffButton
 
 // --- GTA V radio --------------------------------------------------------
 //
@@ -179,6 +181,11 @@ internal fun VRadioPicker(
             fontFamily = FontFamily.Monospace,
             fontSize = 11.sp,
             modifier = Modifier.padding(start = 14.dp, bottom = 4.dp),
+        )
+        RadioOffButton(
+            isCurrent = currentId.isNullOrBlank() || currentId == "OFF",
+            palette = palette,
+            onTap = { onStationTap(RADIO_OFF_SENTINEL) },
         )
         stations.indices.chunked(perRow).forEach { rowIndices ->
             Row(

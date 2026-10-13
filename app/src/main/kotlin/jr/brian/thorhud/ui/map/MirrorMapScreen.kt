@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Icon
@@ -87,6 +88,7 @@ internal fun MirrorMapScreen(
     accent: Color,
     onRequestConsent: () -> Unit,
     onOpenBlips: (() -> Unit)? = null,
+    onOpenRadio: (() -> Unit)? = null,
     controlsRight: Boolean = false,
     // In-vehicle gates the speedometer (bottom-right). Routed label
     // paired with inVehicle gates the "driving to <name>" overlay
@@ -190,6 +192,7 @@ internal fun MirrorMapScreen(
                     userTransform = transforms[game] ?: MirrorTransform(),
                     captureSize = size,
                     onOpenBlips = onOpenBlips,
+                    onOpenRadio = onOpenRadio,
                     controlsRight = controlsRight,
                     viewModel = viewModel,
                 )
@@ -281,6 +284,7 @@ private fun MirrorMapLayout(
     userTransform: MirrorTransform,
     captureSize: android.util.Size,
     onOpenBlips: (() -> Unit)?,
+    onOpenRadio: (() -> Unit)?,
     controlsRight: Boolean,
     viewModel: MapViewModel,
 ) {
@@ -297,6 +301,7 @@ private fun MirrorMapLayout(
                 accent = accent,
                 isLocked = isLocked,
                 onOpenBlips = onOpenBlips,
+                onOpenRadio = onOpenRadio,
                 viewModel = viewModel,
             )
         }
@@ -364,6 +369,7 @@ private fun MirrorMapLayout(
                 accent = accent,
                 isLocked = isLocked,
                 onOpenBlips = onOpenBlips,
+                onOpenRadio = onOpenRadio,
                 viewModel = viewModel,
             )
         }
@@ -376,6 +382,7 @@ private fun MapControlsColumn(
     accent: Color,
     isLocked: Boolean,
     onOpenBlips: (() -> Unit)?,
+    onOpenRadio: (() -> Unit)?,
     viewModel: MapViewModel,
 ) {
     Column(
@@ -401,6 +408,14 @@ private fun MapControlsColumn(
             MapIconButton(
                 icon = Icons.Filled.Place,
                 contentDescription = stringResource(R.string.map_blips_cd),
+                accent = accent,
+                onClick = open,
+            )
+        }
+        onOpenRadio?.let { open ->
+            MapIconButton(
+                icon = Icons.Filled.Radio,
+                contentDescription = stringResource(R.string.label_radio),
                 accent = accent,
                 onClick = open,
             )
