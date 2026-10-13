@@ -206,24 +206,20 @@ void read_radio(snapshot::State& s) {
              shv::call<const char*>(natives::GET_PLAYER_RADIO_STATION_NAME));
 }
 
+// Dpad-down toggle disabled on GTA V: no control id gives a stable
+// physical-dpad-DOWN press across on-foot and in-vehicle contexts.
+// INPUT_CELLPHONE_DOWN (174) is clean on-foot but aliases to dpad-
+// LEFT in a vehicle (radio-prev); INPUT_SCRIPT_PAD_* is consumed by
+// the game before any script sees it. The V companion uses the pin
+// icon in the status bar instead. The IV plugin still ships the
+// feature because IS_BUTTON_PRESSED(0, 9) is context-stable on IV.
+void read_dpad_down(snapshot::State& s) {
+    s.dpad_down_edge = false;
+}
+
 // Weapon-wheel control. Needs the session flags and in_vehicle already
 // filled in. On foot only for now: commands:: refuses set_weapon in a
 // vehicle, so showing a wheel there would only offer taps that fail.
-// Dpad-down (edge-triggered). Companion toggles its blips panel on
-// each true. IS_CONTROL_JUST_PRESSED already fires only once per
-// press from SHV's side, so we don't do our own edge tracking.
-void read_dpad_down(snapshot::State& s) {
-    static bool s_logged = false;
-    s.dpad_down_edge = shv::call_bool(
-        natives::IS_CONTROL_JUST_PRESSED,
-        static_cast<int32_t>(natives::kPlayerControl),
-        static_cast<int32_t>(natives::kInputCellphoneDown));
-    if (s.dpad_down_edge && !s_logged) {
-        s_logged = true;
-        thor_log("[script] dpad-down observed on INPUT_CELLPHONE_DOWN (174)");
-    }
-}
-
 void read_wheel(snapshot::State& s, uint64_t now) {
     const bool usable = !s.in_vehicle && !s.paused && !s.switching &&
                         !s.cutscene && !s.animal;

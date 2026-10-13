@@ -272,6 +272,8 @@ void dispatch() {
         }
         ret_bool(select_held()); break; }
     case IS_CONTROL_JUST_PRESSED: { expect_argc(2, "IS_CONTROL_JUST_PRESSED");
+        ret_bool(false); break; }
+    case IS_DISABLED_CONTROL_PRESSED: { expect_argc(2, "IS_DISABLED_CONTROL_PRESSED");
         // Dpad-down for the blips toggle. No scenario presses it yet,
         // so always false — change this once a scenario needs to.
         ret_bool(false); break; }

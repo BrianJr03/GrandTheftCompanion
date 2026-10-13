@@ -60,6 +60,7 @@ enum : uint64_t {
     // flag wants: it should only light up when the game would react.
     IS_CONTROL_PRESSED                 = 0xF3A21BCD95725A4A,  // BOOL (int control, int action)
     IS_CONTROL_JUST_PRESSED            = 0x580417101DDB492F,  // BOOL (int control, int action)
+    IS_DISABLED_CONTROL_PRESSED        = 0xE2587F8CBBD87B1D,  // BOOL (int control, int action)
 
     // HUD
     // NativeDB's current name for what the SDK calls _GET_LABEL_TEXT:
@@ -114,9 +115,17 @@ enum : uint64_t {
 enum Control : int32_t {
     kPlayerControl      = 0,
     kInputSelectWeapon  = 37,
-    // Dpad-down. Always bound to the physical dpad-down button in V,
-    // regardless of what the player rebound crouch (INPUT_DUCK) to.
-    kInputCellphoneDown = 174,
+    // Dpad arrows via the cellphone-nav input group. On-foot the four
+    // controls map 1:1 to the physical dpad arrows. In a vehicle V
+    // aliases CELLPHONE_DOWN (174) to the physical dpad-LEFT button
+    // (because dpad-LEFT is "previous radio station"), so the dpad
+    // read in read_dpad_down() is gated to on-foot only. The script-
+    // pad group (213..216) looks like the right fit but on this device
+    // the game consumes the input before any script sees it.
+    kInputCellphoneUp    = 173,
+    kInputCellphoneDown  = 174,
+    kInputCellphoneLeft  = 175,
+    kInputCellphoneRight = 176,
 };
 
 // GET_VEHICLE_CLASS values the HUD cares about.
