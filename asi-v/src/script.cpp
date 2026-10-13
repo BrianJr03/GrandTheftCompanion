@@ -209,6 +209,21 @@ void read_radio(snapshot::State& s) {
 // Weapon-wheel control. Needs the session flags and in_vehicle already
 // filled in. On foot only for now: commands:: refuses set_weapon in a
 // vehicle, so showing a wheel there would only offer taps that fail.
+// Dpad-down (edge-triggered). Companion toggles its blips panel on
+// each true. IS_CONTROL_JUST_PRESSED already fires only once per
+// press from SHV's side, so we don't do our own edge tracking.
+void read_dpad_down(snapshot::State& s) {
+    static bool s_logged = false;
+    s.dpad_down_edge = shv::call_bool(
+        natives::IS_CONTROL_JUST_PRESSED,
+        static_cast<int32_t>(natives::kPlayerControl),
+        static_cast<int32_t>(natives::kInputCellphoneDown));
+    if (s.dpad_down_edge && !s_logged) {
+        s_logged = true;
+        thor_log("[script] dpad-down observed on INPUT_CELLPHONE_DOWN (174)");
+    }
+}
+
 void read_wheel(snapshot::State& s, uint64_t now) {
     const bool usable = !s.in_vehicle && !s.paused && !s.switching &&
                         !s.cutscene && !s.animal;
@@ -314,6 +329,7 @@ void tick() {
     read_vehicle(s, ped);
     read_radio(s);
     read_wheel(s, now);
+    read_dpad_down(s);
     blips::tick(ped, s);
 
     // A character switch swaps the whole loadout; rescan immediately

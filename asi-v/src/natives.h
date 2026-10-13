@@ -59,6 +59,7 @@ enum : uint64_t {
     // (cutscenes, scripted sequences), which is what the weapon-wheel
     // flag wants: it should only light up when the game would react.
     IS_CONTROL_PRESSED                 = 0xF3A21BCD95725A4A,  // BOOL (int control, int action)
+    IS_CONTROL_JUST_PRESSED            = 0x580417101DDB492F,  // BOOL (int control, int action)
 
     // HUD
     // NativeDB's current name for what the SDK calls _GET_LABEL_TEXT:
@@ -111,8 +112,11 @@ enum : uint64_t {
 // control: LB / L1 on a pad, Tab on a keyboard, and it follows whatever
 // the player rebound it to.
 enum Control : int32_t {
-    kPlayerControl     = 0,
-    kInputSelectWeapon = 37,
+    kPlayerControl      = 0,
+    kInputSelectWeapon  = 37,
+    // Dpad-down. Always bound to the physical dpad-down button in V,
+    // regardless of what the player rebound crouch (INPUT_DUCK) to.
+    kInputCellphoneDown = 174,
 };
 
 // GET_VEHICLE_CLASS values the HUD cares about.

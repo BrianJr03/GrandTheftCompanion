@@ -53,6 +53,14 @@ struct State {
     bool select_held;
     bool wheel;
 
+    // Dpad-down just-pressed this frame (edge-triggered — true for the
+    // one frame right after a press, false otherwise). Companion
+    // toggles its blips panel on each true. Reads
+    // INPUT_CELLPHONE_DOWN which is always bound to the dpad-down
+    // button in GTA V regardless of what the player assigned to the
+    // in-game crouch action.
+    bool dpad_down_edge;
+
     // --- who ---
     int8_t   character;   // Character
     uint32_t ped_model;   // raw model hash, for the "other" case

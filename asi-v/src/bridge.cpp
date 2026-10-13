@@ -136,6 +136,7 @@ int format_state(char* buf, size_t cap, const snapshot::State& s,
     // LB / L1 / Tab held: the game's weapon wheel is up, so the
     // companion shows its own. (select_held is plugin-internal.)
     o.add_bool("wheel", s.wheel);
+    o.add_bool("dpad_down", s.dpad_down_edge);
     o.add("\"character\":%d,\"ped_model\":%u,",
           static_cast<int>(s.character), s.ped_model);
 

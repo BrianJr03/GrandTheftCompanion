@@ -271,6 +271,10 @@ void dispatch() {
             ExitProcess(3);
         }
         ret_bool(select_held()); break; }
+    case IS_CONTROL_JUST_PRESSED: { expect_argc(2, "IS_CONTROL_JUST_PRESSED");
+        // Dpad-down for the blips toggle. No scenario presses it yet,
+        // so always false — change this once a scenario needs to.
+        ret_bool(false); break; }
     case IS_PED_IN_ANY_VEHICLE: expect_argc(2, "IS_PED_IN_ANY_VEHICLE");
         ret_bool(in_vehicle()); break;
     case GET_VEHICLE_PED_IS_IN: expect_argc(2, "GET_VEHICLE_PED_IS_IN");
