@@ -39,7 +39,7 @@
     <string name="map_blips_log">log census</string>
     <string name="map_blips_info">info</string>
     <string name="map_blips_info_title">About the blip list</string>
-    <string name="map_blips_info_body">Blip names are a work in progress. If a row shows \"sprite N\" instead of a readable name, tap route, drive there, and see what you find. Then open an issue with the sprite number and what it turned out to be — I\'ll add it to the next build.</string>
+    <string name="map_blips_info_body">Blip names are a work in progress. If a row shows \"sprite N\" instead of a readable name, tap route, drive there, and see what you find. Then open an issue with the sprite number and what it turned out to be. It\'ll be added to the next build once verified.</string>
     <string name="map_blips_info_open_issue">Open issue</string>
     <string name="map_blips_close">close</string>
     <string name="mirror_channel_name">Map mirroring</string>
