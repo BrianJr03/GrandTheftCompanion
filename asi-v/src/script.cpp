@@ -10,10 +10,11 @@
 //   * GTA Online session -> publish {online} and touch nothing else.
 //   * No player ped / loading screen -> publish {in_game=false}.
 //   * Otherwise read character, stats, special ability, weapon,
-//     vehicle, radio and the weapon-wheel control, publish, then run
-//     queued client commands.
+//     vehicle, radio, the weapon-wheel control and the map waypoint,
+//     publish, then run queued client commands.
 //   * Owned weapons (~1 Hz) and the radio station list (~0.2 Hz) are
-//     scanned on a slower clock and published as versioned lists.
+//     scanned on a slower clock and published as versioned lists; the
+//     map blips are walked a slice per tick (blips.cpp).
 //
 // What happens while the game is paused is deliberately not assumed:
 // if the fiber keeps ticking, `paused` comes from IS_PAUSE_MENU_ACTIVE;
@@ -28,6 +29,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "blips.h"
 #include "commands.h"
 #include "joaat.h"
 #include "log.h"
@@ -312,6 +314,7 @@ void tick() {
     read_vehicle(s, ped);
     read_radio(s);
     read_wheel(s, now);
+    blips::tick(ped, s);
 
     // A character switch swaps the whole loadout; rescan immediately
     // rather than showing the previous character's weapons for a second.

@@ -61,6 +61,13 @@ bool take_ack(uint32_t client, Ack* out);
 //              as the game's own wheel, and it keeps the game's wheel
 //              from overwriting the pick when it closes. A later pick
 //              during the same hold replaces the earlier one.
+//   route_blip  arg0 = blip id from the published blip list. Puts the
+//              player's map waypoint on that blip (SET_NEW_WAYPOINT), so
+//              the game's GPS routes there. Refused for an id the last
+//              scan did not publish or that no longer exists.
+//   route_clear no arg. Removes the waypoint (SET_WAYPOINT_OFF).
+//   blip_census no arg. Writes the published blip table to the log,
+//              for working out on-device which sprites are what.
 void drain(int32_t player, int32_t ped, const snapshot::State& s);
 
 // Script fiber, for frames where the game state is not usable (online,

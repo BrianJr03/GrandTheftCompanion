@@ -97,4 +97,25 @@ inline bool call_bool(uint64_t hash, Args... args) {
     return call<int32_t>(hash, args...) != 0;
 }
 
+// Vector3-returning natives write three floats into three consecutive
+// return slots (the script VM's Vector3 is three 8-byte-padded floats,
+// not a packed struct), so a plain call<> would only read x.
+struct Vec3 {
+    float x, y, z;
+};
+
+template <typename... Args>
+inline Vec3 call_vec3(uint64_t hash, Args... args) {
+    native_init(hash);
+    (native_push(to_slot(args)), ...);
+    uint64_t* ret = native_call();
+    Vec3 v{};
+    if (ret) {
+        std::memcpy(&v.x, &ret[0], sizeof(float));
+        std::memcpy(&v.y, &ret[1], sizeof(float));
+        std::memcpy(&v.z, &ret[2], sizeof(float));
+    }
+    return v;
+}
+
 }  // namespace shv

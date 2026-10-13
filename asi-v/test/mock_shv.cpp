@@ -19,10 +19,16 @@
 //           mock "game" re-selects the weapon that was in hand when the
 //           wheel opened (what the real wheel is expected to do when it
 //           closes on its unchanged highlight)
+//   blips   Michael on foot throughout, with three blips on the map; at
+//           4 s the mock "player" drags the waypoint elsewhere by hand
+//
+// Every scenario has the same three map blips, so the blip census and
+// the waypoint natives are exercised by all of them.
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -35,7 +41,7 @@ namespace {
 
 using ScriptMain = void (*)();
 
-enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel };
+enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips };
 Scenario g_scenario = kStory;
 uint64_t g_t0 = 0;
 
@@ -69,6 +75,57 @@ const uint32_t kOwned[] = {
 };
 
 uint64_t elapsed_ms() { return GetTickCount64() - g_t0; }
+
+// ---- fake map --------------------------------------------------------
+
+// Player stands at the origin. Three blips with distinct sprites, plus
+// the waypoint blip (sprite 8, the real game's radar_waypoint) which
+// exists only while a waypoint is set.
+constexpr float kPlayerX = 0.0f, kPlayerY = 0.0f, kPlayerZ = 10.0f;
+constexpr int kWaypointSprite = 8;
+constexpr int kWaypointBlip = 777;
+struct MapBlip { int id; int sprite; int colour; int type; float x, y, z; };
+const MapBlip kMap[] = {
+    {301, 78, 0, 4, 300.0f, 400.0f, 10.0f},   // "Michael" contact, 500 m
+    {302,  1, 5, 4,  30.0f,  40.0f, 10.0f},   // plain radar_level, 50 m
+    {303, 52, 2, 4, 3000.0f, 4000.0f, 10.0f}, // far-away shop, 5000 m
+};
+constexpr int kNumMap = sizeof(kMap) / sizeof(kMap[0]);
+bool  g_waypoint = false;
+float g_wp_x = 0.0f, g_wp_y = 0.0f;
+int   g_walk_sprite = -1;   // sprite the FIRST/NEXT walk is on
+int   g_walk_pos = 0;       // how many of that sprite's blips were handed out
+
+const MapBlip* map_blip(int id) {
+    for (const MapBlip& m : kMap) if (m.id == id) return &m;
+    return nullptr;
+}
+int walk_next() {
+    // Every map blip has a distinct sprite, so each walk yields at most
+    // one map blip; the waypoint blip has its own sprite.
+    if (g_walk_sprite == kWaypointSprite) {
+        return (g_waypoint && g_walk_pos++ == 0) ? kWaypointBlip : 0;
+    }
+    for (const MapBlip& m : kMap) {
+        if (m.sprite == g_walk_sprite) return g_walk_pos++ == 0 ? m.id : 0;
+    }
+    return 0;
+}
+void ret_vec3(float x, float y, float z);
+
+// blips timeline: the player drags the waypoint by hand at 4 s.
+constexpr uint64_t kDragMs = 4000;
+bool g_dragged = false;
+void blips_step() {
+    if (g_scenario != kBlips || g_dragged || elapsed_ms() < kDragMs) return;
+    if (!g_waypoint) return;
+    g_dragged = true;
+    g_wp_x += 500.0f;
+    g_wp_y += 500.0f;
+    std::fprintf(stderr, "[mock] player dragged the waypoint to (%.0f, %.0f)\n",
+                 g_wp_x, g_wp_y);
+    std::fflush(stderr);
+}
 
 // story timeline
 bool in_vehicle()  { return g_scenario == kStory && elapsed_ms() > 2000; }
@@ -125,6 +182,13 @@ template <typename T> void ret(T v) {
     std::memcpy(&g_ret[0], &v, sizeof(T));
 }
 void ret_bool(bool v) { ret<uint64_t>(v ? 1 : 0); }
+// Vector3 returns: three floats in three padded slots, like the game.
+void ret_vec3(float x, float y, float z) {
+    g_ret[0] = g_ret[1] = g_ret[2] = 0;
+    std::memcpy(&g_ret[0], &x, sizeof(float));
+    std::memcpy(&g_ret[1], &y, sizeof(float));
+    std::memcpy(&g_ret[2], &z, sizeof(float));
+}
 
 bool expect_argc(int n, const char* name) {
     if (g_argc == n) return true;
@@ -241,6 +305,58 @@ void dispatch() {
         const int i = arg<int>(0);
         ret<const char*>(i >= 0 && i < kNumStations ? kStations[i] : nullptr);
         break; }
+    case GET_ENTITY_COORDS: expect_argc(2, "GET_ENTITY_COORDS");
+        ret_vec3(kPlayerX, kPlayerY, kPlayerZ); break;
+    case GET_FIRST_BLIP_INFO_ID: expect_argc(1, "GET_FIRST_BLIP_INFO_ID");
+        g_walk_sprite = arg<int>(0);
+        g_walk_pos = 0;
+        ret<int>(walk_next()); break;
+    case GET_NEXT_BLIP_INFO_ID: expect_argc(1, "GET_NEXT_BLIP_INFO_ID");
+        if (arg<int>(0) != g_walk_sprite) {
+            std::fprintf(stderr, "[mock] NEXT_BLIP for sprite %d without FIRST\n",
+                         arg<int>(0));
+            std::fflush(stderr);
+            ExitProcess(3);
+        }
+        ret<int>(walk_next()); break;
+    case DOES_BLIP_EXIST: expect_argc(1, "DOES_BLIP_EXIST");
+        ret_bool(map_blip(arg<int>(0)) != nullptr ||
+                 (g_waypoint && arg<int>(0) == kWaypointBlip)); break;
+    case GET_BLIP_INFO_ID_COORD: { expect_argc(1, "GET_BLIP_INFO_ID_COORD");
+        const int id = arg<int>(0);
+        if (id == kWaypointBlip && g_waypoint) { ret_vec3(g_wp_x, g_wp_y, 0.0f); break; }
+        const MapBlip* m = map_blip(id);
+        if (!m) {
+            std::fprintf(stderr, "[mock] BLIP COORD for unknown blip %d\n", id);
+            std::fflush(stderr);
+            ExitProcess(3);
+        }
+        ret_vec3(m->x, m->y, m->z); break; }
+    case GET_BLIP_INFO_ID_DISPLAY: expect_argc(1, "GET_BLIP_INFO_ID_DISPLAY"); ret<int>(2); break;
+    case GET_BLIP_INFO_ID_TYPE: { expect_argc(1, "GET_BLIP_INFO_ID_TYPE");
+        const MapBlip* m = map_blip(arg<int>(0));
+        ret<int>(m ? m->type : 4); break; }
+    case GET_BLIP_SPRITE: { expect_argc(1, "GET_BLIP_SPRITE");
+        const MapBlip* m = map_blip(arg<int>(0));
+        ret<int>(m ? m->sprite : kWaypointSprite); break; }
+    case GET_BLIP_COLOUR: { expect_argc(1, "GET_BLIP_COLOUR");
+        const MapBlip* m = map_blip(arg<int>(0));
+        ret<int>(m ? m->colour : 0); break; }
+    case GET_WAYPOINT_BLIP_ENUM_ID: expect_argc(0, "GET_WAYPOINT_BLIP_ENUM_ID");
+        ret<int>(kWaypointSprite); break;
+    case IS_WAYPOINT_ACTIVE: expect_argc(0, "IS_WAYPOINT_ACTIVE"); ret_bool(g_waypoint); break;
+    case SET_NEW_WAYPOINT: expect_argc(2, "SET_NEW_WAYPOINT");
+        g_waypoint = true;
+        g_wp_x = arg<float>(0);
+        g_wp_y = arg<float>(1);
+        std::fprintf(stderr, "[mock] waypoint set at (%.0f, %.0f)\n", g_wp_x, g_wp_y);
+        std::fflush(stderr);
+        break;
+    case SET_WAYPOINT_OFF: expect_argc(0, "SET_WAYPOINT_OFF");
+        g_waypoint = false;
+        std::fprintf(stderr, "[mock] waypoint off\n");
+        std::fflush(stderr);
+        break;
     case SET_RADIO_TO_STATION_NAME: { expect_argc(1, "SET_RADIO_TO_STATION_NAME");
         const char* name = arg<const char*>(0);
         g_radio = -1;
@@ -281,6 +397,7 @@ void mock_scriptRegister(HMODULE /*module*/, ScriptMain fn) {
         if (!std::strcmp(buf, "other"))   g_scenario = kOther;
         if (!std::strcmp(buf, "stall"))   g_scenario = kStall;
         if (!std::strcmp(buf, "wheel"))   g_scenario = kWheel;
+        if (!std::strcmp(buf, "blips"))   g_scenario = kBlips;
     }
     std::fprintf(stderr, "[mock] scriptRegister, scenario=%d\n", g_scenario);
     std::fflush(stderr);
@@ -297,6 +414,7 @@ void mock_scriptWait(DWORD ms) {
         Sleep(INFINITE);   // the game stopped resuming script fibers
     }
     wheel_step();
+    blips_step();
     Sleep(ms < 16 ? 16 : ms);   // ~60 fps
 }
 

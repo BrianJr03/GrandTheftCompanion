@@ -13,11 +13,16 @@
 //   state     20 Hz game state (see format_state in bridge.cpp)
 //   weapons   owned-weapon list; on connect and whenever it changes
 //   stations  radio-station list; on connect and whenever it changes
+//   blips     map blips, nearest first; on connect and whenever the
+//             census result changes (see format_blips in bridge.cpp)
 //   ack       reply to a client command
 //
 // Client -> server:
 //   {"v":1,"type":"cmd","id":N,"name":"set_radio","args":{"station":I}}
 //   {"v":1,"type":"cmd","id":N,"name":"set_weapon","args":{"weapon":H}}
+//   {"v":1,"type":"cmd","id":N,"name":"route_blip","args":{"blip":B}}
+//   {"v":1,"type":"cmd","id":N,"name":"route_clear"}
+//   {"v":1,"type":"cmd","id":N,"name":"blip_census"}
 //
 // H is the weapon's joaat hash as an UNSIGNED decimal (0..4294967295).
 // About half of all weapon hashes are above 2^31, so a client that
@@ -25,7 +30,7 @@
 
 namespace bridge {
 
-constexpr const char* kPluginVersion = "0.2.0";
+constexpr const char* kPluginVersion = "0.3.0";
 
 // Spawn the listener thread. Returns immediately.
 void start(const VersionInfo& vi);

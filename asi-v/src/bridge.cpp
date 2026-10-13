@@ -25,8 +25,8 @@ constexpr int kListenBacklog = 2;
 // No fresh sample for this long while a save is loaded means the game
 // stopped running our script fiber: pause menu, loading, alt-tab.
 constexpr uint64_t kStallMs = 1000;
-// Big enough for the largest list frame (128 weapons or 64 stations
-// with escaped labels) with room to spare.
+// Big enough for the largest list frame (128 weapons, 64 stations with
+// escaped labels, or 96 blips at ~130 bytes each) with room to spare.
 constexpr size_t kBufCap = 32 * 1024;
 
 #ifndef THORBRIDGE_LAN_DEBUG
@@ -171,7 +171,32 @@ int format_state(char* buf, size_t cap, const snapshot::State& s,
 
     o.add("\"radio\":%d,\"radio_name\":\"", s.radio_index);
     o.add_escaped(s.radio_name);
-    o.add("\"}\n");
+    o.add("\",");
+
+    // The player's map waypoint. "ours" means the companion set it (via
+    // route_blip) and it has not been moved since, so the companion may
+    // move or clear it; a hand-placed one is left alone.
+    o.add("\"waypoint\":{\"active\":%s,\"ours\":%s,\"blip\":%d}}\n",
+          b(s.waypoint_active), b(s.waypoint_ours), s.route_blip);
+    return o.overflow ? -1 : static_cast<int>(o.len);
+}
+
+// Raw census of the map's blips, nearest first. Sprite / colour /
+// type / display are the game's own enums, uninterpreted: the
+// companion decides what to show, and the first on-device runs of this
+// frame are how the mission-start sprites get identified.
+int format_blips(char* buf, size_t cap, const snapshot::Lists& l) {
+    Out o{buf, cap, 0, false};
+    o.add("{\"v\":1,\"type\":\"blips\",\"game\":\"v\",\"ver\":%u,\"blips\":[",
+          l.blips_ver);
+    for (uint32_t i = 0; i < l.n_blips; ++i) {
+        const snapshot::Blip& bl = l.blips[i];
+        o.add("%s{\"id\":%d,\"sprite\":%d,\"colour\":%d,\"type\":%d,"
+              "\"display\":%d,\"x\":%.1f,\"y\":%.1f,\"z\":%.1f,\"dist_m\":%.0f}",
+              i ? "," : "", bl.id, bl.sprite, bl.colour, bl.type, bl.display,
+              finite(bl.x), finite(bl.y), finite(bl.z), finite(bl.dist_m));
+    }
+    o.add("]}\n");
     return o.overflow ? -1 : static_cast<int>(o.len);
 }
 
@@ -320,7 +345,7 @@ DWORD WINAPI serve_client(LPVOID arg) {
     auto* lists = static_cast<snapshot::Lists*>(
         std::malloc(sizeof(snapshot::Lists)));
     HANDLE reader = nullptr;
-    uint32_t sent_weapons_ver = 0, sent_stations_ver = 0;
+    uint32_t sent_weapons_ver = 0, sent_stations_ver = 0, sent_blips_ver = 0;
     int n = 0;
 
     if (!buf || !lists) {
@@ -348,9 +373,10 @@ DWORD WINAPI serve_client(LPVOID arg) {
         }
 
         // 2. Lists, only when they changed since we last sent them.
-        uint32_t wv = 0, sv = 0;
-        snapshot::list_versions(&wv, &sv);
-        if (wv != sent_weapons_ver || sv != sent_stations_ver) {
+        uint32_t wv = 0, sv = 0, bv = 0;
+        snapshot::list_versions(&wv, &sv, &bv);
+        if (wv != sent_weapons_ver || sv != sent_stations_ver ||
+            bv != sent_blips_ver) {
             snapshot::read_lists(*lists);
             if (lists->weapons_ver != sent_weapons_ver) {
                 n = format_weapons(buf, kBufCap, *lists);
@@ -369,6 +395,15 @@ DWORD WINAPI serve_client(LPVOID arg) {
                     goto done;
                 }
                 sent_stations_ver = lists->stations_ver;
+            }
+            if (lists->blips_ver != sent_blips_ver) {
+                n = format_blips(buf, kBufCap, *lists);
+                if (n <= 0) {
+                    thor_log("[bridge] blips frame overflow");
+                } else if (!send_all(sock, buf, n)) {
+                    goto done;
+                }
+                sent_blips_ver = lists->blips_ver;
             }
         }
 

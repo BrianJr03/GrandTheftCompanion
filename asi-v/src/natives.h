@@ -32,6 +32,7 @@ enum : uint64_t {
     GET_ENTITY_MODEL                   = 0x9F47B058362C84B5,  // Hash (Entity)
     GET_ENTITY_SPEED                   = 0xD5037BA82E12416F,  // float (Entity), m/s
     GET_ENTITY_HEIGHT_ABOVE_GROUND     = 0x1DD55701034110E5,  // float (Entity), m
+    GET_ENTITY_COORDS                  = 0x3FEF770D40960D5A,  // Vector3 (Entity, BOOL alive)
 
     // PED
     GET_PED_ARMOUR                     = 0x9483AF821605B1D8,  // int (Ped)
@@ -65,6 +66,25 @@ enum : uint64_t {
     // localised display string; returns "NULL" for unknown keys.
     GET_LABEL_TEXT                     = 0x7B5280EBA9840C72,  // const char* (const char* key)
     IS_PAUSE_MENU_ACTIVE               = 0xB0034A223497FFCB,  // BOOL ()
+
+    // HUD / blips. The map's icons are blips; the pair of FIRST/NEXT
+    // natives walks every blip carrying one sprite id, so a census of
+    // the whole map is one walk per sprite id. A blip handle is only
+    // meaningful while DOES_BLIP_EXIST.
+    GET_FIRST_BLIP_INFO_ID             = 0x1BEDE233E6CD2A1F,  // Blip (int blipSprite)
+    GET_NEXT_BLIP_INFO_ID              = 0x14F96AA50D6FBEA7,  // Blip (int blipSprite)
+    DOES_BLIP_EXIST                    = 0xA6DB27D19ECBB7DA,  // BOOL (Blip)
+    GET_BLIP_INFO_ID_COORD             = 0xFA7C7F0AADF25D09,  // Vector3 (Blip)
+    GET_BLIP_INFO_ID_DISPLAY           = 0x1E314167F701DC3B,  // int (Blip)
+    GET_BLIP_INFO_ID_TYPE              = 0xBE9B0959FFD0779B,  // int (Blip): 1 veh 2 ped 3 obj 4 coord 6 pickup 7 radius
+    GET_BLIP_SPRITE                    = 0x1FC877464A04FC4F,  // int (Blip)
+    GET_BLIP_COLOUR                    = 0xDF729E8D20CF7327,  // int (Blip)
+    // The player's own map waypoint. SET_NEW_WAYPOINT is what the pause
+    // map does on "set waypoint": the GPS route follows at once.
+    GET_WAYPOINT_BLIP_ENUM_ID          = 0x186E5D252FA50E7D,  // int ()  sprite id of the waypoint blip
+    IS_WAYPOINT_ACTIVE                 = 0x1DD1F58F493F1DA5,  // BOOL ()
+    SET_NEW_WAYPOINT                   = 0xFE43368D2AA4F2FC,  // void (float x, float y)
+    SET_WAYPOINT_OFF                   = 0xA7E4E2D361C2627F,  // void ()
 
     // AUDIO
     GET_PLAYER_RADIO_STATION_INDEX     = 0xE8AF77C4C06ADC93,  // int (), 255 = off
