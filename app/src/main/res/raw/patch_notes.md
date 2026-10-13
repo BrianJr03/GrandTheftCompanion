@@ -1,3 +1,9 @@
+## v0.8.1
+
+**Driving overlay**
+
+While you're in a vehicle, the map screen now shows a small **speedometer** in the bottom-right (mph, matches the HUD) and **driving to \<name\>** in the bottom-left — the name tracks whatever you tapped in the blips panel and clears the moment you tap clear.
+
 ## v0.8.0
 
 **Map tab facelift**
