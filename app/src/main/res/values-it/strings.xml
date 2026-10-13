@@ -154,4 +154,30 @@
 
     <string name="radio_off">spenta</string>
     <string name="radio_unknown">stazione %1$d</string>
+
+    <!-- Blip list + settings -->
+    <string name="map_blips_cd">icone della mappa, tocca per aprire</string>
+    <string name="map_blips_title">icone mappa</string>
+    <string name="map_blips_none">ancora nessuna icona — serve il gioco caricato e ThorBridgeV 0.3.0+ / ThorBridge a livello nativi 5</string>
+    <string name="map_blips_count">%1$d icone, le più vicine prima</string>
+    <string name="map_blips_route">percorso</string>
+    <string name="map_blips_routed">in rotta</string>
+    <string name="map_blips_clear">cancella percorso</string>
+    <string name="map_blips_log">registra</string>
+    <string name="map_blips_info">info</string>
+    <string name="map_blips_info_title">Informazioni sulle icone</string>
+    <string name="map_blips_info_body">I nomi sono in lavorazione. Se una riga mostra \"sprite N\" invece di un nome leggibile, tocca percorso, guida fin lì e vedi cosa trovi. Poi apri un ticket con il numero di sprite e cosa era. Verrà aggiunto alla prossima build una volta verificato.</string>
+    <string name="map_blips_info_open_issue">Apri ticket</string>
+    <string name="map_blips_close">chiudi</string>
+    <string name="car_chip_cd">in veicolo, tocca per andare alla minimappa</string>
+    <string name="settings_icon_cd">impostazioni compagno</string>
+    <string name="settings_title">Impostazioni</string>
+    <string name="settings_auto_swipe_title">Passa alla mappa quando guidi</string>
+    <string name="settings_auto_swipe_body">Quando sali su un veicolo, lo schermo inferiore passa alla scheda della minimappa. Quando scendi, torna alla scheda precedente. Lo specchio deve essere attivo per mostrare qualcosa.</string>
+    <string name="settings_auto_mirror_title">Avvia lo specchio automaticamente</string>
+    <string name="settings_auto_mirror_body">Nella scheda mappa, avvia la richiesta di cattura schermo appena la connessione è attiva, per non dover toccare avvia. Android chiede comunque a ogni nuova sessione.</string>
+    <string name="settings_always_return_hud_title">Torna sempre all\'HUD quando scendi</string>
+    <string name="settings_always_return_hud_body">Quando scendi da un veicolo, torna alla scheda HUD indipendentemente dalla scheda attuale. Sostituisce il comportamento predefinito (che ti riporta indietro solo se sei ancora sulla mappa).</string>
+    <string name="settings_section_minimap">Minimappa</string>
+    <string name="settings_close">Chiudi</string>
 </resources>

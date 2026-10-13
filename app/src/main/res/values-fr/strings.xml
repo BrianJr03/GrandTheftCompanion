@@ -154,4 +154,30 @@
 
     <string name="radio_off">éteinte</string>
     <string name="radio_unknown">station %1$d</string>
+
+    <!-- Blip list + settings -->
+    <string name="map_blips_cd">icônes de la carte, appuyer pour ouvrir</string>
+    <string name="map_blips_title">icônes carte</string>
+    <string name="map_blips_none">aucune icône pour l\'instant — nécessite le jeu chargé et ThorBridgeV 0.3.0+ / ThorBridge au niveau natifs 5</string>
+    <string name="map_blips_count">%1$d icônes, les plus proches d\'abord</string>
+    <string name="map_blips_route">itinéraire</string>
+    <string name="map_blips_routed">en route</string>
+    <string name="map_blips_clear">effacer l\'itinéraire</string>
+    <string name="map_blips_log">journaliser</string>
+    <string name="map_blips_info">info</string>
+    <string name="map_blips_info_title">À propos des icônes</string>
+    <string name="map_blips_info_body">Les noms sont en cours d\'écriture. Si une ligne affiche \"sprite N\" au lieu d\'un nom lisible, appuyez sur itinéraire, allez-y et voyez ce que vous trouvez. Ouvrez ensuite un ticket avec le numéro du sprite et ce que c\'était. Il sera ajouté à la prochaine version une fois vérifié.</string>
+    <string name="map_blips_info_open_issue">Ouvrir un ticket</string>
+    <string name="map_blips_close">fermer</string>
+    <string name="car_chip_cd">en véhicule, appuyer pour aller à la minicarte</string>
+    <string name="settings_icon_cd">paramètres du compagnon</string>
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_auto_swipe_title">Passer à la carte en conduisant</string>
+    <string name="settings_auto_swipe_body">Dès que vous montez dans un véhicule, l\'écran du bas bascule sur l\'onglet de la minicarte. En descendant, il revient à l\'onglet précédent. Le miroir doit être actif pour afficher quelque chose.</string>
+    <string name="settings_auto_mirror_title">Démarrer le miroir automatiquement</string>
+    <string name="settings_auto_mirror_body">Sur l\'onglet carte, lance l\'autorisation de capture d\'écran dès que la connexion est active, pour éviter d\'appuyer sur démarrer. Android redemande à chaque nouvelle session.</string>
+    <string name="settings_always_return_hud_title">Toujours revenir au HUD en descendant</string>
+    <string name="settings_always_return_hud_body">Quand vous descendez d\'un véhicule, retour à l\'onglet HUD quel que soit l\'onglet actuel. Remplace le comportement par défaut (qui ne vous ramène que si vous êtes resté sur la carte).</string>
+    <string name="settings_section_minimap">Minicarte</string>
+    <string name="settings_close">Fermer</string>
 </resources>

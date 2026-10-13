@@ -154,4 +154,30 @@
 
     <string name="radio_off">オフ</string>
     <string name="radio_unknown">ラジオ局 %1$d</string>
+
+    <!-- Blip list + settings -->
+    <string name="map_blips_cd">マップのアイコン、タップで開く</string>
+    <string name="map_blips_title">マップのアイコン</string>
+    <string name="map_blips_none">まだアイコンがありません — ゲームの読み込みと ThorBridgeV 0.3.0+ / ThorBridge のネイティブレベル 5 が必要です</string>
+    <string name="map_blips_count">%1$d 個のアイコン、近い順</string>
+    <string name="map_blips_route">ルート</string>
+    <string name="map_blips_routed">案内中</string>
+    <string name="map_blips_clear">ルート解除</string>
+    <string name="map_blips_log">記録</string>
+    <string name="map_blips_info">情報</string>
+    <string name="map_blips_info_title">アイコンリストについて</string>
+    <string name="map_blips_info_body">名前は作成中です。「sprite N」のように数字だけ表示されている場合は、ルートをタップして行き先を確認してください。スプライト番号と判明した名前を Issue で報告していただければ、確認後に次のビルドに追加されます。</string>
+    <string name="map_blips_info_open_issue">Issue を開く</string>
+    <string name="map_blips_close">閉じる</string>
+    <string name="car_chip_cd">車に乗車中、タップでミニマップへ</string>
+    <string name="settings_icon_cd">コンパニオン設定</string>
+    <string name="settings_title">設定</string>
+    <string name="settings_auto_swipe_title">運転中にマップへ自動切替</string>
+    <string name="settings_auto_swipe_body">車に乗ると下画面がミニマップタブに切り替わります。降りると元のタブに戻ります。ミラーが起動していないと何も映りません。</string>
+    <string name="settings_auto_mirror_title">ミラーを自動で開始</string>
+    <string name="settings_auto_mirror_body">マップタブで接続が有効になると、画面キャプチャ許可プロンプトを自動的に表示し、スタートをタップする手間を省きます。Android は新しいセッションごとに毎回確認します。</string>
+    <string name="settings_always_return_hud_title">降車時は常に HUD に戻る</string>
+    <string name="settings_always_return_hud_body">車から降りた際、現在のタブに関係なく HUD タブに戻ります。既定の動作（マップを表示している時のみ戻る）を上書きします。</string>
+    <string name="settings_section_minimap">ミニマップ</string>
+    <string name="settings_close">閉じる</string>
 </resources>
