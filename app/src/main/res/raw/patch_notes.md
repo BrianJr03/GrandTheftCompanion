@@ -1,15 +1,28 @@
-## v0.6.1
+## v0.7.0
 
-**Nicer release notes in the update dialog**
+**NOTE:** both plugins changed in this release — download **ThorBridge.asi** (GTA IV) and **ThorBridgeV.asi** (GTA V) from the release assets and drop them next to `GTAIV.exe` / `GTA5.exe`. The APK update alone won't pick them up.
 
-The update popup now renders patch notes with proper formatting. Headers look like headers, quoted lines get a colored side bar, code snippets show in a monospace box, and nested bullets indent cleanly. Inline code picks up your episode's accent color, so patch notes feel at home on the HUD.
+**Blips panel — route from the bottom screen**
 
-## v0.6.0
+Every icon on the game's map, nearest first, grouped by name, with a one-tap **route** button per row. Opens the game's own GPS to that spot without pausing or dragging a cursor around. Works on GTA IV and GTA V.
 
-**Update popup on launch**
+Tap the pin icon in the status bar to open it. On GTA IV, dpad-down on the controller also toggles it (reads the game's own pad state, so it works even while you're playing). Multiple instances of the same icon collapse into one row with a count badge; expand to pick which one. Tapping an already-routed row clears the route.
 
-The HUD now pops the update dialog on launch when a new release is out, instead of waiting for you to tap the "update available" chip. Dismiss it and it stays quiet until an even newer version shows up.
+**Car chip + auto-swipe to the map**
 
-**Download the ASIs from the dialog**
+A car icon slides in next to the pin whenever you're in a vehicle. Tap it to jump straight to the minimap. Or flip on **Auto-swipe to map while driving** in the new settings sheet and it does it for you.
 
-A new "Download ASIs" button in the update dialog saves ThorBridge.asi and ThorBridgeV.asi straight to your phone, into Downloads/gtc-downloads/0.6.0/ (and so on for every future release). Copy them next to GTAIV.exe when you update, so the HUD and the game stay in sync. The APK downloads into the same folder now too, so each version's files stay together.
+**Settings sheet**
+
+Gear icon in the top-right of the paused / setup / character-switch screens. Expandable sections (Minimap first) with three toggles:
+- Auto-swipe to the map tab when you get in a vehicle.
+- Always return to the HUD on exit (overrides the default smart-restore).
+- Start the mirror automatically when the connection goes live.
+
+**GTA IV fixes**
+
+Two bugs the first on-device run surfaced: the blip walk was reading only two of the game's internal icons (now reads them all), and every blip's distance was reading the same number because the coord native wanted a different argument shape than documented. Both fixed.
+
+**Translations**
+
+Full fr/es/de/it/ru/ja for everything new.
