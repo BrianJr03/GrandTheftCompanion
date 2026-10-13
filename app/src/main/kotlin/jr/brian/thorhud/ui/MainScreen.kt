@@ -1,5 +1,7 @@
 package jr.brian.thorhud.ui
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,8 +48,11 @@ import jr.brian.thorhud.ui.components.VehiclePanel
 import jr.brian.thorhud.ui.components.WeaponPanel
 import jr.brian.thorhud.ui.components.paletteFor
 import jr.brian.thorhud.ui.components.stationListFor
+import jr.brian.thorhud.ui.map.BlipListPanel
+import jr.brian.thorhud.ui.map.MapViewModel
 import jr.brian.thorhud.ui.map.MirrorGame
 import jr.brian.thorhud.ui.map.MirrorMapScreen
+import jr.brian.thorhud.ui.map.blipGroups
 import jr.brian.thorhud.ui.v.VMainScreen
 import jr.brian.thorhud.ui.v.VWeaponWheelOverlay
 import jr.brian.thorhud.ui.v.rememberVWheelMemory
@@ -157,6 +163,18 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     LaunchedEffect(wheelHeld, wheelUsable) {
         if (!wheelHeld || !wheelUsable) wheelOpenedByTap = false
     }
+    // The blips panel rides over everything so it is reachable from
+    // either pager page and either game's HUD. rememberSaveable so a
+    // rotation or process-death stays on the panel if it was up.
+    var showBlips by rememberSaveable { mutableStateOf(false) }
+    val toggleBlips: () -> Unit = { showBlips = !showBlips }
+
+    // The companion runs on the Thor's bottom panel while the player
+    // is playing on the top screen. An accidental back swipe should
+    // never kill the HUD mid-mission: if the blips panel is open, back
+    // dismisses it, otherwise we just swallow the event.
+    BackHandler { if (showBlips) showBlips = false }
+
     // A tap-opened wheel left alone closes by itself; every pick
     // restarts the clock.
     LaunchedEffect(wheelOpenedByTap, wheelHeld, weaponPick) {
@@ -186,14 +204,20 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         return
     }
     if (isGtaV && vIsNoticeState(hello, state)) {
-        VMainScreen(
-            viewModel = viewModel,
-            hello = hello,
-            state = state,
-            isStale = isStale,
-            updateAvailable = updateInfo.isUpdateAvailable,
-            onOpenUpdate = { showUpdateDialog = true },
-        )
+        Box(Modifier.fillMaxSize()) {
+            VMainScreen(
+                viewModel = viewModel,
+                hello = hello,
+                state = state,
+                isStale = isStale,
+                updateAvailable = updateInfo.isUpdateAvailable,
+                onOpenUpdate = { showUpdateDialog = true },
+                blipsOpen = showBlips,
+                onOpenBlips = toggleBlips,
+            )
+            BlipsOverlay(isGtaV = true, accent = accent, show = showBlips,
+                         onClose = { showBlips = false })
+        }
         return
     }
 
@@ -238,6 +262,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     updateAvailable = updateInfo.isUpdateAvailable,
                     onOpenUpdate = { showUpdateDialog = true },
                     onOpenWeaponWheel = openWheel,
+                    blipsOpen = showBlips,
+                    onOpenBlips = toggleBlips,
                 )
             } else {
                 IvHudScreen(
@@ -250,6 +276,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     updateAvailable = updateInfo.isUpdateAvailable,
                     onOpenUpdate = { showUpdateDialog = true },
                     onOpenWeaponWheel = openWheel,
+                    blipsOpen = showBlips,
+                    onOpenBlips = toggleBlips,
                 )
             }
         },
@@ -284,7 +312,44 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             onDismiss = { wheelOpenedByTap = false },
         )
     }
+    BlipsOverlay(isGtaV = isGtaV, accent = accent, show = showBlips,
+                 onClose = { showBlips = false })
     }
+    }
+}
+
+/**
+ * The blips panel, drawn above everything else when [show] is true.
+ * Reads from the same MapViewModel the mirror page uses, so the list
+ * and the routed-blip highlight stay in sync whichever surface opened
+ * the panel.
+ */
+@Composable
+private fun BlipsOverlay(
+    isGtaV: Boolean,
+    accent: Color,
+    show: Boolean,
+    onClose: () -> Unit,
+) {
+    if (!show) return
+    val mapViewModel: MapViewModel = hiltViewModel()
+    val blips by mapViewModel.blips.collectAsStateWithLifecycle()
+    val gameState by mapViewModel.state.collectAsStateWithLifecycle()
+    val groups = blipGroups(isGtaV, blips, gameState?.routedBlipId)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .padding(12.dp),
+    ) {
+        BlipListPanel(
+            groups = groups,
+            accent = accent,
+            onRoute = mapViewModel::routeBlip,
+            onClear = mapViewModel::routeClear,
+            onLogCensus = mapViewModel::blipCensus,
+            onClose = onClose,
+        )
     }
 }
 
@@ -304,6 +369,8 @@ private fun IvHudScreen(
     // Tapping the on-foot weapon card opens the weapon wheel. Null
     // leaves the card inert (in a vehicle, or nothing to pick from).
     onOpenWeaponWheel: (() -> Unit)?,
+    blipsOpen: Boolean = false,
+    onOpenBlips: (() -> Unit)? = null,
 ) {
     val palette = paletteFor(liveState?.episode ?: state?.episode)
 
@@ -332,6 +399,8 @@ private fun IvHudScreen(
                 onToggleLights = viewModel::togglePoliceLights,
                 updateAvailable = updateAvailable,
                 onOpenUpdate = onOpenUpdate,
+                blipsOpen = blipsOpen,
+                onOpenBlips = onOpenBlips,
             )
             Spacer(Modifier.height(8.dp))
             val inVehicle = liveState?.inVehicle == true

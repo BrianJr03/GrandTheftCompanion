@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleDown
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -57,6 +58,11 @@ internal fun StatusBar(
     // toggle when the GitHub Releases API reports a newer version.
     updateAvailable: Boolean = false,
     onOpenUpdate: (() -> Unit)? = null,
+    // Blip-list chip. Opens the map blips panel from any screen that
+    // shows the status bar. [blipsOpen] colours the icon with the
+    // accent while the panel is up.
+    blipsOpen: Boolean = false,
+    onOpenBlips: (() -> Unit)? = null,
 ) {
     val mono = FontFamily.Monospace
     Row(
@@ -78,6 +84,12 @@ internal fun StatusBar(
                  fontFamily = mono, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.weight(1f))
+        // Blips chip rides between the title/status cluster and the
+        // wanted stars so it is reachable from any screen that shows
+        // the status bar (both game HUDs, both pager pages).
+        onOpenBlips?.let { onOpen ->
+            BlipsChip(palette = palette, open = blipsOpen, onTap = onOpen)
+        }
         // Stars only make sense once the player has heat; hide the whole
         // widget below wanted=1 and slide it in from the right edge
         // when the first star lights up.
@@ -114,6 +126,28 @@ internal fun StatusBar(
                 )
             }
         }
+    }
+}
+
+/**
+ * Map-blips chip. Accent while the panel is open, dim grey otherwise.
+ * Matches [UpdateChip] / [LightsToggle] size so the three sit evenly.
+ */
+@Composable
+private fun BlipsChip(palette: HudPalette, open: Boolean, onTap: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .clickable(onClick = onTap),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Place,
+            contentDescription = stringResource(R.string.map_blips_cd),
+            tint = if (open) palette.accent else Color(0xFF4A574F),
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 

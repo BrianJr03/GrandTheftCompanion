@@ -64,6 +64,8 @@ internal fun VMainScreen(
     // Tapping the on-foot weapon card opens the weapon wheel
     // (VWeaponWheel.kt). Null leaves the card inert.
     onOpenWeaponWheel: (() -> Unit)? = null,
+    blipsOpen: Boolean = false,
+    onOpenBlips: (() -> Unit)? = null,
 ) {
     val stations by viewModel.stations.collectAsStateWithLifecycle()
     val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
@@ -177,6 +179,8 @@ internal fun VMainScreen(
                 onToggleLights = viewModel::togglePoliceLights,
                 updateAvailable = updateAvailable,
                 onOpenUpdate = onOpenUpdate,
+                blipsOpen = blipsOpen,
+                onOpenBlips = onOpenBlips,
             )
             if (tags.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))

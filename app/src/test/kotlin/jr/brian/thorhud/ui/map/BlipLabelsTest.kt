@@ -75,9 +75,14 @@ class BlipLabelsTest {
 
     @Test
     fun distanceFormatting() {
-        assertEquals("50 m", blipDistance(50f))
-        assertEquals("999 m", blipDistance(999.6f))
-        assertEquals("1.2 km", blipDistance(1234f))
+        // Imperial to match the games' own HUDs: feet below a mile,
+        // miles above. 50 m = 164 ft, 1 mi = 1609.344 m.
+        assertEquals("164 ft", blipDistance(50f))
+        assertEquals("1607 ft", blipDistance(490.0f))
+        // Threshold is 1 mile = 1609.344 m, not a kilometre.
+        assertEquals("4048 ft", blipDistance(1234f))
+        assertEquals("1.2 mi", blipDistance(2000f))
+        assertEquals("3.1 mi", blipDistance(5000f))
     }
 
     @Test
@@ -86,8 +91,39 @@ class BlipLabelsTest {
         val rows = blipRows(true, f.blips, 301)
         assertEquals(listOf(false, true, false), rows.map { it.routed })
         assertEquals("Michael", rows[1].label.name)
-        assertEquals("500 m", rows[1].distance)
+        assertEquals("1640 ft", rows[1].distance)
         assertTrue(blipRows(true, f.blips, null).none { it.routed })
+    }
+
+    @Test
+    fun groupsPutSinglesFirstThenMultisBothOrderedByDistance() {
+        // Two Ammu-Nations, one Franklin, one Lester: singles first in
+        // nearest-first order (Franklin then Lester, since Franklin is
+        // closer), then multi-item groups by nearest-first (Ammu-Nation).
+        val frame = decode(
+            "{\"v\":1,\"type\":\"blips\",\"game\":\"v\",\"ver\":1,\"blips\":[" +
+            "{\"id\":1,\"sprite\":110,\"colour\":0,\"type\":4,\"display\":2,\"x\":0.0,\"y\":0.0,\"z\":0.0,\"dist_m\":100}," +
+            "{\"id\":2,\"sprite\":88,\"colour\":43,\"type\":4,\"display\":2,\"x\":0.0,\"y\":0.0,\"z\":0.0,\"dist_m\":200}," +
+            "{\"id\":3,\"sprite\":110,\"colour\":0,\"type\":4,\"display\":2,\"x\":0.0,\"y\":0.0,\"z\":0.0,\"dist_m\":500}," +
+            "{\"id\":4,\"sprite\":77,\"colour\":42,\"type\":4,\"display\":2,\"x\":0.0,\"y\":0.0,\"z\":0.0,\"dist_m\":800}]}"
+        )
+        val groups = blipGroups(true, frame.blips, routedId = 2)
+        assertEquals(listOf("Franklin", "Lester", "Ammu-Nation"), groups.map { it.name })
+        assertEquals(listOf(1, 1, 2), groups.map { it.count })
+        assertEquals(true, groups[0].routed)    // Franklin
+        assertEquals(false, groups[1].routed)   // Lester
+        assertEquals(false, groups[2].routed)   // Ammu-Nation
+        // Within a group, rows stay nearest first.
+        assertEquals(listOf(1, 3), groups[2].rows.map { it.blip.id })
+    }
+
+    @Test
+    fun titleCasePreservesExistingUppercase() {
+        assertEquals("Safehouse", "safehouse".titleCase())
+        assertEquals("Car Wash", "car wash".titleCase())
+        assertEquals("Ammu-Nation", "Ammu-Nation".titleCase())
+        assertEquals("LS Customs", "LS Customs".titleCase())
+        assertEquals("Sprite 123", "sprite 123".titleCase())
     }
 
     private companion object {

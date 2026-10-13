@@ -24,9 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -88,13 +85,6 @@ internal fun MirrorMapScreen(
     val captureSize by viewModel.captureSize.collectAsStateWithLifecycle()
     val transforms by viewModel.transforms.collectAsStateWithLifecycle()
     val isLocked by viewModel.isLocked.collectAsStateWithLifecycle()
-    val blips by viewModel.blips.collectAsStateWithLifecycle()
-    val gameState by viewModel.state.collectAsStateWithLifecycle()
-    // The blip list replaces the mirror while open; survives rotation
-    // and the pager swipe like the lock does not (it is a mode, not a
-    // nudge).
-    var showBlips by rememberSaveable { mutableStateOf(false) }
-    val blipRows = blipRows(game == MirrorGame.V, blips, gameState?.routedBlipId)
 
     val consentLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -139,17 +129,6 @@ internal fun MirrorMapScreen(
             }
         }
         when {
-            showBlips -> {
-                BlipListPanel(
-                    rows = blipRows,
-                    accent = accent,
-                    onRoute = viewModel::routeBlip,
-                    onClear = viewModel::routeClear,
-                    onLogCensus = viewModel::blipCensus,
-                    onClose = { showBlips = false },
-                )
-            }
-
             status == ScreenMirror.Status.Active && size != null -> {
                 val baseCrop = minimapCropFor(game)
                 val userT = transforms[game] ?: MirrorTransform()
@@ -241,12 +220,6 @@ internal fun MirrorMapScreen(
                             accent = accent,
                             onClick = { viewModel.resetTransform(game) },
                         )
-                        MapButton(
-                            label = stringResource(R.string.map_blips),
-                            highlighted = false,
-                            accent = accent,
-                            onClick = { showBlips = true },
-                        )
                         Spacer(Modifier.weight(1f))
                         MapButton(
                             label = stringResource(R.string.map_stop),
@@ -280,21 +253,12 @@ internal fun MirrorMapScreen(
                         textAlign = TextAlign.Center,
                     )
                     Spacer(Modifier.height(20.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        MapButton(
-                            label = stringResource(R.string.map_start),
-                            highlighted = true,
-                            accent = accent,
-                            onClick = { consentLauncher.launch(viewModel.consentIntent()) },
-                        )
-                        // The blip list does not need the mirror running.
-                        MapButton(
-                            label = stringResource(R.string.map_blips),
-                            highlighted = false,
-                            accent = accent,
-                            onClick = { showBlips = true },
-                        )
-                    }
+                    MapButton(
+                        label = stringResource(R.string.map_start),
+                        highlighted = true,
+                        accent = accent,
+                        onClick = { consentLauncher.launch(viewModel.consentIntent()) },
+                    )
                 }
             }
 
