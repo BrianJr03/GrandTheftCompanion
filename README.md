@@ -78,6 +78,12 @@ Plus, for either game: the GTC app, and a launcher that lets you set per-game en
   etc. are all unverified. Each new device needs: display enumeration
   confirmed, bottom-screen touch behaviour confirmed, ASI load path
   confirmed.
+- **Auto-route to the next mission** — the blips panel is the
+  manual half of this; the second half is a toggle that keeps the
+  GPS pointed at the nearest mission start as the player drives
+  around, switches targets only when a new one is meaningfully
+  closer, and backs off while the game is already running a mission
+  of its own.
 
 ## Building
 
@@ -206,7 +212,7 @@ The app picks the layout from the plugin's hello frame. Both layouts share the s
 - Tags for mission / cutscene / animal form; non-protagonist peds (Director Mode) get a neutral palette with cash and special hidden.
 - **Story mode only.** In GTA Online the plugin publishes nothing but an "online" flag (and Script Hook V itself closes the game on entering Online).
 
-### Weapon wheel
+### Weapon Wheel
 
 <p align="center">
   <img src="assets/weapon-wheel.png" alt="GTC's eight-slot weapon wheel on the Thor's bottom screen" width="420"/>
@@ -222,6 +228,12 @@ Opens two ways: tap the on-foot weapon card, or **hold LB / L1** on the pad. Rel
 
 ### MiniMap View
 
+<p align="center">
+  <img src="assets/map-iv.png" alt="GTA IV minimap mirrored on the Thor's bottom screen, clipped to a circle" width="420"/>
+  <br/>
+  <em>GTA IV</em>
+</p>
+
 Once connected, the bottom screen is a two-page pager. Swipe between the HUD and the **map** page. A one-time **Tip** dialog on first connect points this out. Each game (IV and V) remembers which page it was on independently.
 
 The map page mirrors the game's own minimap from the top screen and enlarges it, using Android's screen-capture permission. Tap **start mirroring** and approve the system prompt. Android asks again each session. It needs no plugin update and ships no map imagery. It shows exactly what the game draws, blips and GPS route included. GTA IV is clipped to a circle to match its native radar; GTA V stays rectangular to match its map.
@@ -230,6 +242,27 @@ The map page mirrors the game's own minimap from the top screen and enlarges it,
 - It is a magnified copy of a small patch of the screen, so it is soft, and it shows whatever is in that patch when the game hides the minimap (cutscenes, pause menu).
 - Frames are only mirrored while the map page is visible, but the capture session (and Android's capture indicator) stays until you tap **stop** or close the app.
 - When the game is paused (or GTA V shows an on-screen notice like a character switch), the pause screen takes over both pages. Swipe is disabled until the game resumes.
+
+### Blips View
+
+<p align="center">
+  <img src="assets/blips-v.png" alt="GTA V blips panel: 52 blips grouped by name, nearest first, each with a route button" width="420"/>
+  &nbsp;
+  <img src="assets/blips-iv.png" alt="GTA IV blips panel: 22 blips with the TBoGT magenta accent, Helitour routed" width="420"/>
+</p>
+
+Every icon on the game's own map, nearest first, grouped by name, with a one-tap **route** button per icon. Opens the game's own GPS to that destination without having to pause and move a map cursor. Works on both games.
+
+Open it two ways:
+- The pin icon in the HUD status bar (both games, both pager pages). It mirrors the title's accent while the connection is live and fades out when stale.
+- **Dpad-down** on GTA IV. The plugin reads the game's own pad state so the key never has to reach the companion. GTA V has no stable control id for a raw dpad-down (the game remaps it in a vehicle), so the pin icon is the only way there.
+
+Tap a group header to expand it; multiple instances of the same icon (several Ammu-Nations, every Pay 'n' Spray) collapse into one row with a count on the leading badge. Single-item groups route in one tap. Tapping an already-routed row clears the route. Expanding one group collapses the rest with an animation so the panel stays focused on what you picked.
+
+- **GTA V** shows distances in feet / miles and tints known mission-starter icons (Michael / Franklin / Trevor, strangers, heists, mission objectives) with the character accent.
+- **GTA IV** hides distance because `GET_BLIP_COORDS` only returns real coordinates for a subset of blip types; children of multi-item groups show `#1`, `#2` indices instead. Named contacts (Roman, Little Jacob, Playboy X, Johnny, Tony, …) are tinted with the episode accent.
+
+Labels are provisional; the plugin reports every blip's raw sprite id, and the companion looks up a short English name from a seeded table. Anything the table does not know shows as `Sprite N`. The **info** button in the panel header links to the repo's issues page — route to an unknown row, see where it leads, open an issue with the sprite number and the name, it will be added to the next build once verified.
 
 ### Wanted stick lights (AYN Thor)
 
