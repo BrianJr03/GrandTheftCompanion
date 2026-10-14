@@ -227,6 +227,41 @@ class VWeaponWheelModelTest {
         assertEquals(4, at(-179.0))
     }
 
+    // ---- reorder ------------------------------------------------------
+
+    @Test
+    fun reorderSlidesSlotsAlong() {
+        val base = VWheelSlot.entries
+        // Moving slot 0 (Pistols) three spots clockwise pushes
+        // 1..3 (SMGs, Rifles, Snipers) back one each.
+        assertEquals(
+            listOf(
+                VWheelSlot.Smgs, VWheelSlot.Rifles, VWheelSlot.Snipers,
+                VWheelSlot.Pistols, VWheelSlot.Melee, VWheelSlot.Shotguns,
+                VWheelSlot.Heavy, VWheelSlot.Thrown,
+            ),
+            wheelReorder(base, from = 0, to = 3),
+        )
+        // Moving backward: Snipers (3) lands at 1, SMGs and Rifles slide
+        // one spot the other way.
+        assertEquals(
+            listOf(
+                VWheelSlot.Pistols, VWheelSlot.Snipers, VWheelSlot.Smgs,
+                VWheelSlot.Rifles, VWheelSlot.Melee, VWheelSlot.Shotguns,
+                VWheelSlot.Heavy, VWheelSlot.Thrown,
+            ),
+            wheelReorder(base, from = 3, to = 1),
+        )
+    }
+
+    @Test
+    fun reorderIsANoOpWhenFromEqualsToOrOutOfRange() {
+        val base = VWheelSlot.entries
+        assertEquals(base, wheelReorder(base, 3, 3))
+        assertEquals(base, wheelReorder(base, -1, 2))
+        assertEquals(base, wheelReorder(base, 2, 99))
+    }
+
     @Test
     fun hubAndOutsideHitNothing() {
         val r = 100f

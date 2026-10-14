@@ -94,6 +94,44 @@ class HudPrefs @Inject constructor(
         prefs.edit().putBoolean(KEY_MAP_CONTROLS_RIGHT, enabled).apply()
     }
 
+    // Weapon wheel slot order per game. Stored as a comma-separated
+    // list of VWheelSlot ordinals (0..7); default is the natural
+    // 0..7 order the game ships with. A blank or malformed stored
+    // value falls back to the default so a corrupt pref cannot hide
+    // a slot.
+    private val _ivWheelOrder = MutableStateFlow(loadWheelOrder("iv"))
+    val ivWheelOrder: StateFlow<List<Int>> = _ivWheelOrder.asStateFlow()
+    private val _vWheelOrder = MutableStateFlow(loadWheelOrder("v"))
+    val vWheelOrder: StateFlow<List<Int>> = _vWheelOrder.asStateFlow()
+
+    fun setWheelOrder(gameKey: String, order: List<Int>) {
+        if (!isValidWheelOrder(order)) return
+        prefs.edit().putString(wheelOrderKey(gameKey), order.joinToString(",")).apply()
+        flowFor(gameKey)?.value = order
+    }
+
+    fun resetWheelOrder(gameKey: String) {
+        prefs.edit().remove(wheelOrderKey(gameKey)).apply()
+        flowFor(gameKey)?.value = DEFAULT_WHEEL_ORDER
+    }
+
+    private fun flowFor(gameKey: String) = when (gameKey) {
+        "iv" -> _ivWheelOrder
+        "v"  -> _vWheelOrder
+        else -> null
+    }
+
+    private fun loadWheelOrder(gameKey: String): List<Int> {
+        val raw = prefs.getString(wheelOrderKey(gameKey), null).orEmpty()
+        val parsed = raw.split(",").mapNotNull { it.trim().toIntOrNull() }
+        return if (isValidWheelOrder(parsed)) parsed else DEFAULT_WHEEL_ORDER
+    }
+
+    private fun wheelOrderKey(gameKey: String) = "${KEY_WHEEL_ORDER}_$gameKey"
+
+    private fun isValidWheelOrder(order: List<Int>): Boolean =
+        order.size == DEFAULT_WHEEL_ORDER.size && order.toSet() == DEFAULT_WHEEL_ORDER.toSet()
+
     private companion object {
         const val FILE = "hud_prefs"
         const val KEY_SEEN_SWIPE_HINT = "seen_swipe_hint"
@@ -105,5 +143,7 @@ class HudPrefs @Inject constructor(
         const val KEY_AUTO_START_MIRROR = "auto_start_mirror"
         const val KEY_ALWAYS_RETURN_TO_HUD = "always_return_to_hud"
         const val KEY_MAP_CONTROLS_RIGHT = "map_controls_right"
+        const val KEY_WHEEL_ORDER = "wheel_order"
+        val DEFAULT_WHEEL_ORDER: List<Int> = (0..7).toList()
     }
 }

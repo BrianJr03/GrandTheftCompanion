@@ -143,12 +143,17 @@ internal fun vWheelSlotOfHash(owned: List<VWheelWeapon>, hash: Long?): VWheelSlo
  * @param selectedHash the equipped weapon, or a pick waiting to be
  *                     equipped. Null / 0 / the unarmed hash all mean
  *                     fists.
- * @return eight segments, indexed by [VWheelSlot.ordinal]
+ * @param order the angular order the eight slots are drawn in; index i
+ *              of the returned list is the slot drawn at angular
+ *              position i. Defaults to [VWheelSlot.entries], the game's
+ *              own layout.
+ * @return eight segments; segment at index i is the slot `order[i]`
  */
 internal fun vBuildWheel(
     owned: List<VWheelWeapon>,
     selectedHash: Long?,
     remembered: Map<VWheelSlot, Long>,
+    order: List<VWheelSlot> = VWheelSlot.entries,
 ): List<VWheelSegment> {
     val bySlot = VWheelSlot.entries.associateWith { mutableListOf<VWheelWeapon>() }
     bySlot.getValue(VWheelSlot.Melee).add(UNARMED)
@@ -159,7 +164,7 @@ internal fun vBuildWheel(
     }
     val selected = if (vIsUnarmed(null, selectedHash)) V_WEAPON_UNARMED_HASH
                    else selectedHash
-    return wheelSegments(bySlot, selected, remembered)
+    return wheelSegments(bySlot, selected, remembered, order)
 }
 
 /**
@@ -170,13 +175,21 @@ internal fun vBuildWheel(
  *
  * @param selected hash (GTA V) or id (GTA IV) of the selected weapon,
  *                 already normalised to whatever [bySlot] uses for fists
+ * @param order the angular order the eight slots are drawn in; the
+ *              returned list follows it. A list that is not a
+ *              permutation of [VWheelSlot.entries] falls back to the
+ *              default so a corrupt pref can never hide a slot.
  */
 internal fun wheelSegments(
     bySlot: Map<VWheelSlot, List<VWheelWeapon>>,
     selected: Long?,
     remembered: Map<VWheelSlot, Long>,
-): List<VWheelSegment> =
-    VWheelSlot.entries.map { slot ->
+    order: List<VWheelSlot> = VWheelSlot.entries,
+): List<VWheelSegment> {
+    val safeOrder = if (order.toSet() == VWheelSlot.entries.toSet() &&
+                        order.size == VWheelSlot.entries.size) order
+                    else VWheelSlot.entries
+    return safeOrder.map { slot ->
         val weapons = bySlot[slot].orEmpty()
         val selectedIndex = weapons.indexOfFirst { it.hash == selected }
         val rememberedIndex = weapons.indexOfFirst { it.hash == remembered[slot] }
@@ -188,6 +201,7 @@ internal fun wheelSegments(
         }
         VWheelSegment(slot, weapons, shownIndex, isSelected = selectedIndex >= 0)
     }
+}
 
 /**
  * The weapon a tap on [segment] asks for, or null if the tap does
@@ -198,6 +212,24 @@ internal fun wheelSegments(
  * to the next weapon in it, wrapping around: the touch version of the
  * game's left/right within a slot.
  */
+/**
+ * Move the slot at angular position [from] to angular position [to],
+ * sliding the slots in between along to fill the gap (insert-at-drop
+ * semantics). Returns [order] unchanged when the indices are equal or
+ * out of range.
+ */
+internal fun wheelReorder(
+    order: List<VWheelSlot>,
+    from: Int,
+    to: Int,
+): List<VWheelSlot> {
+    if (from == to) return order
+    if (from !in order.indices || to !in order.indices) return order
+    val moved = order.toMutableList()
+    moved.add(to, moved.removeAt(from))
+    return moved
+}
+
 internal fun vWheelTapTarget(segment: VWheelSegment): Long? {
     val shown = segment.shown ?: return null
     if (!segment.isSelected) return shown.hash

@@ -9,16 +9,20 @@ import jr.brian.thorhud.led.StickLights
 import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.net.GameStateRepository
 import jr.brian.thorhud.prefs.HudPrefs
+import jr.brian.thorhud.ui.v.VWheelSlot
 import jr.brian.thorhud.update.UpdateChecker
 import jr.brian.thorhud.update.UpdateInfo
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
@@ -75,6 +79,28 @@ class MainViewModel @Inject constructor(
     fun setAutoStartMirror(enabled: Boolean) = prefs.setAutoStartMirror(enabled)
     fun setAlwaysReturnToHud(enabled: Boolean) = prefs.setAlwaysReturnToHud(enabled)
     fun setMapControlsRight(enabled: Boolean) = prefs.setMapControlsRight(enabled)
+
+    // Weapon-wheel slot order, per game. Backed by HudPrefs flows so a
+    // reorder on one wheel does not leak into the other game. VWheelSlot
+    // is internal to the module, so these are too; only Compose code in
+    // :app reads them.
+    internal val ivWheelOrder: StateFlow<List<VWheelSlot>> =
+        prefs.ivWheelOrder.map { it.toWheelSlots() }
+            .stateIn(viewModelScope, SharingStarted.Eagerly,
+                     prefs.ivWheelOrder.value.toWheelSlots())
+    internal val vWheelOrder: StateFlow<List<VWheelSlot>> =
+        prefs.vWheelOrder.map { it.toWheelSlots() }
+            .stateIn(viewModelScope, SharingStarted.Eagerly,
+                     prefs.vWheelOrder.value.toWheelSlots())
+    internal fun setWheelOrder(gameKey: String, order: List<VWheelSlot>) =
+        prefs.setWheelOrder(gameKey, order.map { it.ordinal })
+    fun resetWheelOrder(gameKey: String) = prefs.resetWheelOrder(gameKey)
+
+    private fun List<Int>.toWheelSlots(): List<VWheelSlot> {
+        val entries = VWheelSlot.entries
+        val mapped = mapNotNull { entries.getOrNull(it) }
+        return if (mapped.toSet() == entries.toSet()) mapped else entries
+    }
 
     // Retry button state + one-shot result stream for the snackbar.
     private val _reconnecting = MutableStateFlow(false)

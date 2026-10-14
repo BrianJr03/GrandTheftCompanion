@@ -73,6 +73,7 @@ import jr.brian.thorhud.ui.v.VWeaponWheelOverlay
 import jr.brian.thorhud.ui.v.rememberVWheelMemory
 import jr.brian.thorhud.ui.v.vCharacterOf
 import jr.brian.thorhud.ui.v.vIsNoticeState
+import jr.brian.thorhud.ui.v.wheelReorder
 import jr.brian.thorhud.update.UpdateSheet
 import kotlinx.coroutines.delay
 
@@ -151,6 +152,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     val equippedWeapon = if (isGtaV) liveState?.weaponHash
                          else liveState?.weaponId?.toLong()
     val wheelMemory = rememberVWheelMemory(weapons, equippedWeapon.takeIf { isGtaV })
+    val ivWheelOrder by viewModel.ivWheelOrder.collectAsStateWithLifecycle()
+    val vWheelOrder by viewModel.vWheelOrder.collectAsStateWithLifecycle()
     var wheelOpenedByTap by remember { mutableStateOf(false) }
     val wheelHeld = liveState?.wheel == true
     // On foot only: both plugins refuse set_weapon in a vehicle.
@@ -427,8 +430,16 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                 memory = wheelMemory,
                                 held = wheelHeld,
                                 palette = vCharacterOf(state?.character).palette,
+                                order = vWheelOrder,
                                 onPick = viewModel::pickWeapon,
                                 onDismiss = { wheelOpenedByTap = false },
+                                onReorder = { from, to ->
+                                    viewModel.setWheelOrder(
+                                        "v",
+                                        wheelReorder(vWheelOrder, from, to),
+                                    )
+                                },
+                                onResetOrder = { viewModel.resetWheelOrder("v") },
                             )
                         } else if (showWheel) {
                             IvWeaponWheelOverlay(
@@ -437,8 +448,16 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                 pick = weaponPick,
                                 held = wheelHeld,
                                 palette = paletteFor(liveState?.episode ?: state?.episode),
+                                order = ivWheelOrder,
                                 onPick = viewModel::pickWeapon,
                                 onDismiss = { wheelOpenedByTap = false },
+                                onReorder = { from, to ->
+                                    viewModel.setWheelOrder(
+                                        "iv",
+                                        wheelReorder(ivWheelOrder, from, to),
+                                    )
+                                },
+                                onResetOrder = { viewModel.resetWheelOrder("iv") },
                             )
                         }
                     }

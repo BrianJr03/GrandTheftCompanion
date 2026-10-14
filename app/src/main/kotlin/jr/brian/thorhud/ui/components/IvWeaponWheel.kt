@@ -6,6 +6,7 @@ import androidx.compose.ui.res.stringResource
 import jr.brian.thorhud.R
 import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.WeaponPick
+import jr.brian.thorhud.ui.v.VWheelSlot
 import jr.brian.thorhud.ui.v.WeaponWheel
 
 /**
@@ -32,15 +33,18 @@ internal fun IvWeaponWheelOverlay(
     pick: WeaponPick?,
     held: Boolean,
     palette: HudPalette,
+    order: List<VWheelSlot>,
     onPick: (Long) -> Unit,
     onDismiss: () -> Unit,
+    onReorder: (from: Int, to: Int) -> Unit,
+    onResetOrder: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     // A pick that was not refused counts as selected right away; the
     // game confirms it a frame or two later.
     val selectedId = pick?.takeIf { it.error == null }?.hash?.toInt() ?: equippedId
     WeaponWheel(
-        segments = ivBuildWheel(owned, selectedId),
+        segments = ivBuildWheel(owned, selectedId, order),
         selectedLabel = weaponName(selectedId),
         labelOf = { weaponName(it.hash.toInt()) },
         error = pick?.error,
@@ -51,6 +55,8 @@ internal fun IvWeaponWheelOverlay(
         palette = palette,
         onPick = onPick,
         onDismiss = onDismiss,
+        onReorder = onReorder,
+        onResetOrder = onResetOrder,
         modifier = modifier,
     )
 }

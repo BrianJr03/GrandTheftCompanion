@@ -71,6 +71,7 @@ private fun ivWheelWeapon(id: Int, ammo: Int) =
 internal fun ivBuildWheel(
     owned: List<GameState.OwnedWeapon>,
     selectedId: Int?,
+    order: List<VWheelSlot> = VWheelSlot.entries,
 ): List<VWheelSegment> {
     val bySlot = VWheelSlot.entries.associateWith { mutableListOf<VWheelWeapon>() }
     bySlot.getValue(VWheelSlot.Melee).add(ivWheelWeapon(IV_WEAPON_UNARMED, 0))
@@ -85,5 +86,6 @@ internal fun ivBuildWheel(
         bySlot = bySlot,
         selected = (selectedId ?: IV_WEAPON_UNARMED).toLong(),
         remembered = emptyMap(),
+        order = order,
     )
 }
