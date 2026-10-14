@@ -61,10 +61,7 @@
 
         <!-- The actual HUD. Supports being launched on an external
              display. taskAffinity + launchMode keep it in its own task
-             so a back-press from the top screen doesn't tear it down.
-             excludeFromRecents keeps the HUD (including the setup
-             screen) out of the top-screen Recents list — the companion
-             is glanceable, never something you'd Alt-Tab to. -->
+             so a back-press from the top screen doesn't tear it down. -->
         <activity
             android:name=".HudActivity"
             android:exported="false"
