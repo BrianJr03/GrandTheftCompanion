@@ -415,7 +415,7 @@ private val IV_LABELS: Map<Int, BlipLabel> = mapOf(
     97 to BlipLabel("Tony (Apartment)", true),
     98 to BlipLabel("backup vehicle", false),
     100 to BlipLabel("Yusuf", true),
-    102 to BlipLabel("Mom's House", false),
+    102 to BlipLabel("Mom's House", true),
     103 to BlipLabel("Tony (Nightclub)", true),
     105 to BlipLabel("APC", false),
     106 to BlipLabel("BASE jump", false),
