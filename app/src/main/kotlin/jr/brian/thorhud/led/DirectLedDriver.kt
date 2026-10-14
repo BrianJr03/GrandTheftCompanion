@@ -1,13 +1,15 @@
 package jr.brian.thorhud.led
 
+import android.content.Context
 import android.os.IBinder
 import android.os.Parcel
+import android.provider.Settings
 import android.util.Log
+import dagger.hilt.android.qualifiers.ApplicationContext
 import jr.brian.thorhud.led.StickLights.Status
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,7 +29,9 @@ import javax.inject.Singleton
  * and [AppModule] falls through to [BifrostClient].
  */
 @Singleton
-class DirectLedDriver @Inject constructor() : StickLights {
+class DirectLedDriver @Inject constructor(
+    @ApplicationContext private val context: Context,
+) : StickLights {
 
     // PServerBinder is hidden API; reflection is the only way for a
     // regular app. On non-Thor devices "PServerBinder" is not a known
@@ -47,52 +51,28 @@ class DirectLedDriver @Inject constructor() : StickLights {
      *  prefer the direct path over Bifrost. */
     fun isAvailable(): Boolean = _status.value == Status.Ready
 
-    // Whatever the SN3112 nodes were showing when we first grabbed
-    // the sticks for this flash sequence. Captured once per override
-    // (sysfs stays current between beats because we don't touch
-    // state between show() calls), replayed on clear(). Null when
-    // we're not currently overriding OR the sysfs reads failed.
-    private var ambientSnapshot: String? = null
-    private var overriding = false
-
+    // Nothing stored between calls — we re-read Settings.System on
+    // every beat and every clear. A user who re-picks mid-chase sees
+    // the new brightness on the next flash and the new colour the
+    // moment heat ends. The sysfs path is write-only, so this is the
+    // only live source of truth.
     override fun show(left: Int, right: Int) {
-        if (!overriding) {
-            // The first beat of each sequence is our only chance to
-            // see the user's resting colour before our own writes
-            // overwrite it. Reads may silently fail (sysfs 0644 /
-            // SELinux); null just means we fall back to black.
-            ambientSnapshot = runCatching { snapshotAmbient() }.getOrNull()
-            overriding = true
-        }
-        transact(Sn3112.dualCommand(left, right))
+        val b = JoystickColorSetting.read(context)?.brightness ?: Sn3112.BRIGHTNESS
+        transact(Sn3112.dualCommand(left, right, b))
     }
 
-    // Restore whatever the sticks were showing before this flash
-    // sequence began. Nothing captured (sysfs unreadable, or we were
-    // never overriding) falls through to black — the pre-hotfix
-    // behaviour.
     override fun clear() {
-        val snapshot = ambientSnapshot
-        transact(snapshot ?: Sn3112.clearCommand())
-        ambientSnapshot = null
-        overriding = false
+        val snap = JoystickColorSetting.read(context)
+        val cmd = if (snap != null) {
+            Sn3112.dualCommand(snap.left, snap.right, snap.brightness)
+        } else {
+            Sn3112.clearCommand()
+        }
+        transact(cmd)
     }
 
     // No separate probe to run: binder is bound (or not) at init.
     override fun refreshStatus() = Unit
-
-    /**
-     * Read both SN3112 nodes and build a shell command that re-sends
-     * exactly what they currently hold. Returns null when either
-     * read fails (file permissions, missing device, SELinux denial),
-     * which keeps the caller on the black-fallback path.
-     */
-    private fun snapshotAmbient(): String? {
-        val left = File(Sn3112.LEFT_NODE).takeIf { it.canRead() }?.readText()
-        val right = File(Sn3112.RIGHT_NODE).takeIf { it.canRead() }?.readText()
-        if (left.isNullOrBlank() || right.isNullOrBlank()) return null
-        return Sn3112.restoreCommand(left, right)
-    }
 
     private fun transact(command: String) {
         val b = binder ?: return
@@ -134,13 +114,18 @@ internal object Sn3112 {
     const val RIGHT_NODE = "/sys/class/sn3112r/led/brightness"
     const val BRIGHTNESS = 255
 
-    fun dualCommand(leftArgb: Int, rightArgb: Int): String {
-        val lr = (leftArgb shr 16) and 0xFF
-        val lg = (leftArgb shr 8) and 0xFF
-        val lb = leftArgb and 0xFF
-        val rr = (rightArgb shr 16) and 0xFF
-        val rg = (rightArgb shr 8) and 0xFF
-        val rb = rightArgb and 0xFF
+    // Brightness attenuates the RGB values, not the sysfs brightness
+    // byte. The vendor daemon appears to work the same way — matching
+    // its wire format is what makes our restore visually identical to
+    // the pre-flash resting state, instead of a bit brighter.
+    fun dualCommand(leftArgb: Int, rightArgb: Int, brightness: Int = BRIGHTNESS): String {
+        val b = brightness.coerceIn(0, 255)
+        val lr = scale((leftArgb shr 16) and 0xFF, b)
+        val lg = scale((leftArgb shr 8) and 0xFF, b)
+        val lb = scale(leftArgb and 0xFF, b)
+        val rr = scale((rightArgb shr 16) and 0xFF, b)
+        val rg = scale((rightArgb shr 8) and 0xFF, b)
+        val rb = scale(rightArgb and 0xFF, b)
         return buildString(220) {
             append("echo 1-").append(lr).append(':').append(lg).append(':').append(lb).append(':').append(BRIGHTNESS)
             append(" > ").append(LEFT_NODE)
@@ -153,26 +138,52 @@ internal object Sn3112 {
         }
     }
 
+    private fun scale(channel: Int, brightness: Int): Int = (channel * brightness) / 255
+
     fun clearCommand(): String = dualCommand(0, 0)
+}
 
-    /**
-     * Rebuild an echo-chain that re-writes whatever [left] and
-     * [right] were just read from the sysfs nodes. The kernel driver
-     * accepts the same `zone-R:G:B:A` lines it emits on read, so no
-     * parsing is needed — any blank or `#`-prefixed lines are
-     * dropped (defensive against drivers that annotate reads).
-     */
-    fun restoreCommand(left: String, right: String): String = buildString(256) {
-        appendZones(left, LEFT_NODE)
-        appendZones(right, RIGHT_NODE)
-    }.ifBlank { clearCommand() }
+/**
+ * Reads AYN control-lite's joystick picker settings:
+ *   joystick_led_light_picker_color  — `#AARRGGBB,#AARRGGBB` (left,right)
+ *   led_light_brightness_percent     — float 0.0..1.0
+ * Missing or malformed colour returns null; missing brightness defaults
+ * to full so a user who's never touched the slider still gets a bright
+ * restore.
+ */
+internal object JoystickColorSetting {
+    const val COLOR_KEY = "joystick_led_light_picker_color"
+    const val BRIGHTNESS_KEY = "led_light_brightness_percent"
+    const val DEFAULT_BRIGHTNESS = 255
 
-    private fun StringBuilder.appendZones(raw: String, node: String) {
-        for (line in raw.lineSequence()) {
-            val trimmed = line.trim()
-            if (trimmed.isEmpty() || trimmed.startsWith('#')) continue
-            if (isNotEmpty()) append(" && ")
-            append("echo ").append(trimmed).append(" > ").append(node)
-        }
+    data class Snapshot(val left: Int, val right: Int, val brightness: Int)
+
+    fun read(context: Context): Snapshot? {
+        val cr = context.contentResolver
+        val colors = parseColors(Settings.System.getString(cr, COLOR_KEY)) ?: return null
+        val brightness = parseBrightness(Settings.System.getString(cr, BRIGHTNESS_KEY))
+            ?: DEFAULT_BRIGHTNESS
+        return Snapshot(colors.first, colors.second, brightness)
+    }
+
+    fun parseColors(raw: String?): Pair<Int, Int>? {
+        if (raw.isNullOrBlank() || raw == "null") return null
+        val parts = raw.split(',')
+        if (parts.size != 2) return null
+        val left = parseArgb(parts[0]) ?: return null
+        val right = parseArgb(parts[1]) ?: return null
+        return left to right
+    }
+
+    fun parseBrightness(raw: String?): Int? {
+        if (raw.isNullOrBlank() || raw == "null") return null
+        val pct = raw.trim().toDoubleOrNull() ?: return null
+        return (pct.coerceIn(0.0, 1.0) * 255).toInt()
+    }
+
+    private fun parseArgb(token: String): Int? {
+        val t = token.trim()
+        if (!t.startsWith('#') || t.length != 9) return null
+        return runCatching { t.substring(1).toLong(16).toInt() }.getOrNull()
     }
 }

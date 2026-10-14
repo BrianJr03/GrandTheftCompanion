@@ -16,10 +16,10 @@ class Sn3112Test {
     fun redLeftBlueRightBuildsTheExpectedShellCommand() {
         val cmd = Sn3112.dualCommand(PoliceLights.RED, PoliceLights.BLUE)
         assertEquals(
-            "echo 1-255:0:0:255 > /sys/class/sn3112l/led/brightness && " +
-                "echo 2-255:0:0:255 > /sys/class/sn3112l/led/brightness && " +
-                "echo 1-0:0:255:255 > /sys/class/sn3112r/led/brightness && " +
-                "echo 2-0:0:255:255 > /sys/class/sn3112r/led/brightness",
+            "echo 1-128:0:0:255 > /sys/class/sn3112l/led/brightness && " +
+                "echo 2-128:0:0:255 > /sys/class/sn3112l/led/brightness && " +
+                "echo 1-0:0:128:255 > /sys/class/sn3112r/led/brightness && " +
+                "echo 2-0:0:128:255 > /sys/class/sn3112r/led/brightness",
             cmd,
         )
     }
@@ -29,10 +29,10 @@ class Sn3112Test {
         // Beat 1 of the police pattern: left blue, right red.
         val cmd = Sn3112.dualCommand(PoliceLights.BLUE, PoliceLights.RED)
         assertEquals(
-            "echo 1-0:0:255:255 > /sys/class/sn3112l/led/brightness && " +
-                "echo 2-0:0:255:255 > /sys/class/sn3112l/led/brightness && " +
-                "echo 1-255:0:0:255 > /sys/class/sn3112r/led/brightness && " +
-                "echo 2-255:0:0:255 > /sys/class/sn3112r/led/brightness",
+            "echo 1-0:0:128:255 > /sys/class/sn3112l/led/brightness && " +
+                "echo 2-0:0:128:255 > /sys/class/sn3112l/led/brightness && " +
+                "echo 1-128:0:0:255 > /sys/class/sn3112r/led/brightness && " +
+                "echo 2-128:0:0:255 > /sys/class/sn3112r/led/brightness",
             cmd,
         )
     }
@@ -63,54 +63,25 @@ class Sn3112Test {
         assertTrue(cmd.contains("2-17:34:51:255 > /sys/class/sn3112r"))
     }
 
-    // ---- restoreCommand (ambient-snapshot replay) -------------------
-
     @Test
-    fun restoreReplaysBothZonesPerStickFromRawReads() {
-        // The sysfs read format matches the write format on the Thor.
-        // Replay captures both zone lines verbatim and sends them to
-        // the right node.
-        val left = "1-10:20:30:255\n2-10:20:30:255"
-        val right = "1-40:50:60:255\n2-40:50:60:255"
+    fun brightnessAttenuatesRgbAndKeepsSysfsByteAtMax() {
+        // Picker at 4%: brightness=10. 0xff * 10 / 255 = 10. The sysfs
+        // byte itself stays at 255 — the attenuation lives in the RGB
+        // triplet so our restore matches the vendor daemon's encoding.
+        val cmd = Sn3112.dualCommand(0xFFFF00FF.toInt(), 0xFF00FFFF.toInt(), brightness = 10)
         assertEquals(
-            "echo 1-10:20:30:255 > /sys/class/sn3112l/led/brightness && " +
-                "echo 2-10:20:30:255 > /sys/class/sn3112l/led/brightness && " +
-                "echo 1-40:50:60:255 > /sys/class/sn3112r/led/brightness && " +
-                "echo 2-40:50:60:255 > /sys/class/sn3112r/led/brightness",
-            Sn3112.restoreCommand(left, right),
-        )
-    }
-
-    @Test
-    fun restoreToleratesTrailingNewlinesAndBlankLines() {
-        val left = "\n1-5:5:5:255\n\n2-5:5:5:255\n"
-        val right = "1-7:7:7:255\n"
-        val cmd = Sn3112.restoreCommand(left, right)
-        assertEquals(
-            "echo 1-5:5:5:255 > /sys/class/sn3112l/led/brightness && " +
-                "echo 2-5:5:5:255 > /sys/class/sn3112l/led/brightness && " +
-                "echo 1-7:7:7:255 > /sys/class/sn3112r/led/brightness",
+            "echo 1-10:0:10:255 > /sys/class/sn3112l/led/brightness && " +
+                "echo 2-10:0:10:255 > /sys/class/sn3112l/led/brightness && " +
+                "echo 1-0:10:10:255 > /sys/class/sn3112r/led/brightness && " +
+                "echo 2-0:10:10:255 > /sys/class/sn3112r/led/brightness",
             cmd,
         )
     }
 
     @Test
-    fun restoreSkipsCommentLinesIfDriverAnnotatesReads() {
-        // Not every SN3112 revision emits comments, but the hotfix is
-        // defensive: a '#' at the start of a line means metadata, drop
-        // it so we don't try to `echo #...` into the node.
-        val left = "# zone map\n1-9:9:9:255\n2-9:9:9:255"
-        val right = "1-9:9:9:255\n2-9:9:9:255"
-        val cmd = Sn3112.restoreCommand(left, right)
-        assertTrue(!cmd.contains("#"))
-        assertTrue(cmd.contains("echo 1-9:9:9:255 > /sys/class/sn3112l"))
-    }
-
-    @Test
-    fun restoreFallsBackToBlackWhenBothReadsWereAllCommentsOrBlank() {
-        // If the sysfs returned nothing we can replay, don't build an
-        // empty command — the SN3112 would do nothing and the sticks
-        // would be stuck on whatever the beat loop last showed.
-        assertEquals(Sn3112.clearCommand(), Sn3112.restoreCommand("# only metadata", "\n\n"))
+    fun brightnessOfZeroIsBlack() {
+        val cmd = Sn3112.dualCommand(0x00FFFFFF, 0x00FFFFFF, brightness = 0)
+        assertTrue(cmd.contains("1-0:0:0:255 > /sys/class/sn3112l"))
+        assertTrue(cmd.contains("1-0:0:0:255 > /sys/class/sn3112r"))
     }
 }
