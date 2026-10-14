@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.Receipt
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -58,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.BuildConfig
 import jr.brian.thorhud.R
+import jr.brian.thorhud.ui.components.InfoSheet
 
 /**
  * The map's blips, nearest first, grouped by name. Each group header
@@ -296,52 +296,35 @@ private fun GroupHeader(
 @Composable
 private fun BlipInfoDialog(accent: Color, onDismiss: () -> Unit) {
     val context = LocalContext.current
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
+    InfoSheet(
+        title = stringResource(R.string.map_blips_info_title),
+        body = stringResource(R.string.map_blips_info_body),
+        accent = accent,
+        onDismiss = onDismiss,
+    ) {
+        TextButton(onClick = onDismiss) {
             Text(
-                stringResource(R.string.map_blips_info_title),
+                stringResource(R.string.map_blips_close),
+                color = Color(0xFF6A7A6E),
+                fontFamily = FontFamily.Monospace,
+            )
+        }
+        TextButton(onClick = {
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW,
+                       Uri.parse("https://github.com/BrianJr03/GrandTheftCompanion/issues/new"))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+            onDismiss()
+        }) {
+            Text(
+                stringResource(R.string.map_blips_info_open_issue),
                 color = accent,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
             )
-        },
-        text = {
-            Text(
-                stringResource(R.string.map_blips_info_body),
-                color = Color(0xFFB6CCBC),
-                fontFamily = FontFamily.Monospace,
-                fontSize = 13.sp,
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                context.startActivity(
-                    Intent(Intent.ACTION_VIEW,
-                           Uri.parse("https://github.com/BrianJr03/GrandTheftCompanion/issues/new"))
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                )
-                onDismiss()
-            }) {
-                Text(
-                    stringResource(R.string.map_blips_info_open_issue),
-                    color = accent,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(
-                    stringResource(R.string.map_blips_close),
-                    color = Color(0xFF6A7A6E),
-                    fontFamily = FontFamily.Monospace,
-                )
-            }
-        },
-        containerColor = Color(0xFF101713),
-    )
+        }
+    }
 }
 
 /** Accent-filled pill with the group's blip count in white. The fill

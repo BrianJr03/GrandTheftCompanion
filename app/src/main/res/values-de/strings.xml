@@ -182,5 +182,11 @@
     <string name="settings_controls_side_title">Kartenbedienung rechts</string>
     <string name="settings_controls_side_body">Verschiebt die Symbole Sperren, Zurücksetzen, Pin und Stopp auf die rechte Seite des Spiegels. Standard ist links. Die Karte bleibt zentriert und behält auf der freien Seite denselben Abstand.</string>
     <string name="settings_section_minimap">Minikarte</string>
+    <string name="settings_section_plugin">Plugin</string>
+    <string name="settings_reconnect_title">Mit dem Plugin neu verbinden</string>
+    <string name="settings_reconnect_body">Erzwingt eine frische Verbindung zu ThorBridge. Verwende das, wenn \"nicht verbunden\" nach einem Waffenwechsel hängen bleibt und sich nicht von selbst löst.</string>
+    <string name="settings_reconnect_button">Erneut versuchen</string>
+    <string name="snackbar_reconnect_success">Verbunden</string>
+    <string name="snackbar_reconnect_failed">Plugin nicht erreichbar</string>
     <string name="settings_close">Schließen</string>
 </resources>

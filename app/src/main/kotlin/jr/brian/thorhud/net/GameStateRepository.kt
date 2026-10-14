@@ -97,4 +97,7 @@ class GameStateRepository @Inject constructor(
     suspend fun routeClear(): Int? = client.send("route_clear", 0L)
     /** Ask the plugin to write its blip census to its log file. */
     suspend fun blipCensus(): Int? = client.send("blip_census", 0L)
+
+    /** Force a reconnect to the plugin; see [GameStateClient.reconnect]. */
+    fun reconnect() = client.reconnect()
 }

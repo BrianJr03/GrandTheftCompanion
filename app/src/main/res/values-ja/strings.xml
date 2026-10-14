@@ -182,5 +182,11 @@
     <string name="settings_controls_side_title">マップ操作を右に配置</string>
     <string name="settings_controls_side_body">ロック・リセット・ピン・停止のアイコンをマップの右側に移動します。既定は左側です。マップは中央のまま、空いた側に同じ余白が残ります。</string>
     <string name="settings_section_minimap">ミニマップ</string>
+    <string name="settings_section_plugin">プラグイン</string>
+    <string name="settings_reconnect_title">プラグインに再接続</string>
+    <string name="settings_reconnect_body">ThorBridge への接続をやり直します。武器を切り替えても「接続されていません」が消えないときに使ってください。</string>
+    <string name="settings_reconnect_button">再試行</string>
+    <string name="snackbar_reconnect_success">接続しました</string>
+    <string name="snackbar_reconnect_failed">プラグインに接続できません</string>
     <string name="settings_close">閉じる</string>
 </resources>

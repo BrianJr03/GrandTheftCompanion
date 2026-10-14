@@ -182,5 +182,11 @@
     <string name="settings_controls_side_title">Comandi mappa a destra</string>
     <string name="settings_controls_side_body">Sposta le icone blocca, azzera, spilla e stop a destra dello specchio. L\'impostazione predefinita le mette a sinistra. La mappa resta centrata e mantiene lo stesso margine sul lato libero.</string>
     <string name="settings_section_minimap">Minimappa</string>
+    <string name="settings_section_plugin">Plugin</string>
+    <string name="settings_reconnect_title">Riconnetti al plugin</string>
+    <string name="settings_reconnect_body">Forza una nuova connessione a ThorBridge. Usalo se \"non connesso\" resta visibile dopo un cambio d\'arma e non sparisce da solo.</string>
+    <string name="settings_reconnect_button">Riprova</string>
+    <string name="snackbar_reconnect_success">Connesso</string>
+    <string name="snackbar_reconnect_failed">Plugin non raggiungibile</string>
     <string name="settings_close">Chiudi</string>
 </resources>

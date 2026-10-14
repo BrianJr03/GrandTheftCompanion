@@ -22,14 +22,26 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import kotlinx.coroutines.flow.Flow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,21 +78,37 @@ internal fun SettingsSheet(
     onAlwaysReturnToHudChange: (Boolean) -> Unit,
     mapControlsRight: Boolean,
     onMapControlsRightChange: (Boolean) -> Unit,
+    onReconnectPlugin: () -> Unit,
+    isReconnecting: Boolean,
+    reconnectEvents: Flow<Boolean>,
     onDismiss: () -> Unit,
 ) {
     val sheet = rememberModalBottomSheetState(
         skipPartiallyExpanded = true,
         confirmValueChange = { it != SheetValue.PartiallyExpanded },
     )
-    // One expanded section at a time. rememberSaveable so a rotation
-    // doesn't snap everything closed.
-    var openSection by rememberSaveable { mutableStateOf<String?>(SECTION_MINIMAP) }
+    val snackbarHost = remember { SnackbarHostState() }
+    val connectedMsg = stringResource(R.string.snackbar_reconnect_success)
+    val failedMsg = stringResource(R.string.snackbar_reconnect_failed)
+    LaunchedEffect(Unit) {
+        reconnectEvents.collect { ok ->
+            snackbarHost.showSnackbar(
+                message = if (ok) connectedMsg else failedMsg,
+                duration = SnackbarDuration.Short,
+            )
+        }
+    }
+    // One expanded section at a time. Sheet opens with every section
+    // collapsed. rememberSaveable so a rotation doesn't snap everything
+    // closed after the user has expanded one.
+    var openSection by rememberSaveable { mutableStateOf<String?>(null) }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheet,
-        containerColor = Color(0xFF101713),
+        containerColor = Color.Black,
         dragHandle = null,
     ) {
+      Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -138,11 +166,51 @@ internal fun SettingsSheet(
                     palette = palette,
                 )
             }
+            Spacer(Modifier.height(16.dp))
+
+            Section(
+                name = SECTION_PLUGIN,
+                title = stringResource(R.string.settings_section_plugin),
+                palette = palette,
+                expanded = openSection == SECTION_PLUGIN,
+                onToggle = {
+                    openSection = if (openSection == SECTION_PLUGIN) null
+                                  else SECTION_PLUGIN
+                },
+            ) {
+                ActionRow(
+                    title = stringResource(R.string.settings_reconnect_title),
+                    body = stringResource(R.string.settings_reconnect_body),
+                    buttonLabel = stringResource(R.string.settings_reconnect_button),
+                    onClick = onReconnectPlugin,
+                    busy = isReconnecting,
+                    palette = palette,
+                )
+            }
         }
+        SnackbarHost(
+            hostState = snackbarHost,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp),
+        ) { data ->
+            Snackbar(
+                containerColor = Color.Black,
+                contentColor = palette.accent,
+            ) {
+                Text(
+                    data.visuals.message,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 13.sp,
+                )
+            }
+        }
+      }
     }
 }
 
 private const val SECTION_MINIMAP = "minimap"
+private const val SECTION_PLUGIN = "plugin"
 
 /**
  * One collapsible section inside the settings sheet. Header is a
@@ -164,7 +232,7 @@ private fun Section(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFF161D19)),
+            .background(Color.Black),
     ) {
         Row(
             modifier = Modifier
@@ -249,5 +317,63 @@ private fun SettingRow(
                 uncheckedTrackColor = Color(0xFF1F2A24),
             ),
         )
+    }
+}
+
+@Composable
+private fun ActionRow(
+    title: String,
+    body: String,
+    buttonLabel: String,
+    onClick: () -> Unit,
+    busy: Boolean,
+    palette: HudPalette,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                title,
+                color = Color(0xFFEDEDED),
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                body,
+                color = Color(0xFF8EA096),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 12.sp,
+            )
+        }
+        Button(
+            onClick = onClick,
+            enabled = !busy,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = palette.accent,
+                contentColor = Color.Black,
+                disabledContainerColor = palette.accent,
+                disabledContentColor = Color.Black,
+            ),
+        ) {
+            if (busy) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    color = Color.Black,
+                    strokeWidth = 2.dp,
+                )
+            } else {
+                Text(
+                    buttonLabel,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                )
+            }
+        }
     }
 }

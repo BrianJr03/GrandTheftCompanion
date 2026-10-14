@@ -96,6 +96,11 @@ internal fun MirrorMapScreen(
     inVehicle: Boolean = false,
     routeName: String? = null,
     speedMps: Float = 0f,
+    // GTA V only: meters from the player to the routed waypoint. Shown
+    // top-right when non-null. Null when there is no waypoint or when
+    // the game is GTA IV (its blips carry a distance too but IV already
+    // has no waypoint concept here — only route_blip).
+    waypointDistM: Float? = null,
     viewModel: MapViewModel = hiltViewModel(),
 ) {
     val status by viewModel.status.collectAsStateWithLifecycle()
@@ -111,29 +116,43 @@ internal fun MirrorMapScreen(
         contentAlignment = Alignment.Center,
     ) {
         val size = captureSize
-        // Hint lives at the top-right of the whole map tab, visible
-        // only while the user is actively adjusting the mirror.
-        if (status == ScreenMirror.Status.Active && size != null && !isLocked) {
+        // Top-right stack: waypoint distance (GTA V, when routed) on
+        // top; pan/zoom hints below it while the mirror is unlocked.
+        val showDistance = status == ScreenMirror.Status.Active && size != null &&
+            game == MirrorGame.V && waypointDistM != null
+        val showHints = status == ScreenMirror.Status.Active && size != null && !isLocked
+        if (showDistance || showHints) {
             Column(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 2.dp, end = 2.dp),
                 horizontalAlignment = Alignment.End,
             ) {
-                Text(
-                    text = stringResource(R.string.map_gesture_hint_zoom),
-                    color = accent,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
-                )
-                Text(
-                    text = stringResource(R.string.map_gesture_hint_pan),
-                    color = accent,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
-                )
+                if (showDistance) {
+                    Text(
+                        text = blipDistance(waypointDistM!!),
+                        color = accent,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                    )
+                }
+                if (showHints) {
+                    Text(
+                        text = stringResource(R.string.map_gesture_hint_zoom),
+                        color = accent,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                    )
+                    Text(
+                        text = stringResource(R.string.map_gesture_hint_pan),
+                        color = accent,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                    )
+                }
             }
         }
         // "driving to <name>" rides the bottom-left corner, only while

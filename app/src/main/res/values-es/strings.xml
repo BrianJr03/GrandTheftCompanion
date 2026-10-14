@@ -182,5 +182,11 @@
     <string name="settings_controls_side_title">Controles del mapa a la derecha</string>
     <string name="settings_controls_side_body">Mueve los iconos de bloquear, restablecer, chincheta y parar a la derecha del espejo. Por defecto están a la izquierda. El mapa sigue centrado y mantiene el mismo margen en el lado libre.</string>
     <string name="settings_section_minimap">Minimapa</string>
+    <string name="settings_section_plugin">Plugin</string>
+    <string name="settings_reconnect_title">Reconectar con el plugin</string>
+    <string name="settings_reconnect_body">Fuerza una nueva conexión con ThorBridge. Úsalo si \"no conectado\" se queda tras cambiar de arma y no desaparece solo.</string>
+    <string name="settings_reconnect_button">Reintentar</string>
+    <string name="snackbar_reconnect_success">Conectado</string>
+    <string name="snackbar_reconnect_failed">No se pudo contactar con el plugin</string>
     <string name="settings_close">Cerrar</string>
 </resources>

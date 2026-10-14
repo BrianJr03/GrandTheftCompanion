@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import android.app.Activity
@@ -19,7 +18,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
@@ -48,6 +46,7 @@ import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.components.CardAlign
 import jr.brian.thorhud.ui.components.CoinPanel
 import jr.brian.thorhud.ui.components.FullWidthStats
+import jr.brian.thorhud.ui.components.InfoSheet
 import jr.brian.thorhud.ui.components.IvWeaponWheelOverlay
 import jr.brian.thorhud.ui.components.MoneyRadioPanel
 import jr.brian.thorhud.ui.components.PausedScreen
@@ -74,7 +73,7 @@ import jr.brian.thorhud.ui.v.VWeaponWheelOverlay
 import jr.brian.thorhud.ui.v.rememberVWheelMemory
 import jr.brian.thorhud.ui.v.vCharacterOf
 import jr.brian.thorhud.ui.v.vIsNoticeState
-import jr.brian.thorhud.update.UpdateDialog
+import jr.brian.thorhud.update.UpdateSheet
 import kotlinx.coroutines.delay
 
 @Composable
@@ -116,7 +115,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         }
     }
     if (showUpdateDialog && updateInfo.isUpdateAvailable) {
-        UpdateDialog(
+        UpdateSheet(
             updateInfo = updateInfo,
             currentVersion = viewModel.currentVersionName,
             palette = paletteFor(state?.episode),
@@ -203,6 +202,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     val autoStartMirror by viewModel.autoStartMirror.collectAsStateWithLifecycle()
     val alwaysReturnToHud by viewModel.alwaysReturnToHud.collectAsStateWithLifecycle()
     val mapControlsRight by viewModel.mapControlsRight.collectAsStateWithLifecycle()
+    val reconnecting by viewModel.reconnecting.collectAsStateWithLifecycle()
 
     // Hoisted mirror-consent launcher so both MirrorMapScreen's
     // "start mirroring" button and the auto-start-when-connected
@@ -243,20 +243,20 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     // writes a prefs flag so it never shows again.
     var showSwipeHint by remember { mutableStateOf(!viewModel.hasSeenSwipeHint) }
     if (showSwipeHint && !isDisconnected) {
-        AlertDialog(
-            onDismissRequest = {
-                showSwipeHint = false
-                viewModel.hasSeenSwipeHint = true
-            },
-            title = { Text(stringResource(R.string.swipe_hint_title)) },
-            text = { Text(stringResource(R.string.swipe_hint_body)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    showSwipeHint = false
-                    viewModel.hasSeenSwipeHint = true
-                }) { Text(stringResource(R.string.swipe_hint_dismiss)) }
-            },
-        )
+        val dismissHint = {
+            showSwipeHint = false
+            viewModel.hasSeenSwipeHint = true
+        }
+        InfoSheet(
+            title = stringResource(R.string.swipe_hint_title),
+            body = stringResource(R.string.swipe_hint_body),
+            accent = accent,
+            onDismiss = dismissHint,
+        ) {
+            TextButton(onClick = dismissHint) {
+                Text(stringResource(R.string.swipe_hint_dismiss), color = accent)
+            }
+        }
     }
 
     // Single composition root for the whole screen so BlipsOverlay
@@ -397,9 +397,11 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                 // of each word up, existing uppercase
                                 // preserved), so "APC" and "Ammu-Nation"
                                 // stay as-is.
-                                val routeName = selectedRouteId?.let { id ->
+                                val routedBlip = selectedRouteId?.let { id ->
                                     knownBlips.firstOrNull { it.id == id }
-                                        ?.let { blipLabel(isGtaV, it.sprite, it.colour).name.titleCase() }
+                                }
+                                val routeName = routedBlip?.let {
+                                    blipLabel(isGtaV, it.sprite, it.colour).name.titleCase()
                                 }
                                 MirrorMapScreen(
                                     game = if (isGtaV) MirrorGame.V else MirrorGame.IV,
@@ -411,6 +413,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     inVehicle = inVehicleNow,
                                     routeName = routeName,
                                     speedMps = liveState?.vehicle?.speedMps ?: 0f,
+                                    waypointDistM = if (isGtaV) routedBlip?.distM else null,
                                 )
                             },
                         )
@@ -462,6 +465,9 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 onAlwaysReturnToHudChange = viewModel::setAlwaysReturnToHud,
                 mapControlsRight = mapControlsRight,
                 onMapControlsRightChange = viewModel::setMapControlsRight,
+                onReconnectPlugin = viewModel::reconnectPlugin,
+                isReconnecting = reconnecting,
+                reconnectEvents = viewModel.reconnectEvents,
                 onDismiss = { showSettings = false },
             )
         }
@@ -547,11 +553,16 @@ private fun IvHudScreen(
     val palette = paletteFor(liveState?.episode ?: state?.episode)
 
     Scaffold(containerColor = Color.Black) { padding ->
+        // Scrollable so overflow (longer translations, future tag rows)
+        // reaches the stat bars instead of clipping. Mirrors VMainScreen:
+        // vertical weight-fill tricks don't survive an unbounded parent,
+        // so spacing is fixed and cards use their natural height.
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(12.dp),
+                .padding(12.dp)
+                .verticalScroll(rememberScrollState()),
         ) {
             // Drop the "IV" suffix when there's no live cash to show
             // (the HUD is a shell with "—" everywhere) — the title
@@ -591,31 +602,27 @@ private fun IvHudScreen(
                     WeaponPanel(liveState, modifier = Modifier.weight(1f))
                     VehiclePanel(liveState, palette, modifier = Modifier.weight(1f))
                 }
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(16.dp))
                 RadioPicker(
                     stations = stationListFor(liveState?.episode),
                     currentLocal = liveState?.radio ?: -1,
                     palette = palette,
                     onStationTap = { enumIdx -> viewModel.setRadio(enumIdx) },
                 )
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.height(16.dp))
             } else {
                 // On foot: 2×2. Half-width columns give long weapon
                 // names ("pump shotgun", "sawed-off shotgun", "combat
-                // sniper") room to render without an ellipsis. Each row
-                // takes equal vertical space (weight 1f) so WeaponPanel
-                // can vertically-centre its contents in its cell —
-                // "clip 15/30" sits in the vertical middle of the right
-                // column, visually between the weapon name and the
-                // radio panel below.
+                // sniper") room to render without an ellipsis. Cards
+                // use natural height so the whole page scrolls as one.
                 Row(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     CoinPanel(liveState, align = CardAlign.Start,
                               verticalCenter = true,
-                              modifier = Modifier.weight(1f).fillMaxHeight())
-                    val weaponCard = Modifier.weight(1f).fillMaxHeight().let {
+                              modifier = Modifier.weight(1f))
+                    val weaponCard = Modifier.weight(1f).let {
                         if (onOpenWeaponWheel != null) {
                             it.clickable(onClick = onOpenWeaponWheel)
                         } else {
@@ -628,14 +635,15 @@ private fun IvHudScreen(
                 }
                 Spacer(Modifier.height(16.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     VehiclePanel(liveState, palette, align = CardAlign.Start,
-                                 modifier = Modifier.weight(1f).fillMaxHeight())
+                                 modifier = Modifier.weight(1f))
                     RadioPanel(liveState, align = CardAlign.End,
-                               modifier = Modifier.weight(1f).fillMaxHeight())
+                               modifier = Modifier.weight(1f))
                 }
+                Spacer(Modifier.height(16.dp))
             }
             FullWidthStats(liveState, palette)
         }
@@ -667,7 +675,7 @@ private fun RadioSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheet,
-        containerColor = Color(0xFF101713),
+        containerColor = Color.Black,
         dragHandle = null,
     ) {
         Column(

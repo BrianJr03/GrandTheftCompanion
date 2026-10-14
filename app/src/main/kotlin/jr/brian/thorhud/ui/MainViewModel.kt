@@ -12,10 +12,13 @@ import jr.brian.thorhud.prefs.HudPrefs
 import jr.brian.thorhud.update.UpdateChecker
 import jr.brian.thorhud.update.UpdateInfo
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
@@ -72,6 +75,36 @@ class MainViewModel @Inject constructor(
     fun setAutoStartMirror(enabled: Boolean) = prefs.setAutoStartMirror(enabled)
     fun setAlwaysReturnToHud(enabled: Boolean) = prefs.setAlwaysReturnToHud(enabled)
     fun setMapControlsRight(enabled: Boolean) = prefs.setMapControlsRight(enabled)
+
+    // Retry button state + one-shot result stream for the snackbar.
+    private val _reconnecting = MutableStateFlow(false)
+    val reconnecting: StateFlow<Boolean> = _reconnecting.asStateFlow()
+    private val _reconnectEvents = Channel<Boolean>(Channel.BUFFERED)
+    val reconnectEvents: Flow<Boolean> = _reconnectEvents.receiveAsFlow()
+
+    /**
+     * Force a fresh TCP connection and tell the UI how it went.
+     * [reconnecting] goes true while we wait; a Boolean is sent to
+     * [reconnectEvents] on completion (true = frames resumed, false =
+     * no frame within [RECONNECT_TIMEOUT_MS]). A second tap while
+     * already reconnecting is ignored.
+     */
+    fun reconnectPlugin() {
+        if (_reconnecting.value) return
+        viewModelScope.launch {
+            _reconnecting.value = true
+            try {
+                val before = repository.lastUpdateMs.value
+                repository.reconnect()
+                val ok = withTimeoutOrNull(RECONNECT_TIMEOUT_MS) {
+                    repository.lastUpdateMs.first { it > before }
+                } != null
+                _reconnectEvents.send(ok)
+            } finally {
+                _reconnecting.value = false
+            }
+        }
+    }
 
     // Blips-panel visibility, hoisted to the ViewModel so a hardware
     // key (dpad-down on the Thor) can toggle it from HudActivity's
@@ -151,5 +184,9 @@ class MainViewModel @Inject constructor(
         // commands that sat for 2 s itself, so anything slower than this
         // is not coming.
         const val ACK_TIMEOUT_MS = 2500L
+        // Long enough for an in-flight connect (2 s) + a backoff reset
+        // + a fresh connect + first frame. If no frame arrives in this
+        // window we tell the user the retry failed.
+        const val RECONNECT_TIMEOUT_MS = 5000L
     }
 }

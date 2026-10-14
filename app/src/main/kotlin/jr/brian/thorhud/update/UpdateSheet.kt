@@ -70,7 +70,7 @@ private enum class UpdatePhase {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun UpdateDialog(
+internal fun UpdateSheet(
     updateInfo: UpdateInfo,
     currentVersion: String,
     palette: HudPalette,

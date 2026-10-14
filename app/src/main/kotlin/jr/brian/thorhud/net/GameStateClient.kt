@@ -3,6 +3,7 @@ package jr.brian.thorhud.net
 import android.util.Log
 import jr.brian.thorhud.model.GameState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -24,7 +26,6 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.coroutineContext
 import kotlin.math.min
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * TCP client that connects to ThorBridge.asi inside the GameHub Lite /
@@ -39,12 +40,35 @@ class GameStateClient @Inject constructor() {
 
     private val writeMutex = Mutex()
     @Volatile private var currentOut: OutputStream? = null
+    @Volatile private var currentSocket: Socket? = null
     private val cmdId = AtomicInteger(0)
+
+    // A user-triggered retry drops a Unit here. The frames() loop
+    // consumes it to short-circuit the backoff delay. CONFLATED means
+    // a flurry of retries collapses into one — we only need the next
+    // iteration to re-run its connect attempt.
+    private val reconnectSignal = Channel<Unit>(Channel.CONFLATED)
 
     // Null while idle / not yet attempted. On any connect failure or
     // mid-stream disconnect the reason lands here so the UI can show it.
     private val _lastError = MutableStateFlow<String?>(null)
     val lastError: StateFlow<String?> = _lastError.asStateFlow()
+
+    /**
+     * Force a reconnect. Closes the current socket (any in-progress
+     * read/connect fails fast with that exception, which the frames()
+     * loop catches like any other disconnect) and nudges the backoff
+     * delay to end so the next connect attempt fires immediately.
+     *
+     * Use when the UI knows the connection is wedged — e.g. "not
+     * connected" sticks on repeated weapon switches, which can happen
+     * if the TCP state got half-open and the read timeout hasn't
+     * tripped yet.
+     */
+    fun reconnect() {
+        runCatching { currentSocket?.close() }
+        reconnectSignal.trySend(Unit)
+    }
 
     fun frames(
         host: String = DEFAULT_HOST,
@@ -55,6 +79,7 @@ class GameStateClient @Inject constructor() {
             coroutineContext.ensureActive()
             try {
                 Socket().use { socket ->
+                    currentSocket = socket
                     socket.connect(InetSocketAddress(host, port), CONNECT_TIMEOUT_MS)
                     socket.soTimeout = READ_TIMEOUT_MS
                     Log.i(TAG, "connected to $host:$port")
@@ -79,6 +104,7 @@ class GameStateClient @Inject constructor() {
                         }
                     } finally {
                         currentOut = null
+                        currentSocket = null
                     }
                 }
                 Log.w(TAG, "stream ended, reconnecting")
@@ -88,8 +114,9 @@ class GameStateClient @Inject constructor() {
                 Log.w(TAG, "connection lost: $short")
                 _lastError.value = short
             }
-            kotlinx.coroutines.delay(backoffMs.milliseconds)
-            backoffMs = min(backoffMs * 2, MAX_BACKOFF_MS)
+            val forced = withTimeoutOrNull(backoffMs) { reconnectSignal.receive() } != null
+            backoffMs = if (forced) INITIAL_BACKOFF_MS
+                        else min(backoffMs * 2, MAX_BACKOFF_MS)
         }
     }.flowOn(Dispatchers.IO)
 

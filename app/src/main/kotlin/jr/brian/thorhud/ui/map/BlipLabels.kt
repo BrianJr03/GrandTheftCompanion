@@ -412,10 +412,10 @@ private val IV_LABELS: Map<Int, BlipLabel> = mapOf(
     // confirm from the device census as they appear. --------------
     95 to BlipLabel("backup (f)", false),
     96 to BlipLabel("backup (m)", false),
-    97 to BlipLabel("Tony Prince", true),
+    97 to BlipLabel("Tony (Apartment)", true),
     98 to BlipLabel("backup vehicle", false),
     102 to BlipLabel("Mom's House", false),
-    103 to BlipLabel("Tony (ready)", true),
+    103 to BlipLabel("Tony (Nightclub)", true),
     105 to BlipLabel("APC", false),
     106 to BlipLabel("BASE jump", false),
     107 to BlipLabel("booty call", false),

@@ -43,6 +43,12 @@
     <string name="settings_controls_side_title">Map controls on the right</string>
     <string name="settings_controls_side_body">Move the map\'s lock, reset, pin and stop icons to the right of the mirror. Default puts them on the left. The map stays centred and keeps the same breathing room on the free side.</string>
     <string name="settings_section_minimap">Minimap</string>
+    <string name="settings_section_plugin">Plugin</string>
+    <string name="settings_reconnect_title">Reconnect to the plugin</string>
+    <string name="settings_reconnect_body">Force a fresh connection to ThorBridge. Use if \"not connected\" sticks on a weapon switch and does not clear on its own.</string>
+    <string name="settings_reconnect_button">Retry</string>
+    <string name="snackbar_reconnect_success">Connected</string>
+    <string name="snackbar_reconnect_failed">Could not reach the plugin</string>
     <string name="settings_close">Close</string>
     <string name="map_blips_title">map blips</string>
     <string name="map_blips_none">no blips yet — needs the game loaded and ThorBridgeV 0.3.0+ / ThorBridge at natives level 5</string>

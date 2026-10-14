@@ -182,5 +182,11 @@
     <string name="settings_controls_side_title">Элементы карты справа</string>
     <string name="settings_controls_side_body">Переносит значки блокировки, сброса, метки и остановки справа от зеркала. По умолчанию они слева. Карта остаётся по центру и сохраняет такой же отступ со свободной стороны.</string>
     <string name="settings_section_minimap">Миникарта</string>
+    <string name="settings_section_plugin">Плагин</string>
+    <string name="settings_reconnect_title">Переподключиться к плагину</string>
+    <string name="settings_reconnect_body">Принудительно устанавливает новое соединение с ThorBridge. Используйте, если \"не подключено\" остаётся после смены оружия и не исчезает само.</string>
+    <string name="settings_reconnect_button">Повторить</string>
+    <string name="snackbar_reconnect_success">Подключено</string>
+    <string name="snackbar_reconnect_failed">Плагин недоступен</string>
     <string name="settings_close">Закрыть</string>
 </resources>
