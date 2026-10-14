@@ -1,0 +1,119 @@
+name: Build APKs
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: build-apks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Debug + Release APKs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platforms;android-36 build-tools;35.0.0
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Compute short SHA
+        id: sha
+        run: echo "short=$(echo "${GITHUB_SHA}" | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+      - name: Decode release keystore (if present)
+        id: release_signing
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+        run: |
+          if [ -n "${KEYSTORE_B64:-}" ]; then
+            printf '%s' "$KEYSTORE_B64" \
+              | tr -d '[:space:]' \
+              | base64 -d > "$RUNNER_TEMP/release.jks"
+            sz=$(stat -c '%s' "$RUNNER_TEMP/release.jks")
+            if [ "$sz" -lt 1024 ]; then
+              echo "::error::decoded keystore is suspiciously small ($sz bytes)"
+              exit 1
+            fi
+            echo "KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            echo "present=true" >> "$GITHUB_OUTPUT"
+            echo "Release keystore decoded ($sz bytes)."
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Release unsigned::KEYSTORE_B64 secret missing; release APK will be unsigned."
+            {
+              echo "### Signing"
+              echo ""
+              echo "- Release: **unsigned** (KEYSTORE_B64 missing). Installs will not update existing release installs."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Assemble debug + release APKs
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: ./gradlew :app:assembleDebug :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Collect APKs
+        env:
+          SHORT_SHA: ${{ steps.sha.outputs.short }}
+        run: |
+          set -e
+          mkdir -p artifacts/debug artifacts/release
+          shopt -s nullglob globstar
+          for apk in app/build/outputs/apk/**/*.apk; do
+            [ -f "$apk" ] || continue
+            base=$(basename "$apk" .apk)
+            if [[ "$apk" == *"/debug/"* ]]; then
+              cp "$apk" "artifacts/debug/${base}-${SHORT_SHA}.apk"
+            elif [[ "$apk" == *"/release/"* ]]; then
+              cp "$apk" "artifacts/release/${base}-${SHORT_SHA}.apk"
+            fi
+          done
+          {
+            echo "### Built APKs"
+            echo ""
+            echo '```'
+            ls -1 artifacts/debug 2>/dev/null | sed 's|^|debug/|'
+            ls -1 artifacts/release 2>/dev/null | sed 's|^|release/|'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload debug APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: artifacts/debug/*.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Upload release APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: artifacts/release/*.apk
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Cleanup release keystore
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/release.jks"
