@@ -12,7 +12,7 @@
   <a href="https://github.com/BrianJr03/GrandTheftCompanion/releases/latest"><img src="https://img.shields.io/github/v/release/BrianJr03/GrandTheftCompanion?style=flat&label=latest&color=C46A2A" alt="Latest release"/></a>
 </p>
 
-AYN Thor bottom-screen companion for GTA IV and GTA V. Live HUD on the Thor's bottom screen while the game plays on the main screen via [GameHub Lite](https://www.gamehublite.com/), [GameNative](https://github.com/utkarshdalal/GameNative), or any Winlator-family launcher.
+AYN Thor bottom-screen companion for GTA IV and GTA V. Live HUD on the Thor's bottom screen while the game plays on the main screen via [GameHub Lite](https://www.gamehublite.com/), [GameNative](https://github.com/utkarshdalal/GameNative), any Winlator-family launcher, or [DroidDeck](https://github.com/Droid-Deck/DroidDeck) (Steam + Proton).
 
 The repo contains the **GTC** Android companion app and two game plugins: **ThorBridge.asi** for GTA IV and **ThorBridgeV.asi** for GTA V. Each plugin reads game state from inside its game's process. The app is the same for both games and picks the right layout by itself.
 
@@ -24,7 +24,7 @@ The repo contains the **GTC** Android companion app and two game plugins: **Thor
 
 ## Quick start
 
-1. **Winlator-family launcher on the Thor** — GameHub Lite / Winlator / Winlator Cmod / GameNative. The ASI loads inside its Wine prefix.
+1. **A launcher on the Thor** — GameHub Lite / Winlator / Winlator Cmod / GameNative (Wine), or DroidDeck (Steam + Proton). The ASI loads inside its Wine/Proton prefix.
 2. **Your own legit copy of the game** on-device:
    - GTA IV: Complete Edition **1.2.0.59** (the ASI pattern-scans this exact build).
    - GTA V (experimental): Legacy branch, on a build your [Script Hook V](http://www.dev-c.com/gtav/scripthookv) release lists as supported.
@@ -36,7 +36,14 @@ The repo contains the **GTC** Android companion app and two game plugins: **Thor
      - `ThorBridgeV.asi` — from this project's [latest release](https://github.com/BrianJr03/GrandTheftCompanion/releases/latest).
      - `ScriptHookV.dll` **and** `dinput8.dll` — both from the `bin/` folder of the [Script Hook V zip](http://www.dev-c.com/gtav/scripthookv). Ignore `NativeTrainer.asi` and `xinput1_4.dll` unless you want them.
 
-4. **Per-game env var** in your launcher: `WINEDLLOVERRIDES=dinput8=n,b` (native then builtin, so Wine loads the ASI loader instead of its own stub).
+4. **Tell Wine to load the ASI loader** (native then builtin, so Wine uses our `dinput8.dll` instead of its own stub):
+   - **Winlator-family launcher** — per-game env var: `WINEDLLOVERRIDES=dinput8=n,b`
+   - **DroidDeck** — Steam launch options for the game:
+
+     | Game | Launch options |
+     |---|---|
+     | GTA IV | `WINEDLLOVERRIDES="dinput8=n,b" %command%` |
+     | GTA V | `WINEDLLOVERRIDES="dinput8=n,b" %command% -nobattleye` |
 5. **Install the GTC APK** from the latest [release](https://github.com/BrianJr03/GrandTheftCompanion/releases/latest). Launch it once; the HUD trampolines onto the bottom display.
 6. **Launch the game** from the launcher. HUD lights up the moment the game is in-world.
 
@@ -117,7 +124,7 @@ python3 test/run_mock_test.py
 
 ## Installing on-device
 
-**Launcher**: install **GameHub Lite**, **Winlator** (or a fork such as **Winlator Cmod**), or **GameNative** — any launcher that lets you set per-game environment variables, needed for `WINEDLLOVERRIDES`.
+**Launcher**: install **GameHub Lite**, **Winlator** (or a fork such as **Winlator Cmod**), or **GameNative** — any launcher that lets you set per-game environment variables, needed for `WINEDLLOVERRIDES`. **DroidDeck** (0.4.0 or newer) also works: it runs the game through Steam and Proton, and the override goes in the game's Steam launch options instead (see below).
 
 ### Where is the game folder?
 
@@ -164,8 +171,25 @@ adb push ThorBridgeV.asi "$GAME_DIR/"
 
 ### Launcher env var
 
-The same for both games. In your launcher, open the game's settings → Environment variables and add:
+**Winlator-family launchers** (GameHub Lite, Winlator, GameNative): the same for both games. Open the game's settings → Environment variables and add:
 `WINEDLLOVERRIDES = dinput8=n,b` (native then builtin — forces Wine to load the ASI loader instead of its own `dinput8`).
+
+### DroidDeck
+
+DroidDeck runs Windows games through Steam Big Picture and Valve's ARM64 Proton. GTC needs nothing extra from it; the plugins bind the same `127.0.0.1:47801` and the app connects the same way.
+
+1. Put the plugin files next to the exe as above (any folder you can browse to, e.g. `Download/GTAIV`).
+2. In DroidDeck open the **Games** tab → **+** → *Internal storage* → browse to the folder and pick `GTAIV.exe` / `GTA5.exe` yourself (don't let the folder scan pick the Rockstar launcher exe). DroidDeck needs *All files access* to see the folder.
+3. In Steam, open the game's **Properties → Launch Options** and paste the line for your game. Everything before `%command%` is an environment variable; everything after it is passed to the game.
+
+   | Game | Launch options |
+   |---|---|
+   | GTA IV | `WINEDLLOVERRIDES="dinput8=n,b" %command%` |
+   | GTA V | `WINEDLLOVERRIDES="dinput8=n,b" %command% -nobattleye` |
+
+   `-nobattleye` is Rockstar's own story-mode switch for GTA V; GTA IV doesn't need it. Don't add `%*`.
+4. Launch from Steam. If no `ThorBridge.log` / `ThorBridgeV.log` appears next to the exe, the launch options didn't apply — the "Start without Steam" switch (0.5.0+) bypasses them, so leave it off, or put `WINEDLLOVERRIDES=dinput8=n,b` in the game's environment-variables field in the Games tab instead.
+5. If LB doesn't open the weapon wheel, Steam Input is remapping the controller before the game sees it. Disable Steam Input for the game in its Properties → Controller.
 
 ### Run it
 
