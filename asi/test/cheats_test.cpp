@@ -479,12 +479,89 @@ void test_unknown_id() {
     std::printf("unknown id\n");
     fake_reset();
     snapshot::Player p = on_foot();
-    const char* err = cheats::run(99, kPlayer, kPed, p);
+    // 60 lives strictly between the one-shot bands and above
+    // kMaxHighOneShot; must be refused as unknown.
+    const char* err = cheats::run(60, kPlayer, kPed, p);
     check(err != nullptr && std::strcmp(err, cheats::kErrUnknown) == 0,
-          "id 99 (above toggles): unknown");
+          "id 60 (above high one-shot range): unknown");
     err = cheats::run(0, kPlayer, kPed, p);
     check(err != nullptr && std::strcmp(err, cheats::kErrUnknown) == 0,
           "id 0: unknown");
+    // Ids between the one-shot bands and the toggle range (35..39)
+    // are also unknown.
+    err = cheats::run(35, kPlayer, kPed, p);
+    check(err != nullptr && std::strcmp(err, cheats::kErrUnknown) == 0,
+          "id 35 (gap between toggle and high one-shot): unknown");
+}
+
+void test_weapon_sets() {
+    std::printf("advanced + poor weapon sets\n");
+    fake_reset();
+    snapshot::Player p = on_foot();
+
+    // Advanced: 8 weapons, the base-IV phone-cheat 486-555-0100 set.
+    const char* err = cheats::run(cheats::kAdvancedWeapons, kPlayer, kPed, p);
+    check(err == nullptr, "advanced weapons set: ok");
+    check(g.given.size() == cheats::kAdvancedWeaponsCount,
+          "advanced: one give per entry");
+    bool saw_bat = false, saw_rpg = false;
+    for (const auto& [w, ammo] : g.given) {
+        if (w == 1)  saw_bat = true;
+        if (w == 18) saw_rpg = true;
+        check(ammo == cheats::kFullAmmo, "advanced: full ammo for each");
+    }
+    check(saw_bat && saw_rpg, "advanced: bat + RPG are in the set");
+
+    fake_reset();
+    p = on_foot();
+    err = cheats::run(cheats::kPoorWeapons, kPlayer, kPed, p);
+    check(err == nullptr, "poor weapons set: ok");
+    check(g.given.size() == cheats::kPoorWeaponsCount,
+          "poor: one give per entry");
+    bool saw_knife = false, saw_molotov = false;
+    for (const auto& [w, _ammo] : g.given) {
+        if (w == 3) saw_knife = true;
+        if (w == 5) saw_molotov = true;
+    }
+    check(saw_knife && saw_molotov,
+          "poor: knife + molotov are in the set");
+}
+
+void test_parachute() {
+    std::printf("parachute\n");
+    fake_reset();
+    snapshot::Player p = on_foot();
+    const char* err = cheats::run(cheats::kGiveParachute, kPlayer, kPed, p);
+    check(err == nullptr, "parachute: ok");
+    check(g.given.size() == 1,
+          "parachute: exactly one give");
+    check(g.given.front().first == cheats::kWeaponParachute,
+          "parachute: WEAPON_PARACHUTE (25)");
+}
+
+void test_ultimate() {
+    std::printf("ultimate (482-555-0100)\n");
+    fake_reset();
+    // In a car: should repair; health / armor / ammo / advanced weapons all fire.
+    snapshot::Player p = in_vehicle();
+    const char* err = cheats::run(cheats::kUltimate, kPlayer, kPed, p);
+    check(err == nullptr, "ultimate in car: ok");
+    check(g.health == cheats::kMaxHealth, "ultimate: health = 200");
+    check(g.armour == cheats::kMaxArmour, "ultimate: armour += 100");
+    check(g.fix_calls == 1, "ultimate: fix fired once");
+    check(g.wash_calls == 1, "ultimate: wash fired once");
+    check(g.given.size() == cheats::kAdvancedWeaponsCount,
+          "ultimate: advanced-weapons loadout given");
+
+    // On foot: everything but repair.
+    fake_reset();
+    p = on_foot();
+    err = cheats::run(cheats::kUltimate, kPlayer, kPed, p);
+    check(err == nullptr, "ultimate on foot: ok");
+    check(g.fix_calls == 0,
+          "ultimate on foot: fix never fires");
+    check(g.given.size() == cheats::kAdvancedWeaponsCount,
+          "ultimate on foot: advanced-weapons loadout still given");
 }
 
 }  // namespace
@@ -504,6 +581,9 @@ int main() {
     test_v_only_cheats_refused();
     test_no_ped_refusal();
     test_unknown_id();
+    test_weapon_sets();
+    test_parachute();
+    test_ultimate();
     std::printf("\n%d checks, %d failed\n", g_checks, g_failures);
     return g_failures ? 1 : 0;
 }

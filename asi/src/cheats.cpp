@@ -33,6 +33,20 @@ const uint32_t kAllWeaponsIds[kAllWeaponsCount] = {
     9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 };
 
+// Rockstar's "advanced weapons" phone cheat (486-555-0100), base IV.
+// bat, combat pistol (deagle slot), combat shotgun, SMG, carbine,
+// combat sniper, grenades, RPG.
+const uint32_t kAdvancedWeaponsIds[kAdvancedWeaponsCount] = {
+    1, 9, 11, 13, 15, 17, 4, 18,
+};
+
+// Rockstar's "poor weapons" phone cheat (486-555-0150), base IV.
+// knife, pistol, pump shotgun, micro-SMG, assault rifle, combat
+// sniper, molotov, RPG.
+const uint32_t kPoorWeaponsIds[kPoorWeaponsCount] = {
+    3, 7, 10, 12, 14, 17, 5, 18,
+};
+
 const char* const kErrUnknown      = "unknown cheat";
 const char* const kErrNotInBuild   = "cheat not in this build";
 const char* const kErrNoPed        = "no player ped";
@@ -89,6 +103,13 @@ void apply_toggle(uint32_t id, uint32_t player, uint32_t ped) {
 void give_all_weapons(uint32_t ped) {
     for (uint32_t i = 0; i < kAllWeaponsCount; ++i) {
         game::give_weapon_to_char(ped, kAllWeaponsIds[i], kFullAmmo);
+    }
+    weapons::force_rescan();
+}
+
+void give_from_table(uint32_t ped, const uint32_t* ids, uint32_t count) {
+    for (uint32_t i = 0; i < count; ++i) {
+        game::give_weapon_to_char(ped, ids[i], kFullAmmo);
     }
     weapons::force_rescan();
 }
@@ -167,6 +188,31 @@ const char* run_one_shot(uint32_t id, uint32_t player, uint32_t ped,
         game::set_time_of_day(next, 0);
         return nullptr;
     }
+    case kGiveParachute:
+        game::give_weapon_to_char(ped, kWeaponParachute, 1);
+        return nullptr;
+    case kAdvancedWeapons:
+        give_from_table(ped, kAdvancedWeaponsIds, kAdvancedWeaponsCount);
+        return nullptr;
+    case kPoorWeapons:
+        give_from_table(ped, kPoorWeaponsIds, kPoorWeaponsCount);
+        return nullptr;
+    case kUltimate:
+        // Phone cheat 482-555-0100: health + armor + ammo + repair +
+        // advanced weapons. Repair only applies when in a vehicle;
+        // same rule as kFixVehicle.
+        game::set_char_health(ped, kMaxHealth);
+        game::add_armour_to_char(ped, kMaxArmour);
+        max_ammo(ped, p);
+        if (p.in_vehicle) {
+            const uint32_t veh = game::get_car_char_is_using(ped);
+            if (veh != 0) {
+                game::fix_car(veh);
+                game::wash_vehicle_textures(veh, 0);
+            }
+        }
+        give_from_table(ped, kAdvancedWeaponsIds, kAdvancedWeaponsCount);
+        return nullptr;
     default:
         return kErrNotInBuild;
     }
@@ -190,15 +236,24 @@ bool iv_knows_toggle(uint32_t id) {
 const char* run(uint32_t id, uint32_t player, uint32_t ped,
                 const snapshot::Player& p) {
     if (ped == 0 || ped == 0xFFFFFFFFu) return kErrNoPed;
-    if (id == 0 || id > kMaxToggle)     return kErrUnknown;
+    if (id == 0) return kErrUnknown;
 
-    if (id >= kFirstToggle) {
+    // Toggle ids first — they stay in a contiguous range.
+    if (id >= kFirstToggle && id <= kMaxToggle) {
         if (!iv_knows_toggle(id)) return kErrNotInBuild;
         set_toggle(id, !is_on(id));
         apply_toggle(id, player, ped);
         g_last_ped = ped;
         return nullptr;
     }
+
+    // Scalar one-shots split into two bands around the toggle range so
+    // new scalar cheats can land past the toggle id space without
+    // reshuffling what the device test has already proven.
+    const bool is_one_shot =
+        (id <= kMaxLowOneShot) ||
+        (id >= kFirstHighOneShot && id <= kMaxHighOneShot);
+    if (!is_one_shot) return kErrUnknown;
 
     const char* err = run_one_shot(id, player, ped, p);
     if (!err) g_last_ped = ped;
