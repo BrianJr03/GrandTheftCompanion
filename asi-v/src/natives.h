@@ -106,6 +106,46 @@ enum : uint64_t {
     GET_IS_PLAYER_IN_ANIMAL_FORM       = 0x9689123E3F213AA5,  // BOOL ()
     GET_MISSION_FLAG                   = 0xA33CDCCDA663159E,  // BOOL ()
     NETWORK_IS_SESSION_STARTED         = 0x9DE624D2FC4B603F,  // BOOL ()
+
+    // Cheat writes. Hashes verified against NativeDB (alloc8or/gta5-
+    // nativedb-data; natives.json and natives_gen9.json carry the same
+    // original hash). Reads of GET_ENTITY_MAX_HEALTH / GET_PLAYER_MAX_
+    // ARMOUR / GET_PLAYER_WANTED_LEVEL / GET_VEHICLE_PED_IS_IN / HAS_
+    // PED_GOT_WEAPON / GET_ENTITY_COORDS reused from above.
+    SET_ENTITY_HEALTH                      = 0x6B76DC1F3AE6E6A3,  // void (Entity, int, Entity, Hash)
+    SET_PED_ARMOUR                         = 0xCEA04D83135264CC,  // void (Ped, int)
+    SET_PLAYER_WANTED_LEVEL                = 0x39FF19C64EF7DA5B,  // void (Player, int, BOOL)
+    SET_PLAYER_WANTED_LEVEL_NOW            = 0xE0A7D1E497FFCD6F,  // void (Player, BOOL)
+    CLEAR_PLAYER_WANTED_LEVEL              = 0xB302540597885499,  // void (Player)
+    GIVE_WEAPON_TO_PED                     = 0xBF0FD6E56C964FCB,  // void (Ped, Hash, int, BOOL, BOOL)
+    SET_PED_AMMO                           = 0x14E56BC5B5DB6A19,  // void (Ped, Hash, int, BOOL)
+    GET_MAX_AMMO                           = 0xDC16122C7A20C933,  // BOOL (Ped, Hash, int*)
+    SET_PED_INFINITE_AMMO_CLIP             = 0x183DADC6AA953186,  // void (Ped, BOOL)
+    SET_VEHICLE_FIXED                      = 0x115722B1B9C14C1C,  // void (Vehicle)
+    SET_VEHICLE_ENGINE_HEALTH              = 0x45F6D8EEF34ABEF1,  // void (Vehicle, float)
+    SET_VEHICLE_BODY_HEALTH                = 0xB77D05AC8C78AADB,  // void (Vehicle, float)
+    SET_VEHICLE_DIRT_LEVEL                 = 0x79D3B596FE44EE8B,  // void (Vehicle, float)
+    SET_WEATHER_TYPE_NOW_PERSIST           = 0xED712CA327900C8A,  // void (const char*)
+    CLEAR_WEATHER_TYPE_PERSIST             = 0xCCC39339BEF76CF5,  // void ()
+    GET_CLOCK_HOURS                        = 0x25223CA6B4D20B7F,  // int ()
+    SET_CLOCK_TIME                         = 0x47C3B5848C3E45D8,  // void (int, int, int)
+    SPECIAL_ABILITY_FILL_METER             = 0x3DACA8DDC6FD4980,  // void (Player, BOOL, Any)
+    IS_MODEL_IN_CDIMAGE                    = 0x35B9E0803292B641,  // BOOL (Hash)
+    IS_MODEL_A_VEHICLE                     = 0x19AAC8F07BFEC53E,  // BOOL (Hash)
+    REQUEST_MODEL                          = 0x963D27A58DF860AC,  // void (Hash)
+    HAS_MODEL_LOADED                       = 0x98A4EB5D89A0C952,  // BOOL (Hash)
+    SET_MODEL_AS_NO_LONGER_NEEDED          = 0xE532F5D78798DAAB,  // void (Hash)
+    GET_ENTITY_HEADING                     = 0xE83D4F9BA2A38914,  // float (Entity)
+    CREATE_VEHICLE                         = 0xAF35D0D2583051B0,  // Vehicle (Hash, float, float, float, float, BOOL, BOOL, BOOL)
+    SET_VEHICLE_ON_GROUND_PROPERLY         = 0x49733E92263139D1,  // BOOL (Vehicle, float)
+    SET_PED_INTO_VEHICLE                   = 0xF75B0D629E1C063D,  // void (Ped, Vehicle, int)
+    SET_VEHICLE_AS_NO_LONGER_NEEDED        = 0x629BFA74418D6239,  // void (Vehicle*)
+    SET_PLAYER_INVINCIBLE_BUT_HAS_REACTIONS = 0x6BC97F4F4BB3C04B, // void (Player, BOOL)
+    SET_RUN_SPRINT_MULTIPLIER_FOR_PLAYER   = 0x6DB47AA77FD94E09,  // void (Player, float)
+    SET_GRAVITY_LEVEL                      = 0x740E14FAD5842351,  // void (int 0..3)
+    SET_TIME_SCALE                         = 0x1D408577D440E81E,  // void (float)
+    SET_POLICE_IGNORE_PLAYER               = 0x32C62AA929C2DA6A,  // void (Player, BOOL)
+    STAT_SET_CHEAT_IS_ACTIVE               = 0x047CBED6F6F8B63C,  // void ()
 };
 
 // IS_CONTROL_PRESSED arguments. `control` is the input group, `action`

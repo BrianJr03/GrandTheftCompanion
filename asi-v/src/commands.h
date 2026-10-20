@@ -74,4 +74,9 @@ void drain(int32_t player, int32_t ped, const snapshot::State& s);
 // loading): answer everything queued with `reason`.
 void reject_all(const char* reason);
 
+// Post an ack to the given client. Exposed so cheats::tick can post the
+// result of a multi-tick spawn-car command when it finishes (which may
+// be several frames after the command was drained).
+void post_ack(uint32_t client, uint32_t id, bool ok, const char* err);
+
 }  // namespace commands

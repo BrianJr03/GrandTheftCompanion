@@ -103,7 +103,7 @@ int format_hello(char* buf, size_t cap) {
     // read game state on this install. Here that means Script Hook V
     // is present and exports everything we need.
     o.add("\"supported\":%s,\"shv\":%s,\"script_started\":%s,"
-          "\"shv_game_version\":%d,\"err\":\"",
+          "\"shv_game_version\":%d,\"cheats\":true,\"err\":\"",
           b(shv::available()), b(shv::available()), b(script::started()),
           shv::game_version());
     o.add_escaped(shv::error());
@@ -173,6 +173,8 @@ int format_state(char* buf, size_t cap, const snapshot::State& s,
     o.add("\"radio\":%d,\"radio_name\":\"", s.radio_index);
     o.add_escaped(s.radio_name);
     o.add("\",");
+
+    o.add("\"cheats_mask\":%u,", s.cheats_mask);
 
     // The player's map waypoint. "ours" means the companion set it (via
     // route_blip) and it has not been moved since, so the companion may

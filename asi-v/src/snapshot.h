@@ -115,6 +115,11 @@ struct State {
     bool    waypoint_ours;
     int32_t route_blip;
 
+    // --- cheats ---
+    // Toggle cheats currently on, as a bitmask indexed by `cheat_id -
+    // 20` (one-shots do not light a bit). Mirrors asi/src/snapshot.h.
+    uint32_t cheats_mask;
+
     uint64_t ts_ms;                       // GetTickCount64 at publish
 };
 
