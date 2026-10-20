@@ -18,8 +18,11 @@ class CheatCatalogTest {
             if (def.isToggle) {
                 assertTrue("toggle id ${def.id} must be >= $FIRST_TOGGLE_ID",
                            def.id >= FIRST_TOGGLE_ID)
-                assertTrue("toggle id ${def.id} must be <= 31",
-                           def.id <= 31)
+                // kMaxToggle in asi-v/src/cheats.h is 34; app allows
+                // ids up to 51 (bit 31 of the Int mask) but the
+                // plugin's enum stops at 34 today.
+                assertTrue("toggle id ${def.id} must be <= 34",
+                           def.id <= 34)
             } else {
                 assertTrue("one-shot id ${def.id} must be in 1..19",
                            def.id in 1..19)
@@ -43,7 +46,9 @@ class CheatCatalogTest {
         val v = visibleCheats(isGtaV = true).map { it.id }.toSet()
         for (id in listOf(1, 2, 3, 4, 5, 6, 7, 8, 9,
                           10, 11, 12, 13, 14, 15,
-                          20, 21, 24, 25, 26, 27)) {
+                          16, 17, 18,
+                          20, 21, 24, 25, 26, 27,
+                          28, 29, 30, 31, 32, 33, 34)) {
             assertTrue("V missing id $id", v.contains(id))
         }
         // IV-only entries must not appear on V.
@@ -71,7 +76,9 @@ class CheatCatalogTest {
         val ids = CHEATS.map { it.id }.toSet()
         for (id in listOf(1, 2, 3, 4, 5, 6, 7, 8, 9,
                           10, 11, 12, 13, 14, 15,
-                          20, 21, 22, 23, 24, 25, 26, 27)) {
+                          16, 17, 18,
+                          20, 21, 22, 23, 24, 25, 26, 27,
+                          28, 29, 30, 31, 32, 33, 34)) {
             assertTrue("missing cheat id $id in catalog", ids.contains(id))
         }
         assertEquals("one id per cheat", CHEATS.size, ids.size)

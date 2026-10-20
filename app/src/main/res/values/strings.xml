@@ -43,7 +43,17 @@
     <string name="cheat_24_fast_run">fast run</string>
     <string name="cheat_25_low_gravity">low gravity</string>
     <string name="cheat_26_slow_motion">slow motion</string>
+    <string name="cheat_16_wanted_down">wanted -1</string>
+    <string name="cheat_17_give_parachute">give parachute</string>
+    <string name="cheat_18_skyfall">skyfall</string>
     <string name="cheat_27_police_ignore">police ignore</string>
+    <string name="cheat_28_drunk">drunk</string>
+    <string name="cheat_29_fast_swim">fast swim</string>
+    <string name="cheat_30_super_jump">super jump</string>
+    <string name="cheat_31_explosive_ammo">explosive ammo</string>
+    <string name="cheat_32_explosive_melee">explosive melee</string>
+    <string name="cheat_33_incendiary_ammo">incendiary ammo</string>
+    <string name="cheat_34_slippery">slippery cars</string>
 
     <!-- One-time hint shown on first connect, explaining the pager. -->
     <string name="swipe_hint_title">Tip</string>

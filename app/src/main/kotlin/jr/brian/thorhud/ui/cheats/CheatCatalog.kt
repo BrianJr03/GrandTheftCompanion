@@ -52,8 +52,11 @@ internal val CHEATS: List<CheatDef> = listOf(
     CheatDef(13, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_13_spawn_sanchez),
     CheatDef(14, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_14_spawn_frogger),
     CheatDef(15, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_15_spawn_bmx),
+    CheatDef(16, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_16_wanted_down),
+    CheatDef(17, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_17_give_parachute),
+    CheatDef(18, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_18_skyfall),
 
-    // Toggles (ids 20..31).
+    // Toggles (ids 20..34).
     CheatDef(20, isToggle = true,  games = CHEAT_BOTH, labelRes = R.string.cheat_20_invincible),
     CheatDef(21, isToggle = true,  games = CHEAT_V,    labelRes = R.string.cheat_21_infinite_clip),
     CheatDef(22, isToggle = true,  games = CHEAT_IV,   labelRes = R.string.cheat_22_fast_reload),
@@ -62,6 +65,13 @@ internal val CHEATS: List<CheatDef> = listOf(
     CheatDef(25, isToggle = true,  games = CHEAT_V,    labelRes = R.string.cheat_25_low_gravity),
     CheatDef(26, isToggle = true,  games = CHEAT_BOTH, labelRes = R.string.cheat_26_slow_motion),
     CheatDef(27, isToggle = true,  games = CHEAT_BOTH, labelRes = R.string.cheat_27_police_ignore),
+    CheatDef(28, isToggle = true,  games = CHEAT_V,    labelRes = R.string.cheat_28_drunk),
+    CheatDef(29, isToggle = true,  games = CHEAT_V,    labelRes = R.string.cheat_29_fast_swim),
+    CheatDef(30, isToggle = true,  games = CHEAT_V,    labelRes = R.string.cheat_30_super_jump),
+    CheatDef(31, isToggle = true,  games = CHEAT_V,    labelRes = R.string.cheat_31_explosive_ammo),
+    CheatDef(32, isToggle = true,  games = CHEAT_V,    labelRes = R.string.cheat_32_explosive_melee),
+    CheatDef(33, isToggle = true,  games = CHEAT_V,    labelRes = R.string.cheat_33_incendiary_ammo),
+    CheatDef(34, isToggle = true,  games = CHEAT_V,    labelRes = R.string.cheat_34_slippery),
 )
 
 /** Cheats the current game supports, in catalog order. */
