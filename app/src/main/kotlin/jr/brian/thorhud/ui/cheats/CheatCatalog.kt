@@ -81,6 +81,18 @@ internal val CHEATS: List<CheatDef> = listOf(
     // IV phone-cheat weapon sets, continued.
     CheatDef(40, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_40_poor_weapons),
     CheatDef(41, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_41_ultimate),
+    // Base-IV phone-cheat vehicle spawns (ids 50..58). Hashes come
+    // from GET_HASH_KEY on the game's model-info-store names, so a
+    // wrong name just makes that one spawn time out.
+    CheatDef(50, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_50_spawn_fib_buffalo),
+    CheatDef(51, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_51_spawn_cognoscenti),
+    CheatDef(52, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_52_spawn_comet),
+    CheatDef(53, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_53_spawn_jetmax),
+    CheatDef(54, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_54_spawn_annihilator),
+    CheatDef(55, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_55_spawn_super_gt),
+    CheatDef(56, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_56_spawn_nrg900),
+    CheatDef(57, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_57_spawn_sanchez),
+    CheatDef(58, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_58_spawn_turismo),
 )
 
 /** Cheats the current game supports, in catalog order. */

@@ -49,6 +49,15 @@
     <string name="cheat_19_advanced_weapons">advanced weapons</string>
     <string name="cheat_40_poor_weapons">poor weapons</string>
     <string name="cheat_41_ultimate">ultimate</string>
+    <string name="cheat_50_spawn_fib_buffalo">spawn fib buffalo</string>
+    <string name="cheat_51_spawn_cognoscenti">spawn cognoscenti</string>
+    <string name="cheat_52_spawn_comet">spawn comet</string>
+    <string name="cheat_53_spawn_jetmax">spawn jetmax</string>
+    <string name="cheat_54_spawn_annihilator">spawn annihilator</string>
+    <string name="cheat_55_spawn_super_gt">spawn super gt</string>
+    <string name="cheat_56_spawn_nrg900">spawn nrg 900</string>
+    <string name="cheat_57_spawn_sanchez">spawn sanchez</string>
+    <string name="cheat_58_spawn_turismo">spawn turismo</string>
     <string name="cheat_27_police_ignore">police ignore</string>
     <string name="cheat_28_drunk">drunk</string>
     <string name="cheat_29_fast_swim">fast swim</string>
