@@ -393,7 +393,11 @@ void main() {
              shv::game_version());
     for (;;) {
         tick();
-        shv::script_wait(kTickIntervalMs);
+        // The "this frame" cheats (super jump, explosive / incendiary
+        // ammo, explosive melee) only hold their effect for the game
+        // frame they are called on, so when any of them is on we have
+        // to resume the fiber every frame instead of every 40 ms.
+        shv::script_wait(cheats::needs_frame_wait() ? 0 : kTickIntervalMs);
     }
 }
 

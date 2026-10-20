@@ -29,29 +29,49 @@ namespace cheats {
 
 // Ids shared with asi/src/cheats.h and the app's catalog. Keep in sync.
 enum CheatId : uint32_t {
-    kHeal           = 1,
-    kWantedUp       = 2,
-    kWantedClear    = 3,
-    kAllWeapons     = 4,
-    kMaxAmmo        = 5,
-    kFixVehicle     = 6,
-    kNextWeather    = 7,
-    kNextTimeOfDay  = 8,
-    kFillSpecial    = 9,
-    kSpawnCarFirst  = 10,  // ids 10..15 (adder, zentorno, bati, sanchez, frogger, bmx)
-    kSpawnCarLast   = 15,
-    kInvincible     = 20,
-    kInfiniteClip   = 21,
-    kFastReload     = 22,  // IV-only; refused here
-    kNeverTired     = 23,  // IV-only; refused here
-    kFastRun        = 24,
-    kLowGravity     = 25,
-    kSlowMotion     = 26,
-    kPoliceIgnore   = 27,
+    kHeal              = 1,
+    kWantedUp          = 2,
+    kWantedClear       = 3,
+    kAllWeapons        = 4,
+    kMaxAmmo           = 5,
+    kFixVehicle        = 6,
+    kNextWeather       = 7,
+    kNextTimeOfDay     = 8,
+    kFillSpecial       = 9,
+    kSpawnCarFirst     = 10,  // ids 10..15 (adder, zentorno, bati, sanchez, frogger, bmx)
+    kSpawnCarLast      = 15,
+    kWantedDown        = 16,  // -1 star (vs kWantedClear which zeroes)
+    kGiveParachute     = 17,
+    kSkyfall           = 18,
+    kInvincible        = 20,
+    kInfiniteClip      = 21,
+    kFastReload        = 22,  // IV-only; refused here
+    kNeverTired        = 23,  // IV-only; refused here
+    kFastRun           = 24,
+    kLowGravity        = 25,
+    kSlowMotion        = 26,
+    kPoliceIgnore      = 27,
+    kDrunkMode         = 28,
+    kFastSwim          = 29,
+    kSuperJump         = 30,  // this-frame
+    kExplosiveAmmo     = 31,  // this-frame
+    kExplosiveMelee    = 32,  // this-frame
+    kIncendiaryAmmo    = 33,  // this-frame
+    kSlipperyVehicles  = 34,
 };
 
 constexpr uint32_t kFirstToggle = 20;
-constexpr uint32_t kMaxToggle   = 31;
+constexpr uint32_t kMaxToggle   = 34;
+
+// Bitmask of toggle ids whose natives have to be re-called every
+// game frame (the "SET_*_THIS_FRAME" family). When any of these is on,
+// script::main() switches the fiber to script_wait(0) so the game
+// resumes it every frame instead of every 40 ms.
+constexpr uint32_t kThisFrameToggleMask =
+    (1u << (kSuperJump      - kFirstToggle)) |
+    (1u << (kExplosiveAmmo  - kFirstToggle)) |
+    (1u << (kExplosiveMelee - kFirstToggle)) |
+    (1u << (kIncendiaryAmmo - kFirstToggle));
 
 // Spawn-car curated model names (joaat'd at use-time via cheats.cpp).
 // One entry per id in [kSpawnCarFirst, kSpawnCarLast]. Models that the
@@ -70,12 +90,14 @@ extern const uint32_t kClockHours[kClockHourCount];
 constexpr float    kSlowTimeScale   = 0.5f;
 constexpr float    kFastRunMult     = 1.49f;  // NativeDB: values above
                                               // 1.49 are ignored
+constexpr float    kFastSwimMult    = 1.49f;  // same cap as sprint
 constexpr int32_t  kLowGravityLevel = 2;      // 0 full, 3 moonwalk
 constexpr int32_t  kFullAmmo        = 9999;
 constexpr float    kFullBodyHealth  = 1000.0f;
 constexpr float    kSpawnForwardM   = 3.0f;   // offset in front of the
                                               // ped so the car does not
                                               // land on them
+constexpr float    kSkyfallZ        = 1000.0f; // altitude for free-fall
 
 constexpr uint32_t kSpawnTimeoutMs = 5000;
 
@@ -112,6 +134,10 @@ void reset_world();
 
 // Current toggle mask: for the state frame.
 uint32_t mask();
+
+// True when any "this frame" toggle is on. The script fiber uses
+// this to decide between script_wait(40 ms) and script_wait(0).
+bool needs_frame_wait();
 
 // Forget everything remembered between frames. For tests.
 void reset();

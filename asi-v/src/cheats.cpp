@@ -73,6 +73,13 @@ bool v_knows_toggle(uint32_t id) {
     case kLowGravity:
     case kSlowMotion:
     case kPoliceIgnore:
+    case kDrunkMode:
+    case kFastSwim:
+    case kSuperJump:
+    case kExplosiveAmmo:
+    case kExplosiveMelee:
+    case kIncendiaryAmmo:
+    case kSlipperyVehicles:
         return true;
     default:
         return false;
@@ -81,9 +88,10 @@ bool v_knows_toggle(uint32_t id) {
 
 bool v_knows_one_shot(uint32_t id) {
     switch (id) {
-    case kHeal: case kWantedUp: case kWantedClear:
+    case kHeal: case kWantedUp: case kWantedClear: case kWantedDown:
     case kAllWeapons: case kMaxAmmo: case kFixVehicle:
     case kNextWeather: case kNextTimeOfDay: case kFillSpecial:
+    case kGiveParachute: case kSkyfall:
         return true;
     default:
         return id >= kSpawnCarFirst && id <= kSpawnCarLast;
@@ -91,8 +99,12 @@ bool v_knows_one_shot(uint32_t id) {
 }
 
 // Apply a toggle's current state to the game via its native. Also
-// called from tick() to re-apply every frame while on.
-void apply_toggle(uint32_t id, int32_t player, int32_t ped) {
+// called from tick() to re-apply every frame while on. "This frame"
+// natives (SET_SUPER_JUMP_THIS_FRAME and friends) are called only
+// when `on`; turning the toggle off means stop calling them, which
+// is the game's own convention — the effect ends on the next frame.
+void apply_toggle(uint32_t id, int32_t player, int32_t ped,
+                  const snapshot::State* s) {
     const bool on = is_on(id);
     switch (id) {
     case kInvincible:
@@ -116,6 +128,37 @@ void apply_toggle(uint32_t id, int32_t player, int32_t ped) {
         break;
     case kPoliceIgnore:
         shv::call<void>(natives::SET_POLICE_IGNORE_PLAYER, player, on);
+        break;
+    case kDrunkMode:
+        shv::call<void>(natives::SET_PED_IS_DRUNK, ped, on);
+        break;
+    case kFastSwim:
+        shv::call<void>(natives::SET_SWIM_MULTIPLIER_FOR_PLAYER,
+                        player, on ? kFastSwimMult : 1.0f);
+        break;
+    case kSuperJump:
+        if (on) shv::call<void>(natives::SET_SUPER_JUMP_THIS_FRAME, player);
+        break;
+    case kExplosiveAmmo:
+        if (on) shv::call<void>(natives::SET_EXPLOSIVE_AMMO_THIS_FRAME, player);
+        break;
+    case kExplosiveMelee:
+        if (on) shv::call<void>(natives::SET_EXPLOSIVE_MELEE_THIS_FRAME, player);
+        break;
+    case kIncendiaryAmmo:
+        if (on) shv::call<void>(natives::SET_FIRE_AMMO_THIS_FRAME, player);
+        break;
+    case kSlipperyVehicles:
+        // Vehicle-targeted: applies to whatever the player is in. A
+        // player on foot still carries the mask bit; the native fires
+        // next time they get in a car.
+        if (s && s->in_vehicle) {
+            const int32_t veh = shv::call<int32_t>(natives::GET_VEHICLE_PED_IS_IN,
+                                                   ped, 0);
+            if (veh != 0) {
+                shv::call<void>(natives::SET_VEHICLE_REDUCE_GRIP, veh, on);
+            }
+        }
         break;
     default:
         break;
@@ -148,6 +191,28 @@ void run_wanted_up(int32_t player) {
     if (next > 5) next = 5;
     shv::call<void>(natives::SET_PLAYER_WANTED_LEVEL, player, next, 0);
     shv::call<void>(natives::SET_PLAYER_WANTED_LEVEL_NOW, player, 0);
+}
+
+void run_wanted_down(int32_t player) {
+    const int32_t cur = shv::call<int32_t>(natives::GET_PLAYER_WANTED_LEVEL, player);
+    int32_t next = cur - 1;
+    if (next < 0) next = 0;
+    shv::call<void>(natives::SET_PLAYER_WANTED_LEVEL, player, next, 0);
+    shv::call<void>(natives::SET_PLAYER_WANTED_LEVEL_NOW, player, 0);
+}
+
+void run_give_parachute(int32_t ped) {
+    const uint32_t parachute = joaat("gadget_parachute");
+    shv::call<void>(natives::GIVE_WEAPON_TO_PED, ped, parachute, 1, 0, 0);
+}
+
+void run_skyfall(int32_t ped) {
+    // Teleport straight up over the player's current spot and let
+    // gravity do the rest. The parachute cheat is adjacent for a
+    // reason; nothing stops the player from tapping both back-to-back.
+    const shv::Vec3 c = shv::call_vec3(natives::GET_ENTITY_COORDS, ped, 1);
+    shv::call<void>(natives::SET_ENTITY_COORDS, ped,
+                    c.x, c.y, kSkyfallZ, 0, 0, 0, 1);
 }
 
 void run_all_weapons(int32_t ped) {
@@ -307,7 +372,7 @@ void run(uint32_t id, int32_t player, int32_t ped,
         }
         mark_session_cheated();
         set_toggle(id, !is_on(id));
-        apply_toggle(id, player, ped);
+        apply_toggle(id, player, ped, &s);
         thor_log("[cheat] id=%u (toggle) -> ok (mask=0x%08X)", id, g_mask);
         commands::post_ack(client, cmd_id, true, "");
         return;
@@ -334,12 +399,15 @@ void run(uint32_t id, int32_t player, int32_t ped,
     case kHeal:          run_heal(player, ped); break;
     case kWantedUp:      run_wanted_up(player); break;
     case kWantedClear:   shv::call<void>(natives::CLEAR_PLAYER_WANTED_LEVEL, player); break;
+    case kWantedDown:    run_wanted_down(player); break;
     case kAllWeapons:    run_all_weapons(ped); break;
     case kMaxAmmo:       run_max_ammo(ped); break;
     case kFixVehicle:    err = run_fix_vehicle(ped, s); break;
     case kNextWeather:   run_next_weather(); break;
     case kNextTimeOfDay: run_next_time(); break;
     case kFillSpecial:   err = run_fill_special(player, s); break;
+    case kGiveParachute: run_give_parachute(ped); break;
+    case kSkyfall:       run_skyfall(ped); break;
     default:             err = kErrUnknown; break;
     }
 
@@ -358,12 +426,25 @@ void tick(int32_t player, int32_t ped) {
 
     // Re-apply every active toggle. Per-ped ones use the current ped so
     // a character switch does not clear them; world ones re-apply
-    // because the game resets them on some transitions.
+    // because the game resets them on some transitions. "This frame"
+    // toggles need to fire every rendered frame; the script fiber
+    // compensates by switching to script_wait(0) when needs_frame_wait().
+    //
+    // tick() does not know the full snapshot state (it would be stale
+    // if a toggle re-applied against last frame's values), so slippery
+    // vehicles — which needs s.in_vehicle — gets a lightweight live
+    // query via IS_PED_IN_ANY_VEHICLE.
     if (g_mask != 0) {
+        snapshot::State live{};
+        bool queried_vehicle = false;
         for (uint32_t id = kFirstToggle; id <= kMaxToggle; ++id) {
-            if (is_on(id) && v_knows_toggle(id)) {
-                apply_toggle(id, player, ped);
+            if (!is_on(id) || !v_knows_toggle(id)) continue;
+            if (id == kSlipperyVehicles && !queried_vehicle) {
+                live.in_vehicle = shv::call_bool(natives::IS_PED_IN_ANY_VEHICLE,
+                                                 ped, 0);
+                queried_vehicle = true;
             }
+            apply_toggle(id, player, ped, &live);
         }
     }
 
@@ -378,6 +459,10 @@ void reset_world() {
 }
 
 uint32_t mask() { return g_mask; }
+
+bool needs_frame_wait() {
+    return (g_mask & kThisFrameToggleMask) != 0;
+}
 
 void reset() {
     g_mask = 0;

@@ -146,6 +146,21 @@ enum : uint64_t {
     SET_TIME_SCALE                         = 0x1D408577D440E81E,  // void (float)
     SET_POLICE_IGNORE_PLAYER               = 0x32C62AA929C2DA6A,  // void (Player, BOOL)
     STAT_SET_CHEAT_IS_ACTIVE               = 0x047CBED6F6F8B63C,  // void ()
+
+    // Phase 2 cheats (phone-code equivalents the companion exposes
+    // as taps). The "this frame" group needs its native called every
+    // game frame to feel smooth; cheats::needs_frame_wait() flips the
+    // script fiber from script_wait(40 ms) to script_wait(0) while
+    // any of their mask bits is set.
+    SET_PED_IS_DRUNK                       = 0x95D2D383D5396B8A,  // void (Ped, BOOL)
+    SET_SWIM_MULTIPLIER_FOR_PLAYER         = 0xA91C6F0FF7D16A13,  // void (Player, float)
+    SET_SUPER_JUMP_THIS_FRAME              = 0x57FFF03E423A4C0B,  // void (Player)
+    SET_EXPLOSIVE_AMMO_THIS_FRAME          = 0xA66C71C98D5F2CFB,  // void (Player)
+    SET_EXPLOSIVE_MELEE_THIS_FRAME         = 0xFF1BED81BFDC0FE0,  // void (Player)
+    SET_FIRE_AMMO_THIS_FRAME               = 0x11879CDD803D30F4,  // void (Player)
+    SET_VEHICLE_REDUCE_GRIP                = 0x222FF6A823D122E2,  // void (Vehicle, BOOL)
+    // Four-arg y/n flags; passing BOOLs is enough for a teleport.
+    SET_ENTITY_COORDS                      = 0x621873ECE1178967,  // void (Entity, float, float, float, BOOL, BOOL, BOOL, BOOL)
 };
 
 // IS_CONTROL_PRESSED arguments. `control` is the input group, `action`

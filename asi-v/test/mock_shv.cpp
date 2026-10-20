@@ -516,6 +516,19 @@ void dispatch() {
     case STAT_SET_CHEAT_IS_ACTIVE: expect_argc(0, "STAT_SET_CHEAT_IS_ACTIVE");
         ++g_cheat_stat_set; break;
 
+    // ---- phase-2 cheats --------------------------------------------
+    case SET_PED_IS_DRUNK: expect_argc(2, "SET_PED_IS_DRUNK"); break;
+    case SET_SWIM_MULTIPLIER_FOR_PLAYER: expect_argc(2, "SET_SWIM_MULTIPLIER_FOR_PLAYER");
+        break;
+    case SET_SUPER_JUMP_THIS_FRAME: expect_argc(1, "SET_SUPER_JUMP_THIS_FRAME"); break;
+    case SET_EXPLOSIVE_AMMO_THIS_FRAME: expect_argc(1, "SET_EXPLOSIVE_AMMO_THIS_FRAME");
+        break;
+    case SET_EXPLOSIVE_MELEE_THIS_FRAME: expect_argc(1, "SET_EXPLOSIVE_MELEE_THIS_FRAME");
+        break;
+    case SET_FIRE_AMMO_THIS_FRAME: expect_argc(1, "SET_FIRE_AMMO_THIS_FRAME"); break;
+    case SET_VEHICLE_REDUCE_GRIP: expect_argc(2, "SET_VEHICLE_REDUCE_GRIP"); break;
+    case SET_ENTITY_COORDS: expect_argc(8, "SET_ENTITY_COORDS"); break;
+
     default:
         // The real Script Hook V treats an unknown native as fatal; so
         // does the mock, so a typo'd hash fails the test loudly.
