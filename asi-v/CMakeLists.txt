@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(ThorBridgeV SHARED
     src/blips.cpp
     src/bridge.cpp
+    src/cheats.cpp
     src/commands.cpp
     src/dllmain.cpp
     src/log.cpp
