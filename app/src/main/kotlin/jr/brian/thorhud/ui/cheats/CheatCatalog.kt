@@ -53,8 +53,14 @@ internal val CHEATS: List<CheatDef> = listOf(
     CheatDef(14, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_14_spawn_frogger),
     CheatDef(15, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_15_spawn_bmx),
     CheatDef(16, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_16_wanted_down),
-    CheatDef(17, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_17_give_parachute),
+    // Parachute is cross-game: V uses GIVE_WEAPON_TO_PED with
+    // gadget_parachute; IV uses GIVE_WEAPON_TO_CHAR with
+    // WEAPON_PARACHUTE (id 25).
+    CheatDef(17, isToggle = false, games = CHEAT_BOTH, labelRes = R.string.cheat_17_give_parachute),
     CheatDef(18, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_18_skyfall),
+    // IV phone-cheat weapon sets (ids 19, 40, 41). V has its own
+    // DNMAGIC "all weapons" (id 4) and does not include these.
+    CheatDef(19, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_19_advanced_weapons),
 
     // Toggles (ids 20..34).
     CheatDef(20, isToggle = true,  games = CHEAT_BOTH, labelRes = R.string.cheat_20_invincible),
@@ -72,6 +78,9 @@ internal val CHEATS: List<CheatDef> = listOf(
     CheatDef(32, isToggle = true,  games = CHEAT_V,    labelRes = R.string.cheat_32_explosive_melee),
     CheatDef(33, isToggle = true,  games = CHEAT_V,    labelRes = R.string.cheat_33_incendiary_ammo),
     CheatDef(34, isToggle = true,  games = CHEAT_V,    labelRes = R.string.cheat_34_slippery),
+    // IV phone-cheat weapon sets, continued.
+    CheatDef(40, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_40_poor_weapons),
+    CheatDef(41, isToggle = false, games = CHEAT_IV,   labelRes = R.string.cheat_41_ultimate),
 )
 
 /** Cheats the current game supports, in catalog order. */

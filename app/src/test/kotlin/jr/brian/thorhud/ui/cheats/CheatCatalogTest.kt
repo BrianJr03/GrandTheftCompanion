@@ -24,8 +24,11 @@ class CheatCatalogTest {
                 assertTrue("toggle id ${def.id} must be <= 34",
                            def.id <= 34)
             } else {
-                assertTrue("one-shot id ${def.id} must be in 1..19",
-                           def.id in 1..19)
+                // Two one-shot bands around the toggle range: 1..19 and
+                // 40..59. Anything in between is refused by the
+                // plugin as "unknown cheat".
+                assertTrue("one-shot id ${def.id} must be in 1..19 or 40..59",
+                           def.id in 1..19 || def.id in 40..59)
             }
         }
     }
@@ -34,9 +37,12 @@ class CheatCatalogTest {
     fun ivHidesVOnlyEntries() {
         val iv = visibleCheats(isGtaV = false).map { it.id }.toSet()
         // Shared cheats that must be visible on IV.
-        assertTrue(iv.containsAll(setOf(1, 2, 3, 4, 5, 6, 7, 8, 20, 22, 23, 26, 27)))
+        assertTrue(iv.containsAll(setOf(1, 2, 3, 4, 5, 6, 7, 8, 17, 20, 22, 23, 26, 27)))
+        // IV-only phone-cheat weapon sets.
+        assertTrue(iv.containsAll(setOf(19, 40, 41)))
         // V-only must not leak into IV.
-        for (id in listOf(9, 10, 11, 12, 13, 14, 15, 21, 24, 25)) {
+        for (id in listOf(9, 10, 11, 12, 13, 14, 15, 16, 18, 21, 24, 25,
+                          28, 29, 30, 31, 32, 33, 34)) {
             assertFalse("V-only id $id leaked onto IV", iv.contains(id))
         }
     }
@@ -51,9 +57,11 @@ class CheatCatalogTest {
                           28, 29, 30, 31, 32, 33, 34)) {
             assertTrue("V missing id $id", v.contains(id))
         }
-        // IV-only entries must not appear on V.
-        assertFalse(v.contains(22))
-        assertFalse(v.contains(23))
+        // IV-only entries must not appear on V (fast reload, never
+        // tired, IV phone-cheat weapon sets).
+        for (id in listOf(22, 23, 19, 40, 41)) {
+            assertFalse("IV-only id $id leaked onto V", v.contains(id))
+        }
     }
 
     @Test
@@ -76,9 +84,10 @@ class CheatCatalogTest {
         val ids = CHEATS.map { it.id }.toSet()
         for (id in listOf(1, 2, 3, 4, 5, 6, 7, 8, 9,
                           10, 11, 12, 13, 14, 15,
-                          16, 17, 18,
+                          16, 17, 18, 19,
                           20, 21, 22, 23, 24, 25, 26, 27,
-                          28, 29, 30, 31, 32, 33, 34)) {
+                          28, 29, 30, 31, 32, 33, 34,
+                          40, 41)) {
             assertTrue("missing cheat id $id in catalog", ids.contains(id))
         }
         assertEquals("one id per cheat", CHEATS.size, ids.size)

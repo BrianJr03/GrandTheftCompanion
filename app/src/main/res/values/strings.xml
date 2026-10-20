@@ -46,6 +46,9 @@
     <string name="cheat_16_wanted_down">wanted -1</string>
     <string name="cheat_17_give_parachute">give parachute</string>
     <string name="cheat_18_skyfall">skyfall</string>
+    <string name="cheat_19_advanced_weapons">advanced weapons</string>
+    <string name="cheat_40_poor_weapons">poor weapons</string>
+    <string name="cheat_41_ultimate">ultimate</string>
     <string name="cheat_27_police_ignore">police ignore</string>
     <string name="cheat_28_drunk">drunk</string>
     <string name="cheat_29_fast_swim">fast swim</string>
