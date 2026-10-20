@@ -12,6 +12,10 @@
 #include "log.h"
 #include "natives.h"
 #include "weapons.h"
+#if THORBRIDGE_CHEATS
+#include "cheat_natives.h"
+#include "cheats.h"
+#endif
 
 namespace {
 
@@ -191,6 +195,35 @@ void drain(uint32_t ped_handle, const snapshot::Player& p) {
             post_ok_ack(c.id, c.ack_queue);
 #else
             post_err_ack(c.id, c.ack_queue, "blip_census: not in this build");
+#endif
+
+        } else if (std::strcmp(c.name, "cheat") == 0) {
+#if THORBRIDGE_CHEATS
+            // Stale drop: a tap that waited through a pause can land
+            // long after the player's attention has moved on. Only the
+            // cheat command has this check — set_weapon / set_radio
+            // keep their old behaviour.
+            constexpr uint32_t kStaleMs = 2000;
+            if (GetTickCount() - c.queued_ms > kStaleMs) {
+                post_err_ack(c.id, c.ack_queue, "stale");
+                continue;
+            }
+            const uint32_t player = game::get_player_id();
+            if (player == 0xFFFFFFFFu) {
+                post_err_ack(c.id, c.ack_queue, "no player");
+                continue;
+            }
+            const char* err = cheats::run(c.arg0, player, ped_handle, p);
+            if (err) {
+                thor_log("[cheat] id=%u -> %s", c.arg0, err);
+                post_err_ack(c.id, c.ack_queue, err);
+            } else {
+                thor_log("[cheat] id=%u -> ok (mask=0x%08X)",
+                         c.arg0, cheats::mask());
+                post_ok_ack(c.id, c.ack_queue);
+            }
+#else
+            post_err_ack(c.id, c.ack_queue, "cheat not in this build");
 #endif
 
         } else {

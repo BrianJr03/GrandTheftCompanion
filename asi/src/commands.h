@@ -42,6 +42,12 @@ struct Cmd {
     char       name[kMaxNameLen];
     uint32_t   arg0;                 // most commands take a single int
     AckQueue*  ack_queue;            // where to post the ack
+    uint32_t   queued_ms;            // GetTickCount() when the socket
+                                     // reader received the frame; the
+                                     // cheat branch drops commands that
+                                     // sat here longer than 2 s so a
+                                     // wanted +1 landing after a long
+                                     // pause does not fire late.
 };
 
 // Enqueue a command. Called from the socket reader thread. If the queue
@@ -65,6 +71,10 @@ void enqueue(const Cmd& c);
 //              id the last census did not list.
 //   route_clear no arg. Turns the route off.
 //   blip_census no arg. Writes the last census to the log.
+//   cheat      arg0 = cheat id (see cheats::CheatId). Only in builds
+//              with THORBRIDGE_CHEATS; refused with "cheat not in this
+//              build" otherwise. Dropped as "stale" when queued_ms is
+//              more than 2 s ago.
 void drain(uint32_t ped_handle, const snapshot::Player& p);
 
 }  // namespace commands

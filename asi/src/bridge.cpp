@@ -35,13 +35,20 @@ struct ClientCtx {
 };
 
 int format_hello(char* buf, size_t cap) {
+#if THORBRIDGE_CHEATS
+    constexpr const char* kCheats = "true";
+#else
+    constexpr const char* kCheats = "false";
+#endif
     return std::snprintf(buf, cap,
         "{\"v\":1,\"type\":\"hello\","
         "\"crc32\":\"0x%08X\",\"size\":%u,"
-        "\"file_version\":\"%s\",\"supported\":%s}\n",
+        "\"file_version\":\"%s\",\"supported\":%s,"
+        "\"cheats\":%s}\n",
         g_vi.crc32, g_vi.size,
         g_vi.file_version[0] ? g_vi.file_version : "",
-        g_vi.supported ? "true" : "false");
+        g_vi.supported ? "true" : "false",
+        kCheats);
 }
 
 int format_tick(char* buf, size_t cap, unsigned long t) {
@@ -99,7 +106,8 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         "\"vehicle\":{\"model\":%u,\"name\":\"%s\","
         "\"speed_mps\":%.2f,\"engine_hp\":%.1f},"
         "\"radio\":%d,\"episode\":%u,"
-        "\"mission\":%s,\"route_blip\":%d}\n",
+        "\"mission\":%s,\"route_blip\":%d,"
+        "\"cheats_mask\":%u}\n",
         static_cast<unsigned long long>(p.ts_ms),
         p.in_game ? "true" : "false",
         p.in_vehicle ? "true" : "false",
@@ -118,7 +126,8 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         static_cast<double>(p.vehicle_speed_mps),
         static_cast<double>(p.vehicle_engine_hp),
         p.radio_station, p.episode,
-        p.mission ? "true" : "false", p.route_blip);
+        p.mission ? "true" : "false", p.route_blip,
+        p.cheats_mask);
 }
 
 // Raw census of the map's blips, nearest first (natives level 5; an
@@ -226,6 +235,7 @@ DWORD WINAPI reader_main(LPVOID arg) {
 
             commands::Cmd c{};
             c.ack_queue = &cx->ack_queue;
+            c.queued_ms = GetTickCount();
             if (parse_cmd(buf, &c.id, c.name, sizeof(c.name), &c.arg0)) {
                 thor_log("[bridge/rx] cmd id=%u name=%s arg0=%u",
                          c.id, c.name, c.arg0);

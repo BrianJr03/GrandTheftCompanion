@@ -32,6 +32,9 @@
 #include "probes.h"
 #include "snapshot.h"
 #include "weapons.h"
+#if THORBRIDGE_CHEATS
+#include "cheats.h"
+#endif
 
 // Round-2 safety: the per-frame hook is only installed if this is set
 // at build time. Default OFF after Phase-2 round 1 crashed Brian's
@@ -96,6 +99,17 @@ constexpr unsigned kStableFramesRequired = 15;  // ~0.25s at 60fps
 // the moment the natives chain bypasses (pause, cutscene, etc.).
 uint32_t g_last_episode = 0;
 
+#if THORBRIDGE_CHEATS
+// Latches whether the previous frame reached the "in_game=true" tail
+// of on_frame. When it did and the current frame falls back to the
+// waiting path (quit to menu, loading, save screen), the plugin's
+// own world writes get rolled back once via cheats::reset_world() so
+// the menu runs at normal speed and under game-controlled weather.
+// The toggle mask is kept, so re-entering in-game re-applies it via
+// cheats::tick() the moment the next on_frame reaches the end.
+bool g_cheats_in_game_last = false;
+#endif
+
 void publish_waiting() {
     snapshot::Player p{};
     p.ts_ms = GetTickCount();
@@ -106,6 +120,22 @@ void publish_waiting() {
     natives::debug_read_pause(&u, &s);
     p.paused = u;
     p.episode = g_last_episode;
+#if THORBRIDGE_CHEATS
+    // Keep the mask in the published snapshot so the UI toggle lights
+    // do not flicker off on pause / cutscene / loading. The underlying
+    // game writes may well have been reset by the game itself in that
+    // state; cheats::tick re-applies them the moment on_frame comes
+    // back round to the end.
+    p.cheats_mask = cheats::mask();
+    // One-shot world reset on the in_game -> waiting edge. The natives
+    // we call are safe no-ops while the pause gate is closed (invoke()
+    // returns false silently), so wait for an invocable frame before
+    // clearing the latch.
+    if (g_cheats_in_game_last && natives::ok_to_invoke()) {
+        cheats::reset_world();
+        g_cheats_in_game_last = false;
+    }
+#endif
     snapshot::publish(p);
 }
 
@@ -326,6 +356,17 @@ void on_frame() {
     }
 #endif  // THORBRIDGE_NATIVES_LEVEL >= 5
 
+#if THORBRIDGE_CHEATS
+    // Re-apply active toggles when the player ped changed since the
+    // last tick (hospital respawn, save-load, episode switch). Cheap
+    // when the mask is empty, which it is until the player taps a
+    // toggle. Snapshot gets the current mask so the companion lights
+    // the right buttons regardless of whether a cheat ran this frame.
+    cheats::tick(player_id, ped_handle);
+    p.cheats_mask = cheats::mask();
+    g_cheats_in_game_last = true;
+#endif
+
     snapshot::publish(p);
 
     // Phase 3: drain any client->server commands on the game thread
@@ -352,6 +393,9 @@ DWORD WINAPI startup_worker(LPVOID /*unused*/) {
     thor_log("[probes] enabled with per-frame hook — natives level %d, "
              "stability gate %u frames", THORBRIDGE_NATIVES_LEVEL,
              kStableFramesRequired);
+#if THORBRIDGE_CHEATS
+    thor_log("[cheats] enabled");
+#endif
 #endif
 #else
     (void)on_frame;  // silence -Wunused when hook is off

@@ -44,11 +44,27 @@ option(THORBRIDGE_HOOK_NO_NATIVES "If hook is on, skip native invocations" OFF)
 #     to missions from the companion. Not yet validated on a device;
 #     CI and the default stay at 4 until it is.
 set(THORBRIDGE_NATIVES_LEVEL "4" CACHE STRING "Which native groups on_frame invokes")
+# Independent of the level: enable the `cheat` command, which lets the
+# companion write player/wanted/weather/clock state through natives. OFF
+# by default and OFF in CI so the public build keeps shipping bytes that
+# never write game state. Device-test build is level 4 + cheats ON.
+option(THORBRIDGE_CHEATS "Enable the cheat command (writes player/world state)" OFF)
 if(THORBRIDGE_ENABLE_HOOK)
     target_compile_definitions(ThorBridge PRIVATE THORBRIDGE_ENABLE_HOOK=1)
 endif()
 if(THORBRIDGE_HOOK_NO_NATIVES)
     target_compile_definitions(ThorBridge PRIVATE THORBRIDGE_HOOK_NO_NATIVES=1)
+endif()
+if(THORBRIDGE_CHEATS)
+    target_compile_definitions(ThorBridge PRIVATE THORBRIDGE_CHEATS=1)
+    # cheats.cpp / cheat_natives.cpp are only compiled into the DLL
+    # when the flag is on. The CI build (flag off) keeps emitting the
+    # same code bytes as before this change — the only user-visible
+    # difference is the new `cheats:false` field in the hello frame.
+    target_sources(ThorBridge PRIVATE
+        src/cheat_natives.cpp
+        src/cheats.cpp
+    )
 endif()
 target_compile_definitions(ThorBridge PRIVATE
     THORBRIDGE_NATIVES_LEVEL=${THORBRIDGE_NATIVES_LEVEL})
