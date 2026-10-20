@@ -74,6 +74,12 @@ struct Player {
     // 2 = The Ballad of Gay Tony
     uint32_t episode;          // GET_CURRENT_EPISODE
 
+    // --- cheats ---
+    // Toggle cheats currently on, as a bitmask indexed by `cheat_id -
+    // 20` (one-shots do not light a bit). Zero when the plugin was not
+    // built with THORBRIDGE_CHEATS or no toggle has fired yet.
+    uint32_t cheats_mask;
+
     uint64_t ts_ms;            // monotonic tick when published
 };
 

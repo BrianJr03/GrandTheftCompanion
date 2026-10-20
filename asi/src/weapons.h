@@ -71,6 +71,13 @@ void read_owned(uint32_t ped, uint32_t now_ms, snapshot::Player& p);
 // may run. Ownership is only checked when p.owned_valid.
 const char* set_weapon_error(const snapshot::Player& p, uint32_t weapon);
 
+// Mark the owned-weapon cache dirty so the next read_owned() scans
+// instead of serving the cached loadout. For callers that just handed
+// the ped new weapons (cheats::run on "all weapons") and want the
+// companion wheel to catch up on the next frame rather than after
+// kScanMs.
+void force_rescan();
+
 // Forget everything remembered between frames. For tests.
 void reset();
 

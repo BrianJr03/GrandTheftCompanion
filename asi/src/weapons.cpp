@@ -120,6 +120,8 @@ const char* set_weapon_error(const snapshot::Player& p, uint32_t weapon) {
     return "weapon not owned";
 }
 
+void force_rescan() { g_rescan = true; }
+
 void reset() {
     for (int i = 0; i < kSlotCap; ++i) {
         g_weapons[i] = 0;

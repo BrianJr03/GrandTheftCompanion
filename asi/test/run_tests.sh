@@ -13,3 +13,7 @@ mkdir -p build
     test/blips_test.cpp src/blips.cpp \
     -o build/blips_test
 ./build/blips_test
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
+    test/cheats_test.cpp src/cheats.cpp src/weapons.cpp \
+    -o build/cheats_test
+./build/cheats_test

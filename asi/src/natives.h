@@ -62,6 +62,34 @@ enum : uint32_t {
     GET_CHAR_COORDINATES                = 0x2B5C06E6,  // void (Ped, float* x, float* y, float* z)
     GET_MISSION_FLAG                    = 0x2BC64736,  // bool ()
     SET_ROUTE                           = 0x7B8D68E7,  // void (Blip, bool on)
+
+    // Cheat writes: health, wanted, loadout, vehicle, weather, clock,
+    // player toggles. Hashes verified against FusionFix source/natives.ixx.
+    // Only compiled into runtime use when THORBRIDGE_CHEATS is on; the
+    // hashes themselves are declared unconditionally so the natives::
+    // lookup cache keeps a single stable layout across builds.
+    //
+    // Native cache budget: 32 entries used today across stats/weapon/
+    // vehicle/radio/blips + 19 here = 51, inside natives::g_cache[64].
+    SET_CHAR_HEALTH                     = 0x575E2880,  // void (Ped, uint health)
+    ADD_ARMOUR_TO_CHAR                  = 0x1C623537,  // void (Ped, uint amount)
+    ALTER_WANTED_LEVEL                  = 0x60C80EC9,  // void (Player, uint level)
+    APPLY_WANTED_LEVEL_CHANGE_NOW       = 0x705A6ED9,  // void (Player)
+    CLEAR_WANTED_LEVEL                  = 0x205622AC,  // void (Player)
+    GET_MAX_WANTED_LEVEL                = 0x71755E9B,  // void (uint* out)
+    GIVE_WEAPON_TO_CHAR                 = 0x03E90416,  // void (Ped, uint weapon, uint ammo, bool)
+    SET_CHAR_AMMO                       = 0x437D247E,  // void (Ped, uint weapon, uint ammo)
+    FIX_CAR                             = 0x3D562F78,  // void (Vehicle)
+    WASH_VEHICLE_TEXTURES               = 0x69491CFA,  // void (Vehicle, uint intensity)
+    FORCE_WEATHER_NOW                   = 0x63737D31,  // void (uint weather)
+    RELEASE_WEATHER                     = 0x3A115D9D,  // void ()
+    GET_TIME_OF_DAY                     = 0x384B3876,  // void (uint* hour, uint* minute)
+    SET_TIME_OF_DAY                     = 0x52100540,  // void (uint hour, uint minute)
+    SET_PLAYER_INVINCIBLE               = 0x7E9E02E1,  // void (Player, bool)
+    SET_PLAYER_FAST_RELOAD              = 0x29B53DFF,  // void (Player, bool)
+    SET_PLAYER_NEVER_GETS_TIRED         = 0x0DDC19F4,  // void (Player, bool)
+    SET_TIME_SCALE                      = 0x24D467CC,  // void (float)
+    SET_POLICE_IGNORE_PLAYER            = 0x619D51D3,  // void (Player, bool)
 };
 
 // rage::scrNativeCallContext layout, per FusionFix (source/natives.ixx).
