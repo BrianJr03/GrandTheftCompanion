@@ -34,9 +34,14 @@ internal const val FIRST_TOGGLE_ID = 20
 
 internal val CHEATS: List<CheatDef> = listOf(
     // One-shots (ids 1..19).
+    // Order matters: CheatsScreen lays rows out two-wide in catalog
+    // order, so entries that belong visually paired must land at
+    // positions 2k / 2k+1. "wanted clear" rides next to heal (both
+    // reset state), with "wanted +1" / "wanted -1" paired below.
     CheatDef(1,  isToggle = false, games = CHEAT_BOTH, labelRes = R.string.cheat_1_heal),
-    CheatDef(2,  isToggle = false, games = CHEAT_BOTH, labelRes = R.string.cheat_2_wanted_up),
     CheatDef(3,  isToggle = false, games = CHEAT_BOTH, labelRes = R.string.cheat_3_wanted_clear),
+    CheatDef(2,  isToggle = false, games = CHEAT_BOTH, labelRes = R.string.cheat_2_wanted_up),
+    CheatDef(16, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_16_wanted_down),
     CheatDef(4,  isToggle = false, games = CHEAT_BOTH, labelRes = R.string.cheat_4_all_weapons),
     CheatDef(5,  isToggle = false, games = CHEAT_BOTH, labelRes = R.string.cheat_5_max_ammo),
     CheatDef(6,  isToggle = false, games = CHEAT_BOTH, labelRes = R.string.cheat_6_fix_vehicle),
@@ -52,10 +57,9 @@ internal val CHEATS: List<CheatDef> = listOf(
     CheatDef(13, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_13_spawn_sanchez),
     CheatDef(14, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_14_spawn_frogger),
     CheatDef(15, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_15_spawn_bmx),
-    CheatDef(16, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_16_wanted_down),
     // Parachute is cross-game: V uses GIVE_WEAPON_TO_PED with
     // gadget_parachute; IV uses GIVE_WEAPON_TO_CHAR with
-    // WEAPON_PARACHUTE (id 25).
+    // WEAPON_PARACHUTE (id 25). (wanted -1 moved up next to wanted +1.)
     CheatDef(17, isToggle = false, games = CHEAT_BOTH, labelRes = R.string.cheat_17_give_parachute),
     CheatDef(18, isToggle = false, games = CHEAT_V,    labelRes = R.string.cheat_18_skyfall),
     // IV phone-cheat weapon sets (ids 19, 40, 41). V has its own
