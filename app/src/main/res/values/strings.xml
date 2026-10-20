@@ -8,6 +8,42 @@
     <!-- Pager tabs. Lower-case to match the card-title styling. -->
     <string name="tab_hud">hud</string>
     <string name="tab_map">map</string>
+    <string name="tab_cheats">cheats</string>
+
+    <!-- Cheats tab. GTA IV plugin builds without THORBRIDGE_CHEATS
+         show the unsupported line; otherwise the two sections. The
+         button labels are our wording, not Rockstar\'s cheat phrases. -->
+    <string name="cheats_title">cheats</string>
+    <string name="cheats_unsupported">not in this plugin build</string>
+    <string name="cheats_section_actions">actions</string>
+    <string name="cheats_section_toggles">toggles</string>
+    <string name="cheats_error">%1$s</string>
+
+    <!-- Cheat button labels. Numbering follows the id in asi/src/cheats.h
+         and ui/cheats/CheatCatalog.kt. -->
+    <string name="cheat_1_heal">heal + armor</string>
+    <string name="cheat_2_wanted_up">wanted +1</string>
+    <string name="cheat_3_wanted_clear">clear wanted</string>
+    <string name="cheat_4_all_weapons">all weapons</string>
+    <string name="cheat_5_max_ammo">max ammo</string>
+    <string name="cheat_6_fix_vehicle">fix vehicle</string>
+    <string name="cheat_7_next_weather">next weather</string>
+    <string name="cheat_8_next_time">next time of day</string>
+    <string name="cheat_9_fill_special">fill special</string>
+    <string name="cheat_10_spawn_adder">spawn adder</string>
+    <string name="cheat_11_spawn_zentorno">spawn zentorno</string>
+    <string name="cheat_12_spawn_bati">spawn bati</string>
+    <string name="cheat_13_spawn_sanchez">spawn sanchez</string>
+    <string name="cheat_14_spawn_frogger">spawn frogger</string>
+    <string name="cheat_15_spawn_bmx">spawn bmx</string>
+    <string name="cheat_20_invincible">invincible</string>
+    <string name="cheat_21_infinite_clip">infinite clip</string>
+    <string name="cheat_22_fast_reload">fast reload</string>
+    <string name="cheat_23_never_tired">never tired</string>
+    <string name="cheat_24_fast_run">fast run</string>
+    <string name="cheat_25_low_gravity">low gravity</string>
+    <string name="cheat_26_slow_motion">slow motion</string>
+    <string name="cheat_27_police_ignore">police ignore</string>
 
     <!-- One-time hint shown on first connect, explaining the pager. -->
     <string name="swipe_hint_title">Tip</string>

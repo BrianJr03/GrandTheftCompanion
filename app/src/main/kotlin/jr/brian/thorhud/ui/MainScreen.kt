@@ -66,6 +66,8 @@ import jr.brian.thorhud.ui.map.MirrorMapScreen
 import jr.brian.thorhud.ui.map.blipGroups
 import jr.brian.thorhud.ui.map.blipLabel
 import jr.brian.thorhud.ui.map.titleCase
+import jr.brian.thorhud.ui.cheats.CheatsScreen
+import jr.brian.thorhud.ui.cheats.CheatsViewModel
 import jr.brian.thorhud.ui.components.HudPalette
 import jr.brian.thorhud.ui.v.VMainScreen
 import jr.brian.thorhud.ui.v.VRadioPicker
@@ -417,6 +419,20 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     routeName = routeName,
                                     speedMps = liveState?.vehicle?.speedMps ?: 0f,
                                     waypointDistM = if (isGtaV) routedBlip?.distM else null,
+                                )
+                            },
+                            cheats = {
+                                val cheatsViewModel: CheatsViewModel = hiltViewModel()
+                                val cheatResult by cheatsViewModel.result
+                                    .collectAsStateWithLifecycle()
+                                CheatsScreen(
+                                    isGtaV = isGtaV,
+                                    cheatsSupported = hello?.cheatsSupported,
+                                    cheatsMask = liveState?.cheatsMask
+                                        ?: state?.cheatsMask,
+                                    accent = accent,
+                                    lastResult = cheatResult,
+                                    onRunCheat = cheatsViewModel::runCheat,
                                 )
                             },
                         )

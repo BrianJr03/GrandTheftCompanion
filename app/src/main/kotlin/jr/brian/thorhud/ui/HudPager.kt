@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 internal enum class HudPage(@StringRes val labelRes: Int) {
     Hud(R.string.tab_hud),
     Map(R.string.tab_map),
+    Cheats(R.string.tab_cheats),
 }
 
 @Composable
@@ -57,6 +58,7 @@ internal fun HudPager(
     pagerState: PagerState,
     hud: @Composable () -> Unit,
     map: @Composable () -> Unit,
+    cheats: @Composable () -> Unit,
 ) {
     HorizontalPager(
         state = pagerState,
@@ -66,8 +68,9 @@ internal fun HudPager(
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top)),
     ) { page ->
         when (HudPage.entries[page]) {
-            HudPage.Hud -> hud()
-            HudPage.Map -> map()
+            HudPage.Hud    -> hud()
+            HudPage.Map    -> map()
+            HudPage.Cheats -> cheats()
         }
     }
 }

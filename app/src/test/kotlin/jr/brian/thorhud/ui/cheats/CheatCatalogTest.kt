@@ -1,0 +1,79 @@
+package jr.brian.thorhud.ui.cheats
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+/**
+ * Pins the shape of the shared cheats catalog. The ids and the
+ * (one-shot vs toggle) split must match asi/src/cheats.h; this is the
+ * app-side half of that contract.
+ */
+class CheatCatalogTest {
+
+    @Test
+    fun idsSpanTheExpectedRanges() {
+        for (def in CHEATS) {
+            if (def.isToggle) {
+                assertTrue("toggle id ${def.id} must be >= $FIRST_TOGGLE_ID",
+                           def.id >= FIRST_TOGGLE_ID)
+                assertTrue("toggle id ${def.id} must be <= 31",
+                           def.id <= 31)
+            } else {
+                assertTrue("one-shot id ${def.id} must be in 1..19",
+                           def.id in 1..19)
+            }
+        }
+    }
+
+    @Test
+    fun ivHidesVOnlyEntries() {
+        val iv = visibleCheats(isGtaV = false).map { it.id }.toSet()
+        // Shared cheats that must be visible on IV.
+        assertTrue(iv.containsAll(setOf(1, 2, 3, 4, 5, 6, 7, 8, 20, 22, 23, 26, 27)))
+        // V-only must not leak into IV.
+        for (id in listOf(9, 10, 11, 12, 13, 14, 15, 21, 24, 25)) {
+            assertFalse("V-only id $id leaked onto IV", iv.contains(id))
+        }
+    }
+
+    @Test
+    fun vSeesEveryVEntry() {
+        val v = visibleCheats(isGtaV = true).map { it.id }.toSet()
+        for (id in listOf(1, 2, 3, 4, 5, 6, 7, 8, 9,
+                          10, 11, 12, 13, 14, 15,
+                          20, 21, 24, 25, 26, 27)) {
+            assertTrue("V missing id $id", v.contains(id))
+        }
+        // IV-only entries must not appear on V.
+        assertFalse(v.contains(22))
+        assertFalse(v.contains(23))
+    }
+
+    @Test
+    fun isOnReadsTheRightBit() {
+        // Toggle id N lights bit (N - FIRST_TOGGLE_ID).
+        val mask = 0b0000_0101   // bits 0 and 2 → ids 20 and 22
+        assertTrue(isOn(mask, 20))
+        assertFalse(isOn(mask, 21))
+        assertTrue(isOn(mask, 22))
+        assertFalse(isOn(mask, 26))
+        // Null mask reads as all-off.
+        assertFalse(isOn(null, 20))
+        // One-shot ids never light.
+        assertFalse(isOn(0xFFFFFFFF.toInt(), 1))
+        assertFalse(isOn(0xFFFFFFFF.toInt(), 19))
+    }
+
+    @Test
+    fun catalogHasEveryExpectedId() {
+        val ids = CHEATS.map { it.id }.toSet()
+        for (id in listOf(1, 2, 3, 4, 5, 6, 7, 8, 9,
+                          10, 11, 12, 13, 14, 15,
+                          20, 21, 22, 23, 24, 25, 26, 27)) {
+            assertTrue("missing cheat id $id in catalog", ids.contains(id))
+        }
+        assertEquals("one id per cheat", CHEATS.size, ids.size)
+    }
+}
