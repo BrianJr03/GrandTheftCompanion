@@ -41,7 +41,7 @@ namespace {
 
 using ScriptMain = void (*)();
 
-enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips };
+enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips, kCheats };
 Scenario g_scenario = kStory;
 uint64_t g_t0 = 0;
 
@@ -73,6 +73,45 @@ const uint32_t kOwned[] = {
     joaat("weapon_pistol"), joaat("weapon_assaultrifle"),
     joaat("weapon_knife"),  joaat("weapon_grenade"),
 };
+
+// Cheats mock state. Written by the natives the cheats subsystem calls;
+// read by the state frame (via the existing GET_* paths) so the Python
+// scenario can watch each tap take effect across a frame.
+int32_t  g_mock_health   = 175;
+int32_t  g_mock_armor    = 40;
+int32_t  g_mock_wanted   = 3;
+int      g_wanted_apply_calls = 0;
+bool     g_invincible    = false;
+bool     g_infinite_clip = false;
+float    g_run_mult      = 1.0f;
+int32_t  g_gravity       = 0;
+float    g_time_scale    = 1.0f;
+bool     g_police_ignore = false;
+int      g_fix_calls     = 0;
+int      g_dirt_calls    = 0;
+int      g_wash_calls    = 0;
+int      g_given_count   = 0;
+int      g_ammo_set_count = 0;
+int      g_special_fills = 0;
+int      g_cheat_stat_set = 0;
+int32_t  g_veh_engine_hp = 870;    // matches GET_VEHICLE_ENGINE_HEALTH story mock
+int32_t  g_veh_body_hp   = 990;
+float    g_veh_dirt      = 0.5f;
+char     g_weather_cur[32] = {0};
+int      g_weather_calls = 0;
+int      g_weather_cleared = 0;
+int32_t  g_clock_h       = 7;
+int32_t  g_clock_m       = 30;
+int      g_clock_set_calls = 0;
+
+// Spawn-car state machine: REQUEST_MODEL marks the model pending;
+// HAS_MODEL_LOADED returns false for kSpawnLoadFrames polls, then true.
+// This exercises the plugin's wait-across-ticks path end to end.
+uint32_t g_pending_model = 0;
+int      g_model_poll    = 0;
+constexpr int kSpawnLoadFrames = 2;   // ~80 ms wait at 25 Hz
+int32_t  g_spawn_last_veh = 0;
+bool     g_spawn_released = false;    // SET_VEHICLE_AS_NO_LONGER_NEEDED seen
 
 uint64_t elapsed_ms() { return GetTickCount64() - g_t0; }
 
@@ -219,11 +258,14 @@ void dispatch() {
         ret_bool(g_scenario == kOther); break;
     case GET_ENTITY_MODEL: expect_argc(1, "GET_ENTITY_MODEL");
         ret<uint32_t>(arg<int>(0) == kVeh ? joaat("adder") : ped_model()); break;
-    case GET_ENTITY_HEALTH: expect_argc(1, "GET_ENTITY_HEALTH"); ret<int>(175); break;
+    case GET_ENTITY_HEALTH: expect_argc(1, "GET_ENTITY_HEALTH");
+        ret<int>(g_mock_health); break;
     case GET_ENTITY_MAX_HEALTH: expect_argc(1, "GET_ENTITY_MAX_HEALTH"); ret<int>(200); break;
-    case GET_PED_ARMOUR: expect_argc(1, "GET_PED_ARMOUR"); ret<int>(40); break;
+    case GET_PED_ARMOUR: expect_argc(1, "GET_PED_ARMOUR");
+        ret<int>(g_mock_armor); break;
     case GET_PLAYER_MAX_ARMOUR: expect_argc(1, "GET_PLAYER_MAX_ARMOUR"); ret<int>(100); break;
-    case GET_PLAYER_WANTED_LEVEL: expect_argc(1, "GET_PLAYER_WANTED_LEVEL"); ret<int>(3); break;
+    case GET_PLAYER_WANTED_LEVEL: expect_argc(1, "GET_PLAYER_WANTED_LEVEL");
+        ret<int>(g_mock_wanted); break;
     case STAT_GET_INT: { expect_argc(3, "STAT_GET_INT");
         const uint32_t stat = arg<uint32_t>(0);
         int* out = arg<int*>(1);
@@ -284,9 +326,9 @@ void dispatch() {
     case GET_VEHICLE_CLASS: expect_argc(1, "GET_VEHICLE_CLASS"); ret<int>(7); break;
     case GET_ENTITY_SPEED: expect_argc(1, "GET_ENTITY_SPEED"); ret<float>(31.5f); break;
     case GET_VEHICLE_ENGINE_HEALTH: expect_argc(1, "GET_VEHICLE_ENGINE_HEALTH");
-        ret<float>(870.0f); break;
+        ret<float>(static_cast<float>(g_veh_engine_hp)); break;
     case GET_VEHICLE_BODY_HEALTH: expect_argc(1, "GET_VEHICLE_BODY_HEALTH");
-        ret<float>(990.0f); break;
+        ret<float>(static_cast<float>(g_veh_body_hp)); break;
     case GET_ENTITY_HEIGHT_ABOVE_GROUND: expect_argc(1, "GET_ENTITY_HEIGHT_ABOVE_GROUND");
         ret<float>(0.5f); break;
     case DOES_PLAYER_VEH_HAVE_RADIO: expect_argc(0, "DOES_PLAYER_VEH_HAVE_RADIO");
@@ -370,6 +412,110 @@ void dispatch() {
             if (name && std::strcmp(name, kStations[i]) == 0) g_radio = i;
         }
         break; }
+
+    // ---- cheats natives --------------------------------------------
+    case SET_ENTITY_HEALTH: { expect_argc(4, "SET_ENTITY_HEALTH");
+        if (arg<int>(0) != kPed) {
+            std::fprintf(stderr, "[mock] SET_ENTITY_HEALTH on non-ped %d\n", arg<int>(0));
+            ExitProcess(3);
+        }
+        g_mock_health = arg<int>(1); break; }
+    case SET_PED_ARMOUR: expect_argc(2, "SET_PED_ARMOUR");
+        g_mock_armor = arg<int>(1); break;
+    case SET_PLAYER_WANTED_LEVEL: expect_argc(3, "SET_PLAYER_WANTED_LEVEL");
+        g_mock_wanted = arg<int>(1); break;
+    case SET_PLAYER_WANTED_LEVEL_NOW: expect_argc(2, "SET_PLAYER_WANTED_LEVEL_NOW");
+        ++g_wanted_apply_calls; break;
+    case CLEAR_PLAYER_WANTED_LEVEL: expect_argc(1, "CLEAR_PLAYER_WANTED_LEVEL");
+        g_mock_wanted = 0; break;
+    case GIVE_WEAPON_TO_PED: { expect_argc(5, "GIVE_WEAPON_TO_PED");
+        if (arg<int>(0) != kPed) {
+            std::fprintf(stderr, "[mock] GIVE_WEAPON_TO_PED on non-ped %d\n", arg<int>(0));
+            ExitProcess(3);
+        }
+        ++g_given_count; break; }
+    case SET_PED_AMMO: expect_argc(4, "SET_PED_AMMO");
+        ++g_ammo_set_count; break;
+    case GET_MAX_AMMO: { expect_argc(3, "GET_MAX_AMMO");
+        int* out = arg<int*>(2);
+        if (out) *out = 999;
+        ret_bool(true); break; }
+    case SET_PED_INFINITE_AMMO_CLIP: expect_argc(2, "SET_PED_INFINITE_AMMO_CLIP");
+        g_infinite_clip = arg<int>(1) != 0; break;
+    case SET_VEHICLE_FIXED: expect_argc(1, "SET_VEHICLE_FIXED");
+        ++g_fix_calls;
+        g_veh_engine_hp = 1000;
+        g_veh_body_hp = 1000; break;
+    case SET_VEHICLE_ENGINE_HEALTH: expect_argc(2, "SET_VEHICLE_ENGINE_HEALTH");
+        g_veh_engine_hp = static_cast<int32_t>(arg<float>(1)); break;
+    case SET_VEHICLE_BODY_HEALTH: expect_argc(2, "SET_VEHICLE_BODY_HEALTH");
+        g_veh_body_hp = static_cast<int32_t>(arg<float>(1)); break;
+    case SET_VEHICLE_DIRT_LEVEL: expect_argc(2, "SET_VEHICLE_DIRT_LEVEL");
+        g_veh_dirt = arg<float>(1);
+        ++g_dirt_calls; break;
+    case SET_WEATHER_TYPE_NOW_PERSIST: { expect_argc(1, "SET_WEATHER_TYPE_NOW_PERSIST");
+        const char* name = arg<const char*>(0);
+        if (name) {
+            std::snprintf(g_weather_cur, sizeof(g_weather_cur), "%s", name);
+        }
+        ++g_weather_calls; break; }
+    case CLEAR_WEATHER_TYPE_PERSIST: expect_argc(0, "CLEAR_WEATHER_TYPE_PERSIST");
+        g_weather_cur[0] = '\0';
+        ++g_weather_cleared; break;
+    case GET_CLOCK_HOURS: expect_argc(0, "GET_CLOCK_HOURS");
+        ret<int>(g_clock_h); break;
+    case SET_CLOCK_TIME: expect_argc(3, "SET_CLOCK_TIME");
+        g_clock_h = arg<int>(0);
+        g_clock_m = arg<int>(1);
+        ++g_clock_set_calls; break;
+    case SPECIAL_ABILITY_FILL_METER: expect_argc(3, "SPECIAL_ABILITY_FILL_METER");
+        ++g_special_fills; break;
+    case IS_MODEL_IN_CDIMAGE: expect_argc(1, "IS_MODEL_IN_CDIMAGE");
+        ret_bool(arg<uint32_t>(0) == joaat("adder") ||
+                 arg<uint32_t>(0) == joaat("zentorno") ||
+                 arg<uint32_t>(0) == joaat("bati") ||
+                 arg<uint32_t>(0) == joaat("sanchez") ||
+                 arg<uint32_t>(0) == joaat("frogger") ||
+                 arg<uint32_t>(0) == joaat("bmx")); break;
+    case IS_MODEL_A_VEHICLE: expect_argc(1, "IS_MODEL_A_VEHICLE");
+        // Every CDIMAGE hit here is a vehicle; model-is-a-vehicle wins
+        // on all curated spawn models.
+        ret_bool(true); break;
+    case REQUEST_MODEL: expect_argc(1, "REQUEST_MODEL");
+        g_pending_model = arg<uint32_t>(0);
+        g_model_poll = 0; break;
+    case HAS_MODEL_LOADED: expect_argc(1, "HAS_MODEL_LOADED");
+        if (arg<uint32_t>(0) != g_pending_model) {
+            ret_bool(false);
+        } else {
+            ret_bool(++g_model_poll > kSpawnLoadFrames);
+        }
+        break;
+    case SET_MODEL_AS_NO_LONGER_NEEDED: expect_argc(1, "SET_MODEL_AS_NO_LONGER_NEEDED");
+        g_pending_model = 0; break;
+    case GET_ENTITY_HEADING: expect_argc(1, "GET_ENTITY_HEADING");
+        ret<float>(0.0f); break;
+    case CREATE_VEHICLE: { expect_argc(8, "CREATE_VEHICLE");
+        g_spawn_last_veh = kVeh;   // reuse the car handle from story mock
+        ret<int>(g_spawn_last_veh); break; }
+    case SET_VEHICLE_ON_GROUND_PROPERLY: expect_argc(2, "SET_VEHICLE_ON_GROUND_PROPERLY");
+        ret_bool(true); break;
+    case SET_PED_INTO_VEHICLE: expect_argc(3, "SET_PED_INTO_VEHICLE"); break;
+    case SET_VEHICLE_AS_NO_LONGER_NEEDED: expect_argc(1, "SET_VEHICLE_AS_NO_LONGER_NEEDED");
+        g_spawn_released = true; break;
+    case SET_PLAYER_INVINCIBLE_BUT_HAS_REACTIONS: expect_argc(2, "SET_PLAYER_INVINCIBLE_BUT_HAS_REACTIONS");
+        g_invincible = arg<int>(1) != 0; break;
+    case SET_RUN_SPRINT_MULTIPLIER_FOR_PLAYER: expect_argc(2, "SET_RUN_SPRINT_MULTIPLIER_FOR_PLAYER");
+        g_run_mult = arg<float>(1); break;
+    case SET_GRAVITY_LEVEL: expect_argc(1, "SET_GRAVITY_LEVEL");
+        g_gravity = arg<int>(0); break;
+    case SET_TIME_SCALE: expect_argc(1, "SET_TIME_SCALE");
+        g_time_scale = arg<float>(0); break;
+    case SET_POLICE_IGNORE_PLAYER: expect_argc(2, "SET_POLICE_IGNORE_PLAYER");
+        g_police_ignore = arg<int>(1) != 0; break;
+    case STAT_SET_CHEAT_IS_ACTIVE: expect_argc(0, "STAT_SET_CHEAT_IS_ACTIVE");
+        ++g_cheat_stat_set; break;
+
     default:
         // The real Script Hook V treats an unknown native as fatal; so
         // does the mock, so a typo'd hash fails the test loudly.
@@ -404,6 +550,7 @@ void mock_scriptRegister(HMODULE /*module*/, ScriptMain fn) {
         if (!std::strcmp(buf, "stall"))   g_scenario = kStall;
         if (!std::strcmp(buf, "wheel"))   g_scenario = kWheel;
         if (!std::strcmp(buf, "blips"))   g_scenario = kBlips;
+        if (!std::strcmp(buf, "cheats"))  g_scenario = kCheats;
     }
     std::fprintf(stderr, "[mock] scriptRegister, scenario=%d\n", g_scenario);
     std::fflush(stderr);

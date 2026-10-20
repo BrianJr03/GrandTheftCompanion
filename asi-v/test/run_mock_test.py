@@ -410,6 +410,118 @@ def test_blips():
         print("---- ThorBridgeV.log ----\n" + log[-3000:])
 
 
+def test_cheats():
+    """Michael on foot, in-game throughout. Fire each cheat path and
+    confirm the plugin: posts the right ack, flips the right mask bit
+    on toggles, refuses IV-only / out-of-state ids with the right
+    reason, defers the spawn-car ack across the model-load wait."""
+    print("scenario: cheats")
+    s = Session("cheats", 15)
+    check(s.sock is not None, "bridge accepts a connection")
+    if not s.sock:
+        print(s.close())
+        return
+    states = []
+    acks = {}
+    sent = False
+    hello = None
+    for f in s.frames(13):
+        if f["type"] == "hello":
+            hello = f
+        if f["type"] == "ack":
+            acks[f["id"]] = f
+        if f["type"] != "state":
+            continue
+        states.append(f)
+        if not f.get("in_game"):
+            continue
+        if not sent:
+            sent = True
+            # One-shots.
+            s.send_cmd(1, "cheat", "cheat", 3)   # wanted clear
+            s.send_cmd(2, "cheat", "cheat", 1)   # heal + armor
+            s.send_cmd(3, "cheat", "cheat", 2)   # wanted +1
+            s.send_cmd(4, "cheat", "cheat", 7)   # next weather (EXTRASUNNY)
+            s.send_cmd(5, "cheat", "cheat", 8)   # next time of day
+            s.send_cmd(6, "cheat", "cheat", 6)   # fix vehicle (on foot -> refused)
+            s.send_cmd(7, "cheat", "cheat", 22)  # IV-only toggle: refused
+            s.send_cmd(8, "cheat", "cheat", 99)  # unknown
+            # Toggles: on, off, on. The mask bits land on later frames.
+            s.send_cmd(10, "cheat", "cheat", 20)  # invincible on
+            s.send_cmd(11, "cheat", "cheat", 20)  # invincible off
+            s.send_cmd(12, "cheat", "cheat", 26)  # slow motion on
+            # Spawn-car: ack is deferred until the mock reports loaded.
+            s.send_cmd(20, "cheat", "cheat", 10)  # spawn adder
+            s.send_cmd(21, "cheat", "cheat", 10)  # second request: refused
+    rc, err, log = s.close()
+
+    check(hello is not None and hello.get("cheats") is True,
+          "hello advertises cheats support")
+
+    # The on-foot cheat scenario never enters a vehicle; sanity-check it.
+    check(all(f.get("in_vehicle") is False for f in states if f.get("in_game")),
+          "cheats scenario stays on foot")
+
+    # One-shots.
+    check(acks.get(1, {}).get("ok") is True, "wanted clear -> ok")
+    check(acks.get(2, {}).get("ok") is True, "heal -> ok")
+    check(acks.get(3, {}).get("ok") is True, "wanted +1 -> ok")
+    check(acks.get(4, {}).get("ok") is True, "next weather -> ok")
+    check(acks.get(5, {}).get("ok") is True, "next time of day -> ok")
+    check(acks.get(6, {}).get("ok") is False
+          and acks.get(6, {}).get("err") == "not in a vehicle",
+          "fix vehicle on foot -> 'not in a vehicle'")
+    check(acks.get(7, {}).get("ok") is False
+          and acks.get(7, {}).get("err") == "cheat not in this build",
+          "IV-only toggle (fast reload) -> 'cheat not in this build'")
+    check(acks.get(8, {}).get("ok") is False
+          and acks.get(8, {}).get("err") == "unknown cheat",
+          "id out of range -> 'unknown cheat'")
+
+    # The mock reports health through GET_ENTITY_HEALTH after a heal
+    # writes it; wanted follows the same pattern.
+    post_heal = [f for f in states if f.get("in_game")
+                 and acks.get(2, {}).get("ok") is True]
+    check(any(f.get("health") == 200 for f in post_heal),
+          "health reaches 200 in a later state frame after heal")
+    # Wanted went 3 -> clear (0) -> +1 (1). Last live frame has 1.
+    live = [f for f in states if f.get("in_game")]
+    check(bool(live) and live[-1].get("wanted") == 1,
+          "wanted ends at 1 (clear then +1)")
+
+    # Toggle mask tracks the two taps on 20 then the final tap on 26.
+    def bit(f, id): return (f.get("cheats_mask", 0) >> (id - 20)) & 1
+    after_tog_on  = [f for f in live if acks.get(10, {}).get("ok") is True]
+    after_tog_off = [f for f in live if acks.get(11, {}).get("ok") is True]
+    after_slow    = [f for f in live if acks.get(12, {}).get("ok") is True]
+    check(any(bit(f, 20) == 1 for f in after_tog_on),
+          "invincible on -> mask bit 0 set")
+    check(any(bit(f, 20) == 0 for f in after_tog_off),
+          "invincible off -> mask bit 0 cleared")
+    check(any(bit(f, 26) == 1 for f in after_slow),
+          "slow motion on -> mask bit 6 set")
+    # Final state: only bit 6 set.
+    check(live[-1].get("cheats_mask") == (1 << 6),
+          "final mask = 0x40 (slow motion only) got 0x%X"
+          % live[-1].get("cheats_mask", 0))
+
+    # Spawn car: first ack ok (eventually), second refused as in progress.
+    check(acks.get(20, {}).get("ok") is True,
+          "spawn car -> ok (ack after model load)")
+    check(acks.get(21, {}).get("ok") is False
+          and acks.get(21, {}).get("err") == "spawn in progress",
+          "second spawn while one is pending -> refused")
+
+    check("[cheats] session marked cheat-active" in log,
+          "STAT_SET_CHEAT_IS_ACTIVE fired once per session")
+    check("UNKNOWN NATIVE" not in err and "ARITY MISMATCH" not in err,
+          "mock saw no unknown native / arity mismatch")
+    check(rc == 0, "host exited cleanly (rc=%s)" % rc)
+    if failures:
+        print("---- stderr ----\n" + err[-2000:])
+        print("---- ThorBridgeV.log ----\n" + log[-3000:])
+
+
 def simple(scenario, seconds, predicate, what, with_shv=True):
     print("scenario: %s%s" % (scenario, "" if with_shv else " (no Script Hook V)"))
     s = Session(scenario, seconds + 3, with_shv)
@@ -436,6 +548,7 @@ def main():
     test_story()
     test_wheel()
     test_blips()
+    test_cheats()
 
     def states(fr):
         return [f for f in fr if f["type"] == "state"]
