@@ -62,4 +62,29 @@ void set_player_never_gets_tired(uint32_t player, bool on);
 void set_time_scale(float scale);
 void set_police_ignore_player(uint32_t player, bool on);
 
+// --- vehicle spawning --------------------------------------------
+// Same across-tick state-machine pattern as the GTA V plugin:
+// get_hash_key(name) once, then request + poll loaded, then create
+// + warp + mark no-longer-needed. Everything runs on the game
+// thread from probes.cpp per-frame hook via cheats::tick.
+uint32_t get_hash_key(const char* name);
+void request_model(uint32_t model_hash);
+bool has_model_loaded(uint32_t model_hash);
+void mark_model_as_no_longer_needed(uint32_t model_hash);
+// CREATE_CAR writes a Vehicle handle through *out_vehicle.
+void create_car(uint32_t model_hash, float x, float y, float z,
+                uint32_t* out_vehicle);
+void warp_char_into_car(uint32_t ped, uint32_t vehicle);
+// Takes a pointer to a Vehicle handle — same calling convention
+// as the V plugin's SET_VEHICLE_AS_NO_LONGER_NEEDED wrapper.
+void mark_car_as_no_longer_needed(uint32_t* vehicle_ptr);
+float get_char_heading(uint32_t ped);
+// Only used to re-orient the car after SET_PED_INTO_VEHICLE if the
+// game spawned it rotated.
+void set_char_heading(uint32_t ped, float heading);
+
+// NOTE: get_char_coordinates is already declared in blip_natives.h
+// (used at natives level 5 for the blip census). cheats::advance_spawn
+// uses that same wrapper rather than redefining it.
+
 }  // namespace game

@@ -23,6 +23,7 @@
 
 #include "../src/cheat_natives.h"
 #include "../src/cheats.h"
+#include "../src/commands.h"
 #include "../src/weapons.h"
 
 namespace {
@@ -206,7 +207,34 @@ void get_char_weapon_in_slot(uint32_t, uint32_t, uint32_t*, uint32_t*,
 uint32_t get_ammo_in_char_weapon(uint32_t, uint32_t) { return 0; }
 bool is_button_pressed(uint32_t, uint32_t) { return false; }
 
+// Spawn-car natives — only exercised via cheats::begin_spawn /
+// cheats::tick, neither of which the host test currently calls.
+// Provided as linker-visible no-ops so the subject file links.
+uint32_t get_hash_key(const char*) { return 0; }
+void request_model(uint32_t) {}
+bool has_model_loaded(uint32_t) { return false; }
+void mark_model_as_no_longer_needed(uint32_t) {}
+void create_car(uint32_t, float, float, float, uint32_t*) {}
+void warp_char_into_car(uint32_t, uint32_t) {}
+void mark_car_as_no_longer_needed(uint32_t*) {}
+float get_char_heading(uint32_t) { return 0.0f; }
+void set_char_heading(uint32_t, float) {}
+void get_char_coordinates(uint32_t, float* x, float* y, float* z) {
+    if (x) *x = 0.0f;
+    if (y) *y = 0.0f;
+    if (z) *z = 0.0f;
+}
+
 }  // namespace game
+
+// commands::AckQueue::push is called by cheats::tick when a deferred
+// spawn ack resolves. The host test never gets there, but the symbol
+// must link.
+namespace commands {
+AckQueue::AckQueue() : cs_(nullptr), head_(0), tail_(0) {}
+void AckQueue::push(const Ack&) {}
+bool AckQueue::pop(Ack*) { return false; }
+}  // namespace commands
 
 void thor_log(const char* /*fmt*/, ...) {}
 
@@ -414,7 +442,7 @@ void test_reset_world_keeps_mask() {
 
     // tick() with a ped change re-applies, so the next frame re-sets
     // the time scale from the mask.
-    cheats::tick(kPlayer, 0x3003);
+    cheats::tick(kPlayer, 0x3003, 0);
     check(g.time_scale == 0.5f, "post-reset tick: slow motion re-applied");
     check(g.invincible, "post-reset tick: invincible re-applied");
 }
@@ -431,11 +459,11 @@ void test_tick_reapplies_on_ped_change() {
     g.fast_reload = false;
 
     // tick with the same ped: no-op.
-    cheats::tick(kPlayer, kPed);
+    cheats::tick(kPlayer, kPed, 0);
     check(!g.invincible, "tick: same ped, no re-apply");
 
     // Change the ped: every active toggle re-applies.
-    cheats::tick(kPlayer, 0x4004);
+    cheats::tick(kPlayer, 0x4004, 0);
     check(g.invincible && g.fast_reload,
           "tick: new ped, every active toggle re-applied");
 }
@@ -479,11 +507,11 @@ void test_unknown_id() {
     std::printf("unknown id\n");
     fake_reset();
     snapshot::Player p = on_foot();
-    // 60 lives strictly between the one-shot bands and above
-    // kMaxHighOneShot; must be refused as unknown.
-    const char* err = cheats::run(60, kPlayer, kPed, p);
+    // 80 lives strictly above kMaxHighOneShot (79); must be refused
+    // as unknown.
+    const char* err = cheats::run(80, kPlayer, kPed, p);
     check(err != nullptr && std::strcmp(err, cheats::kErrUnknown) == 0,
-          "id 60 (above high one-shot range): unknown");
+          "id 80 (above high one-shot range): unknown");
     err = cheats::run(0, kPlayer, kPed, p);
     check(err != nullptr && std::strcmp(err, cheats::kErrUnknown) == 0,
           "id 0: unknown");

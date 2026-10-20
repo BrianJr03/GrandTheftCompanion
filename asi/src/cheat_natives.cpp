@@ -149,4 +149,76 @@ void set_police_ignore_player(uint32_t player, bool on) {
     natives::invoke(natives::SET_POLICE_IGNORE_PLAYER, ctx);
 }
 
+// --- vehicle spawning --------------------------------------------
+
+uint32_t get_hash_key(const char* name) {
+    natives::Context ctx;
+    ctx.push(const_cast<char*>(name));
+    if (!natives::invoke(natives::GET_HASH_KEY, ctx)) return 0;
+    return ctx.get_u32();
+}
+
+void request_model(uint32_t model_hash) {
+    natives::Context ctx;
+    ctx.push(model_hash);
+    natives::invoke(natives::REQUEST_MODEL, ctx);
+}
+
+bool has_model_loaded(uint32_t model_hash) {
+    natives::Context ctx;
+    ctx.push(model_hash);
+    if (!natives::invoke(natives::HAS_MODEL_LOADED, ctx)) return false;
+    return ctx.get_bool();
+}
+
+void mark_model_as_no_longer_needed(uint32_t model_hash) {
+    natives::Context ctx;
+    ctx.push(model_hash);
+    natives::invoke(natives::MARK_MODEL_AS_NO_LONGER_NEEDED, ctx);
+}
+
+void create_car(uint32_t model_hash, float x, float y, float z,
+                uint32_t* out_vehicle) {
+    natives::Context ctx;
+    ctx.push(model_hash);
+    ctx.push_float(x);
+    ctx.push_float(y);
+    ctx.push_float(z);
+    ctx.push(out_vehicle);
+    ctx.push(static_cast<uint32_t>(1));  // unknownTrue
+    natives::invoke(natives::CREATE_CAR, ctx);
+}
+
+void warp_char_into_car(uint32_t ped, uint32_t vehicle) {
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(vehicle);
+    natives::invoke(natives::WARP_CHAR_INTO_CAR, ctx);
+}
+
+void mark_car_as_no_longer_needed(uint32_t* vehicle_ptr) {
+    natives::Context ctx;
+    ctx.push(vehicle_ptr);
+    natives::invoke(natives::MARK_CAR_AS_NO_LONGER_NEEDED, ctx);
+}
+
+float get_char_heading(uint32_t ped) {
+    float out = 0.0f;
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(&out);
+    natives::invoke(natives::GET_CHAR_HEADING, ctx);
+    return out;
+}
+
+void set_char_heading(uint32_t ped, float heading) {
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push_float(heading);
+    natives::invoke(natives::SET_CHAR_HEADING, ctx);
+}
+
+// get_char_coordinates: see blip_natives.cpp — the same wrapper is
+// used both for the level-5 blip census and for cheats::advance_spawn.
+
 }  // namespace game

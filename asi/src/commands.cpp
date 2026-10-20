@@ -213,6 +213,23 @@ void drain(uint32_t ped_handle, const snapshot::Player& p) {
                 post_err_ack(c.id, c.ack_queue, "no player");
                 continue;
             }
+            // Spawn-car ids kick off an async state machine that posts
+            // its own ack from cheats::tick when the car is actually
+            // under the player; every other cheat is synchronous.
+            if (c.arg0 >= cheats::kSpawnIvFirst &&
+                c.arg0 <= cheats::kSpawnIvLast) {
+                const char* err = cheats::begin_spawn(
+                    c.arg0, player, ped_handle, c.ack_queue, c.id,
+                    GetTickCount());
+                if (err) {
+                    thor_log("[cheat] id=%u (spawn) -> %s", c.arg0, err);
+                    post_err_ack(c.id, c.ack_queue, err);
+                } else {
+                    thor_log("[cheat] id=%u (spawn) armed", c.arg0);
+                    // ack is deferred to cheats::tick
+                }
+                continue;
+            }
             const char* err = cheats::run(c.arg0, player, ped_handle, p);
             if (err) {
                 thor_log("[cheat] id=%u -> %s", c.arg0, err);

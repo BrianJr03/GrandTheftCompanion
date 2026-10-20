@@ -362,7 +362,8 @@ void on_frame() {
     // when the mask is empty, which it is until the player taps a
     // toggle. Snapshot gets the current mask so the companion lights
     // the right buttons regardless of whether a cheat ran this frame.
-    cheats::tick(player_id, ped_handle);
+    cheats::tick(player_id, ped_handle,
+                 static_cast<uint32_t>(p.ts_ms));
     p.cheats_mask = cheats::mask();
     g_cheats_in_game_last = true;
 #endif

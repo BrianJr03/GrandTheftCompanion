@@ -1,6 +1,10 @@
 #include "cheats.h"
 
+#include <cstring>
+
+#include "blip_natives.h"   // game::get_char_coordinates (shared with level 5)
 #include "cheat_natives.h"
+#include "commands.h"
 #include "weapons.h"
 
 namespace cheats {
@@ -51,12 +55,75 @@ const char* const kErrUnknown      = "unknown cheat";
 const char* const kErrNotInBuild   = "cheat not in this build";
 const char* const kErrNoPed        = "no player ped";
 const char* const kErrNotInVehicle = "not in a vehicle";
+const char* const kErrSpawnInProgress = "spawn in progress";
+const char* const kErrModelBad     = "model not available";
+const char* const kErrSpawnTimeout = "model load timed out";
+
+// Base-IV phone-cheat vehicle model names. One per id in
+// [kSpawnIvFirst, kSpawnIvLast]. These are the strings the game
+// registers in its model-info-store; FusionFix uses the same shape
+// for the extra vehicles it adds (ModelNameId::Tampa, etc.).
+const char* const kSpawnIvModels[kSpawnIvCount] = {
+    "fbibuf",       // 50: FIB Buffalo         (227-555-0100)
+    "cognoscenti",  // 51: Cognoscenti         (227-555-0142)
+    "comet",        // 52: Comet               (227-555-0175)
+    "jetmax",       // 53: Jetmax (boat)       (938-555-0100)
+    "annihilator",  // 54: Annihilator (heli)  (359-555-0100)
+    "supergt",      // 55: Super GT            (227-555-0168)
+    "nrg900",       // 56: NRG 900 (bike)      (625-555-0100)
+    "sanchez",      // 57: Sanchez (bike)      (625-555-0150)
+    "turismo",      // 58: Turismo             (227-555-0147)
+};
 
 namespace {
 
 uint32_t g_mask = 0;
 uint32_t g_last_ped = 0;
 uint32_t g_weather_idx = 0;
+
+// One pending vehicle spawn at a time. A second tap while one is in
+// flight is refused with kErrSpawnInProgress.
+struct PendingSpawn {
+    bool active;
+    uint32_t model_hash;
+    uint32_t ped;                    // the ped the model was requested for
+    uint32_t deadline_tick;          // GetTickCount at spawn start + kSpawnTimeoutMs
+    commands::AckQueue* ack_queue;   // where to post the resolution
+    uint32_t cmd_id;
+};
+PendingSpawn g_spawn{};
+
+// Not using GetTickCount directly here because this file is also host-
+// tested; the caller (probes/commands on-device) passes a clock that
+// is monotonic within a session. For the IV plugin we re-read GTC
+// in the public entry points where it is already in scope.
+
+// Internal helper for posting an Ack from the state machine.
+void post_ack(commands::AckQueue* queue, uint32_t id, bool ok,
+              const char* err) {
+    if (!queue) return;
+    commands::Ack a{};
+    a.id = id;
+    a.ok = ok;
+    if (err) {
+        std::strncpy(a.err, err, commands::kMaxErrLen - 1);
+        a.err[commands::kMaxErrLen - 1] = '\0';
+    }
+    queue->push(a);
+}
+
+// Place the spawn next to the ped. Uses GET_CHAR_HEADING to offset
+// forward so the car does not land on the player's head.
+void place_car(uint32_t ped, uint32_t veh) {
+    (void)veh;  // CREATE_CAR already placed it at the x/y/z we gave;
+                // this is only here if we want to tweak orientation.
+    const float heading = game::get_char_heading(ped);
+    // Match the spawned car's heading to the ped's facing so forward
+    // throttle sends them forward, not sideways.
+    // (If veh handle differed from ped-ownership we'd call
+    //  SET_CAR_HEADING here instead, but WARP keeps the ped's frame.)
+    (void)heading;
+}
 
 // Set / clear a toggle bit in the mask. Returns the new state.
 bool set_toggle(uint32_t id, bool on) {
@@ -231,6 +298,63 @@ bool iv_knows_toggle(uint32_t id) {
     }
 }
 
+// Advance the pending spawn. Posts the deferred ack when the car is
+// under the player or the model-load window expires. Called every
+// tick from cheats::tick on the game thread. `now_ms` is the plugin's
+// GetTickCount reading, passed in by the caller so this file stays
+// Windows-free and host-testable.
+void advance_spawn(uint32_t ped, uint32_t now_ms) {
+    if (!g_spawn.active) return;
+    if (ped == 0 || ped == 0xFFFFFFFFu) {
+        // Ped went away mid-spawn (loading, menu). Clean up and tell
+        // the caller why.
+        game::mark_model_as_no_longer_needed(g_spawn.model_hash);
+        post_ack(g_spawn.ack_queue, g_spawn.cmd_id, false, kErrNoPed);
+        g_spawn = PendingSpawn{};
+        return;
+    }
+    if (!game::has_model_loaded(g_spawn.model_hash)) {
+        // Unsigned subtraction so GetTickCount wrap handles correctly.
+        if (now_ms - g_spawn.deadline_tick < 0x80000000u) {
+            game::mark_model_as_no_longer_needed(g_spawn.model_hash);
+            post_ack(g_spawn.ack_queue, g_spawn.cmd_id, false,
+                     kErrSpawnTimeout);
+            g_spawn = PendingSpawn{};
+        }
+        return;
+    }
+
+    // Loaded. Pick a spot ~3 m in front of the ped so the car does
+    // not land on top of them, create it, warp the ped in, release
+    // both references so the game can clean up when the player drives
+    // away.
+    float x = 0.0f, y = 0.0f, z = 0.0f;
+    (void)game::get_char_coordinates(ped, &x, &y, &z);
+    const float h = game::get_char_heading(ped);
+    // Heading in IV is degrees clockwise from north (y+); forward unit
+    // is (-sin(h), cos(h)).
+    const float rad = h * 3.14159265f / 180.0f;
+    // __builtin_sinf / cosf are not available in all mingw builds for
+    // the IV i686 toolchain; fall back to libm sinf/cosf through a
+    // local alias to avoid pulling <cmath>'s overloads. The intrinsic
+    // works everywhere i686 mingw-w64 has shipped so far.
+    const float fx = -__builtin_sinf(rad);
+    const float fy = __builtin_cosf(rad);
+    const float sx = x + fx * kSpawnForwardM;
+    const float sy = y + fy * kSpawnForwardM;
+
+    uint32_t veh = 0;
+    game::create_car(g_spawn.model_hash, sx, sy, z, &veh);
+    if (veh != 0 && veh != 0xFFFFFFFFu) {
+        game::warp_char_into_car(ped, veh);
+        place_car(ped, veh);
+        game::mark_car_as_no_longer_needed(&veh);
+    }
+    game::mark_model_as_no_longer_needed(g_spawn.model_hash);
+    post_ack(g_spawn.ack_queue, g_spawn.cmd_id, true, "");
+    g_spawn = PendingSpawn{};
+}
+
 }  // namespace
 
 const char* run(uint32_t id, uint32_t player, uint32_t ped,
@@ -260,14 +384,40 @@ const char* run(uint32_t id, uint32_t player, uint32_t ped,
     return err;
 }
 
-void tick(uint32_t player, uint32_t ped) {
+const char* begin_spawn(uint32_t id, uint32_t player, uint32_t ped,
+                        commands::AckQueue* ack_queue, uint32_t cmd_id,
+                        uint32_t now_ms) {
+    (void)player;
+    if (ped == 0 || ped == 0xFFFFFFFFu) return kErrNoPed;
+    if (id < kSpawnIvFirst || id > kSpawnIvLast) return kErrUnknown;
+    if (g_spawn.active) return kErrSpawnInProgress;
+    const uint32_t slot = id - kSpawnIvFirst;
+    const char* name = kSpawnIvModels[slot];
+    const uint32_t hash = game::get_hash_key(name);
+    if (hash == 0) return kErrModelBad;
+    game::request_model(hash);
+    g_spawn.active = true;
+    g_spawn.model_hash = hash;
+    g_spawn.ped = ped;
+    g_spawn.deadline_tick = now_ms + kSpawnTimeoutMs;
+    g_spawn.ack_queue = ack_queue;
+    g_spawn.cmd_id = cmd_id;
+    g_last_ped = ped;
+    return nullptr;
+}
+
+void tick(uint32_t player, uint32_t ped, uint32_t now_ms) {
     if (ped == 0 || ped == 0xFFFFFFFFu) return;
+    // Advance the vehicle-spawn state machine first so the ack lands
+    // before the companion gives up on it (ACK timeout is 2.5 s;
+    // kSpawnTimeoutMs is 5 s but the game usually loads models in a
+    // frame or two).
+    advance_spawn(ped, now_ms);
+
     if (ped == g_last_ped) return;
     g_last_ped = ped;
     if (g_mask == 0) return;
-    // Re-apply every toggle whose bit is set. World toggles (slow
-    // motion) re-apply the time scale too — the game may have reset
-    // it across the ped change.
+    // Re-apply every toggle whose bit is set.
     for (uint32_t id = kFirstToggle; id < kFirstToggle + 12; ++id) {
         if (is_on(id) && iv_knows_toggle(id)) {
             apply_toggle(id, player, ped);

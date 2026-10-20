@@ -90,6 +90,22 @@ enum : uint32_t {
     SET_PLAYER_NEVER_GETS_TIRED         = 0x0DDC19F4,  // void (Player, bool)
     SET_TIME_SCALE                      = 0x24D467CC,  // void (float)
     SET_POLICE_IGNORE_PLAYER            = 0x619D51D3,  // void (Player, bool)
+
+    // Vehicle spawning. Hashes verified against FusionFix
+    // source/natives.ixx at HEAD (eNativeHashes enum). Signatures
+    // from the inline wrappers in the same file. CREATE_CAR takes
+    // the model hash as its first arg and writes the vehicle handle
+    // through an out-pointer; MARK_CAR_AS_NO_LONGER_NEEDED takes a
+    // Vehicle* (not a value), matching the V plugin's convention.
+    GET_HASH_KEY                        = 0x68FF7165,  // uint (const char* name)
+    REQUEST_MODEL                       = 0x502B5185,  // void (uint model)
+    HAS_MODEL_LOADED                    = 0x4E61480A,  // bool (uint model)
+    MARK_MODEL_AS_NO_LONGER_NEEDED      = 0x00FA0E33,  // void (uint model)
+    CREATE_CAR                          = 0x2F1D6843,  // void (uint hash, float x, float y, float z, Vehicle* out, bool unknownTrue)
+    WARP_CHAR_INTO_CAR                  = 0x73D3504A,  // void (Ped, Vehicle)
+    MARK_CAR_AS_NO_LONGER_NEEDED        = 0x20C76FD1,  // void (Vehicle* vehPtr)
+    GET_CHAR_HEADING                    = 0x057A3AC7,  // void (Ped, float* out)
+    SET_CHAR_HEADING                    = 0x46B5523B,  // void (Ped, float)
 };
 
 // rage::scrNativeCallContext layout, per FusionFix (source/natives.ixx).
