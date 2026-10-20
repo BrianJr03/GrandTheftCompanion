@@ -43,6 +43,15 @@ class CommandFrameTest {
     }
 
     @Test
+    fun cheatCarriesTheId() {
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":5,\"name\":\"cheat\"," +
+                "\"args\":{\"cheat\":7}}\n",
+            commandFrame(5, "cheat", 7L),
+        )
+    }
+
+    @Test
     fun unknownCommandUsesGenericArgumentName() {
         val line = commandFrame(9, "future_cmd", 1L)
         assertNotNull(line)

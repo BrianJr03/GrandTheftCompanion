@@ -98,6 +98,11 @@ class GameStateRepository @Inject constructor(
     /** Ask the plugin to write its blip census to its log file. */
     suspend fun blipCensus(): Int? = client.send("blip_census", 0L)
 
+    /** Run a cheat by id (see [jr.brian.thorhud.ui.cheats.CheatCatalog]).
+     *  One-shots fire once; toggles flip and the next state frame's
+     *  `cheats_mask` reports the new state. */
+    suspend fun runCheat(cheatId: Int): Int? = client.send("cheat", cheatId.toLong())
+
     /** Force a reconnect to the plugin; see [GameStateClient.reconnect]. */
     fun reconnect() = client.reconnect()
 }

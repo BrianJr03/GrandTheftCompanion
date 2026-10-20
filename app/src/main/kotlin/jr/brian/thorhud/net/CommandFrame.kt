@@ -23,6 +23,7 @@ internal fun commandFrame(id: Int, name: String, arg: Long): String? {
         "set_weapon" -> "weapon"
         "set_radio"  -> "station"
         "route_blip" -> "blip"
+        "cheat"      -> "cheat"
         else         -> "value"   // route_clear / blip_census ignore it
     }
     return "{\"v\":1,\"type\":\"cmd\",\"id\":$id,\"name\":\"$name\"," +

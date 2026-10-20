@@ -46,6 +46,9 @@ data class GameState(
     @SerialName("size") val size: Long? = null,
     @SerialName("file_version") val fileVersion: String? = null,
     @SerialName("supported") val supported: Boolean? = null,
+    // Whether this plugin build can run the `cheat` command. GTA IV
+    // plugins ship with this off unless built with THORBRIDGE_CHEATS.
+    @SerialName("cheats") val cheatsSupported: Boolean? = null,
     // hello — GTA V only: host exe name, plugin version, and whether
     // Script Hook V was found. When `supported` is false, [err]
     // carries the reason.
@@ -88,6 +91,11 @@ data class GameState(
     // state — GTA IV: the blip the companion last pointed the game's
     // GPS route at (`route_blip` command), 0 = none. Natives level 5.
     @SerialName("route_blip") val routeBlip: Int? = null,
+
+    // state — cheat toggles the plugin reports as currently on, as a
+    // bitmask indexed by `cheat_id - 20` (one-shots do not light a bit).
+    // Null in frames from a plugin without cheats support.
+    @SerialName("cheats_mask") val cheatsMask: Int? = null,
 
     // ---- GTA V only ------------------------------------------------
     // Session flags. `stalled` = the plugin is alive but the game has

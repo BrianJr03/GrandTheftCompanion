@@ -142,6 +142,22 @@ class GameStateVTest {
     }
 
     @Test
+    fun cheatsFieldsDecode() {
+        // Hello carries `cheats` (boolean capability flag).
+        val hello = decode(IV_HELLO_CHEATS)
+        assertTrue(hello.isHello)
+        assertEquals(true, hello.cheatsSupported)
+        // An older plugin without the field: null, not false.
+        assertNull(decode(IV_HELLO).cheatsSupported)
+
+        // State carries `cheats_mask` (toggle bitmask).
+        val state = decode(IV_STATE_CHEATS)
+        assertEquals(0b00000101, state.cheatsMask) // bits 0 and 2
+        // Older frame: null.
+        assertNull(decode(IV_STATE).cheatsMask)
+    }
+
+    @Test
     fun gtaIvFramesAreUnaffected() {
         val hello = decode(IV_HELLO)
         assertTrue(hello.isHello)
@@ -212,5 +228,10 @@ class GameStateVTest {
         // asi/src/bridge.cpp; not captured from a running game.
         const val IV_STATE_WHEEL_HELD = """{"v":1,"type":"state","t":223344,"in_game":true,"in_vehicle":false,"paused":false,"wheel":true,"money":2500,"health":180.0,"max_health":200,"armor":50,"max_armor":100,"wanted":0,"weapon":7,"ammo_total":120,"ammo_clip":12,"owned":[{"slot":1,"id":1,"ammo":1},{"slot":2,"id":7,"ammo":120},{"slot":8,"id":4,"ammo":5}],"vehicle":{"model":0,"name":"","speed_mps":0.00,"engine_hp":0.0},"radio":-1,"episode":0}"""
         const val IV_STATE = """{"v":1,"type":"state","t":123456,"in_game":true,"in_vehicle":true,"paused":false,"money":2500,"health":180.0,"max_health":200,"armor":50,"max_armor":100,"wanted":2,"weapon":7,"ammo_total":60,"ammo_clip":12,"owned":[{"slot":2,"id":7,"ammo":60}],"vehicle":{"model":1348744438,"name":"ORACLE","speed_mps":12.50,"engine_hp":950.0},"radio":3,"episode":0}"""
+        // Plugin built with THORBRIDGE_CHEATS=ON advertises capability.
+        const val IV_HELLO_CHEATS = """{"v":1,"type":"hello","crc32":"0x521747AC","size":17425752,"file_version":"1.2.0.59","supported":true,"cheats":true}"""
+        // State frame from the same plugin: invincible + slow motion on
+        // (cheat ids 20 and 22 → bits 0 and 2).
+        const val IV_STATE_CHEATS = """{"v":1,"type":"state","t":123456,"in_game":true,"in_vehicle":false,"paused":false,"money":2500,"health":180.0,"max_health":200,"armor":50,"max_armor":100,"wanted":0,"weapon":7,"ammo_total":60,"ammo_clip":12,"owned":[],"vehicle":{"model":0,"name":"","speed_mps":0.00,"engine_hp":0.0},"radio":-1,"episode":0,"cheats_mask":5}"""
     }
 }
