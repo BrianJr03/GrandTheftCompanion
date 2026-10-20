@@ -30,6 +30,7 @@
 #include <cstring>
 
 #include "blips.h"
+#include "cheats.h"
 #include "commands.h"
 #include "joaat.h"
 #include "log.h"
@@ -76,6 +77,12 @@ uint64_t g_select_since = 0;       // tick the wheel control went down, 0 = up
 bool     g_wheel_logged = false;   // this hold already has its log line
 int8_t   g_last_character = snapshot::kCharOther;
 bool     g_logged_first_in_game = false;
+// Latches whether the previous tick reached the in-game tail. On the
+// edge back to not-in-game (online, loading, menu-to-shell) we roll
+// world natives (time scale, weather, gravity) back once via
+// cheats::reset_world so the shell behaves normally; the mask is
+// kept and cheats::tick re-applies on the next in-game tick.
+bool     g_cheats_in_game_last = false;
 
 // Vehicle display-name cache: the label lookup is two string natives,
 // pointless to repeat 60x a second for the same car.
@@ -295,6 +302,11 @@ void tick() {
     // below ever runs against an online session.
     if (shv::call_bool(natives::NETWORK_IS_SESSION_STARTED)) {
         s.online = true;
+        s.cheats_mask = cheats::mask();
+        if (g_cheats_in_game_last) {
+            cheats::reset_world();
+            g_cheats_in_game_last = false;
+        }
         snapshot::publish(s);
         commands::reject_all("blocked: online");
         return;
@@ -305,6 +317,11 @@ void tick() {
     if (ped == 0 ||
         !shv::call_bool(natives::DOES_ENTITY_EXIST, ped) ||
         shv::call_bool(natives::GET_IS_LOADING_SCREEN_ACTIVE)) {
+        s.cheats_mask = cheats::mask();
+        if (g_cheats_in_game_last) {
+            cheats::reset_world();
+            g_cheats_in_game_last = false;
+        }
         snapshot::publish(s);   // in_game = false
         commands::reject_all("blocked: not in game");
         return;
@@ -345,6 +362,9 @@ void tick() {
         g_next_station_scan = now + kStationScanMs;
     }
 
+    s.cheats_mask = cheats::mask();
+    g_cheats_in_game_last = true;
+
     snapshot::publish(s);
 
     if (!g_logged_first_in_game) {
@@ -357,6 +377,10 @@ void tick() {
     }
 
     commands::drain(player, ped, s);
+    // After drain so a spawn-car tap this tick already has the model
+    // request issued; advance_spawn() will not resolve it on this same
+    // tick (HAS_MODEL_LOADED needs at least one game frame).
+    cheats::tick(player, ped);
 }
 
 }  // namespace

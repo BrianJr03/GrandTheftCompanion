@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "blips.h"
+#include "cheats.h"
 #include "commands.h"
 #include "log.h"
 #include "natives.h"
@@ -222,7 +223,13 @@ bool take_ack(uint32_t client, Ack* out) {
     return true;
 }
 
-void drain(int32_t /*player*/, int32_t ped, const snapshot::State& s) {
+// Public forwarder for the anonymous-namespace helper, so cheats::tick
+// can post an ack when a deferred spawn-car command finally resolves.
+void post_ack(uint32_t client, uint32_t id, bool ok, const char* err) {
+    ::post_ack(client, id, ok, err);
+}
+
+void drain(int32_t player, int32_t ped, const snapshot::State& s) {
     if (!g_inited) return;
     const uint64_t now = GetTickCount64();
     settle_wheel_pick(ped, s, now);
@@ -252,6 +259,11 @@ void drain(int32_t /*player*/, int32_t ped, const snapshot::State& s) {
         } else if (std::strcmp(c.name, "blip_census") == 0) {
             blips::log_census();
             post_ack(c.client, c.id, true, "");
+        } else if (std::strcmp(c.name, "cheat") == 0) {
+            // Spawn-car cheats defer their ack until the state machine
+            // in cheats::tick resolves (model load may take a few
+            // frames). Every other cheat posts its own ack from run().
+            cheats::run(c.arg0, player, ped, s, c.client, c.id);
         } else {
             char err[kMaxErrLen];
             std::snprintf(err, sizeof(err), "unknown command: %.20s", c.name);
