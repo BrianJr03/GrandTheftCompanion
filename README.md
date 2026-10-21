@@ -270,7 +270,7 @@ Opens two ways: tap the on-foot weapon card, or **hold LB / L1** on the pad. Rel
   </tr>
 </table>
 
-Once connected, the bottom screen is a three-page pager. Swipe between the HUD, the **map** page, and the **cheats** tab. A one-time **Tip** dialog on first connect points this out. The pager always cold-starts on the HUD and resets to the HUD when you switch between IV and V.
+Once connected, the bottom screen is a three-page pager laid out left-to-right as **cheats**, HUD, **map**. The HUD sits in the middle, one swipe either way. A one-time **Tip** dialog on first connect points this out. The pager always cold-starts on the HUD and resets to the HUD when you switch between IV and V.
 
 The map page mirrors the game's own minimap from the top screen and enlarges it, using Android's screen-capture permission. Tap **start mirroring** and approve the system prompt. Android asks again each session. It needs no plugin update and ships no map imagery. It shows exactly what the game draws, blips and GPS route included. GTA IV is clipped to a circle to match its native radar; GTA V stays rectangular to match its map.
 

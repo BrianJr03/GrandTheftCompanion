@@ -298,7 +298,9 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     val pagerState = rememberHudPagerState()
                     val scope = rememberCoroutineScope()
                     val scrollToMap: () -> Unit = {
-                        scope.launch { pagerState.animateScrollToPage(1) }
+                        scope.launch {
+                            pagerState.animateScrollToPage(HudPage.Map.ordinal)
+                        }
                     }
                     // Auto-swipe behaviour (settings toggle, both
                     // games):
@@ -311,15 +313,15 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     //    where they are, don't yank them around.
                     val inVehicleNow = liveState?.inVehicle == true
                     var preDrivePage by rememberSaveable(gameKey) {
-                        mutableStateOf(0)
+                        mutableStateOf(HudPage.Hud.ordinal)
                     }
                     LaunchedEffect(inVehicleNow, autoSwipeOnDrive,
                                    alwaysReturnToHud, gameKey) {
                         if (!autoSwipeOnDrive) return@LaunchedEffect
                         if (inVehicleNow) {
                             preDrivePage = pagerState.currentPage
-                            if (pagerState.currentPage != 1) {
-                                pagerState.animateScrollToPage(1)
+                            if (pagerState.currentPage != HudPage.Map.ordinal) {
+                                pagerState.animateScrollToPage(HudPage.Map.ordinal)
                             }
                         } else {
                             // Exit vehicle. With the override on, go
@@ -327,8 +329,9 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             // user was. Without it, only pull back if
                             // the user is still sitting on the map;
                             // a manual swipe during the drive wins.
-                            val target = if (alwaysReturnToHud) 0 else preDrivePage
-                            val onMap = pagerState.currentPage == 1
+                            val target = if (alwaysReturnToHud) HudPage.Hud.ordinal
+                                         else preDrivePage
+                            val onMap = pagerState.currentPage == HudPage.Map.ordinal
                             if (target != pagerState.currentPage &&
                                 (alwaysReturnToHud || onMap)
                             ) {

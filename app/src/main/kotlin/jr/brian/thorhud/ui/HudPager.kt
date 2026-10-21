@@ -41,16 +41,22 @@ import jr.brian.thorhud.R
 import kotlinx.coroutines.launch
 
 internal enum class HudPage(@StringRes val labelRes: Int) {
+    // Order dictates left-to-right tab layout. HUD stays in the
+    // middle (one swipe either way) and is the default landing
+    // page. MainScreen's auto-swipe-to-map / return-to-pre-drive
+    // logic uses HudPage.*.ordinal rather than literal indices so
+    // this ordering stays authoritative.
+    Cheats(R.string.tab_cheats),
     Hud(R.string.tab_hud),
     Map(R.string.tab_map),
-    Cheats(R.string.tab_cheats),
 }
 
 @Composable
 internal fun rememberHudPagerState() = rememberPagerState(
-    // Every app load lands on the HUD tab. In-session swipes still
-    // update the state, but the next cold start resets to page 0.
-    initialPage = 0,
+    // Every app load lands on the HUD tab (middle of the three).
+    // In-session swipes still update the state, but the next cold
+    // start resets to HUD so the user always knows where they are.
+    initialPage = HudPage.Hud.ordinal,
 ) { HudPage.entries.size }
 
 @Composable
