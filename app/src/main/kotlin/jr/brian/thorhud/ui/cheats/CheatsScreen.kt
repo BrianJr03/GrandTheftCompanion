@@ -31,8 +31,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
+import jr.brian.thorhud.ui.components.FullScreenSheet
 import kotlinx.coroutines.launch
 
 /**
@@ -96,6 +99,8 @@ internal fun CheatsScreen(
     onRunCheat: (Int) -> Unit,
     onLongPressOneShot: (Int) -> Boolean,
     onOnboardingDismissed: () -> Unit,
+    onOpenRadio: (() -> Unit)? = null,
+    onOpenMap: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val dim = Color(0xFF6A7A6E)
@@ -107,13 +112,37 @@ internal fun CheatsScreen(
             .padding(horizontal = 12.dp, vertical = 10.dp)
             .verticalScroll(rememberScrollState()),
     ) {
-        Text(
-            stringResource(R.string.cheats_title),
-            color = accent,
-            fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.Bold,
-            fontSize = 18.sp,
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.cheats_title),
+                color = accent,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                modifier = Modifier.weight(1f),
+            )
+            onOpenRadio?.let { open ->
+                IconButton(onClick = open) {
+                    Icon(
+                        imageVector = Icons.Filled.Radio,
+                        contentDescription = stringResource(R.string.label_radio),
+                        tint = accent,
+                    )
+                }
+            }
+            onOpenMap?.let { open ->
+                IconButton(onClick = open) {
+                    Icon(
+                        imageVector = Icons.Filled.DirectionsCar,
+                        contentDescription = stringResource(R.string.cheats_map_cd),
+                        tint = accent,
+                    )
+                }
+            }
+        }
         Spacer(Modifier.height(8.dp))
 
         if (cheatsSupported != true) {
@@ -176,9 +205,11 @@ internal fun CheatsScreen(
         }
     }
 
-    if (showOnboarding) {
-        CheatsOnboardingSheet(accent = accent, onDismiss = onOnboardingDismissed)
-    }
+    CheatsOnboardingSheet(
+        visible = showOnboarding,
+        accent = accent,
+        onDismiss = onOnboardingDismissed,
+    )
 }
 
 @Composable
@@ -337,56 +368,25 @@ private fun CheatButton(
 
 /** Two-slide first-visit onboarding. One slide introducing taps +
  *  lights, one slide introducing long-press auto-apply and pointing
- *  at the Settings override. */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+ *  at the Settings override. Full-screen slide-up so swipe between
+ *  pages never fights the sheet's drag. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun CheatsOnboardingSheet(accent: Color, onDismiss: () -> Unit) {
-    val sheet = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { it != SheetValue.PartiallyExpanded },
-    )
+private fun CheatsOnboardingSheet(
+    visible: Boolean,
+    accent: Color,
+    onDismiss: () -> Unit,
+) {
     val pager = rememberPagerState(initialPage = 0) { 2 }
     val scope = rememberCoroutineScope()
     val dim = Color(0xFF6A7A6E)
-    val animatedDismiss: () -> Unit = {
-        scope.launch {
-            sheet.hide()
-            onDismiss()
-        }
-        Unit
-    }
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheet,
-        containerColor = Color.Black,
-        dragHandle = null,
+    FullScreenSheet(
+        visible = visible,
+        onDismiss = onDismiss,
+        title = stringResource(R.string.cheats_onboarding_title),
+        accent = accent,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    stringResource(R.string.cheats_onboarding_title),
-                    color = accent,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    modifier = Modifier.weight(1f),
-                )
-                IconButton(onClick = animatedDismiss) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.settings_close),
-                        tint = accent,
-                    )
-                }
-            }
-            Spacer(Modifier.height(14.dp))
+        Column(modifier = Modifier.fillMaxSize()) {
             HorizontalPager(state = pager, modifier = Modifier.fillMaxWidth()) { page ->
                 val title = if (page == 0) R.string.cheats_onboarding_slide1_title
                             else R.string.cheats_onboarding_slide2_title
@@ -430,7 +430,7 @@ private fun CheatsOnboardingSheet(accent: Color, onDismiss: () -> Unit) {
                     if (pager.currentPage < 1) {
                         scope.launch { pager.animateScrollToPage(1) }
                     } else {
-                        animatedDismiss()
+                        onDismiss()
                     }
                 }
                 TextButton(onClick = onPrimary) {

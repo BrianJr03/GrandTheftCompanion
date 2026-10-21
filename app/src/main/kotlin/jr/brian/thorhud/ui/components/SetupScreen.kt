@@ -141,23 +141,22 @@ internal fun SetupScreen(lastError: String?, onOpenSettings: (() -> Unit)? = nul
         }
     }
 
-    if (showInfo) {
-        InfoSheet(
-            title = stringResource(R.string.info_dialog_title),
-            body = if (lastError.isNullOrBlank())
-                       stringResource(R.string.info_dialog_no_error)
-                   else
-                       stringResource(R.string.info_dialog_last_error, lastError),
-            accent = PaletteIV.accent,
-            onDismiss = { showInfo = false },
-        ) {
-            TextButton(onClick = { showInfo = false }) {
-                Text(
-                    stringResource(R.string.info_dialog_dismiss),
-                    color = PaletteIV.accent,
-                    fontFamily = FontFamily.Monospace,
-                )
-            }
+    InfoSheet(
+        visible = showInfo,
+        title = stringResource(R.string.info_dialog_title),
+        body = if (lastError.isNullOrBlank())
+                   stringResource(R.string.info_dialog_no_error)
+               else
+                   stringResource(R.string.info_dialog_last_error, lastError),
+        accent = PaletteIV.accent,
+        onDismiss = { showInfo = false },
+    ) {
+        TextButton(onClick = { showInfo = false }) {
+            Text(
+                stringResource(R.string.info_dialog_dismiss),
+                color = PaletteIV.accent,
+                fontFamily = FontFamily.Monospace,
+            )
         }
     }
 }

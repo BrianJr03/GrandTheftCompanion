@@ -157,6 +157,8 @@
 
     <!-- Blip list + settings -->
     <string name="map_blips_cd">Karten-Icons, zum Öffnen tippen</string>
+    <string name="map_cheats_cd">Cheats, zum Öffnen tippen</string>
+    <string name="cheats_map_cd">Karte, zum Öffnen tippen</string>
     <string name="map_blips_title">Karten-Icons</string>
     <string name="map_blips_none">noch keine Icons — benötigt geladenes Spiel und ThorBridgeV 0.3.0+ / ThorBridge auf Natives-Level 5</string>
     <string name="map_blips_count">%1$d Icons, nächste zuerst</string>

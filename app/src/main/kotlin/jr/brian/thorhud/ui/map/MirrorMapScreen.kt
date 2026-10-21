@@ -20,6 +20,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Place
@@ -89,6 +90,7 @@ internal fun MirrorMapScreen(
     onRequestConsent: () -> Unit,
     onOpenBlips: (() -> Unit)? = null,
     onOpenRadio: (() -> Unit)? = null,
+    onOpenCheats: (() -> Unit)? = null,
     controlsRight: Boolean = false,
     // In-vehicle gates the speedometer (bottom-right). Routed label
     // paired with inVehicle gates the "driving to <name>" overlay
@@ -212,6 +214,7 @@ internal fun MirrorMapScreen(
                     captureSize = size,
                     onOpenBlips = onOpenBlips,
                     onOpenRadio = onOpenRadio,
+                    onOpenCheats = onOpenCheats,
                     controlsRight = controlsRight,
                     viewModel = viewModel,
                 )
@@ -255,6 +258,44 @@ internal fun MirrorMapScreen(
                     fontFamily = FontFamily.Monospace,
                     fontSize = 12.sp,
                 )
+            }
+        }
+        // Idle-state header: horizontal action row aligned to the
+        // top-end so blips / radio / cheats are reachable before the
+        // mirror has started. The vertical [MapControlsColumn] takes
+        // over once the mirror is active (and includes lock / reset /
+        // stop then).
+        if (status == ScreenMirror.Status.Idle) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 2.dp, end = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                onOpenBlips?.let { open ->
+                    MapIconButton(
+                        icon = Icons.Filled.Place,
+                        contentDescription = stringResource(R.string.map_blips_cd),
+                        accent = accent,
+                        onClick = open,
+                    )
+                }
+                onOpenRadio?.let { open ->
+                    MapIconButton(
+                        icon = Icons.Filled.Radio,
+                        contentDescription = stringResource(R.string.label_radio),
+                        accent = accent,
+                        onClick = open,
+                    )
+                }
+                onOpenCheats?.let { open ->
+                    MapIconButton(
+                        icon = Icons.Filled.Casino,
+                        contentDescription = stringResource(R.string.map_cheats_cd),
+                        accent = accent,
+                        onClick = open,
+                    )
+                }
             }
         }
     }
@@ -304,6 +345,7 @@ private fun MirrorMapLayout(
     captureSize: android.util.Size,
     onOpenBlips: (() -> Unit)?,
     onOpenRadio: (() -> Unit)?,
+    onOpenCheats: (() -> Unit)?,
     controlsRight: Boolean,
     viewModel: MapViewModel,
 ) {
@@ -321,6 +363,7 @@ private fun MirrorMapLayout(
                 isLocked = isLocked,
                 onOpenBlips = onOpenBlips,
                 onOpenRadio = onOpenRadio,
+                onOpenCheats = onOpenCheats,
                 viewModel = viewModel,
             )
         }
@@ -389,6 +432,7 @@ private fun MirrorMapLayout(
                 isLocked = isLocked,
                 onOpenBlips = onOpenBlips,
                 onOpenRadio = onOpenRadio,
+                onOpenCheats = onOpenCheats,
                 viewModel = viewModel,
             )
         }
@@ -402,6 +446,7 @@ private fun MapControlsColumn(
     isLocked: Boolean,
     onOpenBlips: (() -> Unit)?,
     onOpenRadio: (() -> Unit)?,
+    onOpenCheats: (() -> Unit)?,
     viewModel: MapViewModel,
 ) {
     Column(
@@ -435,6 +480,14 @@ private fun MapControlsColumn(
             MapIconButton(
                 icon = Icons.Filled.Radio,
                 contentDescription = stringResource(R.string.label_radio),
+                accent = accent,
+                onClick = open,
+            )
+        }
+        onOpenCheats?.let { open ->
+            MapIconButton(
+                icon = Icons.Filled.Casino,
+                contentDescription = stringResource(R.string.map_cheats_cd),
                 accent = accent,
                 onClick = open,
             )

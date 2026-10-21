@@ -166,7 +166,11 @@ internal fun BlipListPanel(
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            if (showInfo) BlipInfoDialog(accent = accent, onDismiss = { showInfo = false })
+            BlipInfoDialog(
+                visible = showInfo,
+                accent = accent,
+                onDismiss = { showInfo = false },
+            )
             for (group in groups) {
                 val isOpen = expandedName == group.name
                 // Hide every other group's header while one is open.
@@ -294,9 +298,10 @@ private fun GroupHeader(
  * page so a player can send back "sprite N was Mom's House".
  */
 @Composable
-private fun BlipInfoDialog(accent: Color, onDismiss: () -> Unit) {
+private fun BlipInfoDialog(visible: Boolean, accent: Color, onDismiss: () -> Unit) {
     val context = LocalContext.current
     InfoSheet(
+        visible = visible,
         title = stringResource(R.string.map_blips_info_title),
         body = stringResource(R.string.map_blips_info_body),
         accent = accent,

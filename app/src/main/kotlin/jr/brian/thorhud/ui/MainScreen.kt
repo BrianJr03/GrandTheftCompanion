@@ -50,6 +50,7 @@ import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.components.CardAlign
 import jr.brian.thorhud.ui.components.CoinPanel
 import jr.brian.thorhud.ui.components.FullWidthStats
+import jr.brian.thorhud.ui.components.FullScreenSheet
 import jr.brian.thorhud.ui.components.InfoSheet
 import jr.brian.thorhud.ui.components.IvWeaponWheelOverlay
 import jr.brian.thorhud.ui.components.MoneyRadioPanel
@@ -122,17 +123,16 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             showUpdateDialog = true
         }
     }
-    if (showUpdateDialog && updateInfo.isUpdateAvailable) {
-        UpdateSheet(
-            updateInfo = updateInfo,
-            currentVersion = viewModel.currentVersionName,
-            palette = paletteFor(state?.episode),
-            onDismiss = {
-                viewModel.markUpdateDismissed(updateInfo.latestVersion)
-                showUpdateDialog = false
-            },
-        )
-    }
+    UpdateSheet(
+        visible = showUpdateDialog && updateInfo.isUpdateAvailable,
+        updateInfo = updateInfo,
+        currentVersion = viewModel.currentVersionName,
+        palette = paletteFor(state?.episode),
+        onDismiss = {
+            viewModel.markUpdateDismissed(updateInfo.latestVersion)
+            showUpdateDialog = false
+        },
+    )
 
     // GTA V has its own HUD layout (ui/v/); hello frame names the game.
     // Also computed when disconnected (hello is null) so the whole tree
@@ -267,20 +267,19 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     // One-time swipe hint on the first connected run. Dismissing
     // writes a prefs flag so it never shows again.
     var showSwipeHint by remember { mutableStateOf(!viewModel.hasSeenSwipeHint) }
-    if (showSwipeHint && !isDisconnected) {
-        val dismissHint = {
-            showSwipeHint = false
-            viewModel.hasSeenSwipeHint = true
-        }
-        InfoSheet(
-            title = stringResource(R.string.swipe_hint_title),
-            body = stringResource(R.string.swipe_hint_body),
-            accent = accent,
-            onDismiss = dismissHint,
-        ) {
-            TextButton(onClick = dismissHint) {
-                Text(stringResource(R.string.swipe_hint_dismiss), color = accent)
-            }
+    val dismissHint: () -> Unit = {
+        showSwipeHint = false
+        viewModel.hasSeenSwipeHint = true
+    }
+    InfoSheet(
+        visible = showSwipeHint && !isDisconnected,
+        title = stringResource(R.string.swipe_hint_title),
+        body = stringResource(R.string.swipe_hint_body),
+        accent = accent,
+        onDismiss = dismissHint,
+    ) {
+        TextButton(onClick = dismissHint) {
+            Text(stringResource(R.string.swipe_hint_dismiss), color = accent)
         }
     }
 
@@ -320,6 +319,11 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     val scrollToMap: () -> Unit = {
                         scope.launch {
                             pagerState.animateScrollToPage(HudPage.Map.ordinal)
+                        }
+                    }
+                    val scrollToCheats: () -> Unit = {
+                        scope.launch {
+                            pagerState.animateScrollToPage(HudPage.Cheats.ordinal)
                         }
                     }
                     // Auto-swipe behaviour (settings toggle, both
@@ -437,6 +441,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     onRequestConsent = requestMirrorConsent,
                                     onOpenBlips = toggleBlips,
                                     onOpenRadio = { showRadioSheet = true },
+                                    onOpenCheats = scrollToCheats,
                                     controlsRight = mapControlsRight,
                                     inVehicle = inVehicleNow,
                                     routeName = routeName,
@@ -476,6 +481,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         cheatsViewModel.markOnboardingSeen()
                                         showOnboarding = false
                                     },
+                                    onOpenRadio = { showRadioSheet = true },
+                                    onOpenMap = scrollToMap,
                                 )
                             },
                         )
@@ -589,20 +596,19 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             reconnectEvents = viewModel.reconnectEvents,
             onDismiss = { showSettings = false },
         )
-        if (showRadioSheet) {
-            val vStations by viewModel.stations.collectAsStateWithLifecycle()
-            RadioSheet(
-                palette = if (isGtaV) vCharacterOf(state?.character).palette
-                          else paletteFor(liveState?.episode ?: state?.episode),
-                isGtaV = isGtaV,
-                ivStations = stationListFor(liveState?.episode),
-                ivCurrentLocal = liveState?.radio ?: -1,
-                vStations = vStations,
-                vCurrentId = liveState?.radioName,
-                onStationTap = viewModel::setRadio,
-                onDismiss = { showRadioSheet = false },
-            )
-        }
+        val vStations by viewModel.stations.collectAsStateWithLifecycle()
+        RadioSheet(
+            visible = showRadioSheet,
+            palette = if (isGtaV) vCharacterOf(state?.character).palette
+                      else paletteFor(liveState?.episode ?: state?.episode),
+            isGtaV = isGtaV,
+            ivStations = stationListFor(liveState?.episode),
+            ivCurrentLocal = liveState?.radio ?: -1,
+            vStations = vStations,
+            vCurrentId = liveState?.radioName,
+            onStationTap = viewModel::setRadio,
+            onDismiss = { showRadioSheet = false },
+        )
     }
 }
 
@@ -769,14 +775,15 @@ private fun IvHudScreen(
 }
 
 /**
- * ModalBottomSheet wrapping the same radio picker shown on the HUD
- * tab. Dispatches to [RadioPicker] (IV) or [VRadioPicker] (V) so a
- * tap on either flavour routes through the same [onStationTap] into
- * `MainViewModel.setRadio`.
+ * Full-screen slide-up wrapping the same radio picker shown on the
+ * HUD tab. Dispatches to [RadioPicker] (IV) or [VRadioPicker] (V) so
+ * a tap on either flavour routes through the same [onStationTap]
+ * into `MainViewModel.setRadio`. Compose unconditionally with
+ * `visible = showRadioSheet` so the slide-out animation plays.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RadioSheet(
+    visible: Boolean,
     palette: HudPalette,
     isGtaV: Boolean,
     ivStations: IntArray,
@@ -786,42 +793,17 @@ private fun RadioSheet(
     onStationTap: (Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val sheet = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { it != SheetValue.PartiallyExpanded },
-    )
-    val sheetScope = rememberCoroutineScope()
-    val animatedDismiss: () -> Unit = {
-        sheetScope.launch {
-            sheet.hide()
-            onDismiss()
-        }
-        Unit
-    }
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheet,
-        containerColor = Color.Black,
-        dragHandle = null,
+    FullScreenSheet(
+        visible = visible,
+        onDismiss = onDismiss,
+        title = stringResource(R.string.label_radio),
+        accent = palette.accent,
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 20.dp),
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                IconButton(onClick = animatedDismiss) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.settings_close),
-                        tint = palette.accent,
-                    )
-                }
-            }
             if (isGtaV) {
                 VRadioPicker(
                     stations = vStations,

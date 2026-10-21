@@ -68,11 +68,8 @@ internal fun RadioPicker(
             fontSize = 11.sp,
             modifier = Modifier.padding(start = 14.dp, bottom = 4.dp),
         )
-        RadioOffButton(
-            isCurrent = currentLocal < 0,
-            palette = palette,
-            onTap = { onStationTap(RADIO_OFF_SENTINEL) },
-        )
+        // No "off" button for IV: the current station always maps to
+        // one of the enum entries below.
         RadioPickerRow(
             start = 0, endExclusive = half,
             stations = stations, currentLocal = currentLocal,

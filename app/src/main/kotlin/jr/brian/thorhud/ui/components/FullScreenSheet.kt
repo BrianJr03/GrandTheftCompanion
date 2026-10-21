@@ -53,9 +53,12 @@ internal fun FullScreenSheet(
     onDismiss: () -> Unit,
     title: String,
     accent: Color,
+    showCloseIcon: Boolean = true,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    BackHandler(enabled = visible, onBack = onDismiss)
+    // Back + close icon both honour showCloseIcon so a caller can
+    // temporarily block dismissal (e.g. UpdateSheet mid-download).
+    BackHandler(enabled = visible && showCloseIcon, onBack = onDismiss)
     AnimatedVisibility(
         visible = visible,
         enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -79,12 +82,14 @@ internal fun FullScreenSheet(
                     fontSize = 22.sp,
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = onDismiss) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.settings_close),
-                        tint = accent,
-                    )
+                if (showCloseIcon) {
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.settings_close),
+                            tint = accent,
+                        )
+                    }
                 }
             }
             Spacer(Modifier.height(16.dp))

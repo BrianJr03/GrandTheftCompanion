@@ -13,19 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -50,6 +42,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import jr.brian.thorhud.R
+import jr.brian.thorhud.ui.components.FullScreenSheet
 import jr.brian.thorhud.ui.components.HudPalette
 import kotlinx.coroutines.launch
 
@@ -66,14 +59,14 @@ private enum class UpdatePhase {
 /**
  * The update dialog, hosted over the HUD when the user taps the
  * download chip in the status bar or when a newer release lands at
- * launch. A fullscreen modal bottom sheet so long release notes have
- * room to breathe; one screen per phase, swapped by state — info,
- * permission ask, download progress, install prompt, error. Styled to
- * the OLED HUD: pure-black container, accent drag handle, no gradients.
+ * launch. A FullScreenSheet so long release notes have room to
+ * breathe; one screen per phase, swapped by state — info, permission
+ * ask, download progress, install prompt, error. Close icon hides
+ * mid-download so the user can't bail while bytes are in flight.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun UpdateSheet(
+    visible: Boolean,
     updateInfo: UpdateInfo,
     currentVersion: String,
     palette: HudPalette,
@@ -182,63 +175,21 @@ internal fun UpdateSheet(
         }
     }
 
-    // Block scrim-tap and swipe-down from closing the sheet while a
-    // download is running; reading latestPhase through
-    // rememberUpdatedState keeps the check tracking the current state
-    // instead of the value captured at sheet construction.
-    val latestPhase by rememberUpdatedState(phase)
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { target ->
-            if (target == SheetValue.Hidden) {
-                latestPhase != UpdatePhase.Downloading &&
-                    latestPhase != UpdatePhase.AsiDownloading
-            } else {
-                true
-            }
-        },
-    )
-    val animatedDismiss: () -> Unit = {
-        scope.launch {
-            sheetState.hide()
-            onDismiss()
-        }
-        Unit
-    }
-    ModalBottomSheet(
-        onDismissRequest = {
-            if (phase != UpdatePhase.Downloading && phase != UpdatePhase.AsiDownloading) {
-                onDismiss()
-            }
-        },
-        sheetState = sheetState,
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color.Black,
-        scrimColor = Color.Black.copy(alpha = 0.6f),
-        dragHandle = null,
+    // The close icon in FullScreenSheet's header is hidden while
+    // bytes are in flight so the user can't bail mid-download; back
+    // button is gated the same way. Phase titles live inside each
+    // phase composable's Header; FullScreenSheet's own title stays
+    // blank to avoid double-labelling.
+    val canDismiss = phase != UpdatePhase.Downloading &&
+                     phase != UpdatePhase.AsiDownloading
+    FullScreenSheet(
+        visible = visible,
+        onDismiss = { if (canDismiss) onDismiss() },
+        title = "",
+        accent = palette.accent,
+        showCloseIcon = canDismiss,
     ) {
         Column(Modifier.fillMaxSize()) {
-            // Close icon in the top-right matches every other modal
-            // sheet in the app. Hidden mid-download so the user can't
-            // dismiss while bytes are in flight. Taps run through
-            // animatedDismiss so the sheet slides out rather than
-            // vanishing on composition removal.
-            val canDismiss = phase != UpdatePhase.Downloading &&
-                             phase != UpdatePhase.AsiDownloading
-            if (canDismiss) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    IconButton(onClick = animatedDismiss) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = stringResource(R.string.settings_close),
-                            tint = palette.accent,
-                        )
-                    }
-                }
-            }
             when (phase) {
                 UpdatePhase.Info -> InfoPhase(
                     updateInfo = updateInfo,

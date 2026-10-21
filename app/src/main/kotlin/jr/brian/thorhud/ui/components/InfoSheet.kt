@@ -8,96 +8,48 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import jr.brian.thorhud.R
-import kotlinx.coroutines.launch
 
 /**
- * Bottom-sheet replacement for an AlertDialog that carries a title, a
- * paragraph of body text, and one or two action buttons. Styled to the
- * HUD: pure-black container, accent-coloured title, monospace body,
- * actions trailing to the right so a single primary button lands under
- * the thumb.
+ * Carries a title, a paragraph of body text, and one or two action
+ * buttons. Full-screen slide-up styled to the HUD: pure-black
+ * container, accent-coloured title, monospace body, actions trailing
+ * to the right so a single primary button lands under the thumb.
  *
  * Scrolls automatically — a translated body can wrap longer than the
- * sheet's intrinsic height.
+ * screen's intrinsic height. Compose this unconditionally with
+ * `visible = <state>` so the slide-out animation plays before the
+ * content is removed.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun InfoSheet(
+    visible: Boolean,
     title: String,
     body: AnnotatedString,
     accent: Color,
     onDismiss: () -> Unit,
     actions: @Composable RowScope.() -> Unit,
 ) {
-    val sheet = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { it != SheetValue.PartiallyExpanded },
-    )
-    val scope = rememberCoroutineScope()
-    val animatedDismiss: () -> Unit = {
-        scope.launch {
-            sheet.hide()
-            onDismiss()
-        }
-        Unit
-    }
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheet,
-        containerColor = Color.Black,
-        dragHandle = null,
+    FullScreenSheet(
+        visible = visible,
+        onDismiss = onDismiss,
+        title = title,
+        accent = accent,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 20.dp),
+                .verticalScroll(rememberScrollState()),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    title,
-                    color = accent,
-                    fontFamily = FontFamily.Monospace,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp,
-                    modifier = Modifier.weight(1f),
-                )
-                IconButton(onClick = animatedDismiss) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = stringResource(R.string.settings_close),
-                        tint = accent,
-                    )
-                }
-            }
-            Spacer(Modifier.height(12.dp))
             Text(
                 body,
                 color = Color(0xFFEDEDED),
@@ -116,9 +68,10 @@ internal fun InfoSheet(
 
 @Composable
 internal fun InfoSheet(
+    visible: Boolean,
     title: String,
     body: String,
     accent: Color,
     onDismiss: () -> Unit,
     actions: @Composable RowScope.() -> Unit,
-) = InfoSheet(title, AnnotatedString(body), accent, onDismiss, actions)
+) = InfoSheet(visible, title, AnnotatedString(body), accent, onDismiss, actions)

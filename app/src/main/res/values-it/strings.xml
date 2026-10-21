@@ -157,6 +157,8 @@
 
     <!-- Blip list + settings -->
     <string name="map_blips_cd">icone della mappa, tocca per aprire</string>
+    <string name="map_cheats_cd">trucchi, tocca per aprire</string>
+    <string name="cheats_map_cd">mappa, tocca per aprire</string>
     <string name="map_blips_title">icone mappa</string>
     <string name="map_blips_none">ancora nessuna icona — serve il gioco caricato e ThorBridgeV 0.3.0+ / ThorBridge a livello nativi 5</string>
     <string name="map_blips_count">%1$d icone, le più vicine prima</string>
