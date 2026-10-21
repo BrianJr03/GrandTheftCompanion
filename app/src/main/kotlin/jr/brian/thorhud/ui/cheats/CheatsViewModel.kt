@@ -6,20 +6,19 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import jr.brian.thorhud.net.GameStateRepository
 import jr.brian.thorhud.prefs.HudPrefs
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Outcome of the most recent cheat tap. [error] is null while the ack
@@ -137,7 +136,7 @@ internal class CheatsViewModel @Inject constructor(
                     safeStreak = 0
                     return@collect
                 }
-                if (snap.state?.isCheatSafe != true) {
+                if (snap.state.isCheatSafe != true) {
                     safeStreak = 0
                     return@collect
                 }
@@ -155,7 +154,7 @@ internal class CheatsViewModel @Inject constructor(
                         // Ack-gate: wait for the plugin to confirm (or
                         // for the stale timeout to fire its own err)
                         // before issuing the next cheat.
-                        withTimeoutOrNull(ACK_TIMEOUT_MS) {
+                        withTimeoutOrNull(ACK_TIMEOUT_MS.milliseconds) {
                             repository.ack.first { it?.ackId == cmdId }
                         }
                     }
@@ -174,7 +173,7 @@ internal class CheatsViewModel @Inject constructor(
         _result.value = CheatResult(cheatId)
         pending = viewModelScope.launch {
             val id = repository.runCheat(cheatId)
-            val ack = if (id == null) null else withTimeoutOrNull(ACK_TIMEOUT_MS) {
+            val ack = if (id == null) null else withTimeoutOrNull(ACK_TIMEOUT_MS.milliseconds) {
                 repository.ack.first { it?.ackId == id }
             }
             val error = when {
