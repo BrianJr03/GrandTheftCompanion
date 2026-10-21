@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Grand Theft Companion</title>
+  <meta name="description" content="AYN Thor bottom-screen companion for GTA IV and GTA V. Live HUD on the Thor's bottom screen while the game plays on the main screen.">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="hero">
+  <a class="repo-link" href="https://github.com/BrianJr03/GrandTheftCompanion" aria-label="GitHub repository">GitHub</a>
+
+  <img class="logo" src="assets/logo.svg" alt="GTC logo" width="160" height="160">
+
+  <h1>Grand Theft Companion</h1>
+
+  <!-- README: one-line pitch, line 15 ("AYN Thor bottom-screen companion...") -->
+  <p class="tagline">
+    AYN Thor bottom-screen companion for GTA IV and GTA V. Live HUD on the
+    Thor's bottom screen while the game plays on the main screen.
+  </p>
+
+  <div class="cta">
+    <a class="btn primary" href="https://github.com/BrianJr03/GrandTheftCompanion/releases/latest">
+      Download <span id="latest-version">v0.12.0</span>
+    </a>
+    <a class="btn ghost" href="https://github.com/BrianJr03/GrandTheftCompanion">View on GitHub</a>
+  </div>
+
+  <!-- README: the two hero screenshots, lines 19-23. alt text reused verbatim. -->
+  <div class="hero-shots">
+    <picture>
+      <source srcset="assets/screenshot.webp" type="image/webp">
+      <img src="assets/screenshot.png" alt="GTA IV on the Thor's top screen, GTC companion on the bottom screen" width="1200" height="1717" loading="eager">
+    </picture>
+    <picture>
+      <source srcset="assets/screenshot_v.webp" type="image/webp">
+      <img src="assets/screenshot_v.png" alt="GTA V on the Thor's top screen, GTC companion on the bottom screen" width="1200" height="1721" loading="eager">
+    </picture>
+  </div>
+</header>
+
+<main>
+
+<section class="section what-it-does">
+  <h2>What it does</h2>
+
+  <!-- README: "The HUD on each game", lines 232-233. Shared HUD cards sentence. -->
+  <p class="lede">
+    Both layouts share the same cards: money, weapon and ammo, vehicle and
+    speed, radio, with health and armor bars underneath and a tappable radio
+    picker while driving.
+  </p>
+
+  <div class="cards">
+    <!-- README: line 17 ("picks the right layout by itself") -->
+    <div class="card">
+      <h3>Picks the right layout by itself</h3>
+      <p>The app is the same for both games and chooses the GTA IV or GTA V layout from the plugin's hello frame.</p>
+    </div>
+    <!-- README: line 203 ("if you quit one game and start the other, GTC switches layout on its own") -->
+    <div class="card">
+      <h3>Switches on its own</h3>
+      <p>Quit one game and start the other and GTC switches layout on its own.</p>
+    </div>
+    <!-- README: line 232 (shared HUD cards: health and armor bars) -->
+    <div class="card">
+      <h3>Health and armor bars</h3>
+      <p>Live underneath the HUD cards so a glance at the bottom screen is enough.</p>
+    </div>
+    <!-- README: line 232 (shared HUD cards: tappable radio picker while driving) -->
+    <div class="card">
+      <h3>Tappable radio picker</h3>
+      <p>Retune the radio while driving, from the bottom screen, without pausing.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section feature image-right">
+  <!-- README: section name "Weapon Wheel", lines 246-258. -->
+  <div class="feature-text">
+    <h2>Weapon Wheel</h2>
+    <!-- README: line 252 (eight-slot wheel description) -->
+    <p>
+      An eight-slot wheel on the bottom screen, laid out like GTA V's: pistols
+      right, rifles down, melee left, heavy up. Tap a slot to switch weapon;
+      tap the already-selected slot again to step through its other weapons.
+    </p>
+    <!-- README: line 254 (opens two ways; slots labelled in text) -->
+    <p>
+      Opens two ways: tap the on-foot weapon card, or hold LB / L1 on the pad.
+      Releasing LB closes it. A tap-opened wheel closes by itself after a few
+      seconds of no input. Slots are labelled in text.
+    </p>
+    <!-- README: line 256 (GTA IV benefits most, no in-game wheel) -->
+    <p>
+      <strong>GTA IV is the one that benefits most</strong>: it has no in-game
+      weapon wheel. Rockstar's HUD only cycles through the slots one at a time
+      with the shoulder buttons, so picking a specific weapon in a hurry means
+      tapping through everything you own. GTC gives it the direct-pick wheel
+      the base game never had, carrying every weapon from the base game, The
+      Lost and Damned and The Ballad of Gay Tony.
+    </p>
+    <!-- README: line 258 (GTA V keeps its own wheel on top; touch-friendly mirror) -->
+    <p>
+      <strong>GTA V</strong> keeps its own wheel on the top screen; the
+      companion's is a touch-friendly mirror on the bottom. The equipped weapon
+      follows whichever wheel finishes last, so you can start with the pad and
+      finish with a tap, or the other way around.
+    </p>
+  </div>
+  <div class="feature-media">
+    <!-- README: line 249 (weapon-wheel alt text) -->
+    <img src="assets/weapon-wheel.png" alt="GTC's eight-slot weapon wheel on the Thor's bottom screen" width="1240" height="1080" loading="lazy">
+  </div>
+</section>
+
+<section class="section feature image-left">
+  <!-- README: section name "MiniMap View", lines 260-281. -->
+  <div class="feature-media stacked">
+    <figure>
+      <!-- README: line 264 (map-iv alt text) -->
+      <img src="assets/map-iv.png" alt="GTA IV minimap mirrored on the Thor's bottom screen, clipped to a circle" width="1240" height="1080" loading="lazy">
+      <figcaption>GTA IV</figcaption>
+    </figure>
+    <figure>
+      <!-- README: line 265 (map-v alt text) -->
+      <img src="assets/map-v.png" alt="GTA V minimap mirrored on the Thor's bottom screen, rectangular crop" width="1240" height="1080" loading="lazy">
+      <figcaption>GTA V</figcaption>
+    </figure>
+  </div>
+  <div class="feature-text">
+    <h2>MiniMap View</h2>
+    <!-- README: line 273 (three-page pager description) -->
+    <p>
+      Once connected, the bottom screen is a three-page pager laid out
+      left-to-right as cheats, HUD, map. The HUD sits in the middle, one swipe
+      either way. A one-time tip on first connect points this out. The pager
+      always cold-starts on the HUD and resets to the HUD when you switch
+      between IV and V.
+    </p>
+    <!-- README: line 275 (mirroring explanation; ships no map imagery) -->
+    <p>
+      The map page mirrors the game's own minimap from the top screen and
+      enlarges it, using Android's screen-capture permission. It ships no map
+      imagery and shows exactly what the game draws, blips and GPS route
+      included. GTA IV is clipped to a circle to match its native radar; GTA V
+      stays rectangular to match its map.
+    </p>
+  </div>
+</section>
+
+<section class="section feature image-right">
+  <!-- README: section name "Blips View", lines 283-306. -->
+  <div class="feature-text">
+    <h2>Blips View</h2>
+    <!-- README: line 295 (nearest first, one-tap route, both games) -->
+    <p>
+      Every icon on the game's own map, nearest first, grouped by name, with a
+      one-tap route button per icon. Opens the game's own GPS to that
+      destination without having to pause and move a map cursor. Works on both
+      games.
+    </p>
+    <!-- README: lines 297-299 (two ways to open) -->
+    <p>Open it two ways:</p>
+    <ul>
+      <li>The pin icon in the HUD status bar (both games, both pager pages). It mirrors the title's accent while the connection is live and fades out when stale.</li>
+      <li><strong>Dpad-down</strong> on GTA IV. The plugin reads the game's own pad state so the key never has to reach the companion. GTA V has no stable control id for a raw dpad-down in a vehicle, so the pin icon is the only way there.</li>
+    </ul>
+  </div>
+  <div class="feature-media stacked">
+    <figure>
+      <!-- README: line 286 (blips-iv alt text) -->
+      <img src="assets/blips-iv.png" alt="GTA IV blips panel: 22 blips with the TBoGT magenta accent, Helitour routed" width="1240" height="1080" loading="lazy">
+      <figcaption>GTA IV</figcaption>
+    </figure>
+    <figure>
+      <!-- README: line 287 (blips-v alt text) -->
+      <img src="assets/blips-v.png" alt="GTA V blips panel: 52 blips grouped by name, nearest first, each with a route button" width="1240" height="1080" loading="lazy">
+      <figcaption>GTA V</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="section cheats-section">
+  <!-- README: section name "Cheats", lines 308-318. -->
+  <h2>Cheats</h2>
+  <!-- README: line 310 (first paragraph) -->
+  <p class="lede">
+    A third tab for one-tap cheats, grouped into collapsible sections (health,
+    wanted, weapons, vehicle, world, toggles). All sections start open; tap a
+    header to collapse the ones you don't care about. Collapsed sections are
+    remembered across app launches.
+  </p>
+
+  <div class="two-col">
+    <!-- README: line 312 (GTA IV cheats list) -->
+    <div class="col">
+      <h3>GTA IV</h3>
+      <p>
+        The base-game phone-cheat set: heal, wanted +1 / clear, all weapons,
+        max ammo, fix vehicle, next weather, next time of day, parachute, and
+        the three named weapon-set cheats (advanced, poor, and the ultimate
+        482-555-0100 combo). Toggles: invincible, fast reload, never tired,
+        slow motion, police ignore.
+      </p>
+    </div>
+    <!-- README: line 314 (GTA V cheats list) -->
+    <div class="col">
+      <h3>GTA V</h3>
+      <p>
+        Every gameplay cheat from GTA V's own phone-cheat list: wanted -1,
+        fill special, skyfall, six spawn-car buttons (adder, zentorno, bati,
+        sanchez, frogger, bmx), plus toggles for infinite clip, fast run, low
+        gravity, drunk, fast swim, super jump, explosive ammo, explosive
+        melee, incendiary ammo, and slippery cars.
+      </p>
+    </div>
+  </div>
+
+  <!-- README: line 316 (toggle lights come from the game) -->
+  <p>
+    Toggle lights come from what the game reports, not from the tap, so a
+    toggle the game refuses never looks on. Tapped something that didn't work?
+    The last refusal shows as a short red line at the bottom in the plugin's
+    own words.
+  </p>
+
+  <!-- README: line 318 (GTA V cheat flag / achievements warning) -->
+  <p class="warn">
+    GTA V flags the save as cheated the first time you tap a cheat, same as
+    entering the code on the phone, so cheated saves block Achievements /
+    Trophies for that session. GTA IV has no equivalent flag.
+  </p>
+</section>
+
+<section class="section v-extras">
+  <!-- README: lines 236-244, "GTA V adds what only GTA V has". -->
+  <h2>GTA V adds what only GTA V has</h2>
+  <ul class="feature-bullets">
+    <li><strong>Three protagonists</strong> — accent colour, name and cash follow whoever you are playing (Michael / Franklin / Trevor); a &ldquo;switching&hellip;&rdquo; screen covers the character-switch camera.</li>
+    <li><strong>Special ability</strong> bar (ready / active / charging — the game exposes states, not a level).</li>
+    <li><strong>Five</strong> wanted stars instead of six.</li>
+    <li><strong>Vehicle class</strong> on the vehicle card, altitude for aircraft, no engine bar on bicycles, &ldquo;no radio&rdquo; where the vehicle has none.</li>
+    <li><strong>Radio picker built from the running game's own station list</strong>, matched by station name rather than index, so DLC stations and build-to-build reordering don't break it.</li>
+    <li>Tags for mission / cutscene / animal form; non-protagonist peds (Director Mode) get a neutral palette with cash and special hidden.</li>
+  </ul>
+  <!-- README: line 244 (story mode only) -->
+  <p class="note"><strong>Story mode only.</strong> In GTA Online the plugin publishes nothing but an &ldquo;online&rdquo; flag.</p>
+</section>
+
+<section class="section stick-lights">
+  <!-- README: section name "Wanted stick lights (AYN Thor)", lines 320-326. -->
+  <h2>Wanted stick lights</h2>
+  <!-- README: line 322 (first paragraph) -->
+  <p>
+    When the player picks up a wanted level, the Thor's analog-stick RGB rings
+    flash red and blue like a police light bar, one stick red and the other
+    blue, trading places on each beat. More stars means a faster beat (around
+    600 ms at one star, down to 400 ms at full stars). The sticks go dark
+    again the moment you lose the cops, and stay off during pause, loading,
+    GTA Online, or a character switch.
+  </p>
+</section>
+
+<section class="section needs">
+  <!-- README: section name "What you need", lines 66-76. Table reproduced verbatim. -->
+  <h2>What you need</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th></th><th>GTA IV</th><th>GTA V</th></tr>
+      </thead>
+      <tbody>
+        <tr><th scope="row">Game build</th><td>Complete Edition 1.2.0.59</td><td>any build your Script Hook V release supports</td></tr>
+        <tr><th scope="row">Plugin</th><td><code>ThorBridge.asi</code></td><td><code>ThorBridgeV.asi</code></td></tr>
+        <tr><th scope="row">ASI loader (<code>dinput8.dll</code>)</th><td><a href="https://github.com/ThirteenAG/Ultimate-ASI-Loader/releases">Ultimate ASI Loader</a>, 32-bit</td><td>the one that ships with Script Hook V</td></tr>
+        <tr><th scope="row">Also needed</th><td>—</td><td><code>ScriptHookV.dll</code></td></tr>
+        <tr><th scope="row">Modes</th><td>story + both episodes</td><td>story mode only</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- README: line 76 ("Plus, for either game...") -->
+  <p>Plus, for either game: the GTC app, and a launcher that lets you set per-game environment variables.</p>
+  <p>
+    Setup is six short steps.
+    <a href="https://github.com/BrianJr03/GrandTheftCompanion#quick-start">Read the Quick start in the README</a>
+    for the exact file placement and launch options.
+  </p>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <!-- README: line 64 ("Bring your own legitimately-purchased copy...") -->
+  <p>Bring your own legitimately-purchased copy of the game. GTA IV and GTA V are not included.</p>
+  <p>
+    Licensed under
+    <a href="https://github.com/BrianJr03/GrandTheftCompanion/blob/main/LICENSE">GPL-3.0-or-later</a>.
+    See
+    <a href="https://github.com/BrianJr03/GrandTheftCompanion/blob/main/LEGAL.md">LEGAL.md</a>
+    for trademark and attribution notes.
+  </p>
+  <!-- README: section "A note on AI usage", line 330, shortened to one sentence. -->
+  <p>Built in collaboration with Anthropic's Claude; everything that landed was reviewed, tested on-device and signed off by @BrianJr03.</p>
+  <!-- README: line 228 ("Issues welcome — please attach the plugin log.") -->
+  <p>
+    <a href="https://github.com/BrianJr03/GrandTheftCompanion/issues">Issues</a>
+    welcome. Please attach the plugin log.
+  </p>
+</footer>
+
+<script>
+  // Fetch the latest release tag from GitHub; fall back to the baked-in version
+  // if the request fails or the user is offline. No analytics, no third-party.
+  (function () {
+    var el = document.getElementById('latest-version');
+    if (!el) return;
+    fetch('https://api.github.com/repos/BrianJr03/GrandTheftCompanion/releases/latest', {
+      headers: { 'Accept': 'application/vnd.github+json' }
+    })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (j && typeof j.tag_name === 'string' && /^v\d/.test(j.tag_name)) {
+          el.textContent = j.tag_name;
+        }
+      })
+      .catch(function () { /* keep the fallback */ });
+  })();
+</script>
+
+</body>
+</html>

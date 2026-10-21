@@ -1,0 +1,407 @@
+/* Grand Theft Companion — one-page showcase. Dark theme, two accents
+   lifted from the README badges: #4F8FD0 blue, #C46A2A orange. System
+   font stack, no icon fonts, no third-party CSS. */
+
+:root {
+  --bg: #000;
+  --fg: #e9e9ea;
+  --muted: #a0a0a7;
+  --panel: #0e0e10;
+  --panel-2: #141418;
+  --border: #22222a;
+  --accent-blue: #4F8FD0;
+  --accent-orange: #C46A2A;
+  --warn-bg: rgba(196, 106, 42, 0.08);
+  --warn-border: rgba(196, 106, 42, 0.4);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --max: 1100px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+               Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; height: auto; display: block; }
+
+a {
+  color: var(--accent-blue);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+a:hover { border-bottom-color: currentColor; }
+
+code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.92em;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  padding: 0.08em 0.42em;
+  border-radius: 4px;
+  color: #d6d6dc;
+}
+
+h1, h2, h3 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin: 0 0 0.6em;
+}
+
+h1 { font-size: clamp(1.8rem, 5.5vw, 3.4rem); overflow-wrap: break-word; }
+h2 { font-size: clamp(1.4rem, 3.2vw, 2.1rem); overflow-wrap: break-word; }
+h3 { font-size: 1.1rem; }
+
+p { margin: 0 0 1em; }
+p:last-child { margin-bottom: 0; }
+
+ul { padding-left: 1.2em; }
+li { margin-bottom: 0.5em; }
+
+strong { color: #fff; font-weight: 600; }
+
+/* ---------- Hero ---------- */
+
+.hero {
+  position: relative;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 56px 24px 32px;
+  text-align: center;
+}
+
+.hero .repo-link {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.hero .logo {
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 16px;
+}
+
+.hero h1 {
+  margin-bottom: 0.3em;
+}
+
+.hero .tagline {
+  color: var(--muted);
+  font-size: 1.1rem;
+  max-width: 44ch;
+  margin: 0 auto 28px;
+}
+
+.cta {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  color: inherit;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+.btn:hover { transform: translateY(-1px); border-bottom-color: transparent; }
+.btn.primary {
+  background: var(--accent-blue);
+  color: #fff;
+}
+.btn.primary:hover { background: #5d9ddc; }
+.btn.ghost {
+  border-color: #2a2a33;
+  color: var(--fg);
+}
+.btn.ghost:hover { border-color: #45454f; }
+#latest-version {
+  font-weight: 500;
+  opacity: 0.9;
+  margin-left: 6px;
+}
+
+.hero-shots {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  max-width: 820px;
+  margin: 0 auto;
+}
+.hero-shots picture {
+  display: block;
+  min-width: 0;
+}
+.hero-shots img {
+  width: 100%;
+  border-radius: var(--radius);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  background: #050505;
+}
+
+/* ---------- Sections ---------- */
+
+main { padding: 0 24px; }
+
+.section {
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 72px 0;
+  border-top: 1px solid var(--border);
+}
+
+.section:first-child { border-top: none; }
+
+.section > h2 {
+  margin-bottom: 24px;
+}
+
+.lede {
+  font-size: 1.1rem;
+  color: #d4d4dc;
+  max-width: 68ch;
+  margin-bottom: 32px;
+}
+
+/* ---------- What-it-does cards ---------- */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.card h3 {
+  color: var(--accent-blue);
+  margin-bottom: 8px;
+}
+
+.card p {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* ---------- Feature rows ---------- */
+
+.feature {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: center;
+}
+
+.feature.image-right .feature-media { order: 2; }
+.feature.image-right .feature-text { order: 1; }
+.feature.image-left .feature-media { order: 1; }
+.feature.image-left .feature-text { order: 2; }
+
+.feature-text h2 { margin-bottom: 16px; }
+
+.feature-media img {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: #050505;
+}
+
+.feature-media.stacked {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.feature-media figure {
+  margin: 0;
+}
+
+.feature-media figcaption {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* ---------- Cheats ---------- */
+
+.cheats-section .lede { max-width: 72ch; }
+
+.two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  margin: 24px 0;
+}
+
+.two-col .col {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+}
+
+.two-col .col h3 {
+  color: var(--accent-orange);
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.two-col .col p {
+  color: #cfcfd5;
+  font-size: 0.96rem;
+}
+
+.warn {
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-border);
+  border-left: 3px solid var(--accent-orange);
+  border-radius: var(--radius-sm);
+  color: #e8d7c4;
+  font-size: 0.95rem;
+}
+
+/* ---------- GTA V extras ---------- */
+
+.v-extras .feature-bullets {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.v-extras .feature-bullets li {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-blue);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-bottom: 0;
+  color: #d4d4dc;
+  font-size: 0.96rem;
+}
+
+.v-extras .note {
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 0.98rem;
+}
+
+/* ---------- Table ---------- */
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 520px;
+}
+
+th, td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+thead th {
+  background: var(--panel-2);
+  color: var(--accent-blue);
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+tbody tr:last-child th,
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody th {
+  color: var(--muted);
+  font-weight: 500;
+  background: var(--panel-2);
+  width: 32%;
+}
+
+/* ---------- Footer ---------- */
+
+.site-footer {
+  max-width: var(--max);
+  margin: 40px auto 0;
+  padding: 36px 24px 56px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.site-footer p { margin-bottom: 10px; }
+.site-footer p:last-child { margin-bottom: 0; }
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 820px) {
+  body { font-size: 16px; }
+
+  .hero { padding: 44px 20px 24px; }
+  .hero .logo { width: 92px; height: 92px; }
+  .hero .tagline { font-size: 1rem; }
+
+  .cards { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .feature { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .feature.image-right .feature-text,
+  .feature.image-left .feature-text { order: 1; }
+  .feature.image-right .feature-media,
+  .feature.image-left .feature-media { order: 2; }
+  .two-col { grid-template-columns: minmax(0, 1fr); }
+  .v-extras .feature-bullets { grid-template-columns: minmax(0, 1fr); }
+  .section { padding: 56px 0; }
+}
+
+@media (max-width: 480px) {
+  main { padding: 0 16px; }
+  .hero { padding: 36px 16px 20px; }
+  .hero-shots { gap: 10px; }
+  .cards { grid-template-columns: minmax(0, 1fr); }
+  .cta { gap: 8px; }
+  .btn { padding: 11px 18px; }
+  table { min-width: 440px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  .btn:hover { transform: none; }
+}
