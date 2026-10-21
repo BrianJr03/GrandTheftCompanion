@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -273,10 +274,20 @@ internal fun MirrorMapScreen(
         if (status == ScreenMirror.Status.Idle) {
             Row(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 2.dp, end = 2.dp),
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .padding(top = 2.dp, start = 2.dp, end = 2.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
+                Text(
+                    stringResource(R.string.map_header_title),
+                    color = accent,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    modifier = Modifier.weight(1f),
+                )
                 onOpenHud?.let { open ->
                     HeaderIconButton(
                         icon = Icons.Filled.Home,

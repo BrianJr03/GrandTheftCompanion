@@ -160,6 +160,7 @@
     <string name="map_cheats_cd">trucos, tocar para abrir</string>
     <string name="cheats_map_cd">mapa, tocar para abrir</string>
     <string name="nav_hud_cd">hud, tocar para abrir</string>
+    <string name="map_header_title">mapa</string>
     <string name="map_blips_title">iconos del mapa</string>
     <string name="map_blips_none">sin iconos todavía — requiere el juego cargado y ThorBridgeV 0.3.0+ / ThorBridge en nivel nativos 5</string>
     <string name="map_blips_count">%1$d iconos, los más cercanos primero</string>

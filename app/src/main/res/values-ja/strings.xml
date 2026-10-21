@@ -160,6 +160,7 @@
     <string name="map_cheats_cd">チート、タップで開く</string>
     <string name="cheats_map_cd">マップ、タップで開く</string>
     <string name="nav_hud_cd">HUD、タップで開く</string>
+    <string name="map_header_title">マップ</string>
     <string name="map_blips_title">マップのアイコン</string>
     <string name="map_blips_none">まだアイコンがありません — ゲームの読み込みと ThorBridgeV 0.3.0+ / ThorBridge のネイティブレベル 5 が必要です</string>
     <string name="map_blips_count">%1$d 個のアイコン、近い順</string>

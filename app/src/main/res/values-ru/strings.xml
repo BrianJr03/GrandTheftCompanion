@@ -160,6 +160,7 @@
     <string name="map_cheats_cd">читы, нажмите, чтобы открыть</string>
     <string name="cheats_map_cd">карта, нажмите, чтобы открыть</string>
     <string name="nav_hud_cd">HUD, нажмите, чтобы открыть</string>
+    <string name="map_header_title">карта</string>
     <string name="map_blips_title">иконки карты</string>
     <string name="map_blips_none">иконок пока нет — требуется загруженная игра и ThorBridgeV 0.3.0+ / ThorBridge на уровне нативов 5</string>
     <string name="map_blips_count">%1$d иконок, сначала ближайшие</string>

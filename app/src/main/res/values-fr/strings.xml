@@ -160,6 +160,7 @@
     <string name="map_cheats_cd">triches, appuyer pour ouvrir</string>
     <string name="cheats_map_cd">carte, appuyer pour ouvrir</string>
     <string name="nav_hud_cd">interface, appuyer pour ouvrir</string>
+    <string name="map_header_title">carte</string>
     <string name="map_blips_title">icônes carte</string>
     <string name="map_blips_none">aucune icône pour l\'instant — nécessite le jeu chargé et ThorBridgeV 0.3.0+ / ThorBridge au niveau natifs 5</string>
     <string name="map_blips_count">%1$d icônes, les plus proches d\'abord</string>

@@ -97,6 +97,7 @@
     <string name="map_cheats_cd">cheats, tap to open</string>
     <string name="cheats_map_cd">map, tap to open</string>
     <string name="nav_hud_cd">hud, tap to open</string>
+    <string name="map_header_title">map</string>
     <string name="car_chip_cd">in a vehicle, tap to jump to the minimap</string>
     <string name="settings_icon_cd">companion settings</string>
     <string name="settings_title">Settings</string>
