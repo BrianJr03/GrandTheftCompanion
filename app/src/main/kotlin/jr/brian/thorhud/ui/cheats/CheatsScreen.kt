@@ -30,10 +30,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
@@ -346,6 +348,13 @@ private fun CheatsOnboardingSheet(accent: Color, onDismiss: () -> Unit) {
     val pager = rememberPagerState(initialPage = 0) { 2 }
     val scope = rememberCoroutineScope()
     val dim = Color(0xFF6A7A6E)
+    val animatedDismiss: () -> Unit = {
+        scope.launch {
+            sheet.hide()
+            onDismiss()
+        }
+        Unit
+    }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheet,
@@ -357,13 +366,26 @@ private fun CheatsOnboardingSheet(accent: Color, onDismiss: () -> Unit) {
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 20.dp),
         ) {
-            Text(
-                stringResource(R.string.cheats_onboarding_title),
-                color = accent,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(R.string.cheats_onboarding_title),
+                    color = accent,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = animatedDismiss) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.settings_close),
+                        tint = accent,
+                    )
+                }
+            }
             Spacer(Modifier.height(14.dp))
             HorizontalPager(state = pager, modifier = Modifier.fillMaxWidth()) { page ->
                 val title = if (page == 0) R.string.cheats_onboarding_slide1_title
@@ -408,7 +430,7 @@ private fun CheatsOnboardingSheet(accent: Color, onDismiss: () -> Unit) {
                     if (pager.currentPage < 1) {
                         scope.launch { pager.animateScrollToPage(1) }
                     } else {
-                        onDismiss()
+                        animatedDismiss()
                     }
                 }
                 TextButton(onClick = onPrimary) {

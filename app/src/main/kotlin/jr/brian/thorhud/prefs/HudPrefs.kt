@@ -61,38 +61,36 @@ class HudPrefs @Inject constructor(
     // StateFlow-backed so Compose redraws immediately when the user
     // flips a switch in the settings sheet. The prefs file is still
     // the source of truth on next launch.
+    //
+    // Every user-visible toggle below is stored per game ("iv" vs "v")
+    // so flipping a switch while playing IV does not change the V
+    // experience and vice-versa. One-shot migration from the legacy
+    // shared pref seeds both games with the user's previous value;
+    // the shared key is then removed.
 
-    private val _autoSwipeOnDrive =
-        MutableStateFlow(prefs.getBoolean(KEY_AUTO_SWIPE_ON_DRIVE, false))
-    val autoSwipeOnDrive: StateFlow<Boolean> = _autoSwipeOnDrive.asStateFlow()
-    fun setAutoSwipeOnDrive(enabled: Boolean) {
-        _autoSwipeOnDrive.value = enabled
-        prefs.edit().putBoolean(KEY_AUTO_SWIPE_ON_DRIVE, enabled).apply()
-    }
+    private val autoSwipeFlows = perGameBool(KEY_AUTO_SWIPE_ON_DRIVE, default = false)
+    fun autoSwipeOnDrive(gameKey: String): StateFlow<Boolean> =
+        requirePerGameFlow(autoSwipeFlows, gameKey)
+    fun setAutoSwipeOnDrive(gameKey: String, enabled: Boolean) =
+        setPerGameBool(autoSwipeFlows, KEY_AUTO_SWIPE_ON_DRIVE, gameKey, enabled)
 
-    private val _autoStartMirror =
-        MutableStateFlow(prefs.getBoolean(KEY_AUTO_START_MIRROR, false))
-    val autoStartMirror: StateFlow<Boolean> = _autoStartMirror.asStateFlow()
-    fun setAutoStartMirror(enabled: Boolean) {
-        _autoStartMirror.value = enabled
-        prefs.edit().putBoolean(KEY_AUTO_START_MIRROR, enabled).apply()
-    }
+    private val autoStartMirrorFlows = perGameBool(KEY_AUTO_START_MIRROR, default = false)
+    fun autoStartMirror(gameKey: String): StateFlow<Boolean> =
+        requirePerGameFlow(autoStartMirrorFlows, gameKey)
+    fun setAutoStartMirror(gameKey: String, enabled: Boolean) =
+        setPerGameBool(autoStartMirrorFlows, KEY_AUTO_START_MIRROR, gameKey, enabled)
 
-    private val _alwaysReturnToHud =
-        MutableStateFlow(prefs.getBoolean(KEY_ALWAYS_RETURN_TO_HUD, false))
-    val alwaysReturnToHud: StateFlow<Boolean> = _alwaysReturnToHud.asStateFlow()
-    fun setAlwaysReturnToHud(enabled: Boolean) {
-        _alwaysReturnToHud.value = enabled
-        prefs.edit().putBoolean(KEY_ALWAYS_RETURN_TO_HUD, enabled).apply()
-    }
+    private val alwaysReturnToHudFlows = perGameBool(KEY_ALWAYS_RETURN_TO_HUD, default = false)
+    fun alwaysReturnToHud(gameKey: String): StateFlow<Boolean> =
+        requirePerGameFlow(alwaysReturnToHudFlows, gameKey)
+    fun setAlwaysReturnToHud(gameKey: String, enabled: Boolean) =
+        setPerGameBool(alwaysReturnToHudFlows, KEY_ALWAYS_RETURN_TO_HUD, gameKey, enabled)
 
-    private val _mapControlsRight =
-        MutableStateFlow(prefs.getBoolean(KEY_MAP_CONTROLS_RIGHT, false))
-    val mapControlsRight: StateFlow<Boolean> = _mapControlsRight.asStateFlow()
-    fun setMapControlsRight(enabled: Boolean) {
-        _mapControlsRight.value = enabled
-        prefs.edit().putBoolean(KEY_MAP_CONTROLS_RIGHT, enabled).apply()
-    }
+    private val mapControlsRightFlows = perGameBool(KEY_MAP_CONTROLS_RIGHT, default = false)
+    fun mapControlsRight(gameKey: String): StateFlow<Boolean> =
+        requirePerGameFlow(mapControlsRightFlows, gameKey)
+    fun setMapControlsRight(gameKey: String, enabled: Boolean) =
+        setPerGameBool(mapControlsRightFlows, KEY_MAP_CONTROLS_RIGHT, gameKey, enabled)
 
     // Weapon wheel slot order per game. Stored as a comma-separated
     // list of VWheelSlot ordinals (0..7); default is the natural
@@ -107,31 +105,33 @@ class HudPrefs @Inject constructor(
     fun setWheelOrder(gameKey: String, order: List<Int>) {
         if (!isValidWheelOrder(order)) return
         prefs.edit().putString(wheelOrderKey(gameKey), order.joinToString(",")).apply()
-        flowFor(gameKey)?.value = order
+        wheelFlowFor(gameKey)?.value = order
     }
 
     fun resetWheelOrder(gameKey: String) {
         prefs.edit().remove(wheelOrderKey(gameKey)).apply()
-        flowFor(gameKey)?.value = DEFAULT_WHEEL_ORDER
+        wheelFlowFor(gameKey)?.value = DEFAULT_WHEEL_ORDER
     }
 
     // Cheat section expand/collapse state. We store the set of
     // COLLAPSED category names (CheatCategory.name — "Health",
     // "Wanted", ...) so the empty-set default naturally means every
     // section is expanded, which is what a first-time user wants.
-    // Shared across games.
-    private val _collapsedCheatSections = MutableStateFlow(
-        prefs.getStringSet(KEY_COLLAPSED_CHEAT_SECTIONS, emptySet())
-            .orEmpty().toSet()
-    )
-    val collapsedCheatSections: StateFlow<Set<String>> =
-        _collapsedCheatSections.asStateFlow()
-    fun setCheatSectionCollapsed(category: String, collapsed: Boolean) {
-        val cur = _collapsedCheatSections.value
+    // Per-game: IV and V have different category shapes (V has
+    // Vehicle, IV skips it, etc.), and a collapse layout a user
+    // picks for one game is their choice for that game only.
+    private val collapsedCheatSectionFlows = perGameStringSet(KEY_COLLAPSED_CHEAT_SECTIONS)
+    fun collapsedCheatSections(gameKey: String): StateFlow<Set<String>> =
+        requirePerGameFlow(collapsedCheatSectionFlows, gameKey)
+    fun setCheatSectionCollapsed(gameKey: String, category: String, collapsed: Boolean) {
+        val flow = collapsedCheatSectionFlows[gameKey] ?: return
+        val cur = flow.value
         val next = if (collapsed) cur + category else cur - category
         if (next == cur) return
-        _collapsedCheatSections.value = next
-        prefs.edit().putStringSet(KEY_COLLAPSED_CHEAT_SECTIONS, next).apply()
+        flow.value = next
+        prefs.edit()
+            .putStringSet("${KEY_COLLAPSED_CHEAT_SECTIONS}_$gameKey", next)
+            .apply()
     }
 
     // User's PERSISTED intent for which cheat toggles should be on.
@@ -139,56 +139,56 @@ class HudPrefs @Inject constructor(
     // relaunch the plugin's mask resets to zero; CheatsViewModel's
     // reconciler sends the matching `cheat` commands so the player's
     // chosen loadout comes back on its own.
-    // Keyed as decimal cheat ids ("20", "26", …) in a StringSet because
-    // SharedPreferences has no native integer-set type.
-    private val _enabledCheatToggles = MutableStateFlow(
-        prefs.getStringSet(KEY_ENABLED_CHEAT_TOGGLES, emptySet())
-            .orEmpty()
-            .mapNotNull { it.toIntOrNull() }
-            .toSet()
-    )
-    val enabledCheatToggles: StateFlow<Set<Int>> =
-        _enabledCheatToggles.asStateFlow()
-    fun setCheatToggleEnabled(id: Int, enabled: Boolean) {
-        val cur = _enabledCheatToggles.value
+    //
+    // Per-game. Cheat ids between IV and V are different id spaces,
+    // so a bag of ids only makes sense for one game at a time —
+    // leaking IV ids into V would re-fire gibberish or get refused.
+    private val enabledCheatToggleFlows = perGameIntSet(KEY_ENABLED_CHEAT_TOGGLES)
+    fun enabledCheatToggles(gameKey: String): StateFlow<Set<Int>> =
+        requirePerGameFlow(enabledCheatToggleFlows, gameKey)
+    fun setCheatToggleEnabled(gameKey: String, id: Int, enabled: Boolean) {
+        val flow = enabledCheatToggleFlows[gameKey] ?: return
+        val cur = flow.value
         val next = if (enabled) cur + id else cur - id
         if (next == cur) return
-        _enabledCheatToggles.value = next
+        flow.value = next
         prefs.edit()
-            .putStringSet(KEY_ENABLED_CHEAT_TOGGLES, next.map { it.toString() }.toSet())
+            .putStringSet(
+                "${KEY_ENABLED_CHEAT_TOGGLES}_$gameKey",
+                next.map { it.toString() }.toSet(),
+            )
             .apply()
     }
 
     // Whether to auto-re-apply the persisted toggles on connect.
     // Default on — a user who turned invincible + police-ignore on in
     // last night's session expects them to still be on tonight.
-    private val _autoReapplyCheats =
-        MutableStateFlow(prefs.getBoolean(KEY_AUTO_REAPPLY_CHEATS, true))
-    val autoReapplyCheats: StateFlow<Boolean> = _autoReapplyCheats.asStateFlow()
-    fun setAutoReapplyCheats(enabled: Boolean) {
-        _autoReapplyCheats.value = enabled
-        prefs.edit().putBoolean(KEY_AUTO_REAPPLY_CHEATS, enabled).apply()
-    }
+    private val autoReapplyCheatFlows = perGameBool(KEY_AUTO_REAPPLY_CHEATS, default = true)
+    fun autoReapplyCheats(gameKey: String): StateFlow<Boolean> =
+        requirePerGameFlow(autoReapplyCheatFlows, gameKey)
+    fun setAutoReapplyCheats(gameKey: String, enabled: Boolean) =
+        setPerGameBool(autoReapplyCheatFlows, KEY_AUTO_REAPPLY_CHEATS, gameKey, enabled)
 
     // One-shot cheat ids the user flagged (via long-press) for
     // auto-fire on reconnect. Reconciler fires each one once per
     // safe-state entry (unlike toggles, which also check whether
     // the mask bit is already on). The same auto-reapply master
-    // switch gates both.
-    private val _autoApplyCheats = MutableStateFlow(
-        prefs.getStringSet(KEY_AUTO_APPLY_CHEATS, emptySet())
-            .orEmpty()
-            .mapNotNull { it.toIntOrNull() }
-            .toSet()
-    )
-    val autoApplyCheats: StateFlow<Set<Int>> = _autoApplyCheats.asStateFlow()
-    fun setCheatAutoApply(id: Int, enabled: Boolean) {
-        val cur = _autoApplyCheats.value
+    // switch gates both. Per-game for the same reason as the
+    // enabled-toggles bag above.
+    private val autoApplyCheatFlows = perGameIntSet(KEY_AUTO_APPLY_CHEATS)
+    fun autoApplyCheats(gameKey: String): StateFlow<Set<Int>> =
+        requirePerGameFlow(autoApplyCheatFlows, gameKey)
+    fun setCheatAutoApply(gameKey: String, id: Int, enabled: Boolean) {
+        val flow = autoApplyCheatFlows[gameKey] ?: return
+        val cur = flow.value
         val next = if (enabled) cur + id else cur - id
         if (next == cur) return
-        _autoApplyCheats.value = next
+        flow.value = next
         prefs.edit()
-            .putStringSet(KEY_AUTO_APPLY_CHEATS, next.map { it.toString() }.toSet())
+            .putStringSet(
+                "${KEY_AUTO_APPLY_CHEATS}_$gameKey",
+                next.map { it.toString() }.toSet(),
+            )
             .apply()
     }
 
@@ -201,18 +201,19 @@ class HudPrefs @Inject constructor(
         }
 
     /** Wipe both persisted cheat sets (toggles the user had on, and
-     *  one-shots long-pressed for auto-apply). Leaves the master
-     *  auto-reapply switch and the onboarding-seen flag alone. */
-    fun clearAutoCheats() {
-        _enabledCheatToggles.value = emptySet()
-        _autoApplyCheats.value = emptySet()
+     *  one-shots long-pressed for auto-apply) for one game. Leaves
+     *  the master auto-reapply switch and the onboarding-seen flag
+     *  alone, and does not touch the other game's bag. */
+    fun clearAutoCheats(gameKey: String) {
+        enabledCheatToggleFlows[gameKey]?.value = emptySet()
+        autoApplyCheatFlows[gameKey]?.value = emptySet()
         prefs.edit()
-            .remove(KEY_ENABLED_CHEAT_TOGGLES)
-            .remove(KEY_AUTO_APPLY_CHEATS)
+            .remove("${KEY_ENABLED_CHEAT_TOGGLES}_$gameKey")
+            .remove("${KEY_AUTO_APPLY_CHEATS}_$gameKey")
             .apply()
     }
 
-    private fun flowFor(gameKey: String) = when (gameKey) {
+    private fun wheelFlowFor(gameKey: String) = when (gameKey) {
         "iv" -> _ivWheelOrder
         "v"  -> _vWheelOrder
         else -> null
@@ -228,6 +229,91 @@ class HudPrefs @Inject constructor(
 
     private fun isValidWheelOrder(order: List<Int>): Boolean =
         order.size == DEFAULT_WHEEL_ORDER.size && order.toSet() == DEFAULT_WHEEL_ORDER.toSet()
+
+    // Build the (iv, v) pair of flows for a per-game boolean pref.
+    // Also runs one-shot migration from the pre-split shared key: if
+    // the legacy key is present, seed any still-missing per-game key
+    // with that value, then remove the shared key so subsequent
+    // launches skip this.
+    private fun perGameBool(
+        baseKey: String,
+        default: Boolean,
+    ): Map<String, MutableStateFlow<Boolean>> {
+        if (prefs.contains(baseKey)) {
+            val shared = prefs.getBoolean(baseKey, default)
+            val edit = prefs.edit()
+            for (g in GAME_KEYS) {
+                val perKey = "${baseKey}_$g"
+                if (!prefs.contains(perKey)) edit.putBoolean(perKey, shared)
+            }
+            edit.remove(baseKey).apply()
+        }
+        return GAME_KEYS.associateWith { g ->
+            MutableStateFlow(prefs.getBoolean("${baseKey}_$g", default))
+        }
+    }
+
+    // String-set version. The legacy shared value, if present, is
+    // migrated into both games on first launch (the shared key is
+    // then removed) — category names are the same label space on
+    // both HUDs, so a user who had "Vehicle" collapsed before the
+    // split probably still wants it collapsed on both.
+    private fun perGameStringSet(
+        baseKey: String,
+    ): Map<String, MutableStateFlow<Set<String>>> {
+        if (prefs.contains(baseKey)) {
+            val shared = prefs.getStringSet(baseKey, emptySet()).orEmpty().toSet()
+            val edit = prefs.edit()
+            for (g in GAME_KEYS) {
+                val perKey = "${baseKey}_$g"
+                if (!prefs.contains(perKey)) edit.putStringSet(perKey, shared)
+            }
+            edit.remove(baseKey).apply()
+        }
+        return GAME_KEYS.associateWith { g ->
+            MutableStateFlow(
+                prefs.getStringSet("${baseKey}_$g", emptySet()).orEmpty().toSet()
+            )
+        }
+    }
+
+    // Int-set version of perGameBool. The legacy shared key, if
+    // present, is DROPPED rather than migrated: id spaces between
+    // IV and V don't line up and copying the old bag into one game
+    // would plant cheats the plugin can't identify.
+    private fun perGameIntSet(
+        baseKey: String,
+    ): Map<String, MutableStateFlow<Set<Int>>> {
+        if (prefs.contains(baseKey)) {
+            prefs.edit().remove(baseKey).apply()
+        }
+        return GAME_KEYS.associateWith { g ->
+            MutableStateFlow(
+                prefs.getStringSet("${baseKey}_$g", emptySet())
+                    .orEmpty()
+                    .mapNotNull { it.toIntOrNull() }
+                    .toSet()
+            )
+        }
+    }
+
+    private fun <T> requirePerGameFlow(
+        map: Map<String, MutableStateFlow<T>>,
+        gameKey: String,
+    ): StateFlow<T> =
+        (map[gameKey] ?: error("Unknown game key: $gameKey")).asStateFlow()
+
+    private fun setPerGameBool(
+        map: Map<String, MutableStateFlow<Boolean>>,
+        baseKey: String,
+        gameKey: String,
+        enabled: Boolean,
+    ) {
+        val flow = map[gameKey] ?: return
+        if (flow.value == enabled) return
+        flow.value = enabled
+        prefs.edit().putBoolean("${baseKey}_$gameKey", enabled).apply()
+    }
 
     private companion object {
         const val FILE = "hud_prefs"
@@ -247,5 +333,6 @@ class HudPrefs @Inject constructor(
         const val KEY_AUTO_APPLY_CHEATS = "auto_apply_cheats"
         const val KEY_SEEN_CHEATS_ONBOARDING = "seen_cheats_onboarding"
         val DEFAULT_WHEEL_ORDER: List<Int> = (0..7).toList()
+        val GAME_KEYS = listOf("iv", "v")
     }
 }

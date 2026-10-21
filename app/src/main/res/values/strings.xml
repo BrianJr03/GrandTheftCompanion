@@ -231,6 +231,10 @@
     <string name="episode_tlad" translatable="false">The Lost and Damned</string>
     <string name="episode_tbogt" translatable="false">The Ballad of Gay Tony</string>
 
+    <!-- Settings sheet tab labels for the per-game pager. -->
+    <string name="settings_tab_iv" translatable="false">GTA IV</string>
+    <string name="settings_tab_v" translatable="false">GTA V</string>
+
     <!-- Content descriptions for the wanted-level star icons -->
     <string name="wanted_star_lit">wanted star %1$d lit</string>
     <string name="wanted_star_dim">wanted star %1$d dim</string>

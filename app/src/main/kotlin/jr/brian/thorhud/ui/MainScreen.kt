@@ -18,7 +18,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
@@ -51,6 +55,7 @@ import jr.brian.thorhud.ui.components.IvWeaponWheelOverlay
 import jr.brian.thorhud.ui.components.MoneyRadioPanel
 import jr.brian.thorhud.ui.components.PausedScreen
 import jr.brian.thorhud.ui.components.RadioPanel
+import jr.brian.thorhud.ui.components.SettingsGamePanel
 import jr.brian.thorhud.ui.components.SettingsSheet
 import jr.brian.thorhud.ui.components.RadioPicker
 import jr.brian.thorhud.ui.components.SetupScreen
@@ -203,11 +208,27 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     // Shows the same picker that lives on the HUD tab, so changing
     // stations without swiping back is a tap away.
     var showRadioSheet by rememberSaveable { mutableStateOf(false) }
-    val autoSwipeOnDrive by viewModel.autoSwipeOnDrive.collectAsStateWithLifecycle()
-    val autoStartMirror by viewModel.autoStartMirror.collectAsStateWithLifecycle()
-    val alwaysReturnToHud by viewModel.alwaysReturnToHud.collectAsStateWithLifecycle()
-    val mapControlsRight by viewModel.mapControlsRight.collectAsStateWithLifecycle()
-    val autoReapplyCheats by viewModel.autoReapplyCheats.collectAsStateWithLifecycle()
+    val gameKey = if (isGtaV) "v" else "iv"
+    // Collect per-game settings for both games up front. The current
+    // game's values drive the auto-swipe-on-drive / auto-start-mirror
+    // LaunchedEffects below; the whole pair also feeds the settings
+    // sheet's IV + V panels when the setup screen opens it.
+    val ivAutoSwipe by viewModel.autoSwipeOnDrive("iv").collectAsStateWithLifecycle()
+    val vAutoSwipe by viewModel.autoSwipeOnDrive("v").collectAsStateWithLifecycle()
+    val ivAutoStartMirror by viewModel.autoStartMirror("iv").collectAsStateWithLifecycle()
+    val vAutoStartMirror by viewModel.autoStartMirror("v").collectAsStateWithLifecycle()
+    val ivAlwaysReturn by viewModel.alwaysReturnToHud("iv").collectAsStateWithLifecycle()
+    val vAlwaysReturn by viewModel.alwaysReturnToHud("v").collectAsStateWithLifecycle()
+    val ivMapControlsRight by viewModel.mapControlsRight("iv").collectAsStateWithLifecycle()
+    val vMapControlsRight by viewModel.mapControlsRight("v").collectAsStateWithLifecycle()
+    val ivAutoReapplyCheats by viewModel.autoReapplyCheats("iv")
+        .collectAsStateWithLifecycle()
+    val vAutoReapplyCheats by viewModel.autoReapplyCheats("v")
+        .collectAsStateWithLifecycle()
+    val autoSwipeOnDrive = if (isGtaV) vAutoSwipe else ivAutoSwipe
+    val autoStartMirror = if (isGtaV) vAutoStartMirror else ivAutoStartMirror
+    val alwaysReturnToHud = if (isGtaV) vAlwaysReturn else ivAlwaysReturn
+    val mapControlsRight = if (isGtaV) vMapControlsRight else ivMapControlsRight
     val reconnecting by viewModel.reconnecting.collectAsStateWithLifecycle()
 
     // Hoisted mirror-consent launcher so both MirrorMapScreen's
@@ -242,8 +263,6 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             viewModel.clearWeaponPick()
         }
     }
-
-    val gameKey = if (isGtaV) "v" else "iv"
 
     // One-time swipe hint on the first connected run. Dismissing
     // writes a prefs flag so it never shows again.
@@ -512,29 +531,64 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             show = showBlips,
             onClose = { viewModel.setBlips(false) },
         )
-        if (showSettings) {
-            val cheatsViewModel: CheatsViewModel = hiltViewModel()
-            SettingsSheet(
-                palette = if (isGtaV) vCharacterOf(state?.character).palette
-                          else paletteFor(liveState?.episode ?: state?.episode),
-                autoSwipeOnDrive = autoSwipeOnDrive,
-                onAutoSwipeChange = viewModel::setAutoSwipeOnDrive,
-                autoStartMirror = autoStartMirror,
-                onAutoStartMirrorChange = viewModel::setAutoStartMirror,
-                alwaysReturnToHud = alwaysReturnToHud,
-                onAlwaysReturnToHudChange = viewModel::setAlwaysReturnToHud,
-                mapControlsRight = mapControlsRight,
-                onMapControlsRightChange = viewModel::setMapControlsRight,
-                autoReapplyCheats = autoReapplyCheats,
-                onAutoReapplyCheatsChange = viewModel::setAutoReapplyCheats,
-                onClearSavedCheats = cheatsViewModel::clearSavedCheats,
-                cheatsClearedEvents = cheatsViewModel.clearedEvents,
-                onReconnectPlugin = viewModel::reconnectPlugin,
-                isReconnecting = reconnecting,
-                reconnectEvents = viewModel.reconnectEvents,
-                onDismiss = { showSettings = false },
-            )
+        // SettingsSheet is composed unconditionally so FullScreenSheet
+        // can play its slide-out animation on close. Panels and the
+        // Hilt VM are cheap to resolve each frame; the inner
+        // AnimatedVisibility gates actual rendering.
+        val cheatsViewModelForSettings: CheatsViewModel = hiltViewModel()
+        // Palettes default sensibly when nothing is connected
+        // (paletteFor(null) → neutral IV orange, vCharacterOf(null)
+        // → V default) so the pager still has colour in the setup
+        // screen's two-tab mode.
+        val ivPanel = SettingsGamePanel(
+            label = stringResource(R.string.settings_tab_iv),
+            palette = paletteFor(liveState?.episode ?: state?.episode),
+            autoSwipeOnDrive = ivAutoSwipe,
+            onAutoSwipeChange = { viewModel.setAutoSwipeOnDrive("iv", it) },
+            autoStartMirror = ivAutoStartMirror,
+            onAutoStartMirrorChange = { viewModel.setAutoStartMirror("iv", it) },
+            alwaysReturnToHud = ivAlwaysReturn,
+            onAlwaysReturnToHudChange = { viewModel.setAlwaysReturnToHud("iv", it) },
+            mapControlsRight = ivMapControlsRight,
+            onMapControlsRightChange = { viewModel.setMapControlsRight("iv", it) },
+            autoReapplyCheats = ivAutoReapplyCheats,
+            onAutoReapplyCheatsChange = { viewModel.setAutoReapplyCheats("iv", it) },
+            onClearSavedCheats = { cheatsViewModelForSettings.clearSavedCheats("iv") },
+        )
+        val vPanel = SettingsGamePanel(
+            label = stringResource(R.string.settings_tab_v),
+            palette = vCharacterOf(state?.character).palette,
+            autoSwipeOnDrive = vAutoSwipe,
+            onAutoSwipeChange = { viewModel.setAutoSwipeOnDrive("v", it) },
+            autoStartMirror = vAutoStartMirror,
+            onAutoStartMirrorChange = { viewModel.setAutoStartMirror("v", it) },
+            alwaysReturnToHud = vAlwaysReturn,
+            onAlwaysReturnToHudChange = { viewModel.setAlwaysReturnToHud("v", it) },
+            mapControlsRight = vMapControlsRight,
+            onMapControlsRightChange = { viewModel.setMapControlsRight("v", it) },
+            autoReapplyCheats = vAutoReapplyCheats,
+            onAutoReapplyCheatsChange = { viewModel.setAutoReapplyCheats("v", it) },
+            onClearSavedCheats = { cheatsViewModelForSettings.clearSavedCheats("v") },
+        )
+        // Setup screen (no plugin frames at all) shows both tabs so
+        // the user can pre-configure either game. The moment a frame
+        // arrives, hello.isGtaV decides which single tab the in-game
+        // sheet opens on.
+        val panels = when {
+            isDisconnected -> listOf(ivPanel, vPanel)
+            isGtaV         -> listOf(vPanel)
+            else           -> listOf(ivPanel)
         }
+        SettingsSheet(
+            visible = showSettings,
+            panels = panels,
+            initialPage = 0,
+            cheatsClearedEvents = cheatsViewModelForSettings.clearedEvents,
+            onReconnectPlugin = viewModel::reconnectPlugin,
+            isReconnecting = reconnecting,
+            reconnectEvents = viewModel.reconnectEvents,
+            onDismiss = { showSettings = false },
+        )
         if (showRadioSheet) {
             val vStations by viewModel.stations.collectAsStateWithLifecycle()
             RadioSheet(
@@ -736,6 +790,14 @@ private fun RadioSheet(
         skipPartiallyExpanded = true,
         confirmValueChange = { it != SheetValue.PartiallyExpanded },
     )
+    val sheetScope = rememberCoroutineScope()
+    val animatedDismiss: () -> Unit = {
+        sheetScope.launch {
+            sheet.hide()
+            onDismiss()
+        }
+        Unit
+    }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheet,
@@ -748,6 +810,18 @@ private fun RadioSheet(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 20.dp),
         ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                IconButton(onClick = animatedDismiss) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = stringResource(R.string.settings_close),
+                        tint = palette.accent,
+                    )
+                }
+            }
             if (isGtaV) {
                 VRadioPicker(
                     stations = vStations,

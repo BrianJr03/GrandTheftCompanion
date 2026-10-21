@@ -5,16 +5,21 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jr.brian.thorhud.net.GameStateRepository
 import jr.brian.thorhud.prefs.HudPrefs
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
@@ -44,6 +49,7 @@ internal data class CheatResult(val cheatId: Int, val error: String? = null)
  * soon as the game reports a safe state (see [GameState.isCheatSafe]).
  * The user can disable the auto-re-apply via a Settings toggle.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 internal class CheatsViewModel @Inject constructor(
     private val repository: GameStateRepository,
@@ -54,46 +60,60 @@ internal class CheatsViewModel @Inject constructor(
     val result: StateFlow<CheatResult?> = _result.asStateFlow()
     private var pending: Job? = null
 
-    /** Category names (CheatCategory.name) the user has collapsed on
-     *  the cheats tab. Empty by default = every section is expanded,
-     *  which is what first-time users see. Persisted across launches. */
-    val collapsedSections: StateFlow<Set<String>> = prefs.collapsedCheatSections
+    // The connected game, as a HudPrefs key. Follows the hello frame,
+    // defaulting to "iv" before anything has connected so the reconciler
+    // and the UI have a sensible starting bag to read from.
+    private val currentGameKey: StateFlow<String> = repository.hello
+        .map { if (it?.isGtaV == true) "v" else "iv" }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "iv")
 
-    /** Flip a section's collapse state. [category] is CheatCategory.name. */
+    private fun gameKey(): String = currentGameKey.value
+
+    /** Category names (CheatCategory.name) the user has collapsed on
+     *  the cheats tab, for the currently connected game. Empty by
+     *  default = every section is expanded, which is what first-time
+     *  users see. Persisted across launches, per game. */
+    val collapsedSections: StateFlow<Set<String>> = currentGameKey
+        .flatMapLatest { prefs.collapsedCheatSections(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
+
+    /** Flip a section's collapse state for the connected game.
+     *  [category] is CheatCategory.name. */
     fun setSectionCollapsed(category: String, collapsed: Boolean) {
-        prefs.setCheatSectionCollapsed(category, collapsed)
+        prefs.setCheatSectionCollapsed(gameKey(), category, collapsed)
     }
 
     /** One-shot cheat ids the user has flagged (via long-press) for
      *  auto-fire on reconnect. Lit on the cheats tab the same way
      *  active toggles are, so the user can tell which one-shots are
-     *  armed at a glance. */
-    val autoApplyCheats: StateFlow<Set<Int>> = prefs.autoApplyCheats
-
-    /** True if a one-shot id is armed for auto-fire. UI uses this to
-     *  render the button as filled rather than outlined. */
-    fun isAutoApply(id: Int): Boolean = prefs.autoApplyCheats.value.contains(id)
+     *  armed at a glance. Follows the connected game. */
+    val autoApplyCheats: StateFlow<Set<Int>> = currentGameKey
+        .flatMapLatest { prefs.autoApplyCheats(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptySet())
 
     /** Flip the auto-apply state for a one-shot cheat (used by the
      *  long-press gesture on non-toggle buttons). Returns the new
      *  state so the caller can show a toast with the right wording. */
     fun toggleAutoApply(id: Int): Boolean {
-        val next = !prefs.autoApplyCheats.value.contains(id)
-        prefs.setCheatAutoApply(id, next)
+        val key = gameKey()
+        val next = !prefs.autoApplyCheats(key).value.contains(id)
+        prefs.setCheatAutoApply(key, id, next)
         return next
     }
 
-    /** Onboarding sheet dismissal flag. One shot per installation. */
+    /** Onboarding sheet dismissal flag. One shot per installation,
+     *  shared across games. */
     fun hasSeenOnboarding(): Boolean = prefs.hasSeenCheatsOnboarding
     fun markOnboardingSeen() { prefs.hasSeenCheatsOnboarding = true }
 
-    /** Wipe the two persisted sets (toggle intent + armed one-shots).
-     *  Fires a one-shot event on [clearedEvents] so the settings
-     *  sheet can show a confirmation snackbar. */
+    /** Wipe the two persisted sets (toggle intent + armed one-shots)
+     *  for one game. Fires a one-shot event on [clearedEvents] so
+     *  the settings sheet can show a confirmation snackbar. The
+     *  other game's bag is untouched. */
     private val _clearedEvents = Channel<Unit>(Channel.BUFFERED)
     val clearedEvents: Flow<Unit> = _clearedEvents.receiveAsFlow()
-    fun clearSavedCheats() {
-        prefs.clearAutoCheats()
+    fun clearSavedCheats(gameKey: String) {
+        prefs.clearAutoCheats(gameKey)
         _clearedEvents.trySend(Unit)
     }
 
@@ -105,6 +125,10 @@ internal class CheatsViewModel @Inject constructor(
         // Settings, do nothing. If the plugin re-boots (cheats_mask
         // becomes null again), the "already reconciled" latch
         // resets so the next connection re-arms the reconciler.
+        //
+        // The persisted sets and the master switch are per game — we
+        // flatMapLatest on the current game key so switching from IV
+        // to V (or back) picks up that game's bag immediately.
         viewModelScope.launch {
             // Guard rails against spamming the plugin:
             //   * `alreadyReconciled` fires us exactly once per
@@ -122,11 +146,20 @@ internal class CheatsViewModel @Inject constructor(
             //     native-write count comfortably low.
             var alreadyReconciled = false
             var safeStreak = 0
+            val togglesFlow = currentGameKey.flatMapLatest {
+                prefs.enabledCheatToggles(it)
+            }
+            val oneShotsFlow = currentGameKey.flatMapLatest {
+                prefs.autoApplyCheats(it)
+            }
+            val autoEnabledFlow = currentGameKey.flatMapLatest {
+                prefs.autoReapplyCheats(it)
+            }
             combine(
                 repository.state,
-                prefs.enabledCheatToggles,
-                prefs.autoApplyCheats,
-                prefs.autoReapplyCheats,
+                togglesFlow,
+                oneShotsFlow,
+                autoEnabledFlow,
             ) { state, toggles, oneShots, autoEnabled ->
                 ReconcileSnapshot(state, toggles, oneShots, autoEnabled)
             }.collect { snap ->
@@ -188,9 +221,11 @@ internal class CheatsViewModel @Inject constructor(
                 // based on what state the toggle was in just before
                 // the tap. The plugin flipped the bit on its end;
                 // we mirror the new bit in prefs so re-connect
-                // restores it.
+                // restores it. Stored under the game that is
+                // currently connected — IV ids and V ids live in
+                // separate bags.
                 val willBeOn = !isOn(maskAtTap, cheatId)
-                prefs.setCheatToggleEnabled(cheatId, enabled = willBeOn)
+                prefs.setCheatToggleEnabled(gameKey(), cheatId, enabled = willBeOn)
             }
             // Clear the pending marker when the ack arrives clean;
             // keep the error visible until the next tap replaces it.

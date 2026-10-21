@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -27,24 +29,22 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -60,37 +60,59 @@ import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
 
 /**
- * Full-height bottom sheet with the companion's session-wide
- * toggles, grouped under expandable sections. One section open at a
- * time — tapping a different header collapses the current one with
- * an animation. Palette-driven so accents match whichever game is
- * live.
+ * Per-game slice of the settings sheet. Everything that writes
+ * differently depending on which game is connected lives on one of
+ * these; globals (plugin reconnect, snackbar) stay on the outer
+ * sheet. The sheet renders one panel inline when only one is given,
+ * or a tab row + HorizontalPager when both are.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+internal data class SettingsGamePanel(
+    val label: String,
+    val palette: HudPalette,
+    val autoSwipeOnDrive: Boolean,
+    val onAutoSwipeChange: (Boolean) -> Unit,
+    val autoStartMirror: Boolean,
+    val onAutoStartMirrorChange: (Boolean) -> Unit,
+    val alwaysReturnToHud: Boolean,
+    val onAlwaysReturnToHudChange: (Boolean) -> Unit,
+    val mapControlsRight: Boolean,
+    val onMapControlsRightChange: (Boolean) -> Unit,
+    val autoReapplyCheats: Boolean,
+    val onAutoReapplyCheatsChange: (Boolean) -> Unit,
+    val onClearSavedCheats: () -> Unit,
+)
+
+/**
+ * Full-screen settings panel with the companion's session-wide
+ * toggles, grouped under expandable sections. One section open at
+ * a time — tapping a different header collapses the current one
+ * with an animation. Palette-driven so accents match whichever
+ * game is live.
+ *
+ * Built on [FullScreenSheet] because the per-game panel scrolls
+ * vertically; a draggable `ModalBottomSheet` would fight that
+ * scroll. Dismissal is via the close icon in the header or back.
+ *
+ * [panels] carries one entry per game to display. Setup screen
+ * (disconnected) passes both IV and V so the user can configure
+ * either; in-game only passes the active game. [initialPage] is
+ * the page the pager opens on when both are present. [visible]
+ * drives the slide-in / slide-out animation — compose this
+ * unconditionally so the exit animation plays before unmount.
+ */
 @Composable
 internal fun SettingsSheet(
-    palette: HudPalette,
-    autoSwipeOnDrive: Boolean,
-    onAutoSwipeChange: (Boolean) -> Unit,
-    autoStartMirror: Boolean,
-    onAutoStartMirrorChange: (Boolean) -> Unit,
-    alwaysReturnToHud: Boolean,
-    onAlwaysReturnToHudChange: (Boolean) -> Unit,
-    mapControlsRight: Boolean,
-    onMapControlsRightChange: (Boolean) -> Unit,
-    autoReapplyCheats: Boolean,
-    onAutoReapplyCheatsChange: (Boolean) -> Unit,
-    onClearSavedCheats: () -> Unit,
+    visible: Boolean,
+    panels: List<SettingsGamePanel>,
+    initialPage: Int,
     cheatsClearedEvents: Flow<Unit>,
     onReconnectPlugin: () -> Unit,
     isReconnecting: Boolean,
     reconnectEvents: Flow<Boolean>,
     onDismiss: () -> Unit,
 ) {
-    val sheet = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { it != SheetValue.PartiallyExpanded },
-    )
+    require(panels.isNotEmpty()) { "SettingsSheet needs at least one panel" }
+    val coroutineScope = rememberCoroutineScope()
     val snackbarHost = remember { SnackbarHostState() }
     val connectedMsg = stringResource(R.string.snackbar_reconnect_success)
     val failedMsg = stringResource(R.string.snackbar_reconnect_failed)
@@ -111,109 +133,79 @@ internal fun SettingsSheet(
             )
         }
     }
-    // One expanded section at a time. Sheet opens with every section
-    // collapsed. rememberSaveable so a rotation doesn't snap everything
-    // closed after the user has expanded one.
+    // One expanded section at a time, shared across tabs. Panel
+    // opens with every section collapsed. rememberSaveable so a
+    // rotation doesn't snap everything closed after the user has
+    // expanded one.
     var openSection by rememberSaveable { mutableStateOf<String?>(null) }
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheet,
-        containerColor = Color.Black,
-        dragHandle = null,
+
+    val showTabs = panels.size > 1
+    val safeInitial = initialPage.coerceIn(0, panels.lastIndex)
+    val pagerState = rememberPagerState(initialPage = safeInitial) { panels.size }
+    // Title / plugin section accent follows whichever page is in
+    // view, so a swipe fades the accent to the other game.
+    val activePanel = panels[pagerState.currentPage.coerceAtMost(panels.lastIndex)]
+
+    FullScreenSheet(
+        visible = visible,
+        onDismiss = onDismiss,
+        title = stringResource(R.string.settings_title),
+        accent = activePanel.palette.accent,
     ) {
       Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-        ) {
-            Text(
-                stringResource(R.string.settings_title),
-                color = palette.accent,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
-            )
-            Spacer(Modifier.height(16.dp))
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (showTabs) {
+                GameTabRow(
+                    panels = panels,
+                    selectedIndex = pagerState.currentPage,
+                    onSelect = { idx ->
+                        coroutineScope.launch { pagerState.animateScrollToPage(idx) }
+                    },
+                )
+                Spacer(Modifier.height(16.dp))
+            }
 
-            Section(
-                name = SECTION_MINIMAP,
-                title = stringResource(R.string.settings_section_minimap),
-                palette = palette,
-                expanded = openSection == SECTION_MINIMAP,
-                onToggle = {
-                    openSection = if (openSection == SECTION_MINIMAP) null
-                                  else SECTION_MINIMAP
-                },
+            // Per-game content: either a pager (both games) or the
+            // single panel rendered directly. Takes the remaining
+            // vertical space so the per-game column can scroll on
+            // its own without pushing the plugin section off-screen.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
             ) {
-                SettingRow(
-                    title = stringResource(R.string.settings_auto_swipe_title),
-                    body = stringResource(R.string.settings_auto_swipe_body),
-                    checked = autoSwipeOnDrive,
-                    onCheckedChange = onAutoSwipeChange,
-                    palette = palette,
-                )
-                Spacer(Modifier.height(14.dp))
-                SettingRow(
-                    title = stringResource(R.string.settings_always_return_hud_title),
-                    body = stringResource(R.string.settings_always_return_hud_body),
-                    checked = alwaysReturnToHud,
-                    onCheckedChange = onAlwaysReturnToHudChange,
-                    palette = palette,
-                )
-                Spacer(Modifier.height(14.dp))
-                SettingRow(
-                    title = stringResource(R.string.settings_auto_mirror_title),
-                    body = stringResource(R.string.settings_auto_mirror_body),
-                    checked = autoStartMirror,
-                    onCheckedChange = onAutoStartMirrorChange,
-                    palette = palette,
-                )
-                Spacer(Modifier.height(14.dp))
-                SettingRow(
-                    title = stringResource(R.string.settings_controls_side_title),
-                    body = stringResource(R.string.settings_controls_side_body),
-                    checked = mapControlsRight,
-                    onCheckedChange = onMapControlsRightChange,
-                    palette = palette,
-                )
+                if (showTabs) {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                    ) { page ->
+                        PerGameSettings(
+                            panel = panels[page],
+                            openSection = openSection,
+                            onToggleSection = { name ->
+                                openSection = if (openSection == name) null else name
+                            },
+                        )
+                    }
+                } else {
+                    PerGameSettings(
+                        panel = panels[0],
+                        openSection = openSection,
+                        onToggleSection = { name ->
+                            openSection = if (openSection == name) null else name
+                        },
+                    )
+                }
             }
             Spacer(Modifier.height(16.dp))
 
-            Section(
-                name = SECTION_CHEATS,
-                title = stringResource(R.string.settings_section_cheats),
-                palette = palette,
-                expanded = openSection == SECTION_CHEATS,
-                onToggle = {
-                    openSection = if (openSection == SECTION_CHEATS) null
-                                  else SECTION_CHEATS
-                },
-            ) {
-                SettingRow(
-                    title = stringResource(R.string.settings_auto_reapply_cheats_title),
-                    body = stringResource(R.string.settings_auto_reapply_cheats_body),
-                    checked = autoReapplyCheats,
-                    onCheckedChange = onAutoReapplyCheatsChange,
-                    palette = palette,
-                )
-                Spacer(Modifier.height(14.dp))
-                ActionRow(
-                    title = stringResource(R.string.settings_clear_cheats_title),
-                    body = stringResource(R.string.settings_clear_cheats_body),
-                    buttonLabel = stringResource(R.string.settings_clear_cheats_button),
-                    onClick = onClearSavedCheats,
-                    busy = false,
-                    palette = palette,
-                )
-            }
-            Spacer(Modifier.height(16.dp))
-
+            // Plugin reconnect is game-agnostic: it kicks the TCP
+            // transport, not anything inside the game. Lives outside
+            // the pager so it stays visible no matter which tab is up.
             Section(
                 name = SECTION_PLUGIN,
                 title = stringResource(R.string.settings_section_plugin),
-                palette = palette,
+                palette = activePanel.palette,
                 expanded = openSection == SECTION_PLUGIN,
                 onToggle = {
                     openSection = if (openSection == SECTION_PLUGIN) null
@@ -226,7 +218,7 @@ internal fun SettingsSheet(
                     buttonLabel = stringResource(R.string.settings_reconnect_button),
                     onClick = onReconnectPlugin,
                     busy = isReconnecting,
-                    palette = palette,
+                    palette = activePanel.palette,
                 )
             }
         }
@@ -238,7 +230,7 @@ internal fun SettingsSheet(
         ) { data ->
             Snackbar(
                 containerColor = Color.Black,
-                contentColor = palette.accent,
+                contentColor = activePanel.palette.accent,
             ) {
                 Text(
                     data.visuals.message,
@@ -248,6 +240,137 @@ internal fun SettingsSheet(
             }
         }
       }
+    }
+}
+
+/**
+ * One tappable row with every panel's label; selected tab paints
+ * its own game's accent, the others are dim. Matches the sheet's
+ * monospace / all-caps feel.
+ */
+@Composable
+private fun GameTabRow(
+    panels: List<SettingsGamePanel>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+) {
+    val dim = Color(0xFF6A7A6E)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        panels.forEachIndexed { index, panel ->
+            val selected = index == selectedIndex
+            val accent = if (selected) panel.palette.accent else dim
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color.Black)
+                    .clickable(role = Role.Tab) { onSelect(index) }
+                    .padding(vertical = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    panel.label,
+                    color = accent,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                )
+                Spacer(Modifier.height(6.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(2.dp)
+                        .background(accent),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The minimap + cheats sections for one game. Scrolls internally
+ * because the parent gives this fixed vertical space (the pager
+ * region) and translations / future rows can push past it.
+ */
+@Composable
+private fun PerGameSettings(
+    panel: SettingsGamePanel,
+    openSection: String?,
+    onToggleSection: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+    ) {
+        Section(
+            name = SECTION_CHEATS,
+            title = stringResource(R.string.settings_section_cheats),
+            palette = panel.palette,
+            expanded = openSection == SECTION_CHEATS,
+            onToggle = { onToggleSection(SECTION_CHEATS) },
+        ) {
+            SettingRow(
+                title = stringResource(R.string.settings_auto_reapply_cheats_title),
+                body = stringResource(R.string.settings_auto_reapply_cheats_body),
+                checked = panel.autoReapplyCheats,
+                onCheckedChange = panel.onAutoReapplyCheatsChange,
+                palette = panel.palette,
+            )
+            Spacer(Modifier.height(14.dp))
+            ActionRow(
+                title = stringResource(R.string.settings_clear_cheats_title),
+                body = stringResource(R.string.settings_clear_cheats_body),
+                buttonLabel = stringResource(R.string.settings_clear_cheats_button),
+                onClick = panel.onClearSavedCheats,
+                busy = false,
+                palette = panel.palette,
+            )
+        }
+        Spacer(Modifier.height(16.dp))
+
+        Section(
+            name = SECTION_MINIMAP,
+            title = stringResource(R.string.settings_section_minimap),
+            palette = panel.palette,
+            expanded = openSection == SECTION_MINIMAP,
+            onToggle = { onToggleSection(SECTION_MINIMAP) },
+        ) {
+            SettingRow(
+                title = stringResource(R.string.settings_auto_swipe_title),
+                body = stringResource(R.string.settings_auto_swipe_body),
+                checked = panel.autoSwipeOnDrive,
+                onCheckedChange = panel.onAutoSwipeChange,
+                palette = panel.palette,
+            )
+            Spacer(Modifier.height(14.dp))
+            SettingRow(
+                title = stringResource(R.string.settings_always_return_hud_title),
+                body = stringResource(R.string.settings_always_return_hud_body),
+                checked = panel.alwaysReturnToHud,
+                onCheckedChange = panel.onAlwaysReturnToHudChange,
+                palette = panel.palette,
+            )
+            Spacer(Modifier.height(14.dp))
+            SettingRow(
+                title = stringResource(R.string.settings_auto_mirror_title),
+                body = stringResource(R.string.settings_auto_mirror_body),
+                checked = panel.autoStartMirror,
+                onCheckedChange = panel.onAutoStartMirrorChange,
+                palette = panel.palette,
+            )
+            Spacer(Modifier.height(14.dp))
+            SettingRow(
+                title = stringResource(R.string.settings_controls_side_title),
+                body = stringResource(R.string.settings_controls_side_body),
+                checked = panel.mapControlsRight,
+                onCheckedChange = panel.onMapControlsRightChange,
+                palette = panel.palette,
+            )
+        }
     }
 }
 
@@ -269,7 +392,6 @@ private fun Section(
     onToggle: () -> Unit,
     content: @Composable () -> Unit,
 ) {
-    val text = Color(0xFFEDEDED)
     val dim = Color(0xFF6A7A6E)
     Column(
         modifier = Modifier

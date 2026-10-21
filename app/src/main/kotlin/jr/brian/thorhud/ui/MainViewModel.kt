@@ -69,18 +69,30 @@ class MainViewModel @Inject constructor(
         get() = prefs.hasSeenSwipeHint
         set(value) { prefs.hasSeenSwipeHint = value }
 
-    // Settings sheet toggles. Backed by HudPrefs StateFlows so Compose
-    // sees every flip and the choice survives process death.
-    val autoSwipeOnDrive: StateFlow<Boolean> = prefs.autoSwipeOnDrive
-    val autoStartMirror: StateFlow<Boolean> = prefs.autoStartMirror
-    val alwaysReturnToHud: StateFlow<Boolean> = prefs.alwaysReturnToHud
-    val mapControlsRight: StateFlow<Boolean> = prefs.mapControlsRight
-    val autoReapplyCheats: StateFlow<Boolean> = prefs.autoReapplyCheats
-    fun setAutoSwipeOnDrive(enabled: Boolean) = prefs.setAutoSwipeOnDrive(enabled)
-    fun setAutoStartMirror(enabled: Boolean) = prefs.setAutoStartMirror(enabled)
-    fun setAlwaysReturnToHud(enabled: Boolean) = prefs.setAlwaysReturnToHud(enabled)
-    fun setMapControlsRight(enabled: Boolean) = prefs.setMapControlsRight(enabled)
-    fun setAutoReapplyCheats(enabled: Boolean) = prefs.setAutoReapplyCheats(enabled)
+    // Settings sheet toggles. Backed by HudPrefs per-game StateFlows
+    // so Compose sees every flip and the choice survives process
+    // death — and switching from IV to V (or back) shows that game's
+    // own saved state rather than a shared one.
+    fun autoSwipeOnDrive(gameKey: String): StateFlow<Boolean> =
+        prefs.autoSwipeOnDrive(gameKey)
+    fun autoStartMirror(gameKey: String): StateFlow<Boolean> =
+        prefs.autoStartMirror(gameKey)
+    fun alwaysReturnToHud(gameKey: String): StateFlow<Boolean> =
+        prefs.alwaysReturnToHud(gameKey)
+    fun mapControlsRight(gameKey: String): StateFlow<Boolean> =
+        prefs.mapControlsRight(gameKey)
+    fun autoReapplyCheats(gameKey: String): StateFlow<Boolean> =
+        prefs.autoReapplyCheats(gameKey)
+    fun setAutoSwipeOnDrive(gameKey: String, enabled: Boolean) =
+        prefs.setAutoSwipeOnDrive(gameKey, enabled)
+    fun setAutoStartMirror(gameKey: String, enabled: Boolean) =
+        prefs.setAutoStartMirror(gameKey, enabled)
+    fun setAlwaysReturnToHud(gameKey: String, enabled: Boolean) =
+        prefs.setAlwaysReturnToHud(gameKey, enabled)
+    fun setMapControlsRight(gameKey: String, enabled: Boolean) =
+        prefs.setMapControlsRight(gameKey, enabled)
+    fun setAutoReapplyCheats(gameKey: String, enabled: Boolean) =
+        prefs.setAutoReapplyCheats(gameKey, enabled)
 
     // Weapon-wheel slot order, per game. Backed by HudPrefs flows so a
     // reorder on one wheel does not leak into the other game. VWheelSlot

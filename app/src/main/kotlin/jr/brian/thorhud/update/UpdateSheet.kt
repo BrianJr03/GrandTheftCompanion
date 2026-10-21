@@ -13,8 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -195,6 +198,13 @@ internal fun UpdateSheet(
             }
         },
     )
+    val animatedDismiss: () -> Unit = {
+        scope.launch {
+            sheetState.hide()
+            onDismiss()
+        }
+        Unit
+    }
     ModalBottomSheet(
         onDismissRequest = {
             if (phase != UpdatePhase.Downloading && phase != UpdatePhase.AsiDownloading) {
@@ -205,11 +215,30 @@ internal fun UpdateSheet(
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.Black,
         scrimColor = Color.Black.copy(alpha = 0.6f),
-        dragHandle = {
-            BottomSheetDefaults.DragHandle(color = palette.accent.copy(alpha = 0.5f))
-        },
+        dragHandle = null,
     ) {
         Column(Modifier.fillMaxSize()) {
+            // Close icon in the top-right matches every other modal
+            // sheet in the app. Hidden mid-download so the user can't
+            // dismiss while bytes are in flight. Taps run through
+            // animatedDismiss so the sheet slides out rather than
+            // vanishing on composition removal.
+            val canDismiss = phase != UpdatePhase.Downloading &&
+                             phase != UpdatePhase.AsiDownloading
+            if (canDismiss) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    IconButton(onClick = animatedDismiss) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = stringResource(R.string.settings_close),
+                            tint = palette.accent,
+                        )
+                    }
+                }
+            }
             when (phase) {
                 UpdatePhase.Info -> InfoPhase(
                     updateInfo = updateInfo,
