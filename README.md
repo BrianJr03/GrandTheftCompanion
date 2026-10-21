@@ -59,7 +59,7 @@ Three artefacts:
 - **`asi/`** — `ThorBridge.asi`, the **GTA IV** plugin. A 32-bit Windows DLL (C++) that loads into GTA IV via Ultimate ASI Loader inside the launcher's Wine prefix.
 - **`asi-v/`** — `ThorBridgeV.asi`, the **GTA V** plugin (story mode). A 64-bit Windows DLL (C++) that loads into GTA V alongside [Script Hook V](https://www.dev-c.com/gtav/scripthookv).
 
-Both plugins read game state (money, health, armor, wanted level, weapon, vehicle, radio) and publish JSON over `127.0.0.1:47801` at 20 Hz. While you're driving, tapping a station on the bottom screen retunes the radio.
+Both plugins read game state (money, health, armor, wanted level, weapon, vehicle, radio) and publish JSON over `127.0.0.1:47801` at 20 Hz. The companion sends commands the other way: retune the radio while driving, pick a weapon, route the GPS to a map blip, or fire a cheat from the cheats tab.
 
 Licensed under **GPL-3.0-or-later** — see [LICENSE](LICENSE) and [LEGAL.md](LEGAL.md). Rockstar's **GTA IV and GTA V are not included and must not be redistributed with this project**; bring your own legitimately-purchased copy of the game.
 
@@ -91,6 +91,13 @@ Plus, for either game: the GTC app, and a launcher that lets you set per-game en
   around, switches targets only when a new one is meaningfully
   closer, and backs off while the game is already running a mission
   of its own.
+- **GTA IV vehicle spawning** — the GTA IV cheats tab is missing the
+  phone-cheat vehicle spawns (FIB Buffalo, Comet, Annihilator, …)
+  because calling `REQUEST_MODEL` from the per-frame hook crashes
+  the game. The infrastructure is already in the plugin; the fix is
+  to swap it in for the game's own `SpawnCar(modelId)` entry point
+  (pattern-scan, FusionFix-style). TLAD and TBoGT episode-only
+  vehicles come along once that lands.
 
 ## Building
 
@@ -263,7 +270,7 @@ Opens two ways: tap the on-foot weapon card, or **hold LB / L1** on the pad. Rel
   </tr>
 </table>
 
-Once connected, the bottom screen is a two-page pager. Swipe between the HUD and the **map** page. A one-time **Tip** dialog on first connect points this out. Each game (IV and V) remembers which page it was on independently.
+Once connected, the bottom screen is a three-page pager. Swipe between the HUD, the **map** page, and the **cheats** tab. A one-time **Tip** dialog on first connect points this out. The pager always cold-starts on the HUD and resets to the HUD when you switch between IV and V.
 
 The map page mirrors the game's own minimap from the top screen and enlarges it, using Android's screen-capture permission. Tap **start mirroring** and approve the system prompt. Android asks again each session. It needs no plugin update and ships no map imagery. It shows exactly what the game draws, blips and GPS route included. GTA IV is clipped to a circle to match its native radar; GTA V stays rectangular to match its map.
 
@@ -297,6 +304,18 @@ Tap a group header to expand it; multiple instances of the same icon (several Am
 - **GTA IV** hides distance because `GET_BLIP_COORDS` only returns real coordinates for a subset of blip types; children of multi-item groups show `#1`, `#2` indices instead. Named contacts (Roman, Little Jacob, Playboy X, Johnny, Tony, …) are tinted with the episode accent.
 
 Labels are provisional; the plugin reports every blip's raw sprite id, and the companion looks up a short English name from a seeded table. Anything the table does not know shows as `Sprite N`. The **info** button in the panel header links to the repo's issues page — route to an unknown row, see where it leads, open an issue with the sprite number and the name, it will be added to the next build once verified.
+
+### Cheats
+
+A third tab for one-tap cheats, grouped into collapsible sections (health, wanted, weapons, vehicle, world, toggles). All sections start open; tap a header to collapse the ones you don't care about. Collapsed sections are remembered across app launches.
+
+**GTA IV** carries the base-game phone-cheat set: heal, wanted +1 / clear, all weapons, max ammo, fix vehicle, next weather, next time of day, parachute, and the three named weapon-set cheats (advanced, poor, and the ultimate 482-555-0100 combo). Toggles: invincible, fast reload, never tired, slow motion, police ignore. Vehicle spawning is deferred; the game's phone keeps working for those.
+
+**GTA V** adds every gameplay cheat from GTA V's own phone-cheat list: wanted -1, fill special, skyfall, six spawn-car buttons (adder, zentorno, bati, sanchez, frogger, bmx), plus toggles for infinite clip, fast run, low gravity, drunk, fast swim, super jump, explosive ammo, explosive melee, incendiary ammo, and slippery cars.
+
+Toggle lights come from what the game reports, not from the tap, so a toggle the game refuses never looks on. Tapped something that didn't work? The last refusal shows as a short red line at the bottom in the plugin's own words.
+
+GTA V flags the save as cheated the first time you tap a cheat, same as entering the code on the phone, so cheated saves block Achievements / Trophies for that session. GTA IV has no equivalent flag.
 
 ### Wanted stick lights (AYN Thor)
 
