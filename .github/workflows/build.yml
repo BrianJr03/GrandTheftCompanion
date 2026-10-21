@@ -16,8 +16,9 @@ jobs:
   # ------------------------------------------------------------------
   # ASI — cross-compile the 32-bit Windows DLL on Ubuntu via mingw-w64.
   # Produces ThorBridge.asi with the production flags (CGameProcess
-  # hook on, full HUD natives chain). Users who want the safer
-  # diagnostic variants build locally with different -D flags.
+  # hook on, full HUD natives chain, cheat command on). Users who
+  # want the safer diagnostic variants build locally with different
+  # -D flags.
   # ------------------------------------------------------------------
   asi:
     name: ThorBridge.asi (mingw-w64 i686)
@@ -41,7 +42,8 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-i686.cmake \
             -DCMAKE_BUILD_TYPE=Release \
             -DTHORBRIDGE_ENABLE_HOOK=ON \
-            -DTHORBRIDGE_NATIVES_LEVEL=4
+            -DTHORBRIDGE_NATIVES_LEVEL=4 \
+            -DTHORBRIDGE_CHEATS=ON
 
       - name: Build
         working-directory: asi
