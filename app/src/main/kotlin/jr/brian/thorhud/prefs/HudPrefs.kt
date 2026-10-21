@@ -115,6 +115,25 @@ class HudPrefs @Inject constructor(
         flowFor(gameKey)?.value = DEFAULT_WHEEL_ORDER
     }
 
+    // Cheat section expand/collapse state. We store the set of
+    // COLLAPSED category names (CheatCategory.name — "Health",
+    // "Wanted", ...) so the empty-set default naturally means every
+    // section is expanded, which is what a first-time user wants.
+    // Shared across games.
+    private val _collapsedCheatSections = MutableStateFlow(
+        prefs.getStringSet(KEY_COLLAPSED_CHEAT_SECTIONS, emptySet())
+            .orEmpty().toSet()
+    )
+    val collapsedCheatSections: StateFlow<Set<String>> =
+        _collapsedCheatSections.asStateFlow()
+    fun setCheatSectionCollapsed(category: String, collapsed: Boolean) {
+        val cur = _collapsedCheatSections.value
+        val next = if (collapsed) cur + category else cur - category
+        if (next == cur) return
+        _collapsedCheatSections.value = next
+        prefs.edit().putStringSet(KEY_COLLAPSED_CHEAT_SECTIONS, next).apply()
+    }
+
     private fun flowFor(gameKey: String) = when (gameKey) {
         "iv" -> _ivWheelOrder
         "v"  -> _vWheelOrder
@@ -144,6 +163,7 @@ class HudPrefs @Inject constructor(
         const val KEY_ALWAYS_RETURN_TO_HUD = "always_return_to_hud"
         const val KEY_MAP_CONTROLS_RIGHT = "map_controls_right"
         const val KEY_WHEEL_ORDER = "wheel_order"
+        const val KEY_COLLAPSED_CHEAT_SECTIONS = "collapsed_cheat_sections"
         val DEFAULT_WHEEL_ORDER: List<Int> = (0..7).toList()
     }
 }

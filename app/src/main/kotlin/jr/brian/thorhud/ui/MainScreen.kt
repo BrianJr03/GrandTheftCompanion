@@ -425,6 +425,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                 val cheatsViewModel: CheatsViewModel = hiltViewModel()
                                 val cheatResult by cheatsViewModel.result
                                     .collectAsStateWithLifecycle()
+                                val collapsed by cheatsViewModel.collapsedSections
+                                    .collectAsStateWithLifecycle()
                                 CheatsScreen(
                                     isGtaV = isGtaV,
                                     cheatsSupported = hello?.cheatsSupported,
@@ -432,6 +434,12 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         ?: state?.cheatsMask,
                                     accent = accent,
                                     lastResult = cheatResult,
+                                    collapsedSections = collapsed,
+                                    onToggleSection = { name, wasExpanded ->
+                                        cheatsViewModel.setSectionCollapsed(
+                                            name, collapsed = wasExpanded,
+                                        )
+                                    },
                                     onRunCheat = cheatsViewModel::runCheat,
                                 )
                             },

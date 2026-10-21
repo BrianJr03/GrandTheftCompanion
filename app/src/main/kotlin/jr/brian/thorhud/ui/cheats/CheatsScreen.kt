@@ -30,10 +30,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -61,6 +57,8 @@ internal fun CheatsScreen(
     cheatsMask: Int?,
     accent: Color,
     lastResult: CheatResult?,
+    collapsedSections: Set<String>,
+    onToggleSection: (String, Boolean) -> Unit,
     onRunCheat: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -95,12 +93,15 @@ internal fun CheatsScreen(
         val pendingId = lastResult?.takeIf { it.error == null }?.cheatId
 
         for ((category, items) in grouped) {
+            val expanded = category.name !in collapsedSections
             CategorySection(
                 category = category,
                 items = items,
                 accent = accent,
                 pendingId = pendingId,
                 cheatsMask = cheatsMask,
+                expanded = expanded,
+                onToggleExpanded = { onToggleSection(category.name, expanded) },
                 onTap = onRunCheat,
             )
         }
@@ -127,18 +128,17 @@ private fun CategorySection(
     accent: Color,
     pendingId: Int?,
     cheatsMask: Int?,
+    expanded: Boolean,
+    onToggleExpanded: () -> Unit,
     onTap: (Int) -> Unit,
 ) {
-    // Each section remembers its own open/closed state. All start
-    // open so a player opening the tab sees every available cheat in
-    // one scroll; a user who wants a tidier view can collapse the
-    // ones they do not care about.
-    var expanded by rememberSaveable(category.name) { mutableStateOf(true) }
+    // Expand/collapse state is hoisted to the ViewModel and persisted
+    // in HudPrefs so collapsing a section survives app relaunch.
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { expanded = !expanded }
+                .clickable { onToggleExpanded() }
                 .padding(vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

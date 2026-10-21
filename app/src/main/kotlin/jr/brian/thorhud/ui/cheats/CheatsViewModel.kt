@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jr.brian.thorhud.net.GameStateRepository
+import jr.brian.thorhud.prefs.HudPrefs
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,11 +34,22 @@ internal data class CheatResult(val cheatId: Int, val error: String? = null)
 @HiltViewModel
 internal class CheatsViewModel @Inject constructor(
     private val repository: GameStateRepository,
+    private val prefs: HudPrefs,
 ) : ViewModel() {
 
     private val _result = MutableStateFlow<CheatResult?>(null)
     val result: StateFlow<CheatResult?> = _result.asStateFlow()
     private var pending: Job? = null
+
+    /** Category names (CheatCategory.name) the user has collapsed on
+     *  the cheats tab. Empty by default = every section is expanded,
+     *  which is what first-time users see. Persisted across launches. */
+    val collapsedSections: StateFlow<Set<String>> = prefs.collapsedCheatSections
+
+    /** Flip a section's collapse state. [category] is CheatCategory.name. */
+    fun setSectionCollapsed(category: String, collapsed: Boolean) {
+        prefs.setCheatSectionCollapsed(category, collapsed)
+    }
 
     fun runCheat(cheatId: Int) {
         pending?.cancel()
