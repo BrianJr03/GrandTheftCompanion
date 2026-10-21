@@ -394,6 +394,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         onOpenBlips = toggleBlips,
                                         inVehicle = inVehicleNow,
                                         onScrollToMap = scrollToMap,
+                                        onOpenCheats = scrollToCheats,
                                     )
                                 } else {
                                     IvHudScreen(
@@ -410,6 +411,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         onOpenBlips = toggleBlips,
                                         inVehicle = inVehicleNow,
                                         onScrollToMap = scrollToMap,
+                                        onOpenCheats = scrollToCheats,
                                     )
                                 }
                             },
@@ -673,6 +675,7 @@ private fun IvHudScreen(
     onOpenBlips: (() -> Unit)? = null,
     inVehicle: Boolean = false,
     onScrollToMap: (() -> Unit)? = null,
+    onOpenCheats: (() -> Unit)? = null,
 ) {
     val palette = paletteFor(liveState?.episode ?: state?.episode)
 
@@ -710,6 +713,7 @@ private fun IvHudScreen(
                 onOpenBlips = onOpenBlips,
                 inVehicle = inVehicle,
                 onScrollToMap = onScrollToMap,
+                onOpenCheats = onOpenCheats,
             )
             Spacer(Modifier.height(8.dp))
             val inVehicle = liveState?.inVehicle == true

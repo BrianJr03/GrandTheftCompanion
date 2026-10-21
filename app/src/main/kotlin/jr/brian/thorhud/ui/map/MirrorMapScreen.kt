@@ -261,10 +261,11 @@ internal fun MirrorMapScreen(
             }
         }
         // Idle-state header: horizontal action row aligned to the
-        // top-end so blips / radio / cheats are reachable before the
-        // mirror has started. The vertical [MapControlsColumn] takes
-        // over once the mirror is active (and includes lock / reset /
-        // stop then).
+        // top-end so cheats / blips / radio are reachable before the
+        // mirror has started. Order mirrors the HUD StatusBar's chip
+        // cluster (cheats first, blips, then everything else) so a
+        // player's eye lands on the same icon in the same spot across
+        // tabs.
         if (status == ScreenMirror.Status.Idle) {
             Row(
                 modifier = Modifier
@@ -272,6 +273,14 @@ internal fun MirrorMapScreen(
                     .padding(top = 2.dp, end = 2.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
+                onOpenCheats?.let { open ->
+                    MapIconButton(
+                        icon = Icons.Filled.Casino,
+                        contentDescription = stringResource(R.string.map_cheats_cd),
+                        accent = accent,
+                        onClick = open,
+                    )
+                }
                 onOpenBlips?.let { open ->
                     MapIconButton(
                         icon = Icons.Filled.Place,
@@ -284,14 +293,6 @@ internal fun MirrorMapScreen(
                     MapIconButton(
                         icon = Icons.Filled.Radio,
                         contentDescription = stringResource(R.string.label_radio),
-                        accent = accent,
-                        onClick = open,
-                    )
-                }
-                onOpenCheats?.let { open ->
-                    MapIconButton(
-                        icon = Icons.Filled.Casino,
-                        contentDescription = stringResource(R.string.map_cheats_cd),
                         accent = accent,
                         onClick = open,
                     )
@@ -468,6 +469,17 @@ private fun MapControlsColumn(
             accent = accent,
             onClick = { viewModel.resetTransform(game) },
         )
+        // Cheats / blips / radio keep the HUD StatusBar's order
+        // (cheats first, then blips, then radio) so the same icons
+        // sit in the same visual position on every surface.
+        onOpenCheats?.let { open ->
+            MapIconButton(
+                icon = Icons.Filled.Casino,
+                contentDescription = stringResource(R.string.map_cheats_cd),
+                accent = accent,
+                onClick = open,
+            )
+        }
         onOpenBlips?.let { open ->
             MapIconButton(
                 icon = Icons.Filled.Place,
@@ -480,14 +492,6 @@ private fun MapControlsColumn(
             MapIconButton(
                 icon = Icons.Filled.Radio,
                 contentDescription = stringResource(R.string.label_radio),
-                accent = accent,
-                onClick = open,
-            )
-        }
-        onOpenCheats?.let { open ->
-            MapIconButton(
-                icon = Icons.Filled.Casino,
-                contentDescription = stringResource(R.string.map_cheats_cd),
                 accent = accent,
                 onClick = open,
             )

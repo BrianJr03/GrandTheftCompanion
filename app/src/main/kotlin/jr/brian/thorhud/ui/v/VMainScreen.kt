@@ -69,6 +69,7 @@ internal fun VMainScreen(
     inVehicle: Boolean = false,
     onScrollToMap: (() -> Unit)? = null,
     onOpenSettings: (() -> Unit)? = null,
+    onOpenCheats: (() -> Unit)? = null,
 ) {
     val stations by viewModel.stations.collectAsStateWithLifecycle()
     val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
@@ -190,6 +191,7 @@ internal fun VMainScreen(
                 onOpenBlips = onOpenBlips,
                 inVehicle = inVehicle,
                 onScrollToMap = onScrollToMap,
+                onOpenCheats = onOpenCheats,
             )
             if (tags.isNotEmpty()) {
                 Spacer(Modifier.height(6.dp))

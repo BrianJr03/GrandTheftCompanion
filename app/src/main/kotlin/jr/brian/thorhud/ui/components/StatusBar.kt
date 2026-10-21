@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Place
@@ -70,6 +71,8 @@ internal fun StatusBar(
     // visible) leave the handler null so the chip stays hidden.
     inVehicle: Boolean = false,
     onScrollToMap: (() -> Unit)? = null,
+    // Jump-to-cheats chip. Sits left of the blips pin. Null hides it.
+    onOpenCheats: (() -> Unit)? = null,
 ) {
     val mono = FontFamily.Monospace
     Row(
@@ -100,6 +103,17 @@ internal fun StatusBar(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Cheats chip. Sits left of the blips pin; opens the
+            // cheats tab via the parent's pager scroll. Dim+inert
+            // while the connection is dead or stale, same gate as
+            // the blips chip.
+            onOpenCheats?.let { onOpen ->
+                CheatsChip(
+                    palette = palette,
+                    enabled = !isDisconnected && !isStale && inGame,
+                    onTap = onOpen,
+                )
+            }
             // Blips chip. Dimmed and non-interactive while the connection
             // is dead, stale, or the game is not loaded in — nothing to
             // route to anyway.
@@ -194,6 +208,34 @@ private fun BlipsChip(
         Icon(
             imageVector = Icons.Filled.Place,
             contentDescription = stringResource(R.string.map_blips_cd),
+            tint = tint,
+            modifier = Modifier.size(20.dp),
+        )
+    }
+}
+
+/**
+ * Jump-to-cheats chip. Dim while there's no live frame (same gate
+ * as [BlipsChip]) so a disconnected HUD doesn't tease a scroll to a
+ * tab that would be shelled out anyway.
+ */
+@Composable
+private fun CheatsChip(
+    palette: HudPalette,
+    enabled: Boolean,
+    onTap: () -> Unit,
+) {
+    val tint = if (enabled) palette.accent else Color(0xFF2A332D)
+    Box(
+        modifier = Modifier
+            .size(32.dp)
+            .clip(CircleShape)
+            .clickable(enabled = enabled, onClick = onTap),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Casino,
+            contentDescription = stringResource(R.string.map_cheats_cd),
             tint = tint,
             modifier = Modifier.size(20.dp),
         )
