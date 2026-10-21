@@ -75,10 +75,12 @@ class MainViewModel @Inject constructor(
     val autoStartMirror: StateFlow<Boolean> = prefs.autoStartMirror
     val alwaysReturnToHud: StateFlow<Boolean> = prefs.alwaysReturnToHud
     val mapControlsRight: StateFlow<Boolean> = prefs.mapControlsRight
+    val autoReapplyCheats: StateFlow<Boolean> = prefs.autoReapplyCheats
     fun setAutoSwipeOnDrive(enabled: Boolean) = prefs.setAutoSwipeOnDrive(enabled)
     fun setAutoStartMirror(enabled: Boolean) = prefs.setAutoStartMirror(enabled)
     fun setAlwaysReturnToHud(enabled: Boolean) = prefs.setAlwaysReturnToHud(enabled)
     fun setMapControlsRight(enabled: Boolean) = prefs.setMapControlsRight(enabled)
+    fun setAutoReapplyCheats(enabled: Boolean) = prefs.setAutoReapplyCheats(enabled)
 
     // Weapon-wheel slot order, per game. Backed by HudPrefs flows so a
     // reorder on one wheel does not leak into the other game. VWheelSlot

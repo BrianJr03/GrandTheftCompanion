@@ -78,6 +78,10 @@ internal fun SettingsSheet(
     onAlwaysReturnToHudChange: (Boolean) -> Unit,
     mapControlsRight: Boolean,
     onMapControlsRightChange: (Boolean) -> Unit,
+    autoReapplyCheats: Boolean,
+    onAutoReapplyCheatsChange: (Boolean) -> Unit,
+    onClearSavedCheats: () -> Unit,
+    cheatsClearedEvents: Flow<Unit>,
     onReconnectPlugin: () -> Unit,
     isReconnecting: Boolean,
     reconnectEvents: Flow<Boolean>,
@@ -94,6 +98,15 @@ internal fun SettingsSheet(
         reconnectEvents.collect { ok ->
             snackbarHost.showSnackbar(
                 message = if (ok) connectedMsg else failedMsg,
+                duration = SnackbarDuration.Short,
+            )
+        }
+    }
+    val cheatsClearedMsg = stringResource(R.string.snackbar_cheats_cleared)
+    LaunchedEffect(Unit) {
+        cheatsClearedEvents.collect {
+            snackbarHost.showSnackbar(
+                message = cheatsClearedMsg,
                 duration = SnackbarDuration.Short,
             )
         }
@@ -169,6 +182,35 @@ internal fun SettingsSheet(
             Spacer(Modifier.height(16.dp))
 
             Section(
+                name = SECTION_CHEATS,
+                title = stringResource(R.string.settings_section_cheats),
+                palette = palette,
+                expanded = openSection == SECTION_CHEATS,
+                onToggle = {
+                    openSection = if (openSection == SECTION_CHEATS) null
+                                  else SECTION_CHEATS
+                },
+            ) {
+                SettingRow(
+                    title = stringResource(R.string.settings_auto_reapply_cheats_title),
+                    body = stringResource(R.string.settings_auto_reapply_cheats_body),
+                    checked = autoReapplyCheats,
+                    onCheckedChange = onAutoReapplyCheatsChange,
+                    palette = palette,
+                )
+                Spacer(Modifier.height(14.dp))
+                ActionRow(
+                    title = stringResource(R.string.settings_clear_cheats_title),
+                    body = stringResource(R.string.settings_clear_cheats_body),
+                    buttonLabel = stringResource(R.string.settings_clear_cheats_button),
+                    onClick = onClearSavedCheats,
+                    busy = false,
+                    palette = palette,
+                )
+            }
+            Spacer(Modifier.height(16.dp))
+
+            Section(
                 name = SECTION_PLUGIN,
                 title = stringResource(R.string.settings_section_plugin),
                 palette = palette,
@@ -210,6 +252,7 @@ internal fun SettingsSheet(
 }
 
 private const val SECTION_MINIMAP = "minimap"
+private const val SECTION_CHEATS = "cheats"
 private const val SECTION_PLUGIN = "plugin"
 
 /**

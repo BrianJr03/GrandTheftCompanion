@@ -207,6 +207,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     val autoStartMirror by viewModel.autoStartMirror.collectAsStateWithLifecycle()
     val alwaysReturnToHud by viewModel.alwaysReturnToHud.collectAsStateWithLifecycle()
     val mapControlsRight by viewModel.mapControlsRight.collectAsStateWithLifecycle()
+    val autoReapplyCheats by viewModel.autoReapplyCheats.collectAsStateWithLifecycle()
     val reconnecting by viewModel.reconnecting.collectAsStateWithLifecycle()
 
     // Hoisted mirror-consent launcher so both MirrorMapScreen's
@@ -430,6 +431,11 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     .collectAsStateWithLifecycle()
                                 val collapsed by cheatsViewModel.collapsedSections
                                     .collectAsStateWithLifecycle()
+                                val autoApply by cheatsViewModel.autoApplyCheats
+                                    .collectAsStateWithLifecycle()
+                                var showOnboarding by rememberSaveable {
+                                    mutableStateOf(!cheatsViewModel.hasSeenOnboarding())
+                                }
                                 CheatsScreen(
                                     isGtaV = isGtaV,
                                     cheatsSupported = hello?.cheatsSupported,
@@ -438,12 +444,19 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     accent = accent,
                                     lastResult = cheatResult,
                                     collapsedSections = collapsed,
+                                    autoApplyCheats = autoApply,
+                                    showOnboarding = showOnboarding,
                                     onToggleSection = { name, wasExpanded ->
                                         cheatsViewModel.setSectionCollapsed(
                                             name, collapsed = wasExpanded,
                                         )
                                     },
                                     onRunCheat = cheatsViewModel::runCheat,
+                                    onLongPressOneShot = cheatsViewModel::toggleAutoApply,
+                                    onOnboardingDismissed = {
+                                        cheatsViewModel.markOnboardingSeen()
+                                        showOnboarding = false
+                                    },
                                 )
                             },
                         )
@@ -500,6 +513,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             onClose = { viewModel.setBlips(false) },
         )
         if (showSettings) {
+            val cheatsViewModel: CheatsViewModel = hiltViewModel()
             SettingsSheet(
                 palette = if (isGtaV) vCharacterOf(state?.character).palette
                           else paletteFor(liveState?.episode ?: state?.episode),
@@ -511,6 +525,10 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 onAlwaysReturnToHudChange = viewModel::setAlwaysReturnToHud,
                 mapControlsRight = mapControlsRight,
                 onMapControlsRightChange = viewModel::setMapControlsRight,
+                autoReapplyCheats = autoReapplyCheats,
+                onAutoReapplyCheatsChange = viewModel::setAutoReapplyCheats,
+                onClearSavedCheats = cheatsViewModel::clearSavedCheats,
+                cheatsClearedEvents = cheatsViewModel.clearedEvents,
                 onReconnectPlugin = viewModel::reconnectPlugin,
                 isReconnecting = reconnecting,
                 reconnectEvents = viewModel.reconnectEvents,

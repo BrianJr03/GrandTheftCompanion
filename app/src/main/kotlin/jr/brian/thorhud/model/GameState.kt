@@ -156,6 +156,17 @@ data class GameState(
     val isBlips: Boolean get() = type == "blips"
     val isGtaV: Boolean get() = game == GAME_V
 
+    /** Safe to fire a cheat right now: the frame is a real state
+     *  frame, the player ped is live, the game is not paused /
+     *  switching characters / in a cutscene / online / stalled. Used
+     *  by [jr.brian.thorhud.ui.cheats.CheatsViewModel] to gate the
+     *  auto-re-apply of persisted toggles on connect. GTA IV frames
+     *  do not carry the switching/cutscene/online/stalled fields, so
+     *  they default to false and the check still works. */
+    val isCheatSafe: Boolean
+        get() = isState && inGame && !paused && !switching &&
+                !cutscene && !online && !stalled
+
     /** The blip id the game is currently routing to on the companion's
      *  behalf, or null. GTA V: the waypoint it set and that the player
      *  has not moved since. GTA IV: the blip whose GPS route it turned

@@ -1,12 +1,17 @@
 package jr.brian.thorhud.ui.cheats
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,26 +24,41 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
+import kotlinx.coroutines.launch
 
 /**
  * The cheats tab. Grouped into collapsible sections (health, wanted,
@@ -47,8 +67,18 @@ import jr.brian.thorhud.R
  * button lights come from [cheatsMask] alone — never from the tap —
  * so a toggle the plugin refused never looks on. The last refusal
  * shows as a single line at the bottom; cleared on the next tap.
- * When the connected plugin build does not support the cheat command
- * the screen is just a one-line notice.
+ *
+ * Long-press on a non-toggle (one-shot) button toggles its
+ * auto-apply flag: a lit one-shot fires itself on every reconnect
+ * once the game is in a safe state (same reconciler as toggles,
+ * same master switch in Settings). The user confirms via a toast.
+ *
+ * First visit shows a two-slide onboarding bottom sheet with the
+ * tap / long-press rules. Dismissal is persisted; it never shows
+ * again after that.
+ *
+ * When the connected plugin build does not support the cheat
+ * command the screen is just a one-line notice.
  */
 @Composable
 internal fun CheatsScreen(
@@ -58,11 +88,16 @@ internal fun CheatsScreen(
     accent: Color,
     lastResult: CheatResult?,
     collapsedSections: Set<String>,
+    autoApplyCheats: Set<Int>,
+    showOnboarding: Boolean,
     onToggleSection: (String, Boolean) -> Unit,
     onRunCheat: (Int) -> Unit,
+    onLongPressOneShot: (Int) -> Boolean,
+    onOnboardingDismissed: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val dim = Color(0xFF6A7A6E)
+    val context = LocalContext.current
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -92,6 +127,23 @@ internal fun CheatsScreen(
         val grouped = visibleCheats(isGtaV)
         val pendingId = lastResult?.takeIf { it.error == null }?.cheatId
 
+        // Short-tap: fire. Long-press on a one-shot: toggle its
+        // auto-apply membership, then toast the new state. Toasts
+        // use the companion's own labels so the user never has to
+        // match a toast to a button by position.
+        val onLongPress: (CheatDef) -> Unit = { def ->
+            if (!def.isToggle) {
+                val nowOn = onLongPressOneShot(def.id)
+                val label = context.getString(def.labelRes)
+                val msg = context.getString(
+                    if (nowOn) R.string.cheats_auto_apply_on
+                    else R.string.cheats_auto_apply_off,
+                    label,
+                )
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            }
+        }
+
         for ((category, items) in grouped) {
             val expanded = category.name !in collapsedSections
             CategorySection(
@@ -100,9 +152,11 @@ internal fun CheatsScreen(
                 accent = accent,
                 pendingId = pendingId,
                 cheatsMask = cheatsMask,
+                autoApplyCheats = autoApplyCheats,
                 expanded = expanded,
                 onToggleExpanded = { onToggleSection(category.name, expanded) },
                 onTap = onRunCheat,
+                onLongPress = onLongPress,
             )
         }
 
@@ -119,6 +173,10 @@ internal fun CheatsScreen(
             )
         }
     }
+
+    if (showOnboarding) {
+        CheatsOnboardingSheet(accent = accent, onDismiss = onOnboardingDismissed)
+    }
 }
 
 @Composable
@@ -128,9 +186,11 @@ private fun CategorySection(
     accent: Color,
     pendingId: Int?,
     cheatsMask: Int?,
+    autoApplyCheats: Set<Int>,
     expanded: Boolean,
     onToggleExpanded: () -> Unit,
     onTap: (Int) -> Unit,
+    onLongPress: (CheatDef) -> Unit,
 ) {
     // Expand/collapse state is hoisted to the ViewModel and persisted
     // in HudPrefs so collapsing a section survives app relaunch.
@@ -175,8 +235,10 @@ private fun CategorySection(
                     items = items,
                     accent = accent,
                     pendingId = pendingId,
-                    isOn = { isOn(cheatsMask, it) },
+                    cheatsMask = cheatsMask,
+                    autoApplyCheats = autoApplyCheats,
                     onTap = onTap,
+                    onLongPress = onLongPress,
                 )
             }
         }
@@ -188,8 +250,10 @@ private fun CheatGrid(
     items: List<CheatDef>,
     accent: Color,
     pendingId: Int?,
-    isOn: (Int) -> Boolean,
+    cheatsMask: Int?,
+    autoApplyCheats: Set<Int>,
     onTap: (Int) -> Unit,
+    onLongPress: (CheatDef) -> Unit,
 ) {
     // Two columns of buttons. Pairs the list up and lets any trailing
     // odd entry take a column of its own. The 540 x 468 dp Thor bottom
@@ -202,12 +266,15 @@ private fun CheatGrid(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 row.forEach { def ->
+                    val on = if (def.isToggle) isOn(cheatsMask, def.id)
+                             else autoApplyCheats.contains(def.id)
                     CheatButton(
                         def = def,
                         accent = accent,
-                        on = isOn(def.id),
+                        on = on,
                         pending = pendingId == def.id,
                         onTap = onTap,
+                        onLongPress = onLongPress,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -219,6 +286,7 @@ private fun CheatGrid(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun CheatButton(
     def: CheatDef,
@@ -226,46 +294,135 @@ private fun CheatButton(
     on: Boolean,
     pending: Boolean,
     onTap: (Int) -> Unit,
+    onLongPress: (CheatDef) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Styled as a pill like Material's OutlinedButton / FilledTonalButton
+    // but implemented as a Box so Modifier.combinedClickable's long-press
+    // works on every tap — Material's Button composable swallows the
+    // long press even with a custom gesture modifier chained on top.
     val label = stringResource(def.labelRes)
-    val shared = modifier.heightIn(min = 44.dp)
-    val content: @Composable () -> Unit = {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                label,
-                color = if (on) Color.Black else accent,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 12.sp,
-                maxLines = 2,
+    val shape = RoundedCornerShape(50)
+    val containerColor = if (on) accent else Color.Black
+    val textColor = if (on) Color.Black else accent
+    val borderColor = accent
+    val alpha = if (pending) 0.5f else 1f
+    Box(
+        modifier = modifier
+            .heightIn(min = 44.dp)
+            .clip(shape)
+            .background(containerColor.copy(alpha = alpha))
+            .border(1.dp, borderColor.copy(alpha = alpha), shape)
+            .combinedClickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                enabled = !pending,
+                onClick = { onTap(def.id) },
+                onLongClick = { onLongPress(def) },
             )
-        }
+            .padding(horizontal = 8.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            label,
+            color = textColor.copy(alpha = alpha),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 12.sp,
+            maxLines = 2,
+        )
     }
-    if (def.isToggle && on) {
-        FilledTonalButton(
-            onClick = { if (!pending) onTap(def.id) },
-            enabled = !pending,
-            modifier = shared,
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
-            colors = ButtonDefaults.filledTonalButtonColors(
-                containerColor = accent,
-                contentColor = Color.Black,
-                disabledContainerColor = accent.copy(alpha = 0.5f),
-                disabledContentColor = Color.Black,
-            ),
-        ) { content() }
-    } else {
-        OutlinedButton(
-            onClick = { if (!pending) onTap(def.id) },
-            enabled = !pending,
-            modifier = shared,
-            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.Black,
-                contentColor = accent,
-                disabledContainerColor = Color.Black,
-                disabledContentColor = accent.copy(alpha = 0.5f),
-            ),
-        ) { content() }
+}
+
+/** Two-slide first-visit onboarding. One slide introducing taps +
+ *  lights, one slide introducing long-press auto-apply and pointing
+ *  at the Settings override. */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+private fun CheatsOnboardingSheet(accent: Color, onDismiss: () -> Unit) {
+    val sheet = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { it != SheetValue.PartiallyExpanded },
+    )
+    val pager = rememberPagerState(initialPage = 0) { 2 }
+    val scope = rememberCoroutineScope()
+    val dim = Color(0xFF6A7A6E)
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheet,
+        containerColor = Color.Black,
+        dragHandle = null,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+        ) {
+            Text(
+                stringResource(R.string.cheats_onboarding_title),
+                color = accent,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+            )
+            Spacer(Modifier.height(14.dp))
+            HorizontalPager(state = pager, modifier = Modifier.fillMaxWidth()) { page ->
+                val title = if (page == 0) R.string.cheats_onboarding_slide1_title
+                            else R.string.cheats_onboarding_slide2_title
+                val body = if (page == 0) R.string.cheats_onboarding_slide1_body
+                           else R.string.cheats_onboarding_slide2_body
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        stringResource(title),
+                        color = Color(0xFFEDEDED),
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        stringResource(body),
+                        color = Color(0xFFCFCFCF),
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 12.sp,
+                    )
+                }
+            }
+            Spacer(Modifier.height(14.dp))
+            // Two dot indicators + action button on the right.
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                repeat(2) { idx ->
+                    val lit = pager.currentPage == idx
+                    Box(
+                        modifier = Modifier
+                            .size(if (lit) 8.dp else 6.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(if (lit) accent else dim),
+                    )
+                    if (idx == 0) Spacer(Modifier.size(6.dp))
+                }
+                Spacer(Modifier.weight(1f))
+                val onPrimary: () -> Unit = {
+                    if (pager.currentPage < 1) {
+                        scope.launch { pager.animateScrollToPage(1) }
+                    } else {
+                        onDismiss()
+                    }
+                }
+                TextButton(onClick = onPrimary) {
+                    Text(
+                        stringResource(
+                            if (pager.currentPage < 1) R.string.cheats_onboarding_next
+                            else R.string.cheats_onboarding_done,
+                        ),
+                        color = accent,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 14.sp,
+                    )
+                }
+            }
+        }
     }
 }

@@ -134,6 +134,84 @@ class HudPrefs @Inject constructor(
         prefs.edit().putStringSet(KEY_COLLAPSED_CHEAT_SECTIONS, next).apply()
     }
 
+    // User's PERSISTED intent for which cheat toggles should be on.
+    // Updated after a successful tap on a toggle. On reconnect / game
+    // relaunch the plugin's mask resets to zero; CheatsViewModel's
+    // reconciler sends the matching `cheat` commands so the player's
+    // chosen loadout comes back on its own.
+    // Keyed as decimal cheat ids ("20", "26", …) in a StringSet because
+    // SharedPreferences has no native integer-set type.
+    private val _enabledCheatToggles = MutableStateFlow(
+        prefs.getStringSet(KEY_ENABLED_CHEAT_TOGGLES, emptySet())
+            .orEmpty()
+            .mapNotNull { it.toIntOrNull() }
+            .toSet()
+    )
+    val enabledCheatToggles: StateFlow<Set<Int>> =
+        _enabledCheatToggles.asStateFlow()
+    fun setCheatToggleEnabled(id: Int, enabled: Boolean) {
+        val cur = _enabledCheatToggles.value
+        val next = if (enabled) cur + id else cur - id
+        if (next == cur) return
+        _enabledCheatToggles.value = next
+        prefs.edit()
+            .putStringSet(KEY_ENABLED_CHEAT_TOGGLES, next.map { it.toString() }.toSet())
+            .apply()
+    }
+
+    // Whether to auto-re-apply the persisted toggles on connect.
+    // Default on — a user who turned invincible + police-ignore on in
+    // last night's session expects them to still be on tonight.
+    private val _autoReapplyCheats =
+        MutableStateFlow(prefs.getBoolean(KEY_AUTO_REAPPLY_CHEATS, true))
+    val autoReapplyCheats: StateFlow<Boolean> = _autoReapplyCheats.asStateFlow()
+    fun setAutoReapplyCheats(enabled: Boolean) {
+        _autoReapplyCheats.value = enabled
+        prefs.edit().putBoolean(KEY_AUTO_REAPPLY_CHEATS, enabled).apply()
+    }
+
+    // One-shot cheat ids the user flagged (via long-press) for
+    // auto-fire on reconnect. Reconciler fires each one once per
+    // safe-state entry (unlike toggles, which also check whether
+    // the mask bit is already on). The same auto-reapply master
+    // switch gates both.
+    private val _autoApplyCheats = MutableStateFlow(
+        prefs.getStringSet(KEY_AUTO_APPLY_CHEATS, emptySet())
+            .orEmpty()
+            .mapNotNull { it.toIntOrNull() }
+            .toSet()
+    )
+    val autoApplyCheats: StateFlow<Set<Int>> = _autoApplyCheats.asStateFlow()
+    fun setCheatAutoApply(id: Int, enabled: Boolean) {
+        val cur = _autoApplyCheats.value
+        val next = if (enabled) cur + id else cur - id
+        if (next == cur) return
+        _autoApplyCheats.value = next
+        prefs.edit()
+            .putStringSet(KEY_AUTO_APPLY_CHEATS, next.map { it.toString() }.toSet())
+            .apply()
+    }
+
+    /** True once the user has dismissed the two-slide cheats
+     *  onboarding sheet. Shown on first visit to the cheats tab. */
+    var hasSeenCheatsOnboarding: Boolean
+        get() = prefs.getBoolean(KEY_SEEN_CHEATS_ONBOARDING, false)
+        set(value) {
+            prefs.edit().putBoolean(KEY_SEEN_CHEATS_ONBOARDING, value).apply()
+        }
+
+    /** Wipe both persisted cheat sets (toggles the user had on, and
+     *  one-shots long-pressed for auto-apply). Leaves the master
+     *  auto-reapply switch and the onboarding-seen flag alone. */
+    fun clearAutoCheats() {
+        _enabledCheatToggles.value = emptySet()
+        _autoApplyCheats.value = emptySet()
+        prefs.edit()
+            .remove(KEY_ENABLED_CHEAT_TOGGLES)
+            .remove(KEY_AUTO_APPLY_CHEATS)
+            .apply()
+    }
+
     private fun flowFor(gameKey: String) = when (gameKey) {
         "iv" -> _ivWheelOrder
         "v"  -> _vWheelOrder
@@ -164,6 +242,10 @@ class HudPrefs @Inject constructor(
         const val KEY_MAP_CONTROLS_RIGHT = "map_controls_right"
         const val KEY_WHEEL_ORDER = "wheel_order"
         const val KEY_COLLAPSED_CHEAT_SECTIONS = "collapsed_cheat_sections"
+        const val KEY_ENABLED_CHEAT_TOGGLES = "enabled_cheat_toggles"
+        const val KEY_AUTO_REAPPLY_CHEATS = "auto_reapply_cheats"
+        const val KEY_AUTO_APPLY_CHEATS = "auto_apply_cheats"
+        const val KEY_SEEN_CHEATS_ONBOARDING = "seen_cheats_onboarding"
         val DEFAULT_WHEEL_ORDER: List<Int> = (0..7).toList()
     }
 }

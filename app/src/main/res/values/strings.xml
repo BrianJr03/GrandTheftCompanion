@@ -62,6 +62,17 @@
     <string name="cheat_33_incendiary_ammo">incendiary ammo</string>
     <string name="cheat_34_slippery">slippery cars</string>
 
+    <!-- Long-press toast + onboarding sheet copy -->
+    <string name="cheats_auto_apply_on">%1$s will auto-apply on reconnect</string>
+    <string name="cheats_auto_apply_off">%1$s auto-apply off</string>
+    <string name="cheats_onboarding_title">About the cheats tab</string>
+    <string name="cheats_onboarding_slide1_title">Taps and lights</string>
+    <string name="cheats_onboarding_slide1_body">Tap a button to fire the cheat. Lights come from the game itself, not from the tap, so a cheat that didn\'t take never looks like it did. The last refusal shows as a short red line at the bottom in the plugin\'s own words.</string>
+    <string name="cheats_onboarding_slide2_title">Auto-apply on reconnect</string>
+    <string name="cheats_onboarding_slide2_body">Toggles you turn on come back automatically when the companion reconnects (new session, game relaunch). Long-press a one-shot cheat to make it auto-fire too, as soon as the game is in a safe state. Turn the whole thing off in Settings &#8594; Cheats.</string>
+    <string name="cheats_onboarding_next">Next</string>
+    <string name="cheats_onboarding_done">Got it</string>
+
     <!-- One-time hint shown on first connect, explaining the pager. -->
     <string name="swipe_hint_title">Tip</string>
     <string name="swipe_hint_body">Swipe left or right between the hud and the minimap.</string>
@@ -97,6 +108,13 @@
     <string name="settings_controls_side_body">Move the map\'s lock, reset, pin and stop icons to the right of the mirror. Default puts them on the left. The map stays centred and keeps the same breathing room on the free side.</string>
     <string name="settings_section_minimap">Minimap</string>
     <string name="settings_section_plugin">Plugin</string>
+    <string name="settings_section_cheats">Cheats</string>
+    <string name="settings_auto_reapply_cheats_title">Re-apply toggles on reconnect</string>
+    <string name="settings_auto_reapply_cheats_body">After the companion reconnects (new session, game relaunch), turn back on any toggle you had enabled last time, plus any one-shot you long-pressed to arm. Only fires once per connection and only when the game is in a safe state (not paused, not switching characters, not in a cutscene).</string>
+    <string name="settings_clear_cheats_title">Clear saved cheats</string>
+    <string name="settings_clear_cheats_body">Forget every toggle you had turned on and every one-shot you had long-pressed for auto-apply. The next reconnect starts from a clean slate. The auto-re-apply switch above is left alone.</string>
+    <string name="settings_clear_cheats_button">Clear</string>
+    <string name="snackbar_cheats_cleared">Saved cheats cleared</string>
     <string name="settings_reconnect_title">Reconnect to the plugin</string>
     <string name="settings_reconnect_body">Force a fresh connection to ThorBridge. Use if \"not connected\" sticks on a weapon switch and does not clear on its own.</string>
     <string name="settings_reconnect_button">Retry</string>
