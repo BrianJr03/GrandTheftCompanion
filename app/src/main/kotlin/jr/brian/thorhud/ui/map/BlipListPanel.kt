@@ -107,7 +107,12 @@ internal fun BlipListPanel(
         prevExpanded = cur
     }
     val totalBlips = groups.sumOf { it.count }
-    Column(modifier = modifier.fillMaxSize()) {
+    // Wrap in a Box so BlipInfoDialog can live as an overlay sibling
+    // of the scrolling list. Nesting the FullScreenSheet inside the
+    // list's verticalScroll crashes with "infinity maximum height
+    // constraints" — fillMaxSize can't resolve inside a scroll parent.
+    Box(modifier = modifier.fillMaxSize()) {
+      Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -166,11 +171,6 @@ internal fun BlipListPanel(
                 .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            BlipInfoDialog(
-                visible = showInfo,
-                accent = accent,
-                onDismiss = { showInfo = false },
-            )
             for (group in groups) {
                 val isOpen = expandedName == group.name
                 // Hide every other group's header while one is open.
@@ -217,6 +217,12 @@ internal fun BlipListPanel(
                 }
             }
         }
+      }
+      BlipInfoDialog(
+          visible = showInfo,
+          accent = accent,
+          onDismiss = { showInfo = false },
+      )
     }
 }
 

@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Place
@@ -92,6 +93,7 @@ internal fun MirrorMapScreen(
     onOpenBlips: (() -> Unit)? = null,
     onOpenRadio: (() -> Unit)? = null,
     onOpenCheats: (() -> Unit)? = null,
+    onOpenHud: (() -> Unit)? = null,
     controlsRight: Boolean = false,
     // In-vehicle gates the speedometer (bottom-right). Routed label
     // paired with inVehicle gates the "driving to <name>" overlay
@@ -216,6 +218,7 @@ internal fun MirrorMapScreen(
                     onOpenBlips = onOpenBlips,
                     onOpenRadio = onOpenRadio,
                     onOpenCheats = onOpenCheats,
+                    onOpenHud = onOpenHud,
                     controlsRight = controlsRight,
                     viewModel = viewModel,
                 )
@@ -274,6 +277,14 @@ internal fun MirrorMapScreen(
                     .padding(top = 2.dp, end = 2.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                onOpenHud?.let { open ->
+                    HeaderIconButton(
+                        icon = Icons.Filled.Home,
+                        contentDescription = stringResource(R.string.nav_hud_cd),
+                        tint = accent,
+                        onClick = open,
+                    )
+                }
                 onOpenCheats?.let { open ->
                     HeaderIconButton(
                         icon = Icons.Filled.Casino,
@@ -348,6 +359,7 @@ private fun MirrorMapLayout(
     onOpenBlips: (() -> Unit)?,
     onOpenRadio: (() -> Unit)?,
     onOpenCheats: (() -> Unit)?,
+    onOpenHud: (() -> Unit)?,
     controlsRight: Boolean,
     viewModel: MapViewModel,
 ) {
@@ -366,6 +378,7 @@ private fun MirrorMapLayout(
                 onOpenBlips = onOpenBlips,
                 onOpenRadio = onOpenRadio,
                 onOpenCheats = onOpenCheats,
+                onOpenHud = onOpenHud,
                 viewModel = viewModel,
             )
         }
@@ -435,6 +448,7 @@ private fun MirrorMapLayout(
                 onOpenBlips = onOpenBlips,
                 onOpenRadio = onOpenRadio,
                 onOpenCheats = onOpenCheats,
+                onOpenHud = onOpenHud,
                 viewModel = viewModel,
             )
         }
@@ -449,12 +463,24 @@ private fun MapControlsColumn(
     onOpenBlips: (() -> Unit)?,
     onOpenRadio: (() -> Unit)?,
     onOpenCheats: (() -> Unit)?,
+    onOpenHud: (() -> Unit)?,
     viewModel: MapViewModel,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         horizontalAlignment = Alignment.Start,
     ) {
+        // Home sits at the top of the active-mirror column so a
+        // return to the HUD tab is reachable the same way it is on
+        // the Idle header and the Cheats tab.
+        onOpenHud?.let { open ->
+            MapIconButton(
+                icon = Icons.Filled.Home,
+                contentDescription = stringResource(R.string.nav_hud_cd),
+                accent = accent,
+                onClick = open,
+            )
+        }
         MapIconButton(
             icon = if (isLocked) Icons.Filled.Lock
                    else Icons.Filled.LockOpen,

@@ -326,6 +326,11 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             pagerState.animateScrollToPage(HudPage.Cheats.ordinal)
                         }
                     }
+                    val scrollToHud: () -> Unit = {
+                        scope.launch {
+                            pagerState.animateScrollToPage(HudPage.Hud.ordinal)
+                        }
+                    }
                     // Auto-swipe behaviour (settings toggle, both
                     // games):
                     //  Enter vehicle: remember the tab the user is on
@@ -444,6 +449,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     onOpenBlips = toggleBlips,
                                     onOpenRadio = { showRadioSheet = true },
                                     onOpenCheats = scrollToCheats,
+                                    onOpenHud = scrollToHud,
                                     controlsRight = mapControlsRight,
                                     inVehicle = inVehicleNow,
                                     routeName = routeName,
@@ -485,6 +491,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     },
                                     onOpenRadio = { showRadioSheet = true },
                                     onOpenMap = scrollToMap,
+                                    onOpenHud = scrollToHud,
                                 )
                             },
                         )

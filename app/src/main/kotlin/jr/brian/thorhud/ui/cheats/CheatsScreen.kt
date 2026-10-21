@@ -32,6 +32,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Radio
@@ -102,6 +103,7 @@ internal fun CheatsScreen(
     onOnboardingDismissed: () -> Unit,
     onOpenRadio: (() -> Unit)? = null,
     onOpenMap: (() -> Unit)? = null,
+    onOpenHud: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val dim = Color(0xFF6A7A6E)
@@ -126,6 +128,14 @@ internal fun CheatsScreen(
                 fontSize = 18.sp,
                 modifier = Modifier.weight(1f),
             )
+            onOpenHud?.let { open ->
+                HeaderIconButton(
+                    icon = Icons.Filled.Home,
+                    contentDescription = stringResource(R.string.nav_hud_cd),
+                    tint = accent,
+                    onClick = open,
+                )
+            }
             onOpenRadio?.let { open ->
                 HeaderIconButton(
                     icon = Icons.Filled.Radio,
