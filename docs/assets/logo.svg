@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  GTC wordmark — SVG mirror of app/src/main/res/drawable/ic_launcher_foreground.xml
+  on the app/src/main/res/values/colors.xml#ic_launcher_background (#000000).
+  Keep in sync with the vector drawable if the launcher icon ever changes.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="256" height="256">
+  <!-- All three letters in The Lost and Damned biker-rust (PaletteTLAD). -->
+  <path fill="#C46A2A" d="
+    M35.5,36.0 L49.5,36.0 L48.8,40.0 L34.8,40.0 Z
+    M35.5,36.0 L39.5,36.0 L33.0,72.0 L29.0,72.0 Z
+    M29.7,68.0 L43.7,68.0 L43.0,72.0 L29.0,72.0 Z
+    M42.2,54.0 L46.2,54.0 L43.0,72.0 L39.0,72.0 Z
+    M39.2,54.0 L46.2,54.0 L45.5,58.0 L38.5,58.0 Z
+    M53.5,36.0 L67.5,36.0 L66.8,40.0 L52.8,40.0 Z
+    M58.5,36.0 L62.5,36.0 L56.0,72.0 L52.0,72.0 Z
+    M71.5,36.0 L85.5,36.0 L84.8,40.0 L70.8,40.0 Z
+    M71.5,36.0 L75.5,36.0 L69.0,72.0 L65.0,72.0 Z
+    M65.7,68.0 L79.7,68.0 L79.0,72.0 L65.0,72.0 Z"/>
+</svg>

@@ -25,8 +25,10 @@ __pycache__/
 
 # Local build-process notes / per-gate validation logs. Kept out of
 # the public repo on purpose; anything a user needs is in README,
-# LEGAL.md, or inline source comments.
-docs/
+# LEGAL.md, or inline source comments. The GitHub Pages site also
+# lives under docs/ (index.html, style.css, .nojekyll, assets/); only
+# the engineering .md files at the top level of docs/ stay private.
+docs/*.md
 
 # Claude operating notes + session-continuity scratchpad. Both local
 # only — not part of the public repo.
