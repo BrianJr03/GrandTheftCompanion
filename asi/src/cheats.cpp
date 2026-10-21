@@ -388,6 +388,16 @@ const char* begin_spawn(uint32_t id, uint32_t player, uint32_t ped,
                         commands::AckQueue* ack_queue, uint32_t cmd_id,
                         uint32_t now_ms) {
     (void)player;
+    (void)ack_queue;
+    (void)cmd_id;
+    (void)now_ms;
+    // Deliberately refused: the on-device test showed REQUEST_MODEL
+    // called from the CGameProcess per-frame hook context crashes the
+    // game. The infrastructure stays compiled in — natives, state
+    // machine, model-name table — so the next pass can swap in the
+    // game's own SpawnCar(modelId) function (pattern-scanned, matches
+    // FusionFix cheats.ixx) without re-plumbing anything above.
+    if (id >= kSpawnIvFirst && id <= kSpawnIvLast) return kErrNotInBuild;
     if (ped == 0 || ped == 0xFFFFFFFFu) return kErrNoPed;
     if (id < kSpawnIvFirst || id > kSpawnIvLast) return kErrUnknown;
     if (g_spawn.active) return kErrSpawnInProgress;
