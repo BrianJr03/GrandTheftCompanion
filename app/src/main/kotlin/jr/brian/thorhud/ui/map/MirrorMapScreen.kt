@@ -50,6 +50,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import jr.brian.thorhud.R
 import jr.brian.thorhud.mirror.ScreenMirror
+import jr.brian.thorhud.ui.components.HeaderIconButton
 
 enum class MirrorGame { IV, V }
 
@@ -274,26 +275,26 @@ internal fun MirrorMapScreen(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 onOpenCheats?.let { open ->
-                    MapIconButton(
+                    HeaderIconButton(
                         icon = Icons.Filled.Casino,
                         contentDescription = stringResource(R.string.map_cheats_cd),
-                        accent = accent,
+                        tint = accent,
                         onClick = open,
                     )
                 }
                 onOpenBlips?.let { open ->
-                    MapIconButton(
+                    HeaderIconButton(
                         icon = Icons.Filled.Place,
                         contentDescription = stringResource(R.string.map_blips_cd),
-                        accent = accent,
+                        tint = accent,
                         onClick = open,
                     )
                 }
                 onOpenRadio?.let { open ->
-                    MapIconButton(
+                    HeaderIconButton(
                         icon = Icons.Filled.Radio,
                         contentDescription = stringResource(R.string.label_radio),
-                        accent = accent,
+                        tint = accent,
                         onClick = open,
                     )
                 }

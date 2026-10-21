@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
 import jr.brian.thorhud.ui.components.FullScreenSheet
+import jr.brian.thorhud.ui.components.HeaderIconButton
 import kotlinx.coroutines.launch
 
 /**
@@ -125,22 +126,20 @@ internal fun CheatsScreen(
                 modifier = Modifier.weight(1f),
             )
             onOpenRadio?.let { open ->
-                IconButton(onClick = open) {
-                    Icon(
-                        imageVector = Icons.Filled.Radio,
-                        contentDescription = stringResource(R.string.label_radio),
-                        tint = accent,
-                    )
-                }
+                HeaderIconButton(
+                    icon = Icons.Filled.Radio,
+                    contentDescription = stringResource(R.string.label_radio),
+                    tint = accent,
+                    onClick = open,
+                )
             }
             onOpenMap?.let { open ->
-                IconButton(onClick = open) {
-                    Icon(
-                        imageVector = Icons.Filled.DirectionsCar,
-                        contentDescription = stringResource(R.string.cheats_map_cd),
-                        tint = accent,
-                    )
-                }
+                HeaderIconButton(
+                    icon = Icons.Filled.DirectionsCar,
+                    contentDescription = stringResource(R.string.cheats_map_cd),
+                    tint = accent,
+                    onClick = open,
+                )
             }
         }
         Spacer(Modifier.height(8.dp))
