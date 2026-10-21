@@ -272,7 +272,7 @@ internal fun MirrorMapScreen(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 2.dp, end = 2.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 onOpenCheats?.let { open ->
                     HeaderIconButton(
