@@ -1,6 +1,12 @@
 package jr.brian.thorhud.ui.cheats
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,13 +18,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,12 +45,14 @@ import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
 
 /**
- * The cheats tab. A scrolling grid of text buttons: one-shots on top,
- * toggles below. Toggle button lights come from [cheatsMask] alone —
- * never from the tap — so a toggle the plugin refused never looks on.
- * The last refusal shows as a single line at the bottom; cleared on
- * the next tap. When the connected plugin build does not support the
- * cheat command the screen is just a one-line notice.
+ * The cheats tab. Grouped into collapsible sections (health, wanted,
+ * weapons, vehicle, world, toggles) so related cheats stay visually
+ * clustered on the Thor's short 540 x 468 dp bottom panel. Toggle
+ * button lights come from [cheatsMask] alone — never from the tap —
+ * so a toggle the plugin refused never looks on. The last refusal
+ * shows as a single line at the bottom; cleared on the next tap.
+ * When the connected plugin build does not support the cheat command
+ * the screen is just a one-line notice.
  */
 @Composable
 internal fun CheatsScreen(
@@ -74,32 +91,18 @@ internal fun CheatsScreen(
             return@Column
         }
 
-        val cheats = visibleCheats(isGtaV)
-        val (oneShots, toggles) = cheats.partition { !it.isToggle }
+        val grouped = visibleCheats(isGtaV)
         val pendingId = lastResult?.takeIf { it.error == null }?.cheatId
 
-        if (oneShots.isNotEmpty()) {
-            SectionHeader(stringResource(R.string.cheats_section_actions), accent)
-            CheatGrid(
-                items = oneShots,
+        for ((category, items) in grouped) {
+            CategorySection(
+                category = category,
+                items = items,
                 accent = accent,
                 pendingId = pendingId,
-                isOn = { false },
+                cheatsMask = cheatsMask,
                 onTap = onRunCheat,
             )
-            Spacer(Modifier.height(12.dp))
-        }
-
-        if (toggles.isNotEmpty()) {
-            SectionHeader(stringResource(R.string.cheats_section_toggles), accent)
-            CheatGrid(
-                items = toggles,
-                accent = accent,
-                pendingId = pendingId,
-                isOn = { isOn(cheatsMask, it) },
-                onTap = onRunCheat,
-            )
-            Spacer(Modifier.height(12.dp))
         }
 
         // Last refusal, verbatim from the plugin. Blank line when the
@@ -118,15 +121,66 @@ internal fun CheatsScreen(
 }
 
 @Composable
-private fun SectionHeader(text: String, accent: Color) {
-    Text(
-        text,
-        color = accent,
-        fontFamily = FontFamily.Monospace,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(bottom = 6.dp),
-    )
+private fun CategorySection(
+    category: CheatCategory,
+    items: List<CheatDef>,
+    accent: Color,
+    pendingId: Int?,
+    cheatsMask: Int?,
+    onTap: (Int) -> Unit,
+) {
+    // Each section remembers its own open/closed state. All start
+    // open so a player opening the tab sees every available cheat in
+    // one scroll; a user who wants a tidier view can collapse the
+    // ones they do not care about.
+    var expanded by rememberSaveable(category.name) { mutableStateOf(true) }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = if (expanded) Icons.Filled.KeyboardArrowDown
+                              else Icons.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = accent,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.size(4.dp))
+            Text(
+                text = stringResource(category.labelRes),
+                color = accent,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.size(6.dp))
+            Text(
+                text = "(${items.size})",
+                color = Color(0xFF6A7A6E),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 10.sp,
+            )
+        }
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut(),
+        ) {
+            Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                CheatGrid(
+                    items = items,
+                    accent = accent,
+                    pendingId = pendingId,
+                    isOn = { isOn(cheatsMask, it) },
+                    onTap = onTap,
+                )
+            }
+        }
+    }
 }
 
 @Composable

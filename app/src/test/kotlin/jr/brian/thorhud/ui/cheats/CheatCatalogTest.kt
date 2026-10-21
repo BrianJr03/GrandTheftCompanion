@@ -12,6 +12,9 @@ import org.junit.Test
  */
 class CheatCatalogTest {
 
+    private fun idsFor(isGtaV: Boolean): Set<Int> =
+        visibleCheats(isGtaV).values.flatten().map { it.id }.toSet()
+
     @Test
     fun idsSpanTheExpectedRanges() {
         for (def in CHEATS) {
@@ -25,33 +28,38 @@ class CheatCatalogTest {
                            def.id <= 34)
             } else {
                 // Two one-shot bands around the toggle range: 1..19 and
-                // 40..79. Anything in between is refused by the
-                // plugin as "unknown cheat".
-                assertTrue("one-shot id ${def.id} must be in 1..19 or 40..79",
-                           def.id in 1..19 || def.id in 40..79)
+                // 40..41 (IV weapon sets). The IV spawn range (50..58)
+                // is reserved in the plugin but no catalog entries live
+                // there yet — the on-device test showed REQUEST_MODEL
+                // from the per-frame hook crashes IV.
+                assertTrue("one-shot id ${def.id} must be in 1..19 or 40..41",
+                           def.id in 1..19 || def.id in 40..41)
             }
         }
     }
 
     @Test
     fun ivHidesVOnlyEntries() {
-        val iv = visibleCheats(isGtaV = false).map { it.id }.toSet()
+        val iv = idsFor(isGtaV = false)
         // Shared cheats that must be visible on IV.
         assertTrue(iv.containsAll(setOf(1, 2, 3, 4, 5, 6, 7, 8, 17, 20, 22, 23, 26, 27)))
-        // IV-only phone-cheat weapon sets.
+        // IV-only phone-cheat weapon sets + ultimate.
         assertTrue(iv.containsAll(setOf(19, 40, 41)))
-        // IV-only base vehicle spawns (ids 50..58).
-        assertTrue(iv.containsAll((50..58).toSet()))
         // V-only must not leak into IV.
         for (id in listOf(9, 10, 11, 12, 13, 14, 15, 16, 18, 21, 24, 25,
                           28, 29, 30, 31, 32, 33, 34)) {
             assertFalse("V-only id $id leaked onto IV", iv.contains(id))
         }
+        // IV spawn range (50..58) is reserved but pulled from UI.
+        for (id in 50..58) {
+            assertFalse("IV spawn id $id must not appear in the catalog yet",
+                        iv.contains(id))
+        }
     }
 
     @Test
     fun vSeesEveryVEntry() {
-        val v = visibleCheats(isGtaV = true).map { it.id }.toSet()
+        val v = idsFor(isGtaV = true)
         for (id in listOf(1, 2, 3, 4, 5, 6, 7, 8, 9,
                           10, 11, 12, 13, 14, 15,
                           16, 17, 18,
@@ -60,8 +68,8 @@ class CheatCatalogTest {
             assertTrue("V missing id $id", v.contains(id))
         }
         // IV-only entries must not appear on V (fast reload, never
-        // tired, IV phone-cheat weapon sets, IV base vehicle spawns).
-        for (id in listOf(22, 23, 19, 40, 41) + (50..58).toList()) {
+        // tired, IV phone-cheat weapon sets + ultimate).
+        for (id in listOf(22, 23, 19, 40, 41)) {
             assertFalse("IV-only id $id leaked onto V", v.contains(id))
         }
     }
@@ -89,9 +97,30 @@ class CheatCatalogTest {
                           16, 17, 18, 19,
                           20, 21, 22, 23, 24, 25, 26, 27,
                           28, 29, 30, 31, 32, 33, 34,
-                          40, 41) + (50..58).toList()) {
+                          40, 41)) {
             assertTrue("missing cheat id $id in catalog", ids.contains(id))
         }
         assertEquals("one id per cheat", CHEATS.size, ids.size)
+    }
+
+    @Test
+    fun groupedByCategoryHasOrderedSections() {
+        // visibleCheats returns a LinkedHashMap keyed by category in
+        // the enum's declaration order; CheatsScreen walks that order
+        // to render section headers. A regression here would scramble
+        // the sections on the companion.
+        val onV = visibleCheats(isGtaV = true)
+        assertEquals(
+            listOf(CheatCategory.Health, CheatCategory.Wanted,
+                   CheatCategory.Weapons, CheatCategory.Vehicle,
+                   CheatCategory.World, CheatCategory.Toggles),
+            onV.keys.toList(),
+        )
+        // Wanted trio must be clustered inside the Wanted section with
+        // clear, +1, -1 all present.
+        assertEquals(
+            setOf(2, 3, 16),
+            onV[CheatCategory.Wanted].orEmpty().map { it.id }.toSet(),
+        )
     }
 }
