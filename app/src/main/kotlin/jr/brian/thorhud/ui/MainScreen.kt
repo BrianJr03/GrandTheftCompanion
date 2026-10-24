@@ -18,17 +18,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,7 +28,6 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.key
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -79,7 +70,7 @@ import jr.brian.thorhud.ui.map.titleCase
 import jr.brian.thorhud.ui.cheats.CheatsScreen
 import jr.brian.thorhud.ui.cheats.CheatsViewModel
 import jr.brian.thorhud.ui.components.HudPalette
-import jr.brian.thorhud.ui.customs.LSCustomsScreens
+import jr.brian.thorhud.ui.customs.LSCustomsScreen
 import jr.brian.thorhud.ui.v.VMainScreen
 import jr.brian.thorhud.ui.v.VRadioPicker
 import jr.brian.thorhud.ui.v.VWeaponWheelOverlay
@@ -89,6 +80,7 @@ import jr.brian.thorhud.ui.v.vIsNoticeState
 import jr.brian.thorhud.ui.v.wheelReorder
 import jr.brian.thorhud.update.UpdateSheet
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
@@ -105,7 +97,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
 
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
-        while (true) { now = System.currentTimeMillis(); delay(500) }
+        while (true) { now = System.currentTimeMillis(); delay(500.milliseconds) }
     }
     val isStale = lastUpdateMs > 0 && (now - lastUpdateMs) > 1500
     val isDisconnected = lastUpdateMs == 0L
@@ -170,7 +162,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     var wheelOpenedByTap by remember { mutableStateOf(false) }
     val wheelHeld = liveState?.wheel == true
     // On foot only: both plugins refuse set_weapon in a vehicle.
-    val onFoot = liveState?.inGame == true && liveState?.inVehicle == false
+    val onFoot = liveState?.inGame == true && !liveState.inVehicle
     val wheelUsable = onFoot && if (isGtaV) {
         !vIsNoticeState(hello, state)
     } else {
@@ -178,7 +170,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         // level below 4, which includes every release so far) sends an
         // empty list. Keep the wheel off then, rather than opening one
         // with nothing on it but fists.
-        liveState?.ownedWeapons?.isNotEmpty() == true
+        liveState.ownedWeapons.isNotEmpty()
     }
     val showWheel = wheelUsable && (wheelHeld || wheelOpenedByTap)
     // What a tap on the weapon card does; null leaves the card inert.
@@ -257,7 +249,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     // restarts the clock.
     LaunchedEffect(wheelOpenedByTap, wheelHeld, weaponPick) {
         if (wheelOpenedByTap && !wheelHeld) {
-            delay(WHEEL_IDLE_CLOSE_MS)
+            delay(WHEEL_IDLE_CLOSE_MS.milliseconds)
             wheelOpenedByTap = false
         }
     }
@@ -592,7 +584,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                         // outer scope so the HUD lambda above sees the
                         // same openCustoms. Compose unconditionally so
                         // the slide-out animation plays before unmount.
-                        LSCustomsScreens(
+                        LSCustomsScreen(
                             visible = showCustoms && isGtaV,
                             accent = accent,
                             onDismiss = { showCustoms = false },
@@ -621,11 +613,11 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             )
                         } else if (showWheel) {
                             IvWeaponWheelOverlay(
-                                owned = liveState?.ownedWeapons.orEmpty(),
-                                equippedId = liveState?.weaponId,
+                                owned = liveState.ownedWeapons,
+                                equippedId = liveState.weaponId,
                                 pick = weaponPick,
                                 held = wheelHeld,
-                                palette = paletteFor(liveState?.episode ?: state?.episode),
+                                palette = paletteFor(liveState.episode ?: state?.episode),
                                 order = ivWheelOrder,
                                 onPick = viewModel::pickWeapon,
                                 onDismiss = { wheelOpenedByTap = false },
@@ -845,8 +837,8 @@ private fun IvHudScreen(
                 }
                 Spacer(Modifier.height(16.dp))
                 RadioPicker(
-                    stations = stationListFor(liveState?.episode),
-                    currentLocal = liveState?.radio ?: -1,
+                    stations = stationListFor(liveState.episode),
+                    currentLocal = liveState.radio ?: -1,
                     palette = palette,
                     onStationTap = { enumIdx -> viewModel.setRadio(enumIdx) },
                 )

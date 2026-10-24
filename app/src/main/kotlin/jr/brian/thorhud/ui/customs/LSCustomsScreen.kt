@@ -18,8 +18,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,6 +56,7 @@ import jr.brian.thorhud.ui.cheats.PAINT_SWATCHES
 import jr.brian.thorhud.ui.cheats.unpackRgb
 import jr.brian.thorhud.ui.components.FullScreenSheet
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * The Los Santos Customs sheet (GTA V only). Opens on a long-press of
@@ -72,7 +72,7 @@ import kotlinx.coroutines.delay
  * frame.
  */
 @Composable
-internal fun LSCustomsScreens(
+internal fun LSCustomsScreen(
     visible: Boolean,
     accent: Color,
     onDismiss: () -> Unit,
@@ -90,8 +90,8 @@ internal fun LSCustomsScreens(
     // on-foot for longer than that, dismiss.
     LaunchedEffect(visible, state?.inVehicle) {
         if (visible && state?.inVehicle == false) {
-            delay(3000)
-            if (state?.inVehicle == false) onDismiss()
+            delay(3000.milliseconds)
+            onDismiss()
         }
     }
     LaunchedEffect(visible) {
@@ -195,7 +195,7 @@ private val SetSaver = androidx.compose.runtime.saveable.Saver<
     androidx.compose.runtime.MutableState<Set<String>>, String>(
     save = { it.value.joinToString(",") },
     restore = { stored ->
-        androidx.compose.runtime.mutableStateOf(
+        mutableStateOf(
             if (stored.isEmpty()) emptySet()
             else stored.split(",").toSet()
         )
@@ -943,12 +943,12 @@ private fun ArrowRow(
             )
         }
         ArrowIconButton(
-            icon = Icons.Filled.KeyboardArrowLeft,
+            icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
             accent = accent, pending = pending, onClick = onPrev,
         )
         Spacer(Modifier.size(4.dp))
         ArrowIconButton(
-            icon = Icons.Filled.KeyboardArrowRight,
+            icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             accent = accent, pending = pending, onClick = onNext,
         )
     }
