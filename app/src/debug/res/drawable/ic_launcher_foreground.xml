@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-build override of the launcher foreground: same GTC wordmark
+  plus a red "DEBUG" badge below, so Brian can tell the sideload apart
+  from the signed release at a glance. Lives in src/debug/res so the
+  release icon stays untouched.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- GTC wordmark, identical to the main variant. -->
+    <path android:fillColor="#C46A2A" android:pathData="
+        M35.5,36.0 L49.5,36.0 L48.8,40.0 L34.8,40.0 Z
+        M35.5,36.0 L39.5,36.0 L33.0,72.0 L29.0,72.0 Z
+        M29.7,68.0 L43.7,68.0 L43.0,72.0 L29.0,72.0 Z
+        M42.2,54.0 L46.2,54.0 L43.0,72.0 L39.0,72.0 Z
+        M39.2,54.0 L46.2,54.0 L45.5,58.0 L38.5,58.0 Z
+        M53.5,36.0 L67.5,36.0 L66.8,40.0 L52.8,40.0 Z
+        M58.5,36.0 L62.5,36.0 L56.0,72.0 L52.0,72.0 Z
+        M71.5,36.0 L85.5,36.0 L84.8,40.0 L70.8,40.0 Z
+        M71.5,36.0 L75.5,36.0 L69.0,72.0 L65.0,72.0 Z
+        M65.7,68.0 L79.7,68.0 L79.0,72.0 L65.0,72.0 Z" />
+
+    <!-- "DEBUG" badge below the wordmark, 4-wide block letters with
+         1-unit gaps, spanning x=42..66 and y=76..84 (inside the 72x72
+         adaptive-icon safe area). -->
+    <path android:fillColor="#D64545" android:pathData="
+        M42,76 L43,76 L43,84 L42,84 Z
+        M43,76 L45,76 L45,77 L43,77 Z
+        M43,83 L45,83 L45,84 L43,84 Z
+        M45,77 L46,77 L46,83 L45,83 Z
+        M47,76 L48,76 L48,84 L47,84 Z
+        M48,76 L51,76 L51,77 L48,77 Z
+        M48,79.5 L50,79.5 L50,80.5 L48,80.5 Z
+        M48,83 L51,83 L51,84 L48,84 Z
+        M52,76 L53,76 L53,84 L52,84 Z
+        M53,76 L55,76 L55,77 L53,77 Z
+        M53,79.5 L55,79.5 L55,80.5 L53,80.5 Z
+        M53,83 L55,83 L55,84 L53,84 Z
+        M55,77 L56,77 L56,79.5 L55,79.5 Z
+        M55,80.5 L56,80.5 L56,83 L55,83 Z
+        M57,76 L58,76 L58,83 L57,83 Z
+        M60,76 L61,76 L61,83 L60,83 Z
+        M57,83 L61,83 L61,84 L57,84 Z
+        M62,76 L63,76 L63,84 L62,84 Z
+        M63,76 L66,76 L66,77 L63,77 Z
+        M63,83 L66,83 L66,84 L63,84 Z
+        M65,80 L66,80 L66,83 L65,83 Z
+        M64,80 L66,80 L66,81 L64,81 Z" />
+</vector>

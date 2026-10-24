@@ -79,7 +79,7 @@ import jr.brian.thorhud.ui.map.titleCase
 import jr.brian.thorhud.ui.cheats.CheatsScreen
 import jr.brian.thorhud.ui.cheats.CheatsViewModel
 import jr.brian.thorhud.ui.components.HudPalette
-import jr.brian.thorhud.ui.customs.CustomsScreen
+import jr.brian.thorhud.ui.customs.LSCustomsScreens
 import jr.brian.thorhud.ui.v.VMainScreen
 import jr.brian.thorhud.ui.v.VRadioPicker
 import jr.brian.thorhud.ui.v.VWeaponWheelOverlay
@@ -560,11 +560,39 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             },
                         )
 
+                        // Map-tab first-visit onboarding. Gated on the
+                        // user actually landing on the map page — the
+                        // pager pre-composes neighbors, so starting the
+                        // sheet when the map lambda first runs would
+                        // pop it up over the HUD on launch. Flips once
+                        // per installation; markMapOnboardingSeen stops
+                        // a second visit from re-triggering.
+                        var showMapOnboarding by rememberSaveable {
+                            mutableStateOf(false)
+                        }
+                        LaunchedEffect(pagerState.currentPage) {
+                            if (pagerState.currentPage == HudPage.Map.ordinal &&
+                                !viewModel.hasSeenMapOnboarding()
+                            ) {
+                                showMapOnboarding = true
+                            }
+                        }
+                        OnboardingSheet(
+                            visible = showMapOnboarding,
+                            title = stringResource(R.string.map_onboarding_title),
+                            accent = accent,
+                            slides = mapOnboardingSlides(),
+                            onDismiss = {
+                                viewModel.markMapOnboardingSeen()
+                                showMapOnboarding = false
+                            },
+                        )
+
                         // Customs sheet. V-only. State lives in the
                         // outer scope so the HUD lambda above sees the
                         // same openCustoms. Compose unconditionally so
                         // the slide-out animation plays before unmount.
-                        CustomsScreen(
+                        LSCustomsScreens(
                             visible = showCustoms && isGtaV,
                             accent = accent,
                             onDismiss = { showCustoms = false },

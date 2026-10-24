@@ -259,19 +259,10 @@ internal fun VVehiclePanel(
         // Edit glyph tells the player this card is actionable. The
         // long-press hook that opens Customs lives on the parent
         // card modifier (ui/v/VMainScreen.kt); the glyph is a visual
-        // affordance only. Pencil leads for Start/Center, trails for
-        // End so it never sits between the panel edge and the name.
+        // affordance only. Always sits in front of the name, no
+        // matter the card alignment — leaving it trailing on
+        // End-aligned cards read as decoration, not an affordance.
         val cd = stringResource(R.string.v_vehicle_edit_cd)
-        val editGlyph: @Composable () -> Unit = {
-            Icon(
-                imageVector = Icons.Outlined.Edit,
-                contentDescription = cd,
-                tint = Color(0xFF6A7A6E),
-                modifier = Modifier
-                    .size(14.dp)
-                    .semantics { contentDescription = cd },
-            )
-        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -281,10 +272,15 @@ internal fun VVehiclePanel(
                 CardAlign.Start  -> Arrangement.Start
             },
         ) {
-            if (align != CardAlign.End) {
-                editGlyph()
-                Spacer(Modifier.size(6.dp))
-            }
+            Icon(
+                imageVector = Icons.Outlined.Edit,
+                contentDescription = cd,
+                tint = Color(0xFF6A7A6E),
+                modifier = Modifier
+                    .size(14.dp)
+                    .semantics { contentDescription = cd },
+            )
+            Spacer(Modifier.size(6.dp))
             Text(
                 v.name.ifBlank {
                     stringResource(R.string.v_model_fallback, v.model)
@@ -298,10 +294,6 @@ internal fun VVehiclePanel(
                 textAlign = textAlign,
                 modifier = Modifier.weight(1f, fill = false),
             )
-            if (align == CardAlign.End) {
-                Spacer(Modifier.size(6.dp))
-                editGlyph()
-            }
         }
         Spacer(Modifier.height(20.dp))
         Text(

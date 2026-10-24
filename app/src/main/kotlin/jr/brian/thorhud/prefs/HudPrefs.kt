@@ -230,12 +230,22 @@ class HudPrefs @Inject constructor(
             prefs.edit().putBoolean(KEY_SEEN_HUD_ONBOARDING, value).apply()
         }
 
-    /** Clear both onboarding-seen flags so the "show tips again"
+    /** True once the user has dismissed the map-tab onboarding
+     *  sheet. One shot per installation; the sheet is shown the
+     *  first time the user lands on the map tab. */
+    var hasSeenMapOnboarding: Boolean
+        get() = prefs.getBoolean(KEY_SEEN_MAP_ONBOARDING, false)
+        set(value) {
+            prefs.edit().putBoolean(KEY_SEEN_MAP_ONBOARDING, value).apply()
+        }
+
+    /** Clear every onboarding-seen flag so the "show tips again"
      *  settings row can re-arm every first-visit sheet in one tap. */
     fun resetOnboarding() {
         prefs.edit()
             .remove(KEY_SEEN_CHEATS_ONBOARDING)
             .remove(KEY_SEEN_HUD_ONBOARDING)
+            .remove(KEY_SEEN_MAP_ONBOARDING)
             .apply()
     }
 
@@ -389,6 +399,7 @@ class HudPrefs @Inject constructor(
         const val KEY_AUTO_APPLY_CHEATS = "auto_apply_cheats"
         const val KEY_SEEN_CHEATS_ONBOARDING = "seen_cheats_onboarding"
         const val KEY_SEEN_HUD_ONBOARDING = "seen_hud_onboarding"
+        const val KEY_SEEN_MAP_ONBOARDING = "seen_map_onboarding"
         const val KEY_CHEAT_SECTION_ORDER = "cheat_section_order"
         val DEFAULT_WHEEL_ORDER: List<Int> = (0..7).toList()
         val GAME_KEYS = listOf("iv", "v")

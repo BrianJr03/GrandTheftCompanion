@@ -3,6 +3,7 @@ package jr.brian.thorhud.ui.cheats
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -81,20 +83,29 @@ internal fun ColorWheelSheet(
     onDismiss: () -> Unit,
     onPick: (Long) -> Unit,
 ) {
-    val seed = remember(initial, visible) { initial ?: packRgb(0xB2, 0x1E, 0x1E) }
-    val (sr, sg, sb) = unpackRgb(seed)
-    val seedHsv = remember(seed) { rgbToHsv(sr, sg, sb) }
+    // seedHsv is used ONLY to seed the per-layer HSV state on first
+    // ever composition. It is intentionally not keyed on `initial`
+    // or `visible` so a subsequent `onPick` (which updates the
+    // caller's lastWheelPicked and therefore `initial`) does not
+    // reset the layers the next time the sheet opens.
+    val seedHsv = remember {
+        val packed = initial ?: packRgb(0xB2, 0x1E, 0x1E)
+        val (sr, sg, sb) = unpackRgb(packed)
+        rgbToHsv(sr, sg, sb)
+    }
 
-    // Independent HSV state per layer; the wheel edits whichever is
-    // currently selected. Both seed from the same initial on open so
-    // the two preview tiles start as the last color the user picked.
-    var editing by remember(seed) { mutableStateOf(PaintLayer.Primary) }
-    var primaryHue by remember(seed) { mutableFloatStateOf(seedHsv.first) }
-    var primarySat by remember(seed) { mutableFloatStateOf(seedHsv.second) }
-    var primaryValue by remember(seed) { mutableFloatStateOf(seedHsv.third) }
-    var secondaryHue by remember(seed) { mutableFloatStateOf(seedHsv.first) }
-    var secondarySat by remember(seed) { mutableFloatStateOf(seedHsv.second) }
-    var secondaryValue by remember(seed) { mutableFloatStateOf(seedHsv.third) }
+    // Independent HSV state per layer. The remember block runs once
+    // per composable instance; `visible` toggling closed/open does
+    // not reset either layer, so the user comes back to exactly
+    // where they left off. `editing` resets to Primary each session
+    // (it is a UI focus, not a user preference).
+    var editing by remember { mutableStateOf(PaintLayer.Primary) }
+    var primaryHue by remember { mutableFloatStateOf(seedHsv.first) }
+    var primarySat by remember { mutableFloatStateOf(seedHsv.second) }
+    var primaryValue by remember { mutableFloatStateOf(seedHsv.third) }
+    var secondaryHue by remember { mutableFloatStateOf(seedHsv.first) }
+    var secondarySat by remember { mutableFloatStateOf(seedHsv.second) }
+    var secondaryValue by remember { mutableFloatStateOf(seedHsv.third) }
 
     val primaryPacked = hsvToRgbPacked(primaryHue, primarySat, primaryValue)
     val secondaryPacked = hsvToRgbPacked(secondaryHue, secondarySat, secondaryValue)
@@ -114,9 +125,24 @@ internal fun ColorWheelSheet(
         title = stringResource(R.string.cheats_paint_wheel_title),
         accent = accent,
         headerActions = {
-            // Save: fire paint_rgb for the active layer only. Plugin
-            // decodes the high byte of the arg (layer selector) and
-            // writes only that layer's custom color.
+            // Apply both: fire paint_rgb twice, once per layer. The
+            // plugin's wire format reserves bits 24..31 as a layer
+            // selector; 0x01 = primary, 0x02 = secondary. Two sends
+            // in a row land as two acks and leave the car wearing
+            // both custom colors. Lives alongside the single-layer
+            // apply so the player can still change just one side.
+            HeaderIconButton(
+                icon = Icons.Filled.DoneAll,
+                contentDescription = stringResource(R.string.cheats_paint_wheel_apply_both),
+                tint = accent,
+                onClick = {
+                    onPick(primaryPacked or (PaintLayer.Primary.wireCode.toLong() shl 24))
+                    onPick(secondaryPacked or (PaintLayer.Secondary.wireCode.toLong() shl 24))
+                    onDismiss()
+                },
+            )
+            // Apply active layer only. Same wire path as before so
+            // callers that want a one-layer tap keep their flow.
             HeaderIconButton(
                 icon = Icons.Filled.Check,
                 contentDescription = stringResource(R.string.cheats_paint_wheel_apply),
@@ -134,10 +160,11 @@ internal fun ColorWheelSheet(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Two previews + a switch on the right. Each preview is
-            // framed in accent only while that layer is being edited,
-            // so the wheel's effect at a glance is obvious. The hex
-            // readout follows the active layer.
+            // Two previews — tap one to select it for editing. The
+            // framed tile is the active layer; its hex rides to the
+            // right. No separate switch; the previews ARE the switch,
+            // which lines up with the two colors the player is
+            // actually looking at.
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -149,6 +176,7 @@ internal fun ColorWheelSheet(
                             else accent.copy(alpha = 0.3f),
                     label = stringResource(R.string.cheats_paint_primary),
                     labelColor = accent,
+                    onClick = { editing = PaintLayer.Primary },
                 )
                 PreviewTile(
                     color = secondaryPreview,
@@ -156,6 +184,7 @@ internal fun ColorWheelSheet(
                             else accent.copy(alpha = 0.3f),
                     label = stringResource(R.string.cheats_paint_secondary),
                     labelColor = accent,
+                    onClick = { editing = PaintLayer.Secondary },
                 )
                 Text(
                     text = String.format("#%06X", activePacked),
@@ -164,21 +193,6 @@ internal fun ColorWheelSheet(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f),
-                )
-                // Toggle between primary and secondary. Switch on =
-                // secondary (right-hand slot in the preview row).
-                androidx.compose.material3.Switch(
-                    checked = editing == PaintLayer.Secondary,
-                    onCheckedChange = {
-                        editing = if (it) PaintLayer.Secondary else PaintLayer.Primary
-                    },
-                    colors = androidx.compose.material3.SwitchDefaults.colors(
-                        checkedThumbColor = Color.Black,
-                        checkedTrackColor = accent,
-                        uncheckedThumbColor = accent,
-                        uncheckedTrackColor = Color.Black,
-                        uncheckedBorderColor = accent,
-                    ),
                 )
             }
 
@@ -217,6 +231,7 @@ private fun PreviewTile(
     frame: Color,
     label: String,
     labelColor: Color,
+    onClick: () -> Unit = {},
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Box(
@@ -224,7 +239,8 @@ private fun PreviewTile(
                 .size(40.dp)
                 .clip(RoundedCornerShape(8.dp))
                 .background(color)
-                .border(2.dp, frame, RoundedCornerShape(8.dp)),
+                .border(2.dp, frame, RoundedCornerShape(8.dp))
+                .clickable(onClick = onClick),
         )
         Text(
             text = label,

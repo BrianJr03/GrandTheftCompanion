@@ -257,6 +257,7 @@
     <string name="cheats_paint_custom_color">rueda de color</string>
     <string name="cheats_paint_wheel_title">rueda de color</string>
     <string name="cheats_paint_wheel_apply">aplicar</string>
+    <string name="cheats_paint_wheel_apply_both">aplicar ambos</string>
 
     <string name="swatch_night">noche</string>
     <string name="swatch_bone">hueso</string>
@@ -277,6 +278,14 @@
     <string name="cheats_onboarding_next">Siguiente</string>
     <string name="cheats_onboarding_done">Entendido</string>
 
+    <string name="map_onboarding_title">Acerca de la pestaña del mapa</string>
+    <string name="map_onboarding_slide_overview_title">Qué hace esta pantalla</string>
+    <string name="map_onboarding_slide_overview_body">Refleja el minimapa del juego ampliado en la pantalla inferior del Thor. Toca iniciar reflejo y permite la captura de pantalla cuando Android lo pida. Deténlo en cualquier momento con el icono de parada.</string>
+    <string name="map_onboarding_slide_gestures_title">Mover, acercar, bloquear</string>
+    <string name="map_onboarding_slide_gestures_body">Pellizca para acercar y arrastra para mover el reflejo hasta que el encuadre te guste. El icono de actualizar vuelve a la vista por defecto. Pulsa el icono del candado cuando estés contento para que un toque accidental no lo desvíe.</string>
+    <string name="map_onboarding_slide_actions_title">Atajos de iconos</string>
+    <string name="map_onboarding_slide_actions_body">La columna de iconos llega al resto de pestañas sin salir del mapa. Casa para el HUD, dado para los trucos, pin para los puntos, radio para las emisoras. Las superposiciones de conducción (velocímetro, distancia al punto de ruta en V, destino rastreado) aparecen por sí solas mientras estás en un coche.</string>
+
     <string name="settings_section_cheats">Trucos</string>
     <string name="settings_auto_reapply_cheats_title">Reaplicar interruptores al reconectar</string>
     <string name="settings_auto_reapply_cheats_body">Después de que el compañero se reconecte (nueva sesión, reinicio del juego), reactiva cualquier interruptor que tuvieras activado la última vez, más cualquier truco instantáneo que hubieras armado con pulsación larga. Solo se dispara una vez por conexión y únicamente cuando el juego está en un estado seguro (sin pausa, sin cambio de personaje, sin cinemática).</string>
@@ -288,4 +297,138 @@
     <string name="setup_step1_detail">El ASI escanea patrones de esta compilación exacta. Otras versiones no encenderán el HUD.</string>
 
     <string name="update_available_subtitle">v%1$s → v%2$s</string>
+
+    <!-- Mirror color to sticks (V-only) -->
+    <string name="cheats_paint_to_lights">reflejar color en los sticks</string>
+
+    <!-- GTA V vehicle-card edit glyph -->
+    <string name="v_vehicle_edit_cd">mantén pulsado para abrir Customs</string>
+
+    <!-- HUD-page first-visit onboarding sheet -->
+    <string name="hud_onboarding_title">Acerca del HUD</string>
+    <string name="hud_onboarding_slide_hud_title">Lo que estás viendo</string>
+    <string name="hud_onboarding_slide_hud_body">Tarjetas para el dinero, el arma y la munición, el vehículo y la velocidad, la emisora de radio, además de las barras de salud y blindaje abajo. Todo sigue al juego automáticamente.</string>
+    <string name="hud_onboarding_slide_tap_title">Toca para actuar</string>
+    <string name="hud_onboarding_slide_tap_body">Toca una emisora de radio para cambiarla. Toca la tarjeta de arma a pie (o mantén el botón de la rueda de armas en el mando) para elegir un arma.</string>
+    <string name="hud_onboarding_slide_customs_title">Mantén pulsada la tarjeta del vehículo</string>
+    <string name="hud_onboarding_slide_customs_body">¿En un coche? Mantener pulsada la tarjeta del vehículo abre Customs: pintura, piezas, rendimiento, ruedas, tintado, matrícula, neón. Busca el icono del lápiz pequeño junto al nombre del vehículo.</string>
+    <string name="hud_onboarding_slide_tabs_title">Más pestañas</string>
+    <string name="hud_onboarding_slide_tabs_body">Desliza a la izquierda para el mapa (iconos, ruta con un toque) o a la derecha para los trucos. El HUD se queda en el centro para que siempre sepas cómo volver.</string>
+
+    <!-- Los Santos Customs sheet (GTA V only) -->
+    <string name="customs_title">Customs</string>
+    <string name="customs_get_in_car">Súbete a un coche para abrir Customs.</string>
+    <string name="customs_no_kit">Este vehículo no puede personalizarse.</string>
+    <string name="customs_loading">Cargando el catálogo…</string>
+    <string name="customs_error">%1$s</string>
+    <string name="customs_section_paint">Pintura</string>
+    <string name="customs_section_body">Carrocería</string>
+    <string name="customs_section_performance">Rendimiento</string>
+    <string name="customs_section_wheels">Ruedas</string>
+    <string name="customs_section_interior">Interior</string>
+    <string name="customs_section_lights">Luces y extras</string>
+    <string name="customs_section_plate">Matrícula</string>
+    <string name="customs_section_other">Otros</string>
+    <string name="customs_stock">De serie</string>
+    <string name="customs_option_n">Opción %1$d</string>
+    <string name="customs_slot_n">Ranura %1$d</string>
+    <string name="customs_toggle_turbo">Turbo</string>
+    <string name="customs_toggle_tyre_smoke">Humo de ruedas</string>
+    <string name="customs_toggle_xenon">Luces xenón</string>
+    <string name="customs_wheel_type">Tipo de ruedas</string>
+    <string name="customs_wheel_type_sport">Deportivo</string>
+    <string name="customs_wheel_type_muscle">Muscle</string>
+    <string name="customs_wheel_type_lowrider">Lowrider</string>
+    <string name="customs_wheel_type_suv">SUV</string>
+    <string name="customs_wheel_type_offroad">Todoterreno</string>
+    <string name="customs_wheel_type_tuner">Tuner</string>
+    <string name="customs_wheel_type_bike">Moto</string>
+    <string name="customs_wheel_type_highend">Gama alta</string>
+    <string name="customs_wheel_type_other">Otro</string>
+    <string name="customs_tint">Tintado de ventanas</string>
+    <string name="customs_plate">Matrícula</string>
+    <string name="customs_plate_style">Estilo de matrícula</string>
+    <string name="customs_plate_apply">Aplicar</string>
+    <string name="customs_plate_hint">8 caracteres (A–Z, 0–9, espacio)</string>
+    <string name="customs_neon">Neón</string>
+    <string name="customs_smoke">Color del humo de ruedas</string>
+    <string name="customs_xenon">Color xenón</string>
+    <string name="customs_bulletproof">Neumáticos antibalas</string>
+    <string name="customs_off">Apagado</string>
+    <string name="customs_default">Predeterminado</string>
+    <string name="customs_paint_respray">Repintar</string>
+    <string name="customs_paint_next">Color siguiente</string>
+    <string name="customs_paint_swap">Intercambiar colores</string>
+    <string name="customs_paint_wheel">Rueda de colores</string>
+    <string name="customs_fix_vehicle">Reparar vehículo</string>
+
+    <!-- Show tips again -->
+    <string name="settings_show_tips_title">Mostrar los consejos de nuevo</string>
+    <string name="settings_show_tips_body">Volver a abrir las hojas de primera visita del HUD y la pestaña de trucos la próxima vez que las visites.</string>
+    <string name="settings_show_tips_button">Mostrar</string>
+
+    <!-- Customs slot names -->
+    <string name="customs_slot_spoiler">Alerón</string>
+    <string name="customs_slot_front_bumper">Parachoques delantero</string>
+    <string name="customs_slot_rear_bumper">Parachoques trasero</string>
+    <string name="customs_slot_side_skirt">Faldón lateral</string>
+    <string name="customs_slot_exhaust">Escape</string>
+    <string name="customs_slot_frame">Chasis</string>
+    <string name="customs_slot_grille">Rejilla</string>
+    <string name="customs_slot_hood">Capó</string>
+    <string name="customs_slot_left_fender">Aleta izquierda</string>
+    <string name="customs_slot_right_fender">Aleta derecha</string>
+    <string name="customs_slot_roof">Techo</string>
+    <string name="customs_slot_engine">Motor</string>
+    <string name="customs_slot_brakes">Frenos</string>
+    <string name="customs_slot_transmission">Transmisión</string>
+    <string name="customs_slot_horn">Claxon</string>
+    <string name="customs_slot_suspension">Suspensión</string>
+    <string name="customs_slot_armor">Blindaje</string>
+    <string name="customs_slot_nitrous">Nitro</string>
+    <string name="customs_slot_subwoofer">Subwoofer</string>
+    <string name="customs_slot_hydraulics_19">Hidráulica</string>
+    <string name="customs_slot_front_wheels">Ruedas delanteras</string>
+    <string name="customs_slot_rear_wheels">Ruedas traseras</string>
+    <string name="customs_slot_plate_holder">Portamatrícula</string>
+    <string name="customs_slot_vanity_plate">Matrícula personalizada</string>
+    <string name="customs_slot_trim">Molduras</string>
+    <string name="customs_slot_ornaments">Adornos</string>
+    <string name="customs_slot_dashboard">Salpicadero</string>
+    <string name="customs_slot_dial">Dial</string>
+    <string name="customs_slot_door_speaker">Altavoz de puerta</string>
+    <string name="customs_slot_seats">Asientos</string>
+    <string name="customs_slot_steering_wheel">Volante</string>
+    <string name="customs_slot_shifter">Palanca de cambios</string>
+    <string name="customs_slot_plaques">Placas</string>
+    <string name="customs_slot_speakers">Altavoces</string>
+    <string name="customs_slot_trunk">Maletero</string>
+    <string name="customs_slot_hydraulics_38">Hidráulica</string>
+    <string name="customs_slot_engine_block">Bloque del motor</string>
+    <string name="customs_slot_air_filter">Filtro de aire</string>
+    <string name="customs_slot_struts">Puntales</string>
+    <string name="customs_slot_arch_cover">Cubre arcos</string>
+    <string name="customs_slot_aerials">Antenas</string>
+    <string name="customs_slot_trim_2">Molduras 2</string>
+    <string name="customs_slot_tank">Depósito</string>
+    <string name="customs_slot_windows">Ventanas</string>
+    <string name="customs_slot_left_door">Puerta izquierda</string>
+    <string name="customs_slot_right_door">Puerta derecha</string>
+    <string name="customs_slot_livery">Librea</string>
+
+    <!-- Customs performance option labels -->
+    <string name="customs_option_variant">%1$s %2$d</string>
+    <string name="customs_opt_engine_level">Mejora EMS, nivel %1$d</string>
+    <string name="customs_opt_brakes_street">Frenos urbanos</string>
+    <string name="customs_opt_brakes_sport">Frenos deportivos</string>
+    <string name="customs_opt_brakes_race">Frenos de carreras</string>
+    <string name="customs_opt_trans_street">Transmisión urbana</string>
+    <string name="customs_opt_trans_sports">Transmisión deportiva</string>
+    <string name="customs_opt_trans_race">Transmisión de carreras</string>
+    <string name="customs_opt_susp_lowered">Suspensión rebajada</string>
+    <string name="customs_opt_susp_street">Suspensión urbana</string>
+    <string name="customs_opt_susp_sport">Suspensión deportiva</string>
+    <string name="customs_opt_susp_competition">Suspensión de competición</string>
+    <string name="customs_opt_susp_race">Suspensión de carreras</string>
+    <string name="customs_opt_armor_pct">Blindaje %1$d%%</string>
 </resources>

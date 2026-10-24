@@ -72,7 +72,7 @@ import kotlinx.coroutines.delay
  * frame.
  */
 @Composable
-internal fun CustomsScreen(
+internal fun LSCustomsScreens(
     visible: Boolean,
     accent: Color,
     onDismiss: () -> Unit,
@@ -141,7 +141,7 @@ internal fun CustomsScreen(
                         pendingKey = result?.takeIf { it.error == null }?.pendingKey,
                         collapsedSections = collapsedSections.value,
                         onToggleSection = toggleSection,
-                        onPaintCheat = viewModel::runPaintCheat,
+                        onRunCheat = viewModel::runCheat,
                         onPaintRgb = { packed ->
                             lastWheelPicked = packed
                             viewModel.paintRgb(packed)
@@ -209,7 +209,7 @@ private fun CustomsBody(
     pendingKey: String?,
     collapsedSections: Set<String>,
     onToggleSection: (CustomsSection) -> Unit,
-    onPaintCheat: (Int) -> Unit,
+    onRunCheat: (Int) -> Unit,
     onPaintRgb: (Long) -> Unit,
     onOpenWheel: () -> Unit,
     onSetMod: (slot: Int, index: Int) -> Unit,
@@ -229,7 +229,7 @@ private fun CustomsBody(
     PaintSection(
         accent = accent,
         pendingKey = pendingKey,
-        onPaintCheat = onPaintCheat,
+        onRunCheat = onRunCheat,
         onOpenWheel = onOpenWheel,
         onPaintRgb = onPaintRgb,
     )
@@ -348,7 +348,7 @@ private fun CustomsBody(
         if (CustomsSection.LightsExtras.name !in collapsedSections) {
             TintRow(accent, m.tint, m.tints, pendingKey == "set_tint", onSetTint)
             NeonRow(accent, m.neon, pendingKey == "set_neon", onSetNeon)
-            SmokeRow(accent, pendingKey == "set_smoke", onSetSmoke)
+//            SmokeRow(accent, pendingKey == "set_smoke", onSetSmoke)
             XenonRow(accent, pendingKey == "set_xenon_colour", onSetXenonColour)
             BulletproofRow(accent, m.bulletproof,
                            pendingKey == "set_bulletproof_tyres",
@@ -437,9 +437,7 @@ private fun SlotArrowRow(
     // option, next wraps the last option to -1.
     val n = slot.options.size
     val curLabel = optionLabel(slot, slot.cur)
-    val slotName = slot.name.ifBlank {
-        stringResource(fallbackSlotNameRes(slot.slot), slot.slot)
-    }
+    val slotName = slot.name.ifBlank { fallbackSlotName(slot.slot) }
     ArrowRow(
         label = slotName,
         value = curLabel,
@@ -468,14 +466,122 @@ private fun nextIndex(cur: Int, n: Int): Int = when {
 private fun optionLabel(slot: GameState.ModSlot, idx: Int): String {
     if (idx == STOCK) return stringResource(R.string.customs_stock)
     val label = slot.options.getOrNull(idx).orEmpty()
-    return if (label.isNotBlank()) label
-    else stringResource(R.string.customs_option_n, idx + 1)
+    if (label.isNotBlank()) return label
+    // Game returned a GXT key with no entry. Pick a better fallback
+    // than "Option N": performance slots have canonical level names
+    // (verified against the FiveM / altMP mod references), everything
+    // else gets "<slot name> <N>" so "Spoiler 2" reads clearly in
+    // place of "Option 2".
+    canonicalOptionLabel(slot.slot, idx)?.let { return it }
+    val slotName = slot.name.ifBlank { fallbackSlotName(slot.slot) }
+    return stringResource(R.string.customs_option_variant, slotName, idx + 1)
 }
 
-private fun fallbackSlotNameRes(slot: Int): Int {
-    // One shared placeholder; the slot number is passed in as a format
-    // arg so a single string resource covers every unknown slot.
-    return R.string.customs_slot_n
+/**
+ * Canonical option labels for the performance slots whose indices
+ * are fixed across every car in the base game. Sources checked:
+ * altMP vehicle-mods docs (value ranges), FiveM native docs
+ * (option counts), community mod guides (level naming). Returns
+ * null for slots whose options are per-car (body / wheels / etc.).
+ */
+@Composable
+private fun canonicalOptionLabel(slot: Int, idx: Int): String? = when (slot) {
+    // Engine (11): 0..4. 0 is EMS Level 1 up through Level 5 at idx 4;
+    // most cars only expose through Level 4 and GET_NUM_VEHICLE_MODS
+    // caps the walk.
+    11 -> stringResource(R.string.customs_opt_engine_level, idx + 1)
+    // Brakes (12): 0=Street, 1=Sport, 2=Race.
+    12 -> when (idx) {
+        0 -> stringResource(R.string.customs_opt_brakes_street)
+        1 -> stringResource(R.string.customs_opt_brakes_sport)
+        2 -> stringResource(R.string.customs_opt_brakes_race)
+        else -> null
+    }
+    // Transmission (13): 0=Street, 1=Sports, 2=Race.
+    13 -> when (idx) {
+        0 -> stringResource(R.string.customs_opt_trans_street)
+        1 -> stringResource(R.string.customs_opt_trans_sports)
+        2 -> stringResource(R.string.customs_opt_trans_race)
+        else -> null
+    }
+    // Suspension (15): 0=Lowered, 1=Street, 2=Sport, 3=Competition, 4=Race.
+    15 -> when (idx) {
+        0 -> stringResource(R.string.customs_opt_susp_lowered)
+        1 -> stringResource(R.string.customs_opt_susp_street)
+        2 -> stringResource(R.string.customs_opt_susp_sport)
+        3 -> stringResource(R.string.customs_opt_susp_competition)
+        4 -> stringResource(R.string.customs_opt_susp_race)
+        else -> null
+    }
+    // Armor (16): 20% / 40% / 60% / 80% / 100% (0..4).
+    16 -> stringResource(R.string.customs_opt_armor_pct, (idx + 1) * 20)
+    else -> null
+}
+
+/**
+ * Rockstar's eVehicleModType enum (0..48) mapped to human-readable
+ * labels. Only used when the game's own GET_MOD_SLOT_NAME returned
+ * a key with no GXT entry — most shops will give us the game's own
+ * label (e.g. "CMOD_MOD_SPO" -> "Spoilers") via GET_LABEL_TEXT and
+ * the walker publishes that string directly. For the handful that
+ * resolve to "NULL", these names come from community references:
+ * FiveM natives docs, scripthookvdotnet wiki, Dkamps18/GTA-Cheat-Sheet.
+ */
+@Composable
+private fun fallbackSlotName(slot: Int): String {
+    val resId = when (slot) {
+        0  -> R.string.customs_slot_spoiler
+        1  -> R.string.customs_slot_front_bumper
+        2  -> R.string.customs_slot_rear_bumper
+        3  -> R.string.customs_slot_side_skirt
+        4  -> R.string.customs_slot_exhaust
+        5  -> R.string.customs_slot_frame
+        6  -> R.string.customs_slot_grille
+        7  -> R.string.customs_slot_hood
+        8  -> R.string.customs_slot_left_fender
+        9  -> R.string.customs_slot_right_fender
+        10 -> R.string.customs_slot_roof
+        11 -> R.string.customs_slot_engine
+        12 -> R.string.customs_slot_brakes
+        13 -> R.string.customs_slot_transmission
+        14 -> R.string.customs_slot_horn
+        15 -> R.string.customs_slot_suspension
+        16 -> R.string.customs_slot_armor
+        17 -> R.string.customs_slot_nitrous
+        // 18 (turbo), 20 (tyre smoke), 22 (xenon) are toggles — they
+        // reach the renderer through ToggleSwitchRow, not here.
+        19 -> R.string.customs_slot_subwoofer
+        21 -> R.string.customs_slot_hydraulics_19
+        23 -> R.string.customs_slot_front_wheels
+        24 -> R.string.customs_slot_rear_wheels
+        25 -> R.string.customs_slot_plate_holder
+        26 -> R.string.customs_slot_vanity_plate
+        27 -> R.string.customs_slot_trim
+        28 -> R.string.customs_slot_ornaments
+        29 -> R.string.customs_slot_dashboard
+        30 -> R.string.customs_slot_dial
+        31 -> R.string.customs_slot_door_speaker
+        32 -> R.string.customs_slot_seats
+        33 -> R.string.customs_slot_steering_wheel
+        34 -> R.string.customs_slot_shifter
+        35 -> R.string.customs_slot_plaques
+        36 -> R.string.customs_slot_speakers
+        37 -> R.string.customs_slot_trunk
+        38 -> R.string.customs_slot_hydraulics_38
+        39 -> R.string.customs_slot_engine_block
+        40 -> R.string.customs_slot_air_filter
+        41 -> R.string.customs_slot_struts
+        42 -> R.string.customs_slot_arch_cover
+        43 -> R.string.customs_slot_aerials
+        44 -> R.string.customs_slot_trim_2
+        45 -> R.string.customs_slot_tank
+        46 -> R.string.customs_slot_left_door
+        47 -> R.string.customs_slot_right_door
+        48 -> R.string.customs_slot_livery
+        else -> R.string.customs_slot_n
+    }
+    return if (resId == R.string.customs_slot_n) stringResource(resId, slot)
+    else stringResource(resId)
 }
 
 @Composable
@@ -597,6 +703,11 @@ private fun PlateTextRow(
 ) {
     var text by rememberSaveable(currentPlate) { mutableStateOf(currentPlate) }
     val valid = isValidPlateText(text)
+    // Apply drops focus so the IME closes and the cursor stops
+    // blinking in the field — the write has gone to the plugin, no
+    // reason to leave the keyboard up.
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+    val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
         Text(
             stringResource(R.string.customs_plate),
@@ -639,7 +750,11 @@ private fun PlateTextRow(
             )
             Spacer(Modifier.size(8.dp))
             TextButton(
-                onClick = { onSet(text) },
+                onClick = {
+                    onSet(text)
+                    keyboard?.hide()
+                    focusManager.clearFocus(force = true)
+                },
                 enabled = valid && !pending,
             ) {
                 Text(
@@ -866,15 +981,17 @@ private fun ArrowIconButton(
 
 /**
  * Paint section at the top of the sheet. Three cheat buttons
- * (respray / next colour / swap) call runCheat; the swatch row and
- * color wheel call paintRgb. Mirrors the Pay 'n' Spray-shaped
- * section on the cheats tab so a player sees the same affordances.
+ * (respray / next colour / swap) call runCheat; the colour wheel and
+ * swatch row call paintRgb. The second row pairs the colour wheel
+ * with a Fix vehicle button (cheat id 6) — same cheat the shop would
+ * fire on a respray, exposed on its own so a battered car gets a
+ * clean slate without a palette round-trip.
  */
 @Composable
 private fun PaintSection(
     accent: Color,
     pendingKey: String?,
-    onPaintCheat: (Int) -> Unit,
+    onRunCheat: (Int) -> Unit,
     onOpenWheel: () -> Unit,
     onPaintRgb: (Long) -> Unit,
 ) {
@@ -885,9 +1002,9 @@ private fun PaintSection(
         onClick = {},
     )
     val buttons = listOf(
-        Triple(60, R.string.customs_paint_respray, "paint_cheat:60"),
-        Triple(61, R.string.customs_paint_next, "paint_cheat:61"),
-        Triple(62, R.string.customs_paint_swap, "paint_cheat:62"),
+        Triple(60, R.string.customs_paint_respray, "cheat:60"),
+        Triple(61, R.string.customs_paint_next, "cheat:61"),
+        Triple(62, R.string.customs_paint_swap, "cheat:62"),
     )
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -898,7 +1015,7 @@ private fun PaintSection(
                 label = stringResource(label),
                 accent = accent,
                 pending = pendingKey == key,
-                onClick = { onPaintCheat(id) },
+                onClick = { onRunCheat(id) },
                 modifier = Modifier.weight(1f),
             )
         }
@@ -915,7 +1032,13 @@ private fun PaintSection(
             onClick = onOpenWheel,
             modifier = Modifier.weight(1f),
         )
-        Spacer(Modifier.weight(1f))
+        PillButton(
+            label = stringResource(R.string.customs_fix_vehicle),
+            accent = accent,
+            pending = pendingKey == "cheat:6",
+            onClick = { onRunCheat(6) },
+            modifier = Modifier.weight(1f),
+        )
     }
     Spacer(Modifier.height(8.dp))
     SwatchStrip(

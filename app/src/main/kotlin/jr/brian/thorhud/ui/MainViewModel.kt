@@ -85,6 +85,12 @@ class MainViewModel @Inject constructor(
     fun hasSeenHudOnboarding(): Boolean = prefs.hasSeenHudOnboarding
     fun markHudOnboardingSeen() { prefs.hasSeenHudOnboarding = true }
 
+    // Map-tab onboarding sheet (first-visit tour of the mirror page).
+    // One shot per installation, shared across games. Backed by
+    // HudPrefs; written when the user dismisses the sheet.
+    fun hasSeenMapOnboarding(): Boolean = prefs.hasSeenMapOnboarding
+    fun markMapOnboardingSeen() { prefs.hasSeenMapOnboarding = true }
+
     /** Re-arm every first-visit sheet (HUD + cheats). Settings-sheet
      *  action; the next time the user lands on that page the
      *  onboarding reappears. */

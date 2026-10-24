@@ -83,6 +83,7 @@
     <string name="cheats_paint_custom_color">color wheel</string>
     <string name="cheats_paint_wheel_title">color wheel</string>
     <string name="cheats_paint_wheel_apply">apply</string>
+    <string name="cheats_paint_wheel_apply_both">apply both</string>
     <!-- Mirror the car's last custom color to the Thor's thumbstick
          LEDs. V-only. Police lights still take over while wanted. -->
     <string name="cheats_paint_to_lights">mirror color to sticks</string>
@@ -122,6 +123,18 @@
     <string name="hud_onboarding_slide_tabs_title">More tabs</string>
     <string name="hud_onboarding_slide_tabs_body">Swipe left for the map (blips, one-tap routing) or right for cheats. The HUD stays in the middle so you always know how to get back.</string>
 
+    <!-- Map-tab first-visit onboarding sheet. Three slides covering
+         what the screen does, the pan/zoom/lock gestures, and the
+         icon column that reaches the other tabs without leaving the
+         map. English only; translations alongside. -->
+    <string name="map_onboarding_title">About the map tab</string>
+    <string name="map_onboarding_slide_overview_title">What this screen does</string>
+    <string name="map_onboarding_slide_overview_body">Mirrors the game\'s minimap enlarged on the Thor\'s bottom screen. Tap start mirroring and allow screen capture when Android asks. Stop any time with the stop icon.</string>
+    <string name="map_onboarding_slide_gestures_title">Pan, zoom, lock</string>
+    <string name="map_onboarding_slide_gestures_body">Pinch to zoom and drag to pan the mirror until the framing feels right. The refresh icon snaps back to the default view. Tap the lock icon when you\'re happy so a stray touch doesn\'t throw it off.</string>
+    <string name="map_onboarding_slide_actions_title">Icon shortcuts</string>
+    <string name="map_onboarding_slide_actions_body">The icon column reaches the other tabs without leaving the map. Home for the HUD, dice for cheats, pin for blips, radio for stations. Driving overlays (speedometer, waypoint distance on V, routed destination) appear by themselves while you\'re in a car.</string>
+
     <!-- Edit-glyph description on the GTA V vehicle card. The glyph
          is a visual affordance for the long-press that opens Customs;
          read aloud by TalkBack, invisible otherwise. -->
@@ -145,7 +158,76 @@
     <string name="customs_section_other">Other</string>
     <string name="customs_stock">Stock</string>
     <string name="customs_option_n">Option %1$d</string>
+    <!-- Fallback label when the game's own GXT lookup for an option
+         returns NULL. Variant reads better than "Option N" because
+         it carries the slot name: "Spoiler 2" vs "Option 2". -->
+    <string name="customs_option_variant">%1$s %2$d</string>
+    <!-- Canonical names for the performance slots whose option
+         indices are fixed across every base-game vehicle. -->
+    <string name="customs_opt_engine_level">EMS Upgrade, Level %1$d</string>
+    <string name="customs_opt_brakes_street">Street Brakes</string>
+    <string name="customs_opt_brakes_sport">Sport Brakes</string>
+    <string name="customs_opt_brakes_race">Race Brakes</string>
+    <string name="customs_opt_trans_street">Street Transmission</string>
+    <string name="customs_opt_trans_sports">Sports Transmission</string>
+    <string name="customs_opt_trans_race">Race Transmission</string>
+    <string name="customs_opt_susp_lowered">Lowered Suspension</string>
+    <string name="customs_opt_susp_street">Street Suspension</string>
+    <string name="customs_opt_susp_sport">Sport Suspension</string>
+    <string name="customs_opt_susp_competition">Competition Suspension</string>
+    <string name="customs_opt_susp_race">Race Suspension</string>
+    <string name="customs_opt_armor_pct">Armor Upgrade %1$d%%</string>
     <string name="customs_slot_n">Slot %1$d</string>
+    <!-- Fallback slot names used when the game's GET_MOD_SLOT_NAME
+         for that modType returns a key with no GXT entry. Names
+         come from Rockstar's eVehicleModType enum (0..48). -->
+    <string name="customs_slot_spoiler">Spoiler</string>
+    <string name="customs_slot_front_bumper">Front bumper</string>
+    <string name="customs_slot_rear_bumper">Rear bumper</string>
+    <string name="customs_slot_side_skirt">Side skirt</string>
+    <string name="customs_slot_exhaust">Exhaust</string>
+    <string name="customs_slot_frame">Frame</string>
+    <string name="customs_slot_grille">Grille</string>
+    <string name="customs_slot_hood">Hood</string>
+    <string name="customs_slot_left_fender">Left fender</string>
+    <string name="customs_slot_right_fender">Right fender</string>
+    <string name="customs_slot_roof">Roof</string>
+    <string name="customs_slot_engine">Engine</string>
+    <string name="customs_slot_brakes">Brakes</string>
+    <string name="customs_slot_transmission">Transmission</string>
+    <string name="customs_slot_horn">Horn</string>
+    <string name="customs_slot_suspension">Suspension</string>
+    <string name="customs_slot_armor">Armor</string>
+    <string name="customs_slot_nitrous">Nitrous</string>
+    <string name="customs_slot_subwoofer">Subwoofer</string>
+    <string name="customs_slot_hydraulics_19">Hydraulics</string>
+    <string name="customs_slot_front_wheels">Front wheels</string>
+    <string name="customs_slot_rear_wheels">Rear wheels</string>
+    <string name="customs_slot_plate_holder">Plate holder</string>
+    <string name="customs_slot_vanity_plate">Vanity plate</string>
+    <string name="customs_slot_trim">Trim</string>
+    <string name="customs_slot_ornaments">Ornaments</string>
+    <string name="customs_slot_dashboard">Dashboard</string>
+    <string name="customs_slot_dial">Dial</string>
+    <string name="customs_slot_door_speaker">Door speaker</string>
+    <string name="customs_slot_seats">Seats</string>
+    <string name="customs_slot_steering_wheel">Steering wheel</string>
+    <string name="customs_slot_shifter">Shifter</string>
+    <string name="customs_slot_plaques">Plaques</string>
+    <string name="customs_slot_speakers">Speakers</string>
+    <string name="customs_slot_trunk">Trunk</string>
+    <string name="customs_slot_hydraulics_38">Hydraulics</string>
+    <string name="customs_slot_engine_block">Engine block</string>
+    <string name="customs_slot_air_filter">Air filter</string>
+    <string name="customs_slot_struts">Struts</string>
+    <string name="customs_slot_arch_cover">Arch cover</string>
+    <string name="customs_slot_aerials">Aerials</string>
+    <string name="customs_slot_trim_2">Trim 2</string>
+    <string name="customs_slot_tank">Tank</string>
+    <string name="customs_slot_windows">Windows</string>
+    <string name="customs_slot_left_door">Left door</string>
+    <string name="customs_slot_right_door">Right door</string>
+    <string name="customs_slot_livery">Livery</string>
     <string name="customs_toggle_turbo">Turbo</string>
     <string name="customs_toggle_tyre_smoke">Tyre smoke</string>
     <string name="customs_toggle_xenon">Xenon lights</string>
@@ -174,6 +256,7 @@
     <string name="customs_paint_next">Next color</string>
     <string name="customs_paint_swap">Swap colors</string>
     <string name="customs_paint_wheel">Color wheel</string>
+    <string name="customs_fix_vehicle">Fix vehicle</string>
 
     <!-- One-time hint shown on first connect, explaining the pager. -->
     <string name="swipe_hint_title">Tip</string>

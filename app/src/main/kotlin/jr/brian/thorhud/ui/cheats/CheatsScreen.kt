@@ -189,7 +189,7 @@ internal fun CheatsScreen(
                 stringResource(R.string.cheats_unsupported),
                 color = dim,
                 fontFamily = FontFamily.Monospace,
-                fontSize = 14.sp,
+                fontSize = 16.sp,
             )
             return@Column
         }
@@ -330,7 +330,7 @@ internal fun CheatsScreen(
                 stringResource(R.string.cheats_error, err),
                 color = Color(0xFFE07070),
                 fontFamily = FontFamily.Monospace,
-                fontSize = 13.sp,
+                fontSize = 15.sp,
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
@@ -434,7 +434,7 @@ private fun CategorySection(
                     text = stringResource(category.labelRes),
                     color = accent,
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
                 Spacer(Modifier.size(6.dp))
@@ -442,7 +442,7 @@ private fun CategorySection(
                     text = "(${items.size})",
                     color = dim,
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 12.sp,
+                    fontSize = 14.sp,
                 )
             }
         }
@@ -548,7 +548,7 @@ private fun PaintSection(
                 stringResource(R.string.cheats_paint_get_in_car),
                 color = dim,
                 fontFamily = FontFamily.Monospace,
-                fontSize = 13.sp,
+                fontSize = 15.sp,
             )
         }
 
@@ -632,7 +632,7 @@ private fun PaintSection(
                         stringResource(R.string.cheats_paint_to_lights),
                         color = accent,
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         modifier = Modifier.weight(1f),
                     )
                     androidx.compose.material3.Switch(
@@ -676,7 +676,7 @@ private fun CustomColorButton(
             text = stringResource(R.string.cheats_paint_custom_color),
             color = accent,
             fontFamily = FontFamily.Monospace,
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             maxLines = 2,
         )
     }
@@ -699,14 +699,14 @@ private fun PairBox(
             label,
             color = dim,
             fontFamily = FontFamily.Monospace,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
         )
         Spacer(Modifier.height(2.dp))
         Text(
             value,
             color = accent,
             fontFamily = FontFamily.Monospace,
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
         )
     }
@@ -727,7 +727,7 @@ private fun SwatchRow(
             label,
             color = accent,
             fontFamily = FontFamily.Monospace,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
         )
         Spacer(Modifier.height(4.dp))
         Row(
@@ -836,7 +836,7 @@ private fun CheatButton(
             label,
             color = textColor.copy(alpha = alpha),
             fontFamily = FontFamily.Monospace,
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             maxLines = 2,
         )
     }

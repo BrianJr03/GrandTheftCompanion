@@ -257,6 +257,7 @@
     <string name="cheats_paint_custom_color">カラーホイール</string>
     <string name="cheats_paint_wheel_title">カラーホイール</string>
     <string name="cheats_paint_wheel_apply">適用</string>
+    <string name="cheats_paint_wheel_apply_both">両方を適用</string>
 
     <string name="swatch_night">ナイト</string>
     <string name="swatch_bone">ボーン</string>
@@ -277,6 +278,14 @@
     <string name="cheats_onboarding_next">次へ</string>
     <string name="cheats_onboarding_done">了解</string>
 
+    <string name="map_onboarding_title">マップタブについて</string>
+    <string name="map_onboarding_slide_overview_title">この画面でできること</string>
+    <string name="map_onboarding_slide_overview_body">ゲームのミニマップをThorの下画面に拡大して映します。ミラー開始をタップし、Androidが尋ねたら画面キャプチャーを許可してください。ストップアイコンでいつでも停止できます。</string>
+    <string name="map_onboarding_slide_gestures_title">移動、ズーム、ロック</string>
+    <string name="map_onboarding_slide_gestures_body">ピンチでズーム、ドラッグでミラーを移動して好みの構図に調整できます。更新アイコンで初期ビューに戻ります。満足したらロックアイコンをタップして、誤タッチでずれないように固定できます。</string>
+    <string name="map_onboarding_slide_actions_title">アイコンのショートカット</string>
+    <string name="map_onboarding_slide_actions_body">アイコン列からマップを離れずに他のタブへ移動できます。ホームでHUD、サイコロでチート、ピンでブリップ、ラジオで局。運転中のオーバーレイ（スピードメーター、Vのウェイポイント距離、ルート先）は車に乗っている間、自動的に表示されます。</string>
+
     <string name="settings_section_cheats">チート</string>
     <string name="settings_auto_reapply_cheats_title">再接続時にトグルを再適用</string>
     <string name="settings_auto_reapply_cheats_body">コンパニオンが再接続（新しいセッション、ゲーム再起動）した後、前回オンにしていたトグルをすべて再び有効にし、長押しで備えておいたワンショットも発動します。接続ごとに1回だけ発動し、ゲームが安全な状態（一時停止でなく、キャラクター切り替え中でなく、ムービー中でもない）のときだけ動きます。</string>
@@ -288,4 +297,138 @@
     <string name="setup_step1_detail">ASIはこの正確なビルドをパターンスキャンします。他のバージョンではHUDは点灯しません。</string>
 
     <string name="update_available_subtitle">v%1$s → v%2$s</string>
+
+    <!-- Mirror color to sticks (V-only) -->
+    <string name="cheats_paint_to_lights">色をスティックに反映</string>
+
+    <!-- GTA V vehicle-card edit glyph -->
+    <string name="v_vehicle_edit_cd">長押しでカスタムを開く</string>
+
+    <!-- HUD-page first-visit onboarding sheet -->
+    <string name="hud_onboarding_title">HUDについて</string>
+    <string name="hud_onboarding_slide_hud_title">表示されているもの</string>
+    <string name="hud_onboarding_slide_hud_body">現金、武器と弾薬、車両と速度、ラジオ局のカード、下部に体力と防具バー。すべてゲームに自動的に追従します。</string>
+    <string name="hud_onboarding_slide_tap_title">タップで操作</string>
+    <string name="hud_onboarding_slide_tap_body">ラジオ局をタップして変更。徒歩で武器カードをタップ(またはコントローラーの武器ホイールボタンを長押し)で武器を選択。</string>
+    <string name="hud_onboarding_slide_customs_title">車両カードを長押し</string>
+    <string name="hud_onboarding_slide_customs_body">車に乗っていますか? 車両カードを長押しするとカスタム(ペイント、パーツ、パフォーマンス、ホイール、ティント、プレート、ネオン)が開きます。車両名の横の小さな鉛筆アイコンを探してください。</string>
+    <string name="hud_onboarding_slide_tabs_title">他のタブ</string>
+    <string name="hud_onboarding_slide_tabs_body">左にスワイプで地図(ブリップ、ワンタップでルート設定)、右にスワイプでチート。HUDは真ん中にあるので、いつでも戻る方法が分かります。</string>
+
+    <!-- Los Santos Customs sheet (GTA V only) -->
+    <string name="customs_title">カスタム</string>
+    <string name="customs_get_in_car">車に乗ってカスタムを開きます。</string>
+    <string name="customs_no_kit">この車両はカスタマイズできません。</string>
+    <string name="customs_loading">カタログを読み込み中…</string>
+    <string name="customs_error">%1$s</string>
+    <string name="customs_section_paint">ペイント</string>
+    <string name="customs_section_body">ボディ</string>
+    <string name="customs_section_performance">パフォーマンス</string>
+    <string name="customs_section_wheels">ホイール</string>
+    <string name="customs_section_interior">内装</string>
+    <string name="customs_section_lights">ライト &amp; 追加</string>
+    <string name="customs_section_plate">ナンバープレート</string>
+    <string name="customs_section_other">その他</string>
+    <string name="customs_stock">ストック</string>
+    <string name="customs_option_n">オプション %1$d</string>
+    <string name="customs_slot_n">スロット %1$d</string>
+    <string name="customs_toggle_turbo">ターボ</string>
+    <string name="customs_toggle_tyre_smoke">タイヤスモーク</string>
+    <string name="customs_toggle_xenon">キセノンライト</string>
+    <string name="customs_wheel_type">ホイールタイプ</string>
+    <string name="customs_wheel_type_sport">スポーツ</string>
+    <string name="customs_wheel_type_muscle">マッスル</string>
+    <string name="customs_wheel_type_lowrider">ローライダー</string>
+    <string name="customs_wheel_type_suv">SUV</string>
+    <string name="customs_wheel_type_offroad">オフロード</string>
+    <string name="customs_wheel_type_tuner">チューナー</string>
+    <string name="customs_wheel_type_bike">バイク</string>
+    <string name="customs_wheel_type_highend">ハイエンド</string>
+    <string name="customs_wheel_type_other">その他</string>
+    <string name="customs_tint">ウィンドウティント</string>
+    <string name="customs_plate">ナンバープレート</string>
+    <string name="customs_plate_style">プレートのスタイル</string>
+    <string name="customs_plate_apply">適用</string>
+    <string name="customs_plate_hint">8文字 (A–Z、0–9、スペース)</string>
+    <string name="customs_neon">ネオン</string>
+    <string name="customs_smoke">タイヤスモークの色</string>
+    <string name="customs_xenon">キセノンの色</string>
+    <string name="customs_bulletproof">防弾タイヤ</string>
+    <string name="customs_off">オフ</string>
+    <string name="customs_default">デフォルト</string>
+    <string name="customs_paint_respray">再塗装</string>
+    <string name="customs_paint_next">次の色</string>
+    <string name="customs_paint_swap">色を入れ替え</string>
+    <string name="customs_paint_wheel">カラーホイール</string>
+    <string name="customs_fix_vehicle">車両を修理</string>
+
+    <!-- Show tips again -->
+    <string name="settings_show_tips_title">ヒントを再表示</string>
+    <string name="settings_show_tips_body">次回HUDとチートタブを開いたときに、初回訪問シートを再表示します。</string>
+    <string name="settings_show_tips_button">表示</string>
+
+    <!-- Customs slot names -->
+    <string name="customs_slot_spoiler">スポイラー</string>
+    <string name="customs_slot_front_bumper">フロントバンパー</string>
+    <string name="customs_slot_rear_bumper">リアバンパー</string>
+    <string name="customs_slot_side_skirt">サイドスカート</string>
+    <string name="customs_slot_exhaust">エキゾースト</string>
+    <string name="customs_slot_frame">フレーム</string>
+    <string name="customs_slot_grille">グリル</string>
+    <string name="customs_slot_hood">ボンネット</string>
+    <string name="customs_slot_left_fender">左フェンダー</string>
+    <string name="customs_slot_right_fender">右フェンダー</string>
+    <string name="customs_slot_roof">ルーフ</string>
+    <string name="customs_slot_engine">エンジン</string>
+    <string name="customs_slot_brakes">ブレーキ</string>
+    <string name="customs_slot_transmission">トランスミッション</string>
+    <string name="customs_slot_horn">ホーン</string>
+    <string name="customs_slot_suspension">サスペンション</string>
+    <string name="customs_slot_armor">装甲</string>
+    <string name="customs_slot_nitrous">ニトロ</string>
+    <string name="customs_slot_subwoofer">サブウーファー</string>
+    <string name="customs_slot_hydraulics_19">ハイドロリクス</string>
+    <string name="customs_slot_front_wheels">フロントホイール</string>
+    <string name="customs_slot_rear_wheels">リアホイール</string>
+    <string name="customs_slot_plate_holder">プレートホルダー</string>
+    <string name="customs_slot_vanity_plate">バニティプレート</string>
+    <string name="customs_slot_trim">トリム</string>
+    <string name="customs_slot_ornaments">オーナメント</string>
+    <string name="customs_slot_dashboard">ダッシュボード</string>
+    <string name="customs_slot_dial">ダイヤル</string>
+    <string name="customs_slot_door_speaker">ドアスピーカー</string>
+    <string name="customs_slot_seats">シート</string>
+    <string name="customs_slot_steering_wheel">ステアリング</string>
+    <string name="customs_slot_shifter">シフター</string>
+    <string name="customs_slot_plaques">プラーク</string>
+    <string name="customs_slot_speakers">スピーカー</string>
+    <string name="customs_slot_trunk">トランク</string>
+    <string name="customs_slot_hydraulics_38">ハイドロリクス</string>
+    <string name="customs_slot_engine_block">エンジンブロック</string>
+    <string name="customs_slot_air_filter">エアフィルター</string>
+    <string name="customs_slot_struts">ストラット</string>
+    <string name="customs_slot_arch_cover">アーチカバー</string>
+    <string name="customs_slot_aerials">アンテナ</string>
+    <string name="customs_slot_trim_2">トリム 2</string>
+    <string name="customs_slot_tank">タンク</string>
+    <string name="customs_slot_windows">ウィンドウ</string>
+    <string name="customs_slot_left_door">左ドア</string>
+    <string name="customs_slot_right_door">右ドア</string>
+    <string name="customs_slot_livery">リバリー</string>
+
+    <!-- Customs performance option labels -->
+    <string name="customs_option_variant">%1$s %2$d</string>
+    <string name="customs_opt_engine_level">EMSアップグレード、レベル %1$d</string>
+    <string name="customs_opt_brakes_street">ストリートブレーキ</string>
+    <string name="customs_opt_brakes_sport">スポーツブレーキ</string>
+    <string name="customs_opt_brakes_race">レースブレーキ</string>
+    <string name="customs_opt_trans_street">ストリートトランスミッション</string>
+    <string name="customs_opt_trans_sports">スポーツトランスミッション</string>
+    <string name="customs_opt_trans_race">レーストランスミッション</string>
+    <string name="customs_opt_susp_lowered">ローダウンサスペンション</string>
+    <string name="customs_opt_susp_street">ストリートサスペンション</string>
+    <string name="customs_opt_susp_sport">スポーツサスペンション</string>
+    <string name="customs_opt_susp_competition">コンペティションサスペンション</string>
+    <string name="customs_opt_susp_race">レースサスペンション</string>
+    <string name="customs_opt_armor_pct">装甲 %1$d%%</string>
 </resources>

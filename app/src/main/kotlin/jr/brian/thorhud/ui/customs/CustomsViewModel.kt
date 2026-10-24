@@ -92,10 +92,11 @@ internal class CustomsViewModel @Inject constructor(
         repository.setBulletproofTyres(on)
     }
 
-    /** Paint cheat ids (respray=60, next=61, swap=62). The Customs
-     *  sheet surfaces them in its Paint section so the player gets
-     *  the same options the Pay 'n' Spray / LSC shops offer. */
-    fun runPaintCheat(cheatId: Int) = dispatch("paint_cheat:$cheatId") {
+    /** Dispatch any cheat by id (paint ids 60..62 for the Paint
+     *  section, fix-vehicle id 6 next to the color wheel). The
+     *  pending key includes the id so the Customs screen can grey
+     *  out exactly one button at a time. */
+    fun runCheat(cheatId: Int) = dispatch("cheat:$cheatId") {
         repository.runCheat(cheatId)
     }
 

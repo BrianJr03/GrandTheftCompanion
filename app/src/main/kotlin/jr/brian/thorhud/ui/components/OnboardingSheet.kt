@@ -8,15 +8,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -44,12 +48,12 @@ internal data class OnboardingSlide(
  * sized to the list, next/done on the right. [slides] can be any
  * length; a single-slide list shows a single dot and a done button.
  *
- * Compose unconditionally with [visible] so the slide-out animation
- * plays on dismiss, same as every other [FullScreenSheet] in the
- * app. Mimics the shape of the former `CheatsOnboardingSheet` so
- * callers only need to feed slides + strings.
+ * Backed by [ModalBottomSheet] — the content is small and does not
+ * scroll, so the sheet's drag-to-dismiss is the natural close. Keeps
+ * the `visible: Boolean` API callers already use; early-returns when
+ * off so composition stays cheap.
  */
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 internal fun OnboardingSheet(
     visible: Boolean,
@@ -58,17 +62,33 @@ internal fun OnboardingSheet(
     slides: List<OnboardingSlide>,
     onDismiss: () -> Unit,
 ) {
+    if (!visible) return
     val count = slides.size.coerceAtLeast(1)
     val pager = rememberPagerState(initialPage = 0) { count }
     val scope = rememberCoroutineScope()
     val dim = Color(0xFF6A7A6E)
-    FullScreenSheet(
-        visible = visible,
-        onDismiss = onDismiss,
-        title = title,
-        accent = accent,
+    val sheet = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+        confirmValueChange = { it != SheetValue.PartiallyExpanded },
+    )
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheet,
+        containerColor = Color.Black,
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+        ) {
+            Text(
+                title,
+                color = accent,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+            )
+            Spacer(Modifier.height(16.dp))
             HorizontalPager(state = pager, modifier = Modifier.fillMaxWidth()) { page ->
                 val slide = slides.getOrNull(page) ?: return@HorizontalPager
                 Column(modifier = Modifier.fillMaxWidth()) {

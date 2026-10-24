@@ -257,6 +257,7 @@
     <string name="cheats_paint_custom_color">цветовой круг</string>
     <string name="cheats_paint_wheel_title">цветовой круг</string>
     <string name="cheats_paint_wheel_apply">применить</string>
+    <string name="cheats_paint_wheel_apply_both">применить оба</string>
 
     <string name="swatch_night">ночь</string>
     <string name="swatch_bone">кость</string>
@@ -277,6 +278,14 @@
     <string name="cheats_onboarding_next">Далее</string>
     <string name="cheats_onboarding_done">Понятно</string>
 
+    <string name="map_onboarding_title">О вкладке карты</string>
+    <string name="map_onboarding_slide_overview_title">Что делает этот экран</string>
+    <string name="map_onboarding_slide_overview_body">Отражает мини-карту игры увеличенной на нижнем экране Thor. Нажмите начать отражение и разрешите захват экрана, когда Android запросит. Остановите в любой момент значком стоп.</string>
+    <string name="map_onboarding_slide_gestures_title">Перемещение, масштаб, блокировка</string>
+    <string name="map_onboarding_slide_gestures_body">Сведите пальцы для масштабирования и перетащите для перемещения отражения, пока кадрирование не устроит. Значок обновления возвращает к стандартному виду. Нажмите значок замка, когда всё устраивает, чтобы случайное касание не сбивало.</string>
+    <string name="map_onboarding_slide_actions_title">Ярлыки иконок</string>
+    <string name="map_onboarding_slide_actions_body">Столбец иконок позволяет перейти к другим вкладкам, не покидая карту. Дом для HUD, кубик для читов, булавка для блипов, радио для станций. Накладки вождения (спидометр, расстояние до путевой точки в V, проложенный маршрут) появляются сами, пока вы в машине.</string>
+
     <string name="settings_section_cheats">Читы</string>
     <string name="settings_auto_reapply_cheats_title">Повторно применять переключатели после переподключения</string>
     <string name="settings_auto_reapply_cheats_body">После переподключения компаньона (новая сессия, перезапуск игры) снова включает каждый переключатель, который был у вас включён в последний раз, плюс каждый одноразовый чит, который вы взвели долгим нажатием. Срабатывает только один раз за соединение и только когда игра в безопасном состоянии (не на паузе, не при смене персонажа, не в катсцене).</string>
@@ -288,4 +297,138 @@
     <string name="setup_step1_detail">ASI сканирует паттерны именно этой сборки. Другие версии не зажгут HUD.</string>
 
     <string name="update_available_subtitle">v%1$s → v%2$s</string>
+
+    <!-- Mirror color to sticks (V-only) -->
+    <string name="cheats_paint_to_lights">отразить цвет на стиках</string>
+
+    <!-- GTA V vehicle-card edit glyph -->
+    <string name="v_vehicle_edit_cd">долгое нажатие, чтобы открыть Customs</string>
+
+    <!-- HUD-page first-visit onboarding sheet -->
+    <string name="hud_onboarding_title">О HUD</string>
+    <string name="hud_onboarding_slide_hud_title">Что вы видите</string>
+    <string name="hud_onboarding_slide_hud_body">Карточки для денег, оружия и патронов, машины и скорости, радиостанции, плюс полоски здоровья и брони внизу. Всё следует за игрой само.</string>
+    <string name="hud_onboarding_slide_tap_title">Нажмите для действия</string>
+    <string name="hud_onboarding_slide_tap_body">Нажмите на радиостанцию, чтобы переключить её. Нажмите на карточку оружия пешком (или удерживайте кнопку колеса оружия на геймпаде), чтобы выбрать оружие.</string>
+    <string name="hud_onboarding_slide_customs_title">Долгое нажатие на карточку машины</string>
+    <string name="hud_onboarding_slide_customs_body">Сидите в машине? Долгое нажатие на карточку машины открывает Customs: покраска, детали, производительность, колёса, тонировка, номер, неон. Ищите маленькую иконку карандаша рядом с названием машины.</string>
+    <string name="hud_onboarding_slide_tabs_title">Другие вкладки</string>
+    <string name="hud_onboarding_slide_tabs_body">Проведите влево для карты (значки, маршрут одним нажатием) или вправо для читов. HUD остаётся в центре, чтобы вы всегда знали, как вернуться.</string>
+
+    <!-- Los Santos Customs sheet (GTA V only) -->
+    <string name="customs_title">Customs</string>
+    <string name="customs_get_in_car">Сядьте в машину, чтобы открыть Customs.</string>
+    <string name="customs_no_kit">Этот автомобиль нельзя кастомизировать.</string>
+    <string name="customs_loading">Загрузка каталога…</string>
+    <string name="customs_error">%1$s</string>
+    <string name="customs_section_paint">Покраска</string>
+    <string name="customs_section_body">Кузов</string>
+    <string name="customs_section_performance">Производительность</string>
+    <string name="customs_section_wheels">Колёса</string>
+    <string name="customs_section_interior">Салон</string>
+    <string name="customs_section_lights">Фары и доп.</string>
+    <string name="customs_section_plate">Номер</string>
+    <string name="customs_section_other">Другое</string>
+    <string name="customs_stock">Сток</string>
+    <string name="customs_option_n">Вариант %1$d</string>
+    <string name="customs_slot_n">Слот %1$d</string>
+    <string name="customs_toggle_turbo">Турбо</string>
+    <string name="customs_toggle_tyre_smoke">Дым из-под шин</string>
+    <string name="customs_toggle_xenon">Ксеноновые фары</string>
+    <string name="customs_wheel_type">Тип колёс</string>
+    <string name="customs_wheel_type_sport">Спортивные</string>
+    <string name="customs_wheel_type_muscle">Маслкар</string>
+    <string name="customs_wheel_type_lowrider">Лоурайдер</string>
+    <string name="customs_wheel_type_suv">Внедорожник</string>
+    <string name="customs_wheel_type_offroad">Внедорожные</string>
+    <string name="customs_wheel_type_tuner">Тюнер</string>
+    <string name="customs_wheel_type_bike">Мотоцикл</string>
+    <string name="customs_wheel_type_highend">Люкс</string>
+    <string name="customs_wheel_type_other">Другие</string>
+    <string name="customs_tint">Тонировка</string>
+    <string name="customs_plate">Номер</string>
+    <string name="customs_plate_style">Стиль номера</string>
+    <string name="customs_plate_apply">Применить</string>
+    <string name="customs_plate_hint">8 знаков (A–Z, 0–9, пробел)</string>
+    <string name="customs_neon">Неон</string>
+    <string name="customs_smoke">Цвет дыма из-под шин</string>
+    <string name="customs_xenon">Цвет ксенона</string>
+    <string name="customs_bulletproof">Пуленепробиваемые шины</string>
+    <string name="customs_off">Выкл</string>
+    <string name="customs_default">По умолчанию</string>
+    <string name="customs_paint_respray">Перекрасить</string>
+    <string name="customs_paint_next">Следующий цвет</string>
+    <string name="customs_paint_swap">Поменять цвета</string>
+    <string name="customs_paint_wheel">Цветовой круг</string>
+    <string name="customs_fix_vehicle">Починить машину</string>
+
+    <!-- Show tips again -->
+    <string name="settings_show_tips_title">Снова показывать подсказки</string>
+    <string name="settings_show_tips_body">Снова открыть вступительные листы на HUD и вкладке читов при следующем посещении.</string>
+    <string name="settings_show_tips_button">Показать</string>
+
+    <!-- Customs slot names -->
+    <string name="customs_slot_spoiler">Спойлер</string>
+    <string name="customs_slot_front_bumper">Передний бампер</string>
+    <string name="customs_slot_rear_bumper">Задний бампер</string>
+    <string name="customs_slot_side_skirt">Пороги</string>
+    <string name="customs_slot_exhaust">Выхлоп</string>
+    <string name="customs_slot_frame">Рама</string>
+    <string name="customs_slot_grille">Решётка</string>
+    <string name="customs_slot_hood">Капот</string>
+    <string name="customs_slot_left_fender">Левое крыло</string>
+    <string name="customs_slot_right_fender">Правое крыло</string>
+    <string name="customs_slot_roof">Крыша</string>
+    <string name="customs_slot_engine">Двигатель</string>
+    <string name="customs_slot_brakes">Тормоза</string>
+    <string name="customs_slot_transmission">Трансмиссия</string>
+    <string name="customs_slot_horn">Клаксон</string>
+    <string name="customs_slot_suspension">Подвеска</string>
+    <string name="customs_slot_armor">Броня</string>
+    <string name="customs_slot_nitrous">Закись азота</string>
+    <string name="customs_slot_subwoofer">Сабвуфер</string>
+    <string name="customs_slot_hydraulics_19">Гидравлика</string>
+    <string name="customs_slot_front_wheels">Передние колёса</string>
+    <string name="customs_slot_rear_wheels">Задние колёса</string>
+    <string name="customs_slot_plate_holder">Рамка номера</string>
+    <string name="customs_slot_vanity_plate">Именной номер</string>
+    <string name="customs_slot_trim">Отделка</string>
+    <string name="customs_slot_ornaments">Украшения</string>
+    <string name="customs_slot_dashboard">Приборная панель</string>
+    <string name="customs_slot_dial">Циферблат</string>
+    <string name="customs_slot_door_speaker">Динамик двери</string>
+    <string name="customs_slot_seats">Сиденья</string>
+    <string name="customs_slot_steering_wheel">Руль</string>
+    <string name="customs_slot_shifter">Рычаг КПП</string>
+    <string name="customs_slot_plaques">Таблички</string>
+    <string name="customs_slot_speakers">Динамики</string>
+    <string name="customs_slot_trunk">Багажник</string>
+    <string name="customs_slot_hydraulics_38">Гидравлика</string>
+    <string name="customs_slot_engine_block">Блок двигателя</string>
+    <string name="customs_slot_air_filter">Воздушный фильтр</string>
+    <string name="customs_slot_struts">Стойки</string>
+    <string name="customs_slot_arch_cover">Накладка арки</string>
+    <string name="customs_slot_aerials">Антенны</string>
+    <string name="customs_slot_trim_2">Отделка 2</string>
+    <string name="customs_slot_tank">Бак</string>
+    <string name="customs_slot_windows">Окна</string>
+    <string name="customs_slot_left_door">Левая дверь</string>
+    <string name="customs_slot_right_door">Правая дверь</string>
+    <string name="customs_slot_livery">Ливрея</string>
+
+    <!-- Customs performance option labels -->
+    <string name="customs_option_variant">%1$s %2$d</string>
+    <string name="customs_opt_engine_level">Улучшение EMS, уровень %1$d</string>
+    <string name="customs_opt_brakes_street">Уличные тормоза</string>
+    <string name="customs_opt_brakes_sport">Спортивные тормоза</string>
+    <string name="customs_opt_brakes_race">Гоночные тормоза</string>
+    <string name="customs_opt_trans_street">Уличная трансмиссия</string>
+    <string name="customs_opt_trans_sports">Спортивная трансмиссия</string>
+    <string name="customs_opt_trans_race">Гоночная трансмиссия</string>
+    <string name="customs_opt_susp_lowered">Заниженная подвеска</string>
+    <string name="customs_opt_susp_street">Уличная подвеска</string>
+    <string name="customs_opt_susp_sport">Спортивная подвеска</string>
+    <string name="customs_opt_susp_competition">Соревновательная подвеска</string>
+    <string name="customs_opt_susp_race">Гоночная подвеска</string>
+    <string name="customs_opt_armor_pct">Броня %1$d%%</string>
 </resources>
