@@ -305,6 +305,42 @@ Tap a group header to expand it; multiple instances of the same icon (several Am
 
 Labels are provisional; the plugin reports every blip's raw sprite id, and the companion looks up a short English name from a seeded table. Anything the table does not know shows as `Sprite N`. The **info** button in the panel header links to the repo's issues page — route to an unknown row, see where it leads, open an issue with the sprite number and the name, it will be added to the next build once verified.
 
+### Atlas View
+
+A fourth tab, right of the mirrored minimap, that shows the game's full pause-menu map as a static image with your player triangle rendered on top from live world coordinates. Where **MiniMap View** enlarges the game's own radar, **Atlas** replaces it with the whole map — pinch to zoom, drag to pan, and see where you are even when the game hides the HUD.
+
+The tab only appears when a PNG for the connected game is on disk at `Android/data/jr.brian.thorhud/files/map/<game>.png` (`v.png` for GTA V, `iv.png` for GTA IV). GTC ships no map imagery.
+
+**Build + install from your own game files.** `scripts/make-atlas.py` is the supported path. Pillow only, no numpy, works in Termux. From a desktop with the Thor on adb:
+
+```sh
+# One-time: export tiles with OpenIV (IV) or CodeWalker (V) from your
+# own legit copy of the game, drop them in a folder, then:
+./scripts/make-atlas.py stitch  --game v --tiles ~/exported --out /tmp/v.png
+./scripts/make-atlas.py install --game v --adb --image /tmp/v.png
+```
+
+Run it on the Thor itself the same way, swapping `--adb` for `--local` inside Termux. `./scripts/make-atlas.py doctor` reports what it found; `--help` lists the rest.
+
+**Community pre-stitched maps.** If you'd rather not run OpenIV / CodeWalker, communities have been stitching the pause-menu map into a single PNG for over a decade. Use at your own discretion — GTC does not host, mirror, or endorse these, and links may rot:
+
+- GTA V — 8K Atlas Map (BragitOff, 2015): <https://www.bragitoff.com/wp-content/uploads/2015/11/GTAV_ATLUS_8192x8192.png>
+- GTA IV — Liberty City Ultra HD (GTA4.tv): <https://www.gta4.tv/content/images/gta-4-liberty-city-map-ultra-hd.jpg>
+
+Download, then install:
+
+```sh
+curl -L -o /tmp/v.png "https://www.bragitoff.com/wp-content/uploads/2015/11/GTAV_ATLUS_8192x8192.png"
+./scripts/make-atlas.py install --game v --adb --image /tmp/v.png
+```
+
+**Calibrate on first open.** The companion has no idea how the image's pixels map to world coordinates until you tell it. Tap **recalibrate**, then tap three or more well-spread known positions on the map — each one paired with either **use my position** (while in-game, pairs the tap with where the player is standing) or by picking the nearest blip. The companion solves a 2×3 affine fit and shows the worst-case **residual** in pixels; single-digit residuals on well-spread taps are a good fit, triple-digit residuals mean redo. The fit persists next to the image as `<game>.json`, so this is a one-time step per map.
+
+- **follow** (location icon) recentres the view on the player and tracks them.
+- **recalibrate** (refresh icon) reopens the tap-pair flow. A fresh `make-atlas.py install` deletes the stale `<game>.json` by default so a new image never inherits old taps.
+- The player triangle rotates with heading and uses the episode / game accent colour.
+- Community pre-stitched maps are not guaranteed to match the game's internal coord system exactly. The affine fit absorbs small aspect / crop differences, but if your best taps give >50 px residuals, that particular image is cropped or rescaled differently and more taps spread wider usually fixes it.
+
 ### Cheats
 
 A third tab for one-tap cheats, grouped into collapsible sections (health, wanted, weapons, vehicle, world, toggles). All sections start open; tap a header to collapse the ones you don't care about. Collapsed sections are remembered across app launches.
