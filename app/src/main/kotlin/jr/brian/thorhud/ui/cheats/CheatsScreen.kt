@@ -25,8 +25,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -56,7 +54,6 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -73,9 +70,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
 import jr.brian.thorhud.model.GameState
-import jr.brian.thorhud.ui.components.FullScreenSheet
 import jr.brian.thorhud.ui.components.HeaderIconButton
-import kotlinx.coroutines.launch
+import jr.brian.thorhud.ui.components.OnboardingSheet
+import jr.brian.thorhud.ui.components.OnboardingSlide
 
 /**
  * The cheats tab. Grouped into collapsible sections (health, wanted,
@@ -339,9 +336,11 @@ internal fun CheatsScreen(
         }
     }
 
-    CheatsOnboardingSheet(
+    OnboardingSheet(
         visible = showOnboarding,
+        title = stringResource(R.string.cheats_onboarding_title),
         accent = accent,
+        slides = CHEATS_ONBOARDING_SLIDES,
         onDismiss = onOnboardingDismissed,
     )
 
@@ -843,85 +842,18 @@ private fun CheatButton(
     }
 }
 
-/** Two-slide first-visit onboarding. One slide introducing taps +
- *  lights, one slide introducing long-press auto-apply and pointing
- *  at the Settings override. Full-screen slide-up so swipe between
- *  pages never fights the sheet's drag. */
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun CheatsOnboardingSheet(
-    visible: Boolean,
-    accent: Color,
-    onDismiss: () -> Unit,
-) {
-    val pager = rememberPagerState(initialPage = 0) { 2 }
-    val scope = rememberCoroutineScope()
-    val dim = Color(0xFF6A7A6E)
-    FullScreenSheet(
-        visible = visible,
-        onDismiss = onDismiss,
-        title = stringResource(R.string.cheats_onboarding_title),
-        accent = accent,
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            HorizontalPager(state = pager, modifier = Modifier.fillMaxWidth()) { page ->
-                val title = if (page == 0) R.string.cheats_onboarding_slide1_title
-                            else R.string.cheats_onboarding_slide2_title
-                val body = if (page == 0) R.string.cheats_onboarding_slide1_body
-                           else R.string.cheats_onboarding_slide2_body
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        stringResource(title),
-                        color = Color(0xFFEDEDED),
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        stringResource(body),
-                        color = Color(0xFFCFCFCF),
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 14.sp,
-                    )
-                }
-            }
-            Spacer(Modifier.height(14.dp))
-            // Two dot indicators + action button on the right.
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                repeat(2) { idx ->
-                    val lit = pager.currentPage == idx
-                    Box(
-                        modifier = Modifier
-                            .size(if (lit) 8.dp else 6.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(if (lit) accent else dim),
-                    )
-                    if (idx == 0) Spacer(Modifier.size(6.dp))
-                }
-                Spacer(Modifier.weight(1f))
-                val onPrimary: () -> Unit = {
-                    if (pager.currentPage < 1) {
-                        scope.launch { pager.animateScrollToPage(1) }
-                    } else {
-                        onDismiss()
-                    }
-                }
-                TextButton(onClick = onPrimary) {
-                    Text(
-                        stringResource(
-                            if (pager.currentPage < 1) R.string.cheats_onboarding_next
-                            else R.string.cheats_onboarding_done,
-                        ),
-                        color = accent,
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 16.sp,
-                    )
-                }
-            }
-        }
-    }
-}
+/** Two-slide first-visit onboarding for the cheats tab. Shape and
+ *  copy unchanged from the inline sheet this replaces; the slides
+ *  are a plain list so the shared [OnboardingSheet] can render them.
+ *  Kept here (rather than in a strings file) because the ordering
+ *  is a UI decision, not a translation one. */
+private val CHEATS_ONBOARDING_SLIDES = listOf(
+    OnboardingSlide(
+        titleRes = R.string.cheats_onboarding_slide1_title,
+        bodyRes = R.string.cheats_onboarding_slide1_body,
+    ),
+    OnboardingSlide(
+        titleRes = R.string.cheats_onboarding_slide2_title,
+        bodyRes = R.string.cheats_onboarding_slide2_body,
+    ),
+)
