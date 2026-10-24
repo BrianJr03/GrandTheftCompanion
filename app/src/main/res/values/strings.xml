@@ -127,6 +127,54 @@
          read aloud by TalkBack, invisible otherwise. -->
     <string name="v_vehicle_edit_cd">long-press to open Customs</string>
 
+    <!-- Los Santos Customs sheet (GTA V only). Opens on long-press
+         of the HUD's vehicle card. English only this round;
+         translations are a follow-up. -->
+    <string name="customs_title">Customs</string>
+    <string name="customs_get_in_car">Get in a car to open Customs.</string>
+    <string name="customs_no_kit">This vehicle can\'t be customised.</string>
+    <string name="customs_loading">Loading the catalogue…</string>
+    <string name="customs_error">%1$s</string>
+    <string name="customs_section_paint">Paint</string>
+    <string name="customs_section_body">Body</string>
+    <string name="customs_section_performance">Performance</string>
+    <string name="customs_section_wheels">Wheels</string>
+    <string name="customs_section_interior">Interior</string>
+    <string name="customs_section_lights">Lights &amp; extras</string>
+    <string name="customs_section_plate">Plate</string>
+    <string name="customs_section_other">Other</string>
+    <string name="customs_stock">Stock</string>
+    <string name="customs_option_n">Option %1$d</string>
+    <string name="customs_slot_n">Slot %1$d</string>
+    <string name="customs_toggle_turbo">Turbo</string>
+    <string name="customs_toggle_tyre_smoke">Tyre smoke</string>
+    <string name="customs_toggle_xenon">Xenon lights</string>
+    <string name="customs_wheel_type">Wheel type</string>
+    <string name="customs_wheel_type_sport">Sport</string>
+    <string name="customs_wheel_type_muscle">Muscle</string>
+    <string name="customs_wheel_type_lowrider">Lowrider</string>
+    <string name="customs_wheel_type_suv">SUV</string>
+    <string name="customs_wheel_type_offroad">Offroad</string>
+    <string name="customs_wheel_type_tuner">Tuner</string>
+    <string name="customs_wheel_type_bike">Bike</string>
+    <string name="customs_wheel_type_highend">High end</string>
+    <string name="customs_wheel_type_other">Other</string>
+    <string name="customs_tint">Window tint</string>
+    <string name="customs_plate">Plate</string>
+    <string name="customs_plate_style">Plate style</string>
+    <string name="customs_plate_apply">Apply</string>
+    <string name="customs_plate_hint">8 chars (A–Z, 0–9, space)</string>
+    <string name="customs_neon">Neon</string>
+    <string name="customs_smoke">Tyre smoke color</string>
+    <string name="customs_xenon">Xenon color</string>
+    <string name="customs_bulletproof">Bulletproof tyres</string>
+    <string name="customs_off">Off</string>
+    <string name="customs_default">Default</string>
+    <string name="customs_paint_respray">Respray</string>
+    <string name="customs_paint_next">Next color</string>
+    <string name="customs_paint_swap">Swap colors</string>
+    <string name="customs_paint_wheel">Color wheel</string>
+
     <!-- One-time hint shown on first connect, explaining the pager. -->
     <string name="swipe_hint_title">Tip</string>
     <string name="swipe_hint_body">Swipe left or right between the hud and the minimap.</string>

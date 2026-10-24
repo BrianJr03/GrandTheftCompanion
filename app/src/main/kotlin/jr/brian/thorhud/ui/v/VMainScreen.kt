@@ -1,6 +1,9 @@
 package jr.brian.thorhud.ui.v
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.remember
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -70,6 +74,10 @@ internal fun VMainScreen(
     onScrollToMap: (() -> Unit)? = null,
     onOpenSettings: (() -> Unit)? = null,
     onOpenCheats: (() -> Unit)? = null,
+    // Long-press on the vehicle card opens Customs. Null leaves the
+    // card tap-only (notice screens, IV, when the sheet is already
+    // visible, etc.).
+    onOpenCustoms: (() -> Unit)? = null,
 ) {
     val stations by viewModel.stations.collectAsStateWithLifecycle()
     val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
@@ -207,7 +215,12 @@ internal fun VMainScreen(
                     VCashRadioPanel(live, character, characterKnown,
                                     stations, Modifier.weight(1f))
                     VWeaponPanel(live, modifier = Modifier.weight(1f))
-                    VVehiclePanel(live, palette, modifier = Modifier.weight(1f))
+                    VVehiclePanel(
+                        live, palette,
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(longPressCustomsModifier(onOpenCustoms)),
+                    )
                 }
                 Spacer(Modifier.height(16.dp))
                 // No picker in a vehicle without a radio, or before the
@@ -245,8 +258,12 @@ internal fun VMainScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    VVehiclePanel(live, palette, align = CardAlign.Start,
-                                  modifier = Modifier.weight(1f))
+                    VVehiclePanel(
+                        live, palette, align = CardAlign.Start,
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(longPressCustomsModifier(onOpenCustoms)),
+                    )
                     VRadioPanel(live, stations, align = CardAlign.End,
                                 modifier = Modifier.weight(1f))
                 }
@@ -255,4 +272,22 @@ internal fun VMainScreen(
             VStatsBars(live, character, palette)
         }
     }
+}
+
+/** Chains a long-press-to-Customs gesture on top of the vehicle card.
+ *  A null callback leaves the modifier a no-op, so passing null in
+ *  notice branches keeps the card inert. combinedClickable is used
+ *  rather than pointerInput so a short tap is still swallowed — the
+ *  vehicle card has no tap action today and we don't want one. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun longPressCustomsModifier(onOpen: (() -> Unit)?): Modifier {
+    if (onOpen == null) return Modifier
+    val source = remember { MutableInteractionSource() }
+    return Modifier.combinedClickable(
+        interactionSource = source,
+        indication = null,
+        onClick = {},
+        onLongClick = onOpen,
+    )
 }

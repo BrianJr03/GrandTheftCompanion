@@ -79,6 +79,7 @@ import jr.brian.thorhud.ui.map.titleCase
 import jr.brian.thorhud.ui.cheats.CheatsScreen
 import jr.brian.thorhud.ui.cheats.CheatsViewModel
 import jr.brian.thorhud.ui.components.HudPalette
+import jr.brian.thorhud.ui.customs.CustomsScreen
 import jr.brian.thorhud.ui.v.VMainScreen
 import jr.brian.thorhud.ui.v.VRadioPicker
 import jr.brian.thorhud.ui.v.VWeaponWheelOverlay
@@ -392,6 +393,20 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     // so sheet-internal drags (color wheel, radio
                     // picker scroll) don't steal to the pager.
                     val sheetCount = remember { mutableStateOf(0) }
+                    // Customs sheet state — declared ahead of the
+                    // HudPager because the VMainScreen lambda captures
+                    // openCustoms before the Customs composable below
+                    // runs. Null when the player is on foot (so the
+                    // long-press hook stays off), when the plugin
+                    // doesn't advertise cheats (same gate the cheats
+                    // tab uses), or on GTA IV (the IV plugin has no
+                    // mods natives).
+                    var showCustoms by rememberSaveable { mutableStateOf(false) }
+                    val openCustoms: (() -> Unit)? =
+                        if (isGtaV && inVehicleNow && hello?.cheatsSupported == true) {
+                            { showCustoms = true }
+                        } else null
+
                     CompositionLocalProvider(
                         LocalFullScreenSheetCount provides sheetCount,
                     ) {
@@ -413,6 +428,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         inVehicle = inVehicleNow,
                                         onScrollToMap = scrollToMap,
                                         onOpenCheats = scrollToCheats,
+                                        onOpenCustoms = openCustoms,
                                     )
                                 } else {
                                     IvHudScreen(
@@ -542,6 +558,16 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                 viewModel.markHudOnboardingSeen()
                                 showHudOnboarding = false
                             },
+                        )
+
+                        // Customs sheet. V-only. State lives in the
+                        // outer scope so the HUD lambda above sees the
+                        // same openCustoms. Compose unconditionally so
+                        // the slide-out animation plays before unmount.
+                        CustomsScreen(
+                            visible = showCustoms && isGtaV,
+                            accent = accent,
+                            onDismiss = { showCustoms = false },
                         )
 
                         // Drawn over the pager so it covers both pages
