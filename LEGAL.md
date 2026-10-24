@@ -2,15 +2,15 @@
 
 ## License
 
-ThorHUD-GTAIV — both the Android companion (`app/`) and the ASI plugin
-(`asi/`) — is released under the **GNU General Public License v3.0 or
-later**. See [`LICENSE`](LICENSE) for the full text.
+Grand Theft Companion (GTC) — both the Android companion (`app/`) and
+the ASI plugin (`asi/`) — is released under the **GNU General Public
+License v3.0 or later**. See [`LICENSE`](LICENSE) for the full text.
 
 Copyright © 2026 Brian Jr. (BrianJr03).
 
 ## What this project does NOT ship
 
-ThorHUD-GTAIV contains **no Rockstar Games assets whatsoever** — no
+GTC contains **no Rockstar Games assets whatsoever** — no
 `GTAIV.exe`, no save files, no textures, no audio, no scripts. You
 need your own legitimately-purchased copy of **Grand Theft Auto IV:
 The Complete Edition 1.2.0.59** to use the project.
@@ -28,7 +28,7 @@ As of 2026, Rockstar Games' public modding guidelines permit
 single-player mods for GTA IV and the Episodes, and explicitly allow
 disabling anti-cheat protection for Story Mode.
 
-ThorHUD-GTAIV is designed to live safely inside those guidelines:
+GTC is designed to live safely inside those guidelines:
 
 * **Single-player only.** Do not use this with GTA Online. The ASI
   resolves addresses pattern-based and does not touch any multiplayer

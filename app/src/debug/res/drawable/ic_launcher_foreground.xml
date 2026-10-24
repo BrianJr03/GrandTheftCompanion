@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-variant override of the main launcher foreground. Keeps the
+  biker-rust GTC wordmark from main unchanged, then stamps a block
+  "DEBUG" label beneath it in amber so the debug build is instantly
+  distinguishable on the launcher from the release install.
+
+  Both the wordmark and the label stay inside the adaptive-icon 72×72
+  safe area (x,y in 18..90) so no launcher mask clips them.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- GTC wordmark (copied verbatim from main/ic_launcher_foreground.xml). -->
+    <path android:fillColor="#C46A2A" android:pathData="
+        M35.5,36.0 L49.5,36.0 L48.8,40.0 L34.8,40.0 Z
+        M35.5,36.0 L39.5,36.0 L33.0,72.0 L29.0,72.0 Z
+        M29.7,68.0 L43.7,68.0 L43.0,72.0 L29.0,72.0 Z
+        M42.2,54.0 L46.2,54.0 L43.0,72.0 L39.0,72.0 Z
+        M39.2,54.0 L46.2,54.0 L45.5,58.0 L38.5,58.0 Z
+        M53.5,36.0 L67.5,36.0 L66.8,40.0 L52.8,40.0 Z
+        M58.5,36.0 L62.5,36.0 L56.0,72.0 L52.0,72.0 Z
+        M71.5,36.0 L85.5,36.0 L84.8,40.0 L70.8,40.0 Z
+        M71.5,36.0 L75.5,36.0 L69.0,72.0 L65.0,72.0 Z
+        M65.7,68.0 L79.7,68.0 L79.0,72.0 L65.0,72.0 Z" />
+
+    <!-- DEBUG label. Block letters, 7w × 9h each, 1.5u gap, centered
+         at x=54, sitting at y=76..85 (clear of the GTC baseline at 72
+         and comfortably inside the safe area that ends at 90). -->
+    <path android:fillColor="#FFC107" android:pathData="
+        M33.5,76.0 L35.0,76.0 L35.0,85.0 L33.5,85.0 Z
+        M35.0,76.0 L40.5,76.0 L40.5,77.5 L35.0,77.5 Z
+        M35.0,83.5 L40.5,83.5 L40.5,85.0 L35.0,85.0 Z
+        M39.0,77.5 L40.5,77.5 L40.5,83.5 L39.0,83.5 Z
+        M42.0,76.0 L43.5,76.0 L43.5,85.0 L42.0,85.0 Z
+        M43.5,76.0 L49.0,76.0 L49.0,77.5 L43.5,77.5 Z
+        M43.5,79.75 L48.0,79.75 L48.0,81.25 L43.5,81.25 Z
+        M43.5,83.5 L49.0,83.5 L49.0,85.0 L43.5,85.0 Z
+        M50.5,76.0 L52.0,76.0 L52.0,85.0 L50.5,85.0 Z
+        M52.0,76.0 L57.0,76.0 L57.0,77.5 L52.0,77.5 Z
+        M52.0,79.75 L57.0,79.75 L57.0,81.25 L52.0,81.25 Z
+        M52.0,83.5 L57.0,83.5 L57.0,85.0 L52.0,85.0 Z
+        M55.5,77.5 L57.0,77.5 L57.0,79.75 L55.5,79.75 Z
+        M55.5,81.25 L57.0,81.25 L57.0,83.5 L55.5,83.5 Z
+        M59.0,76.0 L60.5,76.0 L60.5,83.5 L59.0,83.5 Z
+        M64.5,76.0 L66.0,76.0 L66.0,83.5 L64.5,83.5 Z
+        M59.0,83.5 L66.0,83.5 L66.0,85.0 L59.0,85.0 Z
+        M67.5,77.5 L69.0,77.5 L69.0,83.5 L67.5,83.5 Z
+        M69.0,76.0 L74.5,76.0 L74.5,77.5 L69.0,77.5 Z
+        M69.0,83.5 L74.5,83.5 L74.5,85.0 L69.0,85.0 Z
+        M73.0,80.25 L74.5,80.25 L74.5,83.5 L73.0,83.5 Z
+        M71.5,80.25 L74.5,80.25 L74.5,81.75 L71.5,81.75 Z" />
+</vector>

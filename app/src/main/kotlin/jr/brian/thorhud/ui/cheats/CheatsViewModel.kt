@@ -169,7 +169,7 @@ internal class CheatsViewModel @Inject constructor(
                     safeStreak = 0
                     return@collect
                 }
-                if (snap.state.isCheatSafe != true) {
+                if (!snap.state.isCheatSafe) {
                     safeStreak = 0
                     return@collect
                 }
@@ -191,7 +191,7 @@ internal class CheatsViewModel @Inject constructor(
                             repository.ack.first { it?.ackId == cmdId }
                         }
                     }
-                    delay(RECONCILE_INTERVAL_MS)
+                    delay(RECONCILE_INTERVAL_MS.milliseconds)
                 }
             }
         }
