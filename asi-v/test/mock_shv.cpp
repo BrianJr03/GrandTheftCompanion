@@ -41,7 +41,7 @@ namespace {
 
 using ScriptMain = void (*)();
 
-enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips, kCheats, kPaint };
+enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips, kCheats, kPaint, kMods, kModsNoKit };
 Scenario g_scenario = kStory;
 uint64_t g_t0 = 0;
 
@@ -118,6 +118,38 @@ bool     g_spawn_released = false;    // SET_VEHICLE_AS_NO_LONGER_NEEDED seen
 // Python scenario watches both the state frame (which reads the pair
 // via GET_VEHICLE_COLOURS and the pair of GET_IS_..._CUSTOM) and the
 // mock counters here to confirm what the plugin wrote.
+// Mods mock state. Three slots with distinct option counts, two
+// toggles, plus wheel-type-aware option count on slot 23.
+//   slot 0 (spoiler)         : 2 options
+//   slot 11 (engine)         : 4 options
+//   slot 23 (front wheels)   : wheel_type == 0 -> 3 options,
+//                              wheel_type != 0 -> 5 options
+//   slot 7 (hood)            : 0 options (so the walker skips it)
+//   slot 18 (turbo)          : toggle
+//   slot 22 (xenon)          : toggle
+// kModsNoKit scenario reports GET_VEHICLE_MOD_KIT == 0xFFFF so every
+// write is refused with "no mod kit".
+int32_t  g_cur_mod[49] = {0};         // per-slot GET_VEHICLE_MOD; -1 = stock
+bool     g_tog_on[49]  = {false};     // per-slot IS_TOGGLE_MOD_ON
+int32_t  g_wheel_type  = 0;
+int32_t  g_tint        = 0;
+int32_t  g_plate_style = 0;
+char     g_plate_text[32] = "GTC 001";
+bool     g_neon_on[4]  = {false};
+bool     g_bulletproof = false;
+int      g_mod_kit_set_calls = 0;
+int      g_set_mod_calls = 0;
+int      g_remove_mod_calls = 0;
+int      g_toggle_mod_calls = 0;
+int      g_set_wheel_type_calls = 0;
+int      g_set_tint_calls = 0;
+int      g_set_plate_style_calls = 0;
+int      g_set_plate_calls = 0;
+int      g_set_neon_enabled_calls = 0;
+int      g_set_neon_colour_calls = 0;
+int      g_set_smoke_colour_calls = 0;
+int      g_set_xenon_calls = 0;
+int      g_set_tyres_burst_calls = 0;
 int32_t g_colour1 = 42;
 int32_t g_colour2 = 7;
 bool    g_custom_primary = false;
@@ -186,6 +218,7 @@ void blips_step() {
 // the Python side doesn't have to wait for a transition.
 bool in_vehicle()  {
     if (g_scenario == kPaint) return true;
+    if (g_scenario == kMods || g_scenario == kModsNoKit) return true;
     return g_scenario == kStory && elapsed_ms() > 2000;
 }
 bool switching()   { uint64_t t = elapsed_ms();
@@ -360,6 +393,17 @@ void dispatch() {
         const char* text = "NULL";
         for (const Label& l : kLabels) {
             if (key && std::strcmp(key, l.key) == 0) text = l.text;
+        }
+        // Dynamic labels used by the mods scenario: SLOT_<n> and
+        // MOD_<slot>_<idx> both resolve to a readable name so the
+        // plugin's option list is non-empty.
+        static char buf[48];
+        if (key && std::strncmp(key, "SLOT_", 5) == 0) {
+            std::snprintf(buf, sizeof(buf), "slot %s", key + 5);
+            text = buf;
+        } else if (key && std::strncmp(key, "MOD_", 4) == 0) {
+            std::snprintf(buf, sizeof(buf), "option %s", key + 4);
+            text = buf;
         }
         ret<const char*>(text); break; }
     case GET_PLAYER_RADIO_STATION_INDEX: expect_argc(0, "GET_PLAYER_RADIO_STATION_INDEX");
@@ -567,6 +611,99 @@ void dispatch() {
     case GET_IS_VEHICLE_SECONDARY_COLOUR_CUSTOM: expect_argc(1, "GET_IS_VEHICLE_SECONDARY_COLOUR_CUSTOM");
         ret_bool(g_custom_secondary); break;
 
+    // ---- vehicle-mods natives --------------------------------------
+    case SET_VEHICLE_MOD_KIT: expect_argc(2, "SET_VEHICLE_MOD_KIT");
+        ++g_mod_kit_set_calls; break;
+    case GET_VEHICLE_MOD_KIT: expect_argc(1, "GET_VEHICLE_MOD_KIT");
+        // 0 = kit active; 0xFFFF (-1) = no kit.
+        ret<uint32_t>(g_scenario == kModsNoKit ? 0xFFFFu : 0u); break;
+    case GET_NUM_VEHICLE_MODS: { expect_argc(2, "GET_NUM_VEHICLE_MODS");
+        if (g_scenario == kModsNoKit) { ret<int>(0); break; }
+        const int32_t slot = arg<int>(1);
+        int n = 0;
+        switch (slot) {
+        case 0:  n = 2; break;   // spoiler
+        case 11: n = 4; break;   // engine
+        case 18: n = 1; break;   // turbo toggle
+        case 22: n = 1; break;   // xenon toggle
+        case 23: n = (g_wheel_type == 0) ? 3 : 5; break;  // front wheels
+        default: n = 0; break;
+        }
+        ret<int>(n); break; }
+    case GET_VEHICLE_MOD: { expect_argc(2, "GET_VEHICLE_MOD");
+        const int32_t slot = arg<int>(1);
+        ret<int>((slot >= 0 && slot < 49) ? g_cur_mod[slot] : -1); break; }
+    case SET_VEHICLE_MOD: { expect_argc(4, "SET_VEHICLE_MOD");
+        const int32_t slot = arg<int>(1);
+        const int32_t idx  = arg<int>(2);
+        if (slot >= 0 && slot < 49) g_cur_mod[slot] = idx;
+        ++g_set_mod_calls; break; }
+    case REMOVE_VEHICLE_MOD: { expect_argc(2, "REMOVE_VEHICLE_MOD");
+        const int32_t slot = arg<int>(1);
+        if (slot >= 0 && slot < 49) g_cur_mod[slot] = -1;
+        ++g_remove_mod_calls; break; }
+    case TOGGLE_VEHICLE_MOD: { expect_argc(3, "TOGGLE_VEHICLE_MOD");
+        const int32_t slot = arg<int>(1);
+        if (slot >= 0 && slot < 49) g_tog_on[slot] = arg<int>(2) != 0;
+        ++g_toggle_mod_calls; break; }
+    case IS_TOGGLE_MOD_ON: { expect_argc(2, "IS_TOGGLE_MOD_ON");
+        const int32_t slot = arg<int>(1);
+        ret_bool(slot >= 0 && slot < 49 && g_tog_on[slot]); break; }
+    case GET_MOD_TEXT_LABEL: { expect_argc(3, "GET_MOD_TEXT_LABEL");
+        // Return a GXT key per (slot, idx). The key is resolved below
+        // by GET_LABEL_TEXT; a missing entry comes back as "NULL".
+        static char buf[32];
+        std::snprintf(buf, sizeof(buf), "MOD_%d_%d", arg<int>(1), arg<int>(2));
+        ret<const char*>(buf); break; }
+    case GET_MOD_SLOT_NAME: { expect_argc(2, "GET_MOD_SLOT_NAME");
+        static char buf[32];
+        std::snprintf(buf, sizeof(buf), "SLOT_%d", arg<int>(1));
+        ret<const char*>(buf); break; }
+    case DOES_TEXT_LABEL_EXIST: { expect_argc(1, "DOES_TEXT_LABEL_EXIST");
+        const char* key = arg<const char*>(0);
+        if (!key) { ret_bool(false); break; }
+        // Pretend every MOD_* / SLOT_* key exists, so GET_LABEL_TEXT
+        // below returns a usable string. The real game answers "NULL"
+        // for some slots; the plugin's path for that is covered by
+        // the station-list lookup.
+        ret_bool(std::strncmp(key, "MOD_", 4) == 0
+                 || std::strncmp(key, "SLOT_", 5) == 0); break; }
+    case SET_VEHICLE_WHEEL_TYPE: expect_argc(2, "SET_VEHICLE_WHEEL_TYPE");
+        g_wheel_type = arg<int>(1); ++g_set_wheel_type_calls; break;
+    case GET_VEHICLE_WHEEL_TYPE: expect_argc(1, "GET_VEHICLE_WHEEL_TYPE");
+        ret<int>(g_wheel_type); break;
+    case SET_VEHICLE_WINDOW_TINT: expect_argc(2, "SET_VEHICLE_WINDOW_TINT");
+        g_tint = arg<int>(1); ++g_set_tint_calls; break;
+    case GET_VEHICLE_WINDOW_TINT: expect_argc(1, "GET_VEHICLE_WINDOW_TINT");
+        ret<int>(g_tint); break;
+    case GET_NUM_VEHICLE_WINDOW_TINTS: expect_argc(0, "GET_NUM_VEHICLE_WINDOW_TINTS");
+        ret<int>(6); break;
+    case SET_VEHICLE_NUMBER_PLATE_TEXT: { expect_argc(2, "SET_VEHICLE_NUMBER_PLATE_TEXT");
+        const char* t = arg<const char*>(1);
+        if (t) std::snprintf(g_plate_text, sizeof(g_plate_text), "%s", t);
+        ++g_set_plate_calls; break; }
+    case GET_VEHICLE_NUMBER_PLATE_TEXT: expect_argc(1, "GET_VEHICLE_NUMBER_PLATE_TEXT");
+        ret<const char*>(g_plate_text); break;
+    case SET_VEHICLE_NUMBER_PLATE_TEXT_INDEX: expect_argc(2, "SET_VEHICLE_NUMBER_PLATE_TEXT_INDEX");
+        g_plate_style = arg<int>(1); ++g_set_plate_style_calls; break;
+    case SET_VEHICLE_NEON_ENABLED: { expect_argc(3, "SET_VEHICLE_NEON_ENABLED");
+        const int side = arg<int>(1);
+        if (side >= 0 && side < 4) g_neon_on[side] = arg<int>(2) != 0;
+        ++g_set_neon_enabled_calls; break; }
+    case GET_VEHICLE_NEON_ENABLED: { expect_argc(2, "GET_VEHICLE_NEON_ENABLED");
+        const int side = arg<int>(1);
+        ret_bool(side >= 0 && side < 4 && g_neon_on[side]); break; }
+    case SET_VEHICLE_NEON_COLOUR: expect_argc(4, "SET_VEHICLE_NEON_COLOUR");
+        ++g_set_neon_colour_calls; break;
+    case SET_VEHICLE_TYRE_SMOKE_COLOR: expect_argc(4, "SET_VEHICLE_TYRE_SMOKE_COLOR");
+        ++g_set_smoke_colour_calls; break;
+    case SET_VEHICLE_XENON_LIGHT_COLOR_INDEX: expect_argc(2, "SET_VEHICLE_XENON_LIGHT_COLOR_INDEX");
+        ++g_set_xenon_calls; break;
+    case SET_VEHICLE_TYRES_CAN_BURST: expect_argc(2, "SET_VEHICLE_TYRES_CAN_BURST");
+        g_bulletproof = arg<int>(1) == 0; ++g_set_tyres_burst_calls; break;
+    case GET_VEHICLE_TYRES_CAN_BURST: expect_argc(1, "GET_VEHICLE_TYRES_CAN_BURST");
+        ret_bool(!g_bulletproof); break;
+
     // ---- phase-2 cheats --------------------------------------------
     case SET_PED_IS_DRUNK: expect_argc(2, "SET_PED_IS_DRUNK"); break;
     case SET_SWIM_MULTIPLIER_FOR_PLAYER: expect_argc(2, "SET_SWIM_MULTIPLIER_FOR_PLAYER");
@@ -616,6 +753,8 @@ void mock_scriptRegister(HMODULE /*module*/, ScriptMain fn) {
         if (!std::strcmp(buf, "blips"))   g_scenario = kBlips;
         if (!std::strcmp(buf, "cheats"))  g_scenario = kCheats;
         if (!std::strcmp(buf, "paint"))   g_scenario = kPaint;
+        if (!std::strcmp(buf, "mods"))    g_scenario = kMods;
+        if (!std::strcmp(buf, "mods_no_kit")) g_scenario = kModsNoKit;
     }
     std::fprintf(stderr, "[mock] scriptRegister, scenario=%d\n", g_scenario);
     std::fflush(stderr);

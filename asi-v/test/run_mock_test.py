@@ -90,6 +90,13 @@ class Session:
                % (cid, name, key, value))
         self.sock.sendall(msg.encode())
 
+    def send_text(self, cid, name, text):
+        """set_plate uses the only string argument the plugin accepts."""
+        safe = text.replace("\\", "\\\\").replace('"', '\\"')
+        msg = ('{"v":1,"type":"cmd","id":%d,"name":"%s","args":{"text":"%s"}}\n'
+               % (cid, name, safe))
+        self.sock.sendall(msg.encode())
+
     def close(self):
         if self.sock:
             self.sock.close()
@@ -654,6 +661,215 @@ def test_paint_on_foot_refusal():
     check(rc == 0, "host exited cleanly (rc=%s)" % rc)
 
 
+def test_mods():
+    """In-vehicle throughout. Ask for the catalogue, exercise every
+    command, then confirm the mods frame tracks the game: slots and
+    toggles with the right option counts, slot current updates on
+    set_mod, toggle flips on toggle_mod, wheel slot re-lists after
+    a wheel-type change, the plate frame carries the written text,
+    bulletproof flag flips, bad plate text is refused BEFORE a native
+    is called. All in one scenario so the Python side watches one
+    stream."""
+    print("scenario: mods")
+    STOCK = 0xFFFF
+    s = Session("mods", 20)
+    check(s.sock is not None, "bridge accepts a connection")
+    if not s.sock:
+        print(s.close())
+        return
+    hello = None
+    mods_frames = []
+    acks = {}
+    phase = 0
+    for f in s.frames(16):
+        if f["type"] == "hello":
+            hello = f
+        if f["type"] == "ack":
+            acks[f["id"]] = f
+        if f["type"] == "mods":
+            mods_frames.append(f)
+        if f["type"] != "state":
+            continue
+        if not f.get("in_game") or not f.get("in_vehicle"):
+            continue
+        if phase == 0:
+            phase = 1
+            s.send_cmd(1, "mods_list", "v", 0)
+        elif phase == 1 and mods_frames and mods_frames[-1].get("slots"):
+            phase = 2
+            # Change spoiler (slot 0) to option 1, engine (11) to 2,
+            # then set spoiler back to stock.
+            s.send_cmd(2, "set_mod", "mod", (0 << 16) | 1)
+            s.send_cmd(3, "set_mod", "mod", (11 << 16) | 2)
+            s.send_cmd(4, "set_mod", "mod", (0 << 16) | STOCK)
+            # Out-of-range index.
+            s.send_cmd(5, "set_mod", "mod", (0 << 16) | 7)
+            # Toggle turbo on then off; also toggle a slot that has no
+            # toggle (should be refused with slot not available).
+            s.send_cmd(6, "toggle_mod", "slot", 18)
+            s.send_cmd(7, "toggle_mod", "slot", 18)
+            s.send_cmd(8, "toggle_mod", "slot", 99)
+            # Wheel type: switch to 1 (muscle). The mock reports a
+            # different option count then; the republished mods frame
+            # must reflect it.
+            s.send_cmd(9, "set_wheel_type", "type", 1)
+            # Tint, plate style, bulletproof.
+            s.send_cmd(10, "set_tint", "tint", 3)
+            s.send_cmd(11, "set_plate_style", "style", 2)
+            s.send_cmd(12, "set_bulletproof_tyres", "on", 1)
+            # Plate text, valid and invalid.
+            s.send_text(13, "set_plate", "GTC 123")
+            s.send_text(14, "set_plate", "HI!")
+            s.send_text(15, "set_plate", "TOOLONGPLATE")
+            # Neon, smoke, xenon.
+            s.send_cmd(16, "set_neon", "rgb", 0x00FF8800)
+            s.send_cmd(17, "set_smoke", "rgb", 0x0000FF00)
+            s.send_cmd(18, "set_xenon_colour", "index", 5)
+    rc, err, log = s.close()
+
+    check(hello is not None and hello.get("plugin", "").startswith("0.5"),
+          "hello plugin version is 0.5+ (%s)" % (hello or {}).get("plugin"))
+
+    check(bool(mods_frames), "a mods frame arrived")
+    first = mods_frames[0] if mods_frames else {}
+    check(first.get("kit") is True, "mods: kit true for a car with a mod kit")
+    slot_by = {s["slot"]: s for s in first.get("slots", [])}
+    toggles_by = {t["slot"]: t for t in first.get("toggles", [])}
+    check(0 in slot_by and 11 in slot_by and 23 in slot_by,
+          "slots 0 (spoiler), 11 (engine), 23 (wheels) present (%s)"
+          % sorted(slot_by.keys()))
+    check(7 not in slot_by,
+          "zero-count slot (hood=7) omitted from the frame")
+    check(len(slot_by.get(0, {}).get("options", [])) == 2,
+          "slot 0 reports 2 options")
+    check(len(slot_by.get(11, {}).get("options", [])) == 4,
+          "slot 11 reports 4 options")
+    check(slot_by.get(11, {}).get("options", [None])[0] == "option 11_0",
+          "options carry the localised label (%r)"
+          % slot_by.get(11, {}).get("options", [None])[0])
+    check(18 in toggles_by and 22 in toggles_by,
+          "toggles 18 (turbo) and 22 (xenon) are in the toggles[] list")
+
+    check(acks.get(1, {}).get("ok") is True, "mods_list -> ok")
+    check(acks.get(2, {}).get("ok") is True, "set_mod slot=0 index=1 -> ok")
+    check(acks.get(3, {}).get("ok") is True, "set_mod slot=11 index=2 -> ok")
+    check(acks.get(4, {}).get("ok") is True, "set_mod slot=0 stock -> ok")
+    check(acks.get(5, {}).get("ok") is False
+          and "out of range" in acks.get(5, {}).get("err", ""),
+          "set_mod out-of-range index refused")
+    check(acks.get(6, {}).get("ok") is True, "toggle_mod turbo on -> ok")
+    check(acks.get(7, {}).get("ok") is True, "toggle_mod turbo off -> ok")
+    check(acks.get(8, {}).get("ok") is False
+          and acks.get(8, {}).get("err") == "slot not available",
+          "toggle_mod on a non-toggle slot refused")
+    check(acks.get(9, {}).get("ok") is True, "set_wheel_type -> ok")
+    check(acks.get(10, {}).get("ok") is True, "set_tint -> ok")
+    check(acks.get(11, {}).get("ok") is True, "set_plate_style -> ok")
+    check(acks.get(12, {}).get("ok") is True, "set_bulletproof_tyres -> ok")
+    check(acks.get(13, {}).get("ok") is True, "set_plate GTC 123 -> ok")
+    check(acks.get(14, {}).get("ok") is False
+          and acks.get(14, {}).get("err") == "bad plate text",
+          "set_plate rejects punctuation")
+    check(acks.get(15, {}).get("ok") is False
+          and acks.get(15, {}).get("err") == "bad plate text",
+          "set_plate rejects over-8 text")
+    check(acks.get(16, {}).get("ok") is True, "set_neon -> ok")
+    check(acks.get(17, {}).get("ok") is True, "set_smoke -> ok")
+    check(acks.get(18, {}).get("ok") is True, "set_xenon_colour -> ok")
+
+    # Frames bump their ver on each change; the last frame must
+    # reflect the final state (wheel type 1, plate GTC 123, tint 3,
+    # bulletproof true).
+    last = mods_frames[-1] if mods_frames else {}
+    check(last.get("wheel_type") == 1, "last frame: wheel_type == 1")
+    check(last.get("tint") == 3, "last frame: tint == 3")
+    check(last.get("plate_style") == 2, "last frame: plate_style == 2")
+    check(last.get("plate") == "GTC 123", "last frame: plate == GTC 123")
+    check(last.get("bulletproof") is True, "last frame: bulletproof true")
+    check(last.get("neon") is True, "last frame: neon on after set_neon")
+    # Slot 11 should land on cur=2; slot 0 on cur=-1 (stock) because
+    # of the final remove.
+    slot_by_last = {s["slot"]: s for s in last.get("slots", [])}
+    check(slot_by_last.get(11, {}).get("cur") == 2,
+          "slot 11 current == 2 after set_mod (got %s)"
+          % slot_by_last.get(11, {}).get("cur"))
+    check(slot_by_last.get(0, {}).get("cur") == -1,
+          "slot 0 current == -1 after remove (got %s)"
+          % slot_by_last.get(0, {}).get("cur"))
+    # Wheel slot re-list on wheel type change: mock reports 3 options
+    # at type 0 and 5 at type 1, so the final frame carries 5.
+    check(len(slot_by_last.get(23, {}).get("options", [])) == 5,
+          "slot 23 re-listed after wheel type change (got %d options)"
+          % len(slot_by_last.get(23, {}).get("options", [])))
+    # Toggle 18 flipped on then off: ends off.
+    tog_by_last = {t["slot"]: t for t in last.get("toggles", [])}
+    check(tog_by_last.get(18, {}).get("on") is False,
+          "turbo ends off after two toggles")
+
+    check("[mods] walk done" in log, "walker logged its first completion")
+    check("[mods] set_mod slot=11 index=2 -> ok" in log,
+          "set_mod log line format")
+
+    check("UNKNOWN NATIVE" not in err and "ARITY MISMATCH" not in err,
+          "mock saw no unknown native / arity mismatch")
+    check(rc == 0, "host exited cleanly (rc=%s)" % rc)
+    if failures:
+        print("---- stderr ----\n" + err[-2000:])
+        print("---- ThorBridgeV.log ----\n" + log[-3000:])
+
+
+def test_mods_no_kit():
+    """A vehicle whose GET_VEHICLE_MOD_KIT returns 0xFFFF: the first
+    mods frame has kit=false, zero slots and zero toggles; every set
+    is refused with 'no mod kit'."""
+    print("scenario: mods (no kit)")
+    s = Session("mods_no_kit", 12)
+    check(s.sock is not None, "bridge accepts a connection")
+    if not s.sock:
+        print(s.close())
+        return
+    mods_frames = []
+    acks = {}
+    phase = 0
+    for f in s.frames(9):
+        if f["type"] == "ack":
+            acks[f["id"]] = f
+        if f["type"] == "mods":
+            mods_frames.append(f)
+        if f["type"] != "state":
+            continue
+        if not f.get("in_game") or not f.get("in_vehicle"):
+            continue
+        if phase == 0:
+            phase = 1
+            s.send_cmd(1, "mods_list", "v", 0)
+        elif phase == 1 and mods_frames:
+            phase = 2
+            s.send_cmd(2, "set_mod", "mod", (0 << 16) | 0)
+            s.send_cmd(3, "toggle_mod", "slot", 18)
+            s.send_cmd(4, "set_tint", "tint", 0)
+    rc, err, log = s.close()
+
+    check(bool(mods_frames), "a mods frame arrived even without a kit")
+    f = mods_frames[-1] if mods_frames else {}
+    check(f.get("kit") is False, "kit flag false")
+    check(len(f.get("slots", [])) == 0 and len(f.get("toggles", [])) == 0,
+          "no slots or toggles when kit is missing")
+
+    check(acks.get(1, {}).get("ok") is True, "mods_list still -> ok")
+    for cid in (2, 3, 4):
+        a = acks.get(cid, {})
+        check(a.get("ok") is False and a.get("err") == "no mod kit",
+              "cmd id=%d refused with 'no mod kit'" % cid)
+
+    check("UNKNOWN NATIVE" not in err and "ARITY MISMATCH" not in err,
+          "mock saw no unknown native / arity mismatch")
+    check(rc == 0, "host exited cleanly (rc=%s)" % rc)
+    if failures:
+        print("---- stderr ----\n" + err[-2000:])
+        print("---- ThorBridgeV.log ----\n" + log[-3000:])
+
+
 def simple(scenario, seconds, predicate, what, with_shv=True):
     print("scenario: %s%s" % (scenario, "" if with_shv else " (no Script Hook V)"))
     s = Session(scenario, seconds + 3, with_shv)
@@ -683,6 +899,8 @@ def main():
     test_cheats()
     test_paint()
     test_paint_on_foot_refusal()
+    test_mods()
+    test_mods_no_kit()
 
     def states(fr):
         return [f for f in fr if f["type"] == "state"]
