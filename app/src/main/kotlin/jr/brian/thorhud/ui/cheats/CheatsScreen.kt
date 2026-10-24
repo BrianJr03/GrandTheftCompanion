@@ -113,6 +113,11 @@ internal fun CheatsScreen(
     onRunCheat: (Int) -> Unit,
     onLongPressOneShot: (Int) -> Boolean,
     onPaintRgb: (Long) -> Unit,
+    // Paint-to-lights toggle: ViewModel reads GtcSettings so the flip
+    // persists across tab changes + launches. V-only; callback null
+    // on IV hides the toggle row.
+    paintToLightsEnabled: Boolean = false,
+    onPaintToLightsChange: ((Boolean) -> Unit)? = null,
     // Called with the full list of CheatCategory.name values after
     // the user finishes a drag; the ViewModel persists it as-is.
     onReorderSections: (List<String>) -> Unit,
@@ -129,8 +134,14 @@ internal fun CheatsScreen(
     // path as a swatch tap, so no new plugin code is involved.
     var showColorWheel by rememberSaveable { mutableStateOf(false) }
     var lastWheelPicked by rememberSaveable { mutableStateOf<Long?>(null) }
+    // Explicit Box so the sheets overlay the main Column reliably.
+    // The pager page's layout scope allowed multiple siblings before,
+    // but ordering + Z-index of a slide-up sheet (AnimatedVisibility
+    // with fillMaxSize content) depends on the parent being Box-like.
+    // Keep this wrapper even for the single-sheet case to pin behavior.
+    Box(modifier = modifier.fillMaxSize()) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
             .padding(horizontal = 12.dp, vertical = 10.dp)
@@ -181,7 +192,7 @@ internal fun CheatsScreen(
                 stringResource(R.string.cheats_unsupported),
                 color = dim,
                 fontFamily = FontFamily.Monospace,
-                fontSize = 12.sp,
+                fontSize = 14.sp,
             )
             return@Column
         }
@@ -303,9 +314,11 @@ internal fun CheatsScreen(
                             onTap = onRunCheat,
                             onLongPress = onLongPress,
                             onPaintRgb = onPaintRgb,
-                            onOpenWheel = if (isGtaV)
-                                { -> showColorWheel = true }
-                            else null,
+                            onOpenWheel = if (isGtaV) {
+                                { showColorWheel = true }
+                            } else null,
+                            paintToLightsEnabled = paintToLightsEnabled,
+                            onPaintToLightsChange = if (isGtaV) onPaintToLightsChange else null,
                         ) }
                     } else null,
                 )
@@ -320,7 +333,7 @@ internal fun CheatsScreen(
                 stringResource(R.string.cheats_error, err),
                 color = Color(0xFFE07070),
                 fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp,
+                fontSize = 13.sp,
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
@@ -346,6 +359,7 @@ internal fun CheatsScreen(
             onPaintRgb(packed)
         },
     )
+    }   // Box
 }
 
 @Composable
@@ -391,15 +405,15 @@ private fun CategorySection(
             // Drag handle. Six-dot icon; long-press on this icon starts
             // the section reorder. The handle has its OWN pointerInput
             // so the chevron / label can still short-tap to collapse.
-            Icon(
-                imageVector = Icons.Filled.DragIndicator,
-                contentDescription = stringResource(R.string.cheats_section_reorder_cd),
-                tint = if (isDragging) accent else dim,
-                modifier = Modifier
-                    .size(18.dp)
-                    .then(dragHandleModifier),
-            )
-            Spacer(Modifier.size(4.dp))
+//            Icon(
+//                imageVector = Icons.Filled.DragIndicator,
+//                contentDescription = stringResource(R.string.cheats_section_reorder_cd),
+//                tint = if (isDragging) accent else dim,
+//                modifier = Modifier
+//                    .size(18.dp)
+//                    .then(dragHandleModifier),
+//            )
+//            Spacer(Modifier.size(4.dp))
             // Chevron + label + count: short-tap collapses. Click lives
             // on this inner Row so the drag handle to its left is NOT a
             // tap target for collapse.
@@ -421,7 +435,7 @@ private fun CategorySection(
                     text = stringResource(category.labelRes),
                     color = accent,
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 12.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                 )
                 Spacer(Modifier.size(6.dp))
@@ -429,7 +443,7 @@ private fun CategorySection(
                     text = "(${items.size})",
                     color = dim,
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
+                    fontSize = 12.sp,
                 )
             }
         }
@@ -481,6 +495,11 @@ private fun PaintSection(
     // button never renders — the plugin would refuse paint_rgb there
     // with "not in this game" anyway.
     onOpenWheel: (() -> Unit)? = null,
+    // Paint-to-lights mirror toggle. V-only (nothing writes
+    // lastPaintedRgb on IV). State is a Boolean + a change callback,
+    // sourced from GtcSettings.paintToLightsEnabled.
+    paintToLightsEnabled: Boolean = false,
+    onPaintToLightsChange: ((Boolean) -> Unit)? = null,
 ) {
     val inCar = vehicle != null
     val fade = if (inCar) 1f else 0.4f
@@ -530,62 +549,59 @@ private fun PaintSection(
                 stringResource(R.string.cheats_paint_get_in_car),
                 color = dim,
                 fontFamily = FontFamily.Monospace,
-                fontSize = 11.sp,
+                fontSize = 13.sp,
             )
         }
 
         Spacer(Modifier.height(8.dp))
 
-        // Buttons. We route a disabled tap (on foot) through a
-        // no-op so the plugin never sees a doomed command and the
-        // user never sees the "not in a vehicle" error line.
-        CheatGrid(
-            items = items,
-            accent = accent.copy(alpha = fade),
-            pendingId = pendingId,
-            cheatsMask = cheatsMask,
-            autoApplyCheats = autoApplyCheats,
-            onTap = if (inCar) onTap else { _ -> },
-            onLongPress = if (inCar) onLongPress else { _ -> },
-        )
-
-        // "Custom colour" opens the colour wheel. V-only (IV refuses
-        // paint_rgb at the plugin, so the button never renders on
-        // IV). Lives directly under the catalog row so the three
-        // standard buttons + this one feel like one cluster.
-        //
-        // Deliberately NOT gated on inCar: opening the picker is
-        // harmless, and the player can prepare a colour before
-        // getting in a car. The Apply inside the sheet calls
-        // paintRgb, which the plugin refuses with "not in a vehicle"
-        // on foot — that's where the error wants to live.
-        if (onOpenWheel != null) {
-            Spacer(Modifier.height(6.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .heightIn(min = 44.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(Color.Black)
-                        .border(1.dp, accent, RoundedCornerShape(50))
-                        .clickable { onOpenWheel() }
-                        .padding(horizontal = 8.dp, vertical = 10.dp),
-                    contentAlignment = Alignment.Center,
+        // 2x2 button grid. Row 1: respray / next color. Row 2: swap
+        // colors / custom color. On IV the custom-color slot is a
+        // spacer because the plugin refuses paint_rgb — same
+        // half-width look either way. Taps on foot are routed to no-op
+        // so the plugin never sees a doomed command. Custom-color is
+        // deliberately NOT gated on inCar: opening the picker is
+        // harmless; the Apply inside the sheet calls paintRgb which
+        // the plugin refuses with "not in a vehicle" on foot.
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            val rows = items.chunked(2)
+            // At most 2 catalog defs per row; the second row will
+            // have ≤1 catalog def because the catalog ships 3.
+            rows.forEachIndexed { rowIdx, rowItems ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Text(
-                        text = stringResource(R.string.cheats_paint_custom_colour),
-                        color = accent,
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 12.sp,
-                    )
+                    rowItems.forEach { def ->
+                        val on = if (def.isToggle) isOn(cheatsMask, def.id)
+                                 else autoApplyCheats.contains(def.id)
+                        CheatButton(
+                            def = def,
+                            accent = accent.copy(alpha = fade),
+                            on = on,
+                            pending = pendingId == def.id,
+                            onTap = if (inCar) onTap else { _ -> },
+                            onLongPress = if (inCar) onLongPress else { _ -> },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    // Trailing slot. On the last row, if there's room
+                    // for one more button, drop the custom-color pill
+                    // there (V only). Otherwise pad to keep the
+                    // half-width look.
+                    val isLast = rowIdx == rows.lastIndex
+                    if (rowItems.size == 1) {
+                        if (isLast && onOpenWheel != null) {
+                            CustomColorButton(
+                                accent = accent,
+                                onClick = onOpenWheel,
+                                modifier = Modifier.weight(1f),
+                            )
+                        } else {
+                            Spacer(Modifier.weight(1f))
+                        }
+                    }
                 }
-                // Pad the second slot so this button keeps the
-                // half-width look of the other paint buttons.
-                Spacer(Modifier.weight(1f))
             }
         }
 
@@ -596,7 +612,74 @@ private fun PaintSection(
                 enabled = inCar,
                 onPick = onPaintRgb,
             )
+
+            // Mirror the last paint_rgb pick to the Thor's thumbstick
+            // lights. V-only because the mirror reads
+            // GameStateRepository.lastPaintedRgb which only ever gets
+            // set on a V paint_rgb command. Switch state is held in
+            // GtcSettings so a flip survives tab changes + relaunch;
+            // PoliceLightsController still wins when the player is
+            // wanted.
+            if (onPaintToLightsChange != null) {
+                Spacer(Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onPaintToLightsChange(!paintToLightsEnabled) }
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(R.string.cheats_paint_to_lights),
+                        color = accent,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 14.sp,
+                        modifier = Modifier.weight(1f),
+                    )
+                    androidx.compose.material3.Switch(
+                        checked = paintToLightsEnabled,
+                        onCheckedChange = onPaintToLightsChange,
+                        colors = androidx.compose.material3.SwitchDefaults.colors(
+                            checkedThumbColor = Color.Black,
+                            checkedTrackColor = accent,
+                            uncheckedThumbColor = accent,
+                            uncheckedTrackColor = Color.Black,
+                            uncheckedBorderColor = accent,
+                        ),
+                    )
+                }
+            }
         }
+    }
+}
+
+/** Half-width pill that matches a [CheatButton]'s look. Opens the
+ *  color wheel. Not a cheat (no id), so it does not share CheatDef /
+ *  pending / toggle plumbing — just an onClick. */
+@Composable
+private fun CustomColorButton(
+    accent: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(50)
+    Box(
+        modifier = modifier
+            .heightIn(min = 44.dp)
+            .clip(shape)
+            .background(Color.Black)
+            .border(1.dp, accent, shape)
+            .clickable { onClick() }
+            .padding(horizontal = 8.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.cheats_paint_custom_color),
+            color = accent,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 14.sp,
+            maxLines = 2,
+        )
     }
 }
 
@@ -617,14 +700,14 @@ private fun PairBox(
             label,
             color = dim,
             fontFamily = FontFamily.Monospace,
-            fontSize = 10.sp,
+            fontSize = 12.sp,
         )
         Spacer(Modifier.height(2.dp))
         Text(
             value,
             color = accent,
             fontFamily = FontFamily.Monospace,
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
         )
     }
@@ -645,7 +728,7 @@ private fun SwatchRow(
             label,
             color = accent,
             fontFamily = FontFamily.Monospace,
-            fontSize = 10.sp,
+            fontSize = 12.sp,
         )
         Spacer(Modifier.height(4.dp))
         Row(
@@ -754,7 +837,7 @@ private fun CheatButton(
             label,
             color = textColor.copy(alpha = alpha),
             fontFamily = FontFamily.Monospace,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             maxLines = 2,
         )
     }
@@ -792,14 +875,14 @@ private fun CheatsOnboardingSheet(
                         color = Color(0xFFEDEDED),
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
                         stringResource(body),
                         color = Color(0xFFCFCFCF),
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 12.sp,
+                        fontSize = 14.sp,
                     )
                 }
             }
@@ -835,7 +918,7 @@ private fun CheatsOnboardingSheet(
                         ),
                         color = accent,
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                     )
                 }
             }

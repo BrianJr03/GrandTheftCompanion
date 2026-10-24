@@ -105,9 +105,9 @@ internal val CHEATS: List<CheatDef> = listOf(
     CheatDef(60, isToggle = false, games = CHEAT_BOTH, category = CheatCategory.Paint,
              labelRes = R.string.cheat_60_respray),
     CheatDef(61, isToggle = false, games = CHEAT_BOTH, category = CheatCategory.Paint,
-             labelRes = R.string.cheat_61_next_colour),
+             labelRes = R.string.cheat_61_next_color),
     CheatDef(62, isToggle = false, games = CHEAT_BOTH, category = CheatCategory.Paint,
-             labelRes = R.string.cheat_62_swap_colours),
+             labelRes = R.string.cheat_62_swap_colors),
 
     // -- World ---------------------------------------------------
     CheatDef(7,  isToggle = false, games = CHEAT_BOTH, category = CheatCategory.World,

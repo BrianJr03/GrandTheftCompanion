@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
+import jr.brian.thorhud.ui.components.LocalFullScreenSheetCount
 import kotlinx.coroutines.launch
 
 internal enum class HudPage(@StringRes val labelRes: Int) {
@@ -66,8 +67,13 @@ internal fun HudPager(
     map: @Composable () -> Unit,
     cheats: @Composable () -> Unit,
 ) {
+    // Lock the horizontal swipe while any FullScreenSheet is open so
+    // sheet-internal gestures (color-wheel drag, radio picker scroll)
+    // don't drag the whole tab sideways under the user's finger.
+    val sheetsOpen = LocalFullScreenSheetCount.current.value > 0
     HorizontalPager(
         state = pagerState,
+        userScrollEnabled = !sheetsOpen,
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)

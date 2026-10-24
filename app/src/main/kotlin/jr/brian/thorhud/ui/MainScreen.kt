@@ -35,6 +35,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.key
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -48,6 +50,7 @@ import jr.brian.thorhud.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.components.CardAlign
+import jr.brian.thorhud.ui.components.LocalFullScreenSheetCount
 import jr.brian.thorhud.ui.components.CoinPanel
 import jr.brian.thorhud.ui.components.FullWidthStats
 import jr.brian.thorhud.ui.components.FullScreenSheet
@@ -92,6 +95,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     val lastUpdateMs by viewModel.lastUpdateMs.collectAsStateWithLifecycle()
     val lastError by viewModel.lastError.collectAsStateWithLifecycle()
     val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
+    val paintToLightsEnabled by viewModel.paintToLightsEnabled.collectAsStateWithLifecycle()
     val lightsStatus by viewModel.stickLightsStatus.collectAsStateWithLifecycle()
     val updateInfo by viewModel.updateInfo.collectAsStateWithLifecycle()
 
@@ -382,6 +386,14 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             requestMirrorConsent()
                         }
                     }
+                    // Shared ref-count of open FullScreenSheets; the
+                    // HudPager locks user swipes while any sheet is up
+                    // so sheet-internal drags (color wheel, radio
+                    // picker scroll) don't steal to the pager.
+                    val sheetCount = remember { mutableStateOf(0) }
+                    CompositionLocalProvider(
+                        LocalFullScreenSheetCount provides sheetCount,
+                    ) {
                     Box(Modifier.fillMaxSize()) {
                         HudPager(
                             pagerState = pagerState,
@@ -496,6 +508,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     onRunCheat = cheatsViewModel::runCheat,
                                     onLongPressOneShot = cheatsViewModel::toggleAutoApply,
                                     onPaintRgb = cheatsViewModel::paintRgb,
+                                    paintToLightsEnabled = paintToLightsEnabled,
+                                    onPaintToLightsChange = viewModel::setPaintToLightsEnabled,
                                     onReorderSections = cheatsViewModel::setSectionOrder,
                                     onOnboardingDismissed = {
                                         cheatsViewModel.markOnboardingSeen()
@@ -548,6 +562,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             )
                         }
                     }
+                    }   // CompositionLocalProvider (LocalFullScreenSheetCount)
                 }
             }
         }
@@ -681,7 +696,7 @@ private const val WHEEL_IDLE_CLOSE_MS = 6000L
 private fun IvHudScreen(
     viewModel: MainViewModel,
     state: GameState?,
-    liveState: GameState?,
+    liveState: GameState?, 
     isStale: Boolean,
     lightsOn: Boolean,
     lightsUnavailable: Boolean,

@@ -193,4 +193,99 @@
     <string name="snackbar_reconnect_success">Подключено</string>
     <string name="snackbar_reconnect_failed">Плагин недоступен</string>
     <string name="settings_close">Закрыть</string>
+
+    <!-- Cheats tab -->
+    <string name="tab_cheats">читы</string>
+    <string name="cheats_title">читы</string>
+    <string name="cheats_unsupported">недоступно в этой сборке плагина</string>
+    <string name="cheats_section_health">здоровье</string>
+    <string name="cheats_section_wanted">розыск</string>
+    <string name="cheats_section_weapons">оружие</string>
+    <string name="cheats_section_vehicle">транспорт</string>
+    <string name="cheats_section_paint">покраска</string>
+    <string name="cheats_section_world">мир</string>
+    <string name="cheats_section_toggles">переключатели</string>
+    <string name="cheats_error">%1$s</string>
+
+    <string name="cheats_paint_get_in_car">сядьте в машину</string>
+    <string name="cheats_paint_custom">свой</string>
+    <string name="cheats_paint_primary">основной</string>
+    <string name="cheats_paint_secondary">доп.</string>
+    <string name="cheats_section_reorder_cd">зажмите и перетащите для изменения порядка</string>
+
+    <string name="cheat_1_heal">лечение + броня</string>
+    <string name="cheat_2_wanted_up">розыск +1</string>
+    <string name="cheat_3_wanted_clear">сбросить розыск</string>
+    <string name="cheat_4_all_weapons">всё оружие</string>
+    <string name="cheat_5_max_ammo">макс. патронов</string>
+    <string name="cheat_6_fix_vehicle">починить машину</string>
+    <string name="cheat_7_next_weather">след. погода</string>
+    <string name="cheat_8_next_time">след. время суток</string>
+    <string name="cheat_9_fill_special">наполнить спецспособность</string>
+    <string name="cheat_10_spawn_adder">создать adder</string>
+    <string name="cheat_11_spawn_zentorno">создать zentorno</string>
+    <string name="cheat_12_spawn_bati">создать bati</string>
+    <string name="cheat_13_spawn_sanchez">создать sanchez</string>
+    <string name="cheat_14_spawn_frogger">создать frogger</string>
+    <string name="cheat_15_spawn_bmx">создать bmx</string>
+    <string name="cheat_20_invincible">неуязвимость</string>
+    <string name="cheat_21_infinite_clip">бесконечный магазин</string>
+    <string name="cheat_22_fast_reload">быстрая перезарядка</string>
+    <string name="cheat_23_never_tired">без усталости</string>
+    <string name="cheat_24_fast_run">быстрый бег</string>
+    <string name="cheat_25_low_gravity">низкая гравитация</string>
+    <string name="cheat_26_slow_motion">замедление</string>
+    <string name="cheat_16_wanted_down">розыск -1</string>
+    <string name="cheat_17_give_parachute">дать парашют</string>
+    <string name="cheat_18_skyfall">падение с неба</string>
+    <string name="cheat_19_advanced_weapons">продвинутое оружие</string>
+    <string name="cheat_40_poor_weapons">простое оружие</string>
+    <string name="cheat_41_ultimate">абсолют</string>
+    <string name="cheat_27_police_ignore">полиция игнорирует</string>
+    <string name="cheat_28_drunk">пьяный</string>
+    <string name="cheat_29_fast_swim">быстрое плавание</string>
+    <string name="cheat_30_super_jump">суперпрыжок</string>
+    <string name="cheat_31_explosive_ammo">взрывные патроны</string>
+    <string name="cheat_32_explosive_melee">взрывной рукопашный бой</string>
+    <string name="cheat_33_incendiary_ammo">зажигательные патроны</string>
+    <string name="cheat_34_slippery">скользкие машины</string>
+
+    <string name="cheat_60_respray">перекрасить</string>
+    <string name="cheat_61_next_color">след. цвет</string>
+    <string name="cheat_62_swap_colors">поменять цвета</string>
+
+    <string name="cheats_paint_custom_color">цветовой круг</string>
+    <string name="cheats_paint_wheel_title">цветовой круг</string>
+    <string name="cheats_paint_wheel_apply">применить</string>
+
+    <string name="swatch_night">ночь</string>
+    <string name="swatch_bone">кость</string>
+    <string name="swatch_red">красный</string>
+    <string name="swatch_blue">синий</string>
+    <string name="swatch_racing_green">гоночный зелёный</string>
+    <string name="swatch_orange">оранжевый</string>
+    <string name="swatch_purple">фиолетовый</string>
+    <string name="swatch_chrome">хром</string>
+
+    <string name="cheats_auto_apply_on">%1$s будет применяться автоматически после переподключения</string>
+    <string name="cheats_auto_apply_off">автоприменение %1$s выключено</string>
+    <string name="cheats_onboarding_title">О вкладке читов</string>
+    <string name="cheats_onboarding_slide1_title">Нажатия и индикаторы</string>
+    <string name="cheats_onboarding_slide1_body">Нажмите кнопку, чтобы активировать чит. Индикаторы приходят от самой игры, а не от нажатия, поэтому чит, который не сработал, никогда не выглядит сработавшим. Последний отказ появляется короткой красной строкой внизу, в формулировке плагина.</string>
+    <string name="cheats_onboarding_slide2_title">Автоприменение после переподключения</string>
+    <string name="cheats_onboarding_slide2_body">Переключатели, которые вы включаете, возвращаются автоматически, когда компаньон переподключается (новая сессия, перезапуск игры). Удерживайте одноразовый чит долгим нажатием, чтобы он тоже автоматически срабатывал, как только игра окажется в безопасном состоянии. Отключите всё в Настройки &#8594; Читы.</string>
+    <string name="cheats_onboarding_next">Далее</string>
+    <string name="cheats_onboarding_done">Понятно</string>
+
+    <string name="settings_section_cheats">Читы</string>
+    <string name="settings_auto_reapply_cheats_title">Повторно применять переключатели после переподключения</string>
+    <string name="settings_auto_reapply_cheats_body">После переподключения компаньона (новая сессия, перезапуск игры) снова включает каждый переключатель, который был у вас включён в последний раз, плюс каждый одноразовый чит, который вы взвели долгим нажатием. Срабатывает только один раз за соединение и только когда игра в безопасном состоянии (не на паузе, не при смене персонажа, не в катсцене).</string>
+    <string name="settings_clear_cheats_title">Очистить сохранённые читы</string>
+    <string name="settings_clear_cheats_body">Забыть каждый включённый переключатель и каждый одноразовый чит, взведённый долгим нажатием. Следующее переподключение начинается с чистого листа. Переключатель автоприменения выше не трогается.</string>
+    <string name="settings_clear_cheats_button">Очистить</string>
+    <string name="snackbar_cheats_cleared">Сохранённые читы очищены</string>
+
+    <string name="setup_step1_detail">ASI сканирует паттерны именно этой сборки. Другие версии не зажгут HUD.</string>
+
+    <string name="update_available_subtitle">v%1$s → v%2$s</string>
 </resources>

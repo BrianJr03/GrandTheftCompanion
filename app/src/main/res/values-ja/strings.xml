@@ -193,4 +193,99 @@
     <string name="snackbar_reconnect_success">接続しました</string>
     <string name="snackbar_reconnect_failed">プラグインに接続できません</string>
     <string name="settings_close">閉じる</string>
+
+    <!-- Cheats tab -->
+    <string name="tab_cheats">チート</string>
+    <string name="cheats_title">チート</string>
+    <string name="cheats_unsupported">このプラグインビルドでは利用不可</string>
+    <string name="cheats_section_health">体力</string>
+    <string name="cheats_section_wanted">指名手配</string>
+    <string name="cheats_section_weapons">武器</string>
+    <string name="cheats_section_vehicle">車両</string>
+    <string name="cheats_section_paint">塗装</string>
+    <string name="cheats_section_world">ワールド</string>
+    <string name="cheats_section_toggles">トグル</string>
+    <string name="cheats_error">%1$s</string>
+
+    <string name="cheats_paint_get_in_car">車に乗ってください</string>
+    <string name="cheats_paint_custom">カスタム</string>
+    <string name="cheats_paint_primary">プライマリ</string>
+    <string name="cheats_paint_secondary">セカンダリ</string>
+    <string name="cheats_section_reorder_cd">長押しして並べ替え</string>
+
+    <string name="cheat_1_heal">回復 + 装甲</string>
+    <string name="cheat_2_wanted_up">指名手配 +1</string>
+    <string name="cheat_3_wanted_clear">指名手配解除</string>
+    <string name="cheat_4_all_weapons">全武器</string>
+    <string name="cheat_5_max_ammo">弾薬最大</string>
+    <string name="cheat_6_fix_vehicle">車両修理</string>
+    <string name="cheat_7_next_weather">次の天気</string>
+    <string name="cheat_8_next_time">次の時間帯</string>
+    <string name="cheat_9_fill_special">スペシャル満タン</string>
+    <string name="cheat_10_spawn_adder">adderを出現</string>
+    <string name="cheat_11_spawn_zentorno">zentornoを出現</string>
+    <string name="cheat_12_spawn_bati">batiを出現</string>
+    <string name="cheat_13_spawn_sanchez">sanchezを出現</string>
+    <string name="cheat_14_spawn_frogger">froggerを出現</string>
+    <string name="cheat_15_spawn_bmx">bmxを出現</string>
+    <string name="cheat_20_invincible">無敵</string>
+    <string name="cheat_21_infinite_clip">弾薬無限</string>
+    <string name="cheat_22_fast_reload">高速リロード</string>
+    <string name="cheat_23_never_tired">スタミナ無限</string>
+    <string name="cheat_24_fast_run">高速走行</string>
+    <string name="cheat_25_low_gravity">低重力</string>
+    <string name="cheat_26_slow_motion">スローモーション</string>
+    <string name="cheat_16_wanted_down">指名手配 -1</string>
+    <string name="cheat_17_give_parachute">パラシュート取得</string>
+    <string name="cheat_18_skyfall">空から落下</string>
+    <string name="cheat_19_advanced_weapons">上位武器</string>
+    <string name="cheat_40_poor_weapons">基本武器</string>
+    <string name="cheat_41_ultimate">究極</string>
+    <string name="cheat_27_police_ignore">警察無視</string>
+    <string name="cheat_28_drunk">酔っ払い</string>
+    <string name="cheat_29_fast_swim">高速水泳</string>
+    <string name="cheat_30_super_jump">スーパージャンプ</string>
+    <string name="cheat_31_explosive_ammo">爆発弾</string>
+    <string name="cheat_32_explosive_melee">爆発近接</string>
+    <string name="cheat_33_incendiary_ammo">焼夷弾</string>
+    <string name="cheat_34_slippery">滑る車</string>
+
+    <string name="cheat_60_respray">再塗装</string>
+    <string name="cheat_61_next_color">次の色</string>
+    <string name="cheat_62_swap_colors">色を入れ替え</string>
+
+    <string name="cheats_paint_custom_color">カラーホイール</string>
+    <string name="cheats_paint_wheel_title">カラーホイール</string>
+    <string name="cheats_paint_wheel_apply">適用</string>
+
+    <string name="swatch_night">ナイト</string>
+    <string name="swatch_bone">ボーン</string>
+    <string name="swatch_red">レッド</string>
+    <string name="swatch_blue">ブルー</string>
+    <string name="swatch_racing_green">レーシンググリーン</string>
+    <string name="swatch_orange">オレンジ</string>
+    <string name="swatch_purple">パープル</string>
+    <string name="swatch_chrome">クローム</string>
+
+    <string name="cheats_auto_apply_on">再接続時に%1$sが自動で適用されます</string>
+    <string name="cheats_auto_apply_off">%1$sの自動適用はオフ</string>
+    <string name="cheats_onboarding_title">チートタブについて</string>
+    <string name="cheats_onboarding_slide1_title">タップとライト</string>
+    <string name="cheats_onboarding_slide1_body">ボタンをタップするとチートが発動します。ライトはタップではなくゲーム本体から来るので、適用されなかったチートが適用されたように見えることはありません。直近の失敗は画面下部に短い赤字で、プラグイン自身の文言で表示されます。</string>
+    <string name="cheats_onboarding_slide2_title">再接続時に自動適用</string>
+    <string name="cheats_onboarding_slide2_body">オンにしたトグルは、コンパニオンが再接続（新しいセッション、ゲーム再起動）すると自動で戻ります。ワンショットチートを長押しすると、ゲームが安全な状態になり次第、それも自動で発動します。全体を無効にするには 設定 &#8594; チート へ。</string>
+    <string name="cheats_onboarding_next">次へ</string>
+    <string name="cheats_onboarding_done">了解</string>
+
+    <string name="settings_section_cheats">チート</string>
+    <string name="settings_auto_reapply_cheats_title">再接続時にトグルを再適用</string>
+    <string name="settings_auto_reapply_cheats_body">コンパニオンが再接続（新しいセッション、ゲーム再起動）した後、前回オンにしていたトグルをすべて再び有効にし、長押しで備えておいたワンショットも発動します。接続ごとに1回だけ発動し、ゲームが安全な状態（一時停止でなく、キャラクター切り替え中でなく、ムービー中でもない）のときだけ動きます。</string>
+    <string name="settings_clear_cheats_title">保存されたチートを消去</string>
+    <string name="settings_clear_cheats_body">オンにしていたトグルや、長押しで自動適用に備えておいたワンショットをすべて忘れます。次の再接続はまっさらな状態から始まります。上の自動再適用スイッチには影響しません。</string>
+    <string name="settings_clear_cheats_button">消去</string>
+    <string name="snackbar_cheats_cleared">保存されたチートを消去しました</string>
+
+    <string name="setup_step1_detail">ASIはこの正確なビルドをパターンスキャンします。他のバージョンではHUDは点灯しません。</string>
+
+    <string name="update_available_subtitle">v%1$s → v%2$s</string>
 </resources>

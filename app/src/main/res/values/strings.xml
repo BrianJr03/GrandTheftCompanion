@@ -75,15 +75,19 @@
 
     <!-- Paint one-shots (both games). Palette-index moves. -->
     <string name="cheat_60_respray">respray</string>
-    <string name="cheat_61_next_colour">next colour</string>
-    <string name="cheat_62_swap_colours">swap colours</string>
-    <!-- 4th Paint button on GTA V. Opens the colour wheel; same
-         paint_rgb command the swatches use, so no new plugin path. -->
-    <string name="cheats_paint_custom_colour">custom colour</string>
-    <string name="cheats_paint_wheel_title">custom colour</string>
+    <string name="cheat_61_next_color">next color</string>
+    <string name="cheat_62_swap_colors">swap colors</string>
+    <!-- 4th Paint button on GTA V. Toggles the full-screen color
+         wheel sheet; the picker's Apply sends paint_rgb — same wire
+         path as a swatch tap, so no new plugin code is involved. -->
+    <string name="cheats_paint_custom_color">color wheel</string>
+    <string name="cheats_paint_wheel_title">color wheel</string>
     <string name="cheats_paint_wheel_apply">apply</string>
+    <!-- Mirror the car's last custom color to the Thor's thumbstick
+         LEDs. V-only. Police lights still take over while wanted. -->
+    <string name="cheats_paint_to_lights">mirror color to sticks</string>
 
-    <!-- Custom-colour swatches (GTA V only). Our palette, our names;
+    <!-- Custom-color swatches (GTA V only). Our palette, our names;
          not Rockstar's carcols entries. -->
     <string name="swatch_night">night</string>
     <string name="swatch_bone">bone</string>
@@ -124,7 +128,7 @@
     <string name="map_view_cd">mirror of the top screen; pinch to zoom, drag to pan</string>
     <!-- Blip list (route to mission). Provisional UI: raw sprite ids stay
          visible until the mission sprites are confirmed on-device. -->
-    <string name="map_blips">blips</string>
+    <string name="map_blips" translatable="false">blips</string>
     <string name="map_blips_cd">map blips, tap to open</string>
     <string name="map_cheats_cd">cheats, tap to open</string>
     <string name="cheats_map_cd">map, tap to open</string>
@@ -141,7 +145,7 @@
     <string name="settings_always_return_hud_body">When you step out of a vehicle, go back to the HUD tab no matter which tab you were on. Overrides the default (which only pulls you back if you\'re still looking at the map).</string>
     <string name="map_driving_to">driving to</string>
     <string name="settings_controls_side_title">Map controls on the right</string>
-    <string name="settings_controls_side_body">Move the map\'s lock, reset, pin and stop icons to the right of the mirror. Default puts them on the left. The map stays centred and keeps the same breathing room on the free side.</string>
+    <string name="settings_controls_side_body">Move the map\'s lock, reset, pin and stop icons to the right of the mirror. Default puts them on the left. The map stays centered and keeps the same breathing room on the free side.</string>
     <string name="settings_section_minimap">Minimap</string>
     <string name="settings_section_plugin">Plugin</string>
     <string name="settings_section_cheats">Cheats</string>

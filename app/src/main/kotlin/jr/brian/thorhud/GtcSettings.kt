@@ -28,8 +28,23 @@ class GtcSettings @Inject constructor(
         _policeLightsEnabled.value = enabled
     }
 
+    // Off by default. When on, every paint_rgb command (color wheel or
+    // swatch tap) also drives the thumbstick lights to that same color.
+    // Police lights still win while the player is wanted.
+    private val _paintToLightsEnabled =
+        MutableStateFlow(prefs.getBoolean(KEY_PAINT_TO_LIGHTS, false))
+
+    /** Mirror the car's last custom paint to the sticks. */
+    val paintToLightsEnabled: StateFlow<Boolean> = _paintToLightsEnabled.asStateFlow()
+
+    fun setPaintToLightsEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_PAINT_TO_LIGHTS, enabled).apply()
+        _paintToLightsEnabled.value = enabled
+    }
+
     private companion object {
         const val PREFS_NAME = "gtc_settings"
         const val KEY_POLICE_LIGHTS = "police_lights_enabled"
+        const val KEY_PAINT_TO_LIGHTS = "paint_to_lights_enabled"
     }
 }

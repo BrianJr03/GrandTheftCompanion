@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,15 +27,32 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.ui.draw.clip
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
+
+/**
+ * Count of currently-open [FullScreenSheet]s. The HudPager reads this
+ * to disable horizontal page swipes while a sheet is up — a drag on
+ * the color wheel (or any sheet-internal gesture) would otherwise
+ * compete with the pager, pulling the whole tab sideways while the
+ * user tries to pick a color. Provided by MainScreen at the top of
+ * the compose tree; defaults to a stray state for previews/tests.
+ */
+internal val LocalFullScreenSheetCount =
+    compositionLocalOf<MutableState<Int>> { mutableStateOf(0) }
 
 /**
  * Full-screen slide-up overlay. Replaces [androidx.compose.material3.ModalBottomSheet]
@@ -59,11 +77,29 @@ internal fun FullScreenSheet(
     title: String,
     accent: Color,
     showCloseIcon: Boolean = true,
+    // Extra icons that render in the header between the title and
+    // the close icon. Space them with HeaderIconButton so they match
+    // the close icon's tap target and tint. Empty by default.
+    headerActions: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // Back + close icon both honour showCloseIcon so a caller can
     // temporarily block dismissal (e.g. UpdateSheet mid-download).
     BackHandler(enabled = visible && showCloseIcon, onBack = onDismiss)
+    // Participate in the sheet-open ref count so the HudPager locks
+    // its horizontal swipe while any sheet is up. DisposableEffect
+    // keyed on `visible` enters when the sheet becomes visible and
+    // its onDispose fires when `visible` flips back or the sheet
+    // leaves composition (tab change, process death). Nested sheets
+    // stack naturally — the count only drops to zero when all are
+    // closed.
+    val sheetCount = LocalFullScreenSheetCount.current
+    if (visible) {
+        DisposableEffect(Unit) {
+            sheetCount.value = sheetCount.value + 1
+            onDispose { sheetCount.value = sheetCount.value - 1 }
+        }
+    }
     AnimatedVisibility(
         visible = visible,
         enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -73,6 +109,22 @@ internal fun FullScreenSheet(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
+                // Drain any pointer event that reaches the sheet's root
+                // in the Final pass. Inner composables (icons, buttons,
+                // the picker's wheel) handle their events on the Main
+                // pass before we see them here, so this only catches
+                // taps that would otherwise fall through gaps (header
+                // row padding, the spacer between header and content).
+                // Without this, a miss on the Save or Close icon lands
+                // on whatever was behind the sheet.
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            awaitPointerEvent(PointerEventPass.Final)
+                                .changes.forEach { it.consume() }
+                        }
+                    }
+                }
                 .padding(horizontal = 20.dp, vertical = 20.dp),
         ) {
             Row(
@@ -88,6 +140,7 @@ internal fun FullScreenSheet(
                     fontSize = 22.sp,
                     modifier = Modifier.weight(1f),
                 )
+                headerActions()
                 if (showCloseIcon) {
                     HeaderIconButton(
                         icon = Icons.Filled.Close,

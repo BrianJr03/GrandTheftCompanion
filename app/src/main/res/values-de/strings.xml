@@ -193,4 +193,99 @@
     <string name="snackbar_reconnect_success">Verbunden</string>
     <string name="snackbar_reconnect_failed">Plugin nicht erreichbar</string>
     <string name="settings_close">Schließen</string>
+
+    <!-- Cheats tab -->
+    <string name="tab_cheats">cheats</string>
+    <string name="cheats_title">cheats</string>
+    <string name="cheats_unsupported">in diesem Plugin nicht verfügbar</string>
+    <string name="cheats_section_health">gesundheit</string>
+    <string name="cheats_section_wanted">fahndung</string>
+    <string name="cheats_section_weapons">waffen</string>
+    <string name="cheats_section_vehicle">fahrzeug</string>
+    <string name="cheats_section_paint">lack</string>
+    <string name="cheats_section_world">welt</string>
+    <string name="cheats_section_toggles">schalter</string>
+    <string name="cheats_error">%1$s</string>
+
+    <string name="cheats_paint_get_in_car">steig in ein auto</string>
+    <string name="cheats_paint_custom">eigen</string>
+    <string name="cheats_paint_primary">primär</string>
+    <string name="cheats_paint_secondary">sekundär</string>
+    <string name="cheats_section_reorder_cd">lang drücken und ziehen zum neu ordnen</string>
+
+    <string name="cheat_1_heal">heilung + rüstung</string>
+    <string name="cheat_2_wanted_up">fahndung +1</string>
+    <string name="cheat_3_wanted_clear">fahndung löschen</string>
+    <string name="cheat_4_all_weapons">alle waffen</string>
+    <string name="cheat_5_max_ammo">max munition</string>
+    <string name="cheat_6_fix_vehicle">fahrzeug reparieren</string>
+    <string name="cheat_7_next_weather">nächstes wetter</string>
+    <string name="cheat_8_next_time">nächste tageszeit</string>
+    <string name="cheat_9_fill_special">spezial füllen</string>
+    <string name="cheat_10_spawn_adder">adder spawnen</string>
+    <string name="cheat_11_spawn_zentorno">zentorno spawnen</string>
+    <string name="cheat_12_spawn_bati">bati spawnen</string>
+    <string name="cheat_13_spawn_sanchez">sanchez spawnen</string>
+    <string name="cheat_14_spawn_frogger">frogger spawnen</string>
+    <string name="cheat_15_spawn_bmx">bmx spawnen</string>
+    <string name="cheat_20_invincible">unverwundbar</string>
+    <string name="cheat_21_infinite_clip">endloses magazin</string>
+    <string name="cheat_22_fast_reload">schnelles nachladen</string>
+    <string name="cheat_23_never_tired">nie müde</string>
+    <string name="cheat_24_fast_run">schnelles laufen</string>
+    <string name="cheat_25_low_gravity">geringe schwerkraft</string>
+    <string name="cheat_26_slow_motion">zeitlupe</string>
+    <string name="cheat_16_wanted_down">fahndung -1</string>
+    <string name="cheat_17_give_parachute">fallschirm geben</string>
+    <string name="cheat_18_skyfall">himmelssturz</string>
+    <string name="cheat_19_advanced_weapons">erweiterte waffen</string>
+    <string name="cheat_40_poor_weapons">einfache waffen</string>
+    <string name="cheat_41_ultimate">ultimativ</string>
+    <string name="cheat_27_police_ignore">polizei ignoriert</string>
+    <string name="cheat_28_drunk">betrunken</string>
+    <string name="cheat_29_fast_swim">schnelles schwimmen</string>
+    <string name="cheat_30_super_jump">supersprung</string>
+    <string name="cheat_31_explosive_ammo">explosivmunition</string>
+    <string name="cheat_32_explosive_melee">explosiver nahkampf</string>
+    <string name="cheat_33_incendiary_ammo">brandmunition</string>
+    <string name="cheat_34_slippery">rutschige autos</string>
+
+    <string name="cheat_60_respray">umlackieren</string>
+    <string name="cheat_61_next_color">nächste farbe</string>
+    <string name="cheat_62_swap_colors">farben tauschen</string>
+
+    <string name="cheats_paint_custom_color">farbrad</string>
+    <string name="cheats_paint_wheel_title">farbrad</string>
+    <string name="cheats_paint_wheel_apply">anwenden</string>
+
+    <string name="swatch_night">nacht</string>
+    <string name="swatch_bone">knochen</string>
+    <string name="swatch_red">rot</string>
+    <string name="swatch_blue">blau</string>
+    <string name="swatch_racing_green">racing green</string>
+    <string name="swatch_orange">orange</string>
+    <string name="swatch_purple">lila</string>
+    <string name="swatch_chrome">chrom</string>
+
+    <string name="cheats_auto_apply_on">%1$s wird beim erneuten Verbinden automatisch angewendet</string>
+    <string name="cheats_auto_apply_off">automatisches Anwenden von %1$s aus</string>
+    <string name="cheats_onboarding_title">Über den Cheats-Tab</string>
+    <string name="cheats_onboarding_slide1_title">Tipps und Lichter</string>
+    <string name="cheats_onboarding_slide1_body">Tippe auf einen Knopf, um den Cheat auszulösen. Die Lichter kommen vom Spiel selbst, nicht vom Tipp, deshalb sieht ein Cheat, der nicht angenommen wurde, nie so aus, als hätte er es getan. Die letzte Ablehnung erscheint als kurze rote Zeile am unteren Rand in den Worten des Plugins.</string>
+    <string name="cheats_onboarding_slide2_title">Automatisches Anwenden beim erneuten Verbinden</string>
+    <string name="cheats_onboarding_slide2_body">Schalter, die du einschaltest, kommen automatisch zurück, wenn sich der Begleiter erneut verbindet (neue Sitzung, Spielneustart). Halte einen Einmal-Cheat lang gedrückt, damit er auch automatisch ausgelöst wird, sobald das Spiel in einem sicheren Zustand ist. Schalte das Ganze unter Einstellungen &#8594; Cheats ab.</string>
+    <string name="cheats_onboarding_next">Weiter</string>
+    <string name="cheats_onboarding_done">Verstanden</string>
+
+    <string name="settings_section_cheats">Cheats</string>
+    <string name="settings_auto_reapply_cheats_title">Schalter beim erneuten Verbinden wieder aktivieren</string>
+    <string name="settings_auto_reapply_cheats_body">Nachdem sich der Begleiter erneut verbindet (neue Sitzung, Spielneustart), aktiviere jeden Schalter wieder, den du zuletzt eingeschaltet hattest, plus jeden Einmal-Cheat, den du lang gedrückt hast, um ihn scharf zu stellen. Wird nur einmal pro Verbindung ausgelöst und nur, wenn sich das Spiel in einem sicheren Zustand befindet (nicht pausiert, nicht beim Charakterwechsel, keine Zwischensequenz).</string>
+    <string name="settings_clear_cheats_title">Gespeicherte Cheats löschen</string>
+    <string name="settings_clear_cheats_body">Vergiss jeden Schalter, den du eingeschaltet hattest, und jeden Einmal-Cheat, den du zum automatischen Anwenden lang gedrückt hast. Die nächste erneute Verbindung startet mit sauberem Blatt. Der Schalter zum automatischen Wiederanwenden oben bleibt unverändert.</string>
+    <string name="settings_clear_cheats_button">Löschen</string>
+    <string name="snackbar_cheats_cleared">Gespeicherte Cheats gelöscht</string>
+
+    <string name="setup_step1_detail">Der ASI führt eine Muster-Suche für genau dieses Build aus. Andere Versionen bringen das HUD nicht zum Leuchten.</string>
+
+    <string name="update_available_subtitle">v%1$s → v%2$s</string>
 </resources>

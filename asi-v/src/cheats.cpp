@@ -322,12 +322,24 @@ const char* run_custom_colour(int32_t ped, const snapshot::State& s,
                               uint32_t packed) {
     int32_t veh = 0;
     if (const char* why = get_player_veh(ped, s, &veh)) return why;
-    const int32_t r = static_cast<int32_t>((packed >> 16) & 0xFF);
-    const int32_t g = static_cast<int32_t>((packed >>  8) & 0xFF);
-    const int32_t b = static_cast<int32_t>( packed        & 0xFF);
-    shv::call<void>(natives::SET_VEHICLE_CUSTOM_PRIMARY_COLOUR,   veh, r, g, b);
-    shv::call<void>(natives::SET_VEHICLE_CUSTOM_SECONDARY_COLOUR, veh, r, g, b);
-    thor_log("[cheat] custom colour (63) rgb=#%02X%02X%02X -> ok", r, g, b);
+    // Wire format: high byte = layer selector, low 24 bits = RGB.
+    //   layer 0 = both layers (legacy swatch tap)
+    //   layer 1 = primary layer only
+    //   layer 2 = secondary layer only
+    // Older companions always sent layer=0, so the "paint both" fallback
+    // keeps every existing swatch tap doing what it did before.
+    const uint32_t layer = (packed >> 24) & 0xFFu;
+    const int32_t  r = static_cast<int32_t>((packed >> 16) & 0xFF);
+    const int32_t  g = static_cast<int32_t>((packed >>  8) & 0xFF);
+    const int32_t  b = static_cast<int32_t>( packed        & 0xFF);
+    if (layer == 0 || layer == 1) {
+        shv::call<void>(natives::SET_VEHICLE_CUSTOM_PRIMARY_COLOUR, veh, r, g, b);
+    }
+    if (layer == 0 || layer == 2) {
+        shv::call<void>(natives::SET_VEHICLE_CUSTOM_SECONDARY_COLOUR, veh, r, g, b);
+    }
+    thor_log("[cheat] custom color (63) layer=%u rgb=#%02X%02X%02X -> ok",
+             layer, r, g, b);
     return nullptr;
 }
 

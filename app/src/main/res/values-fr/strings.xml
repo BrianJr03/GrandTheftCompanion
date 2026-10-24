@@ -193,4 +193,99 @@
     <string name="snackbar_reconnect_success">Connecté</string>
     <string name="snackbar_reconnect_failed">Plugin injoignable</string>
     <string name="settings_close">Fermer</string>
+
+    <!-- Cheats tab -->
+    <string name="tab_cheats">triches</string>
+    <string name="cheats_title">triches</string>
+    <string name="cheats_unsupported">non disponible dans ce plugin</string>
+    <string name="cheats_section_health">santé</string>
+    <string name="cheats_section_wanted">recherche</string>
+    <string name="cheats_section_weapons">armes</string>
+    <string name="cheats_section_vehicle">véhicule</string>
+    <string name="cheats_section_paint">peinture</string>
+    <string name="cheats_section_world">monde</string>
+    <string name="cheats_section_toggles">bascules</string>
+    <string name="cheats_error">%1$s</string>
+
+    <string name="cheats_paint_get_in_car">montez dans une voiture</string>
+    <string name="cheats_paint_custom">perso</string>
+    <string name="cheats_paint_primary">principale</string>
+    <string name="cheats_paint_secondary">secondaire</string>
+    <string name="cheats_section_reorder_cd">maintenir et glisser pour réorganiser</string>
+
+    <string name="cheat_1_heal">soin + blindage</string>
+    <string name="cheat_2_wanted_up">recherche +1</string>
+    <string name="cheat_3_wanted_clear">effacer recherche</string>
+    <string name="cheat_4_all_weapons">toutes les armes</string>
+    <string name="cheat_5_max_ammo">munitions max</string>
+    <string name="cheat_6_fix_vehicle">réparer véhicule</string>
+    <string name="cheat_7_next_weather">météo suivante</string>
+    <string name="cheat_8_next_time">heure suivante</string>
+    <string name="cheat_9_fill_special">spécial plein</string>
+    <string name="cheat_10_spawn_adder">faire apparaître adder</string>
+    <string name="cheat_11_spawn_zentorno">faire apparaître zentorno</string>
+    <string name="cheat_12_spawn_bati">faire apparaître bati</string>
+    <string name="cheat_13_spawn_sanchez">faire apparaître sanchez</string>
+    <string name="cheat_14_spawn_frogger">faire apparaître frogger</string>
+    <string name="cheat_15_spawn_bmx">faire apparaître bmx</string>
+    <string name="cheat_20_invincible">invincible</string>
+    <string name="cheat_21_infinite_clip">chargeur infini</string>
+    <string name="cheat_22_fast_reload">recharge rapide</string>
+    <string name="cheat_23_never_tired">jamais fatigué</string>
+    <string name="cheat_24_fast_run">course rapide</string>
+    <string name="cheat_25_low_gravity">faible gravité</string>
+    <string name="cheat_26_slow_motion">ralenti</string>
+    <string name="cheat_16_wanted_down">recherche -1</string>
+    <string name="cheat_17_give_parachute">donner parachute</string>
+    <string name="cheat_18_skyfall">chute du ciel</string>
+    <string name="cheat_19_advanced_weapons">armes avancées</string>
+    <string name="cheat_40_poor_weapons">armes basiques</string>
+    <string name="cheat_41_ultimate">ultime</string>
+    <string name="cheat_27_police_ignore">police ignore</string>
+    <string name="cheat_28_drunk">ivre</string>
+    <string name="cheat_29_fast_swim">nage rapide</string>
+    <string name="cheat_30_super_jump">super saut</string>
+    <string name="cheat_31_explosive_ammo">munitions explosives</string>
+    <string name="cheat_32_explosive_melee">corps à corps explosif</string>
+    <string name="cheat_33_incendiary_ammo">munitions incendiaires</string>
+    <string name="cheat_34_slippery">voitures glissantes</string>
+
+    <string name="cheat_60_respray">repeindre</string>
+    <string name="cheat_61_next_color">couleur suivante</string>
+    <string name="cheat_62_swap_colors">échanger couleurs</string>
+
+    <string name="cheats_paint_custom_color">roue des couleurs</string>
+    <string name="cheats_paint_wheel_title">roue des couleurs</string>
+    <string name="cheats_paint_wheel_apply">appliquer</string>
+
+    <string name="swatch_night">nuit</string>
+    <string name="swatch_bone">os</string>
+    <string name="swatch_red">rouge</string>
+    <string name="swatch_blue">bleu</string>
+    <string name="swatch_racing_green">vert course</string>
+    <string name="swatch_orange">orange</string>
+    <string name="swatch_purple">violet</string>
+    <string name="swatch_chrome">chrome</string>
+
+    <string name="cheats_auto_apply_on">%1$s s\'appliquera automatiquement à la reconnexion</string>
+    <string name="cheats_auto_apply_off">application automatique de %1$s désactivée</string>
+    <string name="cheats_onboarding_title">À propos de l\'onglet triches</string>
+    <string name="cheats_onboarding_slide1_title">Appuis et témoins</string>
+    <string name="cheats_onboarding_slide1_body">Appuyez sur un bouton pour déclencher la triche. Les témoins viennent du jeu lui-même, pas de l\'appui, donc une triche qui n\'a pas pris n\'aura jamais l\'air d\'avoir pris. Le dernier refus apparaît en bas sous forme d\'une courte ligne rouge, dans les mots du plugin.</string>
+    <string name="cheats_onboarding_slide2_title">Application automatique à la reconnexion</string>
+    <string name="cheats_onboarding_slide2_body">Les bascules que vous activez reviennent automatiquement lorsque le compagnon se reconnecte (nouvelle session, relance du jeu). Maintenez un appui long sur une triche instantanée pour qu\'elle se déclenche automatiquement elle aussi, dès que le jeu est dans un état sûr. Désactivez le tout dans Paramètres &#8594; Triches.</string>
+    <string name="cheats_onboarding_next">Suivant</string>
+    <string name="cheats_onboarding_done">Compris</string>
+
+    <string name="settings_section_cheats">Triches</string>
+    <string name="settings_auto_reapply_cheats_title">Réappliquer les bascules à la reconnexion</string>
+    <string name="settings_auto_reapply_cheats_body">Après la reconnexion du compagnon (nouvelle session, relance du jeu), réactive toute bascule que vous aviez activée la dernière fois, plus toute triche instantanée armée par un appui long. Ne se déclenche qu\'une fois par connexion et uniquement quand le jeu est dans un état sûr (pas en pause, pas en changement de personnage, pas en cinématique).</string>
+    <string name="settings_clear_cheats_title">Effacer les triches enregistrées</string>
+    <string name="settings_clear_cheats_body">Oublie toute bascule activée et toute triche instantanée armée par appui long. La prochaine reconnexion repart de zéro. Le bouton de réapplication automatique ci-dessus reste inchangé.</string>
+    <string name="settings_clear_cheats_button">Effacer</string>
+    <string name="snackbar_cheats_cleared">Triches enregistrées effacées</string>
+
+    <string name="setup_step1_detail">L\'ASI analyse les motifs de cette version précise. Les autres versions n\'allumeront pas le HUD.</string>
+
+    <string name="update_available_subtitle">v%1$s → v%2$s</string>
 </resources>

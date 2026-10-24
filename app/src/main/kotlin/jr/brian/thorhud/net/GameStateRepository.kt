@@ -51,6 +51,14 @@ class GameStateRepository @Inject constructor(
     private val _lastUpdateMs = MutableStateFlow(0L)
     val lastUpdateMs: StateFlow<Long> = _lastUpdateMs.asStateFlow()
 
+    // Last packed 0x00RRGGBB the companion sent via paint_rgb (color
+    // wheel or swatch tap). The plugin itself never emits this on the
+    // state frame, so if we didn't track it here the paint-to-lights
+    // mirror would have nothing to color-match against. Null until
+    // the first custom paint of the session.
+    private val _lastPaintedRgb = MutableStateFlow<Long?>(null)
+    val lastPaintedRgb: StateFlow<Long?> = _lastPaintedRgb.asStateFlow()
+
     /** Latest connection-level error for the setup screen. */
     val lastError: StateFlow<String?> = client.lastError
 
@@ -106,8 +114,13 @@ class GameStateRepository @Inject constructor(
     /** GTA V only: paint the current vehicle's two custom-colour layers
      *  to the exact RGB packed in [packed] as 0x00RRGGBB. GTA IV refuses
      *  the command with "not in this game"; the paint section in the UI
-     *  hides the swatch row on IV so it is never sent there. */
-    suspend fun paintRgb(packed: Long): Int? = client.send("paint_rgb", packed)
+     *  hides the swatch row on IV so it is never sent there. Also
+     *  records the pick in [lastPaintedRgb] so the paint-to-lights
+     *  mirror has something to color-match against. */
+    suspend fun paintRgb(packed: Long): Int? {
+        _lastPaintedRgb.value = packed
+        return client.send("paint_rgb", packed)
+    }
 
     /** Force a reconnect to the plugin; see [GameStateClient.reconnect]. */
     fun reconnect() = client.reconnect()

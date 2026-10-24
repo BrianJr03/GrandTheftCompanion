@@ -13,6 +13,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import jr.brian.thorhud.led.PaintLightsController
 import jr.brian.thorhud.led.PoliceLightsController
 import jr.brian.thorhud.mirror.ScreenMirror
 import jr.brian.thorhud.net.GameStateClient
@@ -39,6 +40,7 @@ class HudActivity : ComponentActivity() {
     @Inject lateinit var client: GameStateClient
     @Inject lateinit var repository: GameStateRepository
     @Inject lateinit var policeLights: PoliceLightsController
+    @Inject lateinit var paintLights: PaintLightsController
     @Inject lateinit var mirror: ScreenMirror
 
     // Same instance Compose gets via hiltViewModel(); exposes
@@ -60,6 +62,13 @@ class HudActivity : ComponentActivity() {
         // which hands the sticks back on its way out.
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) { policeLights.run() }
+        }
+        // Second lights controller: mirrors the car's last custom
+        // paint to the sticks when the toggle is on. Internal priority
+        // yields to policeLights while the player is wanted so the
+        // chase look still wins.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) { paintLights.run() }
         }
 
         setContent {

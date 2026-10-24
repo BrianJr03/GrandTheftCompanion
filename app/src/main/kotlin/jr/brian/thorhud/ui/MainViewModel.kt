@@ -65,6 +65,15 @@ class MainViewModel @Inject constructor(
         settings.setPoliceLightsEnabled(!settings.policeLightsEnabled.value)
     }
 
+    // Mirror the car's last custom paint color to the thumbsticks.
+    // Independent of policeLightsEnabled, but PaintLightsController
+    // yields to the police mode while the player is wanted.
+    val paintToLightsEnabled: StateFlow<Boolean> = settings.paintToLightsEnabled
+
+    fun setPaintToLightsEnabled(enabled: Boolean) {
+        settings.setPaintToLightsEnabled(enabled)
+    }
+
     var hasSeenSwipeHint: Boolean
         get() = prefs.hasSeenSwipeHint
         set(value) { prefs.hasSeenSwipeHint = value }

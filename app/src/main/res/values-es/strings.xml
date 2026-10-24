@@ -193,4 +193,99 @@
     <string name="snackbar_reconnect_success">Conectado</string>
     <string name="snackbar_reconnect_failed">No se pudo contactar con el plugin</string>
     <string name="settings_close">Cerrar</string>
+
+    <!-- Cheats tab -->
+    <string name="tab_cheats">trucos</string>
+    <string name="cheats_title">trucos</string>
+    <string name="cheats_unsupported">no disponible en este plugin</string>
+    <string name="cheats_section_health">salud</string>
+    <string name="cheats_section_wanted">búsqueda</string>
+    <string name="cheats_section_weapons">armas</string>
+    <string name="cheats_section_vehicle">vehículo</string>
+    <string name="cheats_section_paint">pintura</string>
+    <string name="cheats_section_world">mundo</string>
+    <string name="cheats_section_toggles">interruptores</string>
+    <string name="cheats_error">%1$s</string>
+
+    <string name="cheats_paint_get_in_car">sube a un coche</string>
+    <string name="cheats_paint_custom">personal.</string>
+    <string name="cheats_paint_primary">primario</string>
+    <string name="cheats_paint_secondary">secundario</string>
+    <string name="cheats_section_reorder_cd">mantén pulsado y arrastra para reordenar</string>
+
+    <string name="cheat_1_heal">curar + blindaje</string>
+    <string name="cheat_2_wanted_up">búsqueda +1</string>
+    <string name="cheat_3_wanted_clear">limpiar búsqueda</string>
+    <string name="cheat_4_all_weapons">todas las armas</string>
+    <string name="cheat_5_max_ammo">munición máxima</string>
+    <string name="cheat_6_fix_vehicle">reparar vehículo</string>
+    <string name="cheat_7_next_weather">siguiente clima</string>
+    <string name="cheat_8_next_time">siguiente hora</string>
+    <string name="cheat_9_fill_special">llenar especial</string>
+    <string name="cheat_10_spawn_adder">generar adder</string>
+    <string name="cheat_11_spawn_zentorno">generar zentorno</string>
+    <string name="cheat_12_spawn_bati">generar bati</string>
+    <string name="cheat_13_spawn_sanchez">generar sanchez</string>
+    <string name="cheat_14_spawn_frogger">generar frogger</string>
+    <string name="cheat_15_spawn_bmx">generar bmx</string>
+    <string name="cheat_20_invincible">invencible</string>
+    <string name="cheat_21_infinite_clip">cargador infinito</string>
+    <string name="cheat_22_fast_reload">recarga rápida</string>
+    <string name="cheat_23_never_tired">sin cansancio</string>
+    <string name="cheat_24_fast_run">correr rápido</string>
+    <string name="cheat_25_low_gravity">gravedad baja</string>
+    <string name="cheat_26_slow_motion">cámara lenta</string>
+    <string name="cheat_16_wanted_down">búsqueda -1</string>
+    <string name="cheat_17_give_parachute">dar paracaídas</string>
+    <string name="cheat_18_skyfall">caída del cielo</string>
+    <string name="cheat_19_advanced_weapons">armas avanzadas</string>
+    <string name="cheat_40_poor_weapons">armas básicas</string>
+    <string name="cheat_41_ultimate">definitivo</string>
+    <string name="cheat_27_police_ignore">policía ignora</string>
+    <string name="cheat_28_drunk">borracho</string>
+    <string name="cheat_29_fast_swim">nado rápido</string>
+    <string name="cheat_30_super_jump">supersalto</string>
+    <string name="cheat_31_explosive_ammo">munición explosiva</string>
+    <string name="cheat_32_explosive_melee">cuerpo a cuerpo explosivo</string>
+    <string name="cheat_33_incendiary_ammo">munición incendiaria</string>
+    <string name="cheat_34_slippery">coches resbaladizos</string>
+
+    <string name="cheat_60_respray">repintar</string>
+    <string name="cheat_61_next_color">siguiente color</string>
+    <string name="cheat_62_swap_colors">intercambiar colores</string>
+
+    <string name="cheats_paint_custom_color">rueda de color</string>
+    <string name="cheats_paint_wheel_title">rueda de color</string>
+    <string name="cheats_paint_wheel_apply">aplicar</string>
+
+    <string name="swatch_night">noche</string>
+    <string name="swatch_bone">hueso</string>
+    <string name="swatch_red">rojo</string>
+    <string name="swatch_blue">azul</string>
+    <string name="swatch_racing_green">verde carrera</string>
+    <string name="swatch_orange">naranja</string>
+    <string name="swatch_purple">morado</string>
+    <string name="swatch_chrome">cromo</string>
+
+    <string name="cheats_auto_apply_on">%1$s se aplicará automáticamente al reconectar</string>
+    <string name="cheats_auto_apply_off">aplicación automática de %1$s desactivada</string>
+    <string name="cheats_onboarding_title">Sobre la pestaña trucos</string>
+    <string name="cheats_onboarding_slide1_title">Pulsaciones y luces</string>
+    <string name="cheats_onboarding_slide1_body">Pulsa un botón para activar el truco. Las luces vienen del propio juego, no de la pulsación, así que un truco que no funcionó nunca parece que lo haya hecho. El último rechazo aparece como una línea roja corta abajo, en las palabras del plugin.</string>
+    <string name="cheats_onboarding_slide2_title">Aplicación automática al reconectar</string>
+    <string name="cheats_onboarding_slide2_body">Los interruptores que actives vuelven automáticamente cuando el compañero se reconecta (nueva sesión, reinicio del juego). Mantén pulsado un truco instantáneo para que también se dispare solo, en cuanto el juego esté en un estado seguro. Desactiva todo en Ajustes &#8594; Trucos.</string>
+    <string name="cheats_onboarding_next">Siguiente</string>
+    <string name="cheats_onboarding_done">Entendido</string>
+
+    <string name="settings_section_cheats">Trucos</string>
+    <string name="settings_auto_reapply_cheats_title">Reaplicar interruptores al reconectar</string>
+    <string name="settings_auto_reapply_cheats_body">Después de que el compañero se reconecte (nueva sesión, reinicio del juego), reactiva cualquier interruptor que tuvieras activado la última vez, más cualquier truco instantáneo que hubieras armado con pulsación larga. Solo se dispara una vez por conexión y únicamente cuando el juego está en un estado seguro (sin pausa, sin cambio de personaje, sin cinemática).</string>
+    <string name="settings_clear_cheats_title">Borrar trucos guardados</string>
+    <string name="settings_clear_cheats_body">Olvida cada interruptor que tenías activado y cada truco instantáneo que armaste con pulsación larga. La próxima reconexión empieza desde cero. El interruptor de reaplicación automática de arriba se mantiene igual.</string>
+    <string name="settings_clear_cheats_button">Borrar</string>
+    <string name="snackbar_cheats_cleared">Trucos guardados borrados</string>
+
+    <string name="setup_step1_detail">El ASI escanea patrones de esta compilación exacta. Otras versiones no encenderán el HUD.</string>
+
+    <string name="update_available_subtitle">v%1$s → v%2$s</string>
 </resources>
