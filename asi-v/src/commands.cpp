@@ -256,6 +256,9 @@ void drain(int32_t player, int32_t ped, int32_t veh,
                                             err, sizeof(err));
             if (!ok) thor_log("[cmd] route_blip %u -> %s", c.arg0, err);
             post_ack(c.client, c.id, ok, err);
+        } else if (std::strcmp(c.name, "waypoint_xy") == 0) {
+            blips::route_to_xy(c.arg_fx, c.arg_fy);
+            post_ack(c.client, c.id, true, "");
         } else if (std::strcmp(c.name, "route_clear") == 0) {
             blips::route_clear();
             post_ack(c.client, c.id, true, "");

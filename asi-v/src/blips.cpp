@@ -109,16 +109,22 @@ void advance_census(int32_t ped) {
     if (g_next_sprite >= blips::kMaxSprite) finish_pass();
 }
 
+// A g_route is "set" when either a blip id or an xy pair is recorded.
+// route_to_xy stores id = 0 with nonzero coords; route_to stores both.
+static bool route_is_set() {
+    return g_route.id != 0 || g_route.x != 0.0f || g_route.y != 0.0f;
+}
+
 void read_waypoint(snapshot::State& s) {
     s.waypoint_active = shv::call_bool(natives::IS_WAYPOINT_ACTIVE);
     if (!s.waypoint_active) {
         // Gone: the player cleared it or arrived. Either way it is no
         // longer ours to move.
-        if (g_route.id != 0) thor_log("[blips] waypoint gone, route cleared");
+        if (route_is_set()) thor_log("[blips] waypoint gone, route cleared");
         g_route = Route{};
         return;
     }
-    if (g_route.id == 0) return;
+    if (!route_is_set()) return;
     const int32_t wp_sprite = shv::call<int32_t>(natives::GET_WAYPOINT_BLIP_ENUM_ID);
     const int32_t wp = shv::call<int32_t>(natives::GET_FIRST_BLIP_INFO_ID, wp_sprite);
     if (wp == 0) return;   // active but not a blip yet; keep last answer
@@ -160,9 +166,22 @@ bool route_to(int32_t id, char* err, size_t cap) {
     return true;
 }
 
+void route_to_xy(float x, float y) {
+    shv::call<void>(natives::SET_NEW_WAYPOINT, x, y);
+    // id 0 is the sentinel for "we routed to a bare point, not a
+    // blip". waypoint_ours still matches on x/y distance (the game
+    // may snap to a road), and route_clear works the same.
+    g_route = Route{0, x, y};
+    thor_log("[blips] waypoint_xy -> (%.1f, %.1f)", x, y);
+}
+
 void route_clear() {
     shv::call<void>(natives::SET_WAYPOINT_OFF);
-    if (g_route.id != 0) thor_log("[blips] route_clear (was blip %d)", g_route.id);
+    if (g_route.id != 0) {
+        thor_log("[blips] route_clear (was blip %d)", g_route.id);
+    } else if (g_route.x != 0.0f || g_route.y != 0.0f) {
+        thor_log("[blips] route_clear (was xy %.1f, %.1f)", g_route.x, g_route.y);
+    }
     g_route = Route{};
 }
 

@@ -43,6 +43,12 @@ void tick(int32_t ped, snapshot::State& s);
 // `err` gets the reason (NUL-terminated, at most `cap` bytes).
 bool route_to(int32_t id, char* err, size_t cap);
 
+// Set the player's waypoint on arbitrary world xy coordinates (used
+// by the custom-map page's long-press-to-route). No blip id is
+// recorded; g_route carries x/y and a 0 id so waypoint_ours tracking
+// works the same as for a route_to call and route_clear works unchanged.
+void route_to_xy(float x, float y);
+
 // Remove the player's waypoint and forget what route_to() set.
 void route_clear();
 
