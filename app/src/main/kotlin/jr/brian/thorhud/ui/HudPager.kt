@@ -43,22 +43,26 @@ import kotlinx.coroutines.launch
 
 internal enum class HudPage(@StringRes val labelRes: Int) {
     // Order dictates left-to-right tab layout. HUD stays in the
-    // middle (one swipe either way) and is the default landing
-    // page. MainScreen's auto-swipe-to-map / return-to-pre-drive
-    // logic uses HudPage.*.ordinal rather than literal indices so
-    // this ordering stays authoritative.
+    // middle of the always-present three (one swipe either way) and
+    // is the default landing page. Atlas is the fourth tab and is
+    // only present when the connected game has a map image on disk;
+    // MainScreen's auto-swipe-to-map / return-to-pre-drive logic
+    // uses HudPage.*.ordinal rather than literal indices so this
+    // ordering stays authoritative.
     Cheats(R.string.tab_cheats),
     Hud(R.string.tab_hud),
     Map(R.string.tab_map),
+    Atlas(R.string.tab_atlas),
 }
 
 @Composable
-internal fun rememberHudPagerState() = rememberPagerState(
-    // Every app load lands on the HUD tab (middle of the three).
-    // In-session swipes still update the state, but the next cold
-    // start resets to HUD so the user always knows where they are.
+internal fun rememberHudPagerState(hasAtlas: Boolean = false) = rememberPagerState(
+    // Every app load lands on the HUD tab regardless of whether the
+    // atlas is present. In-session swipes still update the state,
+    // but the next cold start resets to HUD so the user always
+    // knows where they are.
     initialPage = HudPage.Hud.ordinal,
-) { HudPage.entries.size }
+) { if (hasAtlas) HudPage.entries.size else HudPage.entries.size - 1 }
 
 @Composable
 internal fun HudPager(
@@ -66,6 +70,7 @@ internal fun HudPager(
     hud: @Composable () -> Unit,
     map: @Composable () -> Unit,
     cheats: @Composable () -> Unit,
+    atlas: (@Composable () -> Unit)? = null,
 ) {
     // Lock the horizontal swipe while any FullScreenSheet is open so
     // sheet-internal gestures (color-wheel drag, radio picker scroll)
@@ -83,6 +88,7 @@ internal fun HudPager(
             HudPage.Hud    -> hud()
             HudPage.Map    -> map()
             HudPage.Cheats -> cheats()
+            HudPage.Atlas  -> atlas?.invoke() ?: hud()
         }
     }
 }

@@ -65,6 +65,9 @@ import jr.brian.thorhud.ui.map.BlipListPanel
 import jr.brian.thorhud.ui.map.MapViewModel
 import jr.brian.thorhud.ui.map.MirrorGame
 import jr.brian.thorhud.ui.map.MirrorMapScreen
+import jr.brian.thorhud.ui.map.custom.AtlasViewModel
+import jr.brian.thorhud.ui.map.custom.CustomMapScreen
+import jr.brian.thorhud.ui.map.custom.CustomMapStore
 import jr.brian.thorhud.ui.map.blipGroups
 import jr.brian.thorhud.ui.map.blipLabel
 import jr.brian.thorhud.ui.map.titleCase
@@ -316,7 +319,18 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 // (or vice versa) always lands on the HUD tab of the
                 // new game.
                 key(gameKey) {
-                    val pagerState = rememberHudPagerState()
+                    // Atlas tab visibility depends on the user having
+                    // dropped an image under files/map/. The view
+                    // model's presence flow is refreshed on
+                    // reload(game); the pager keeps the atlas slot
+                    // for the connected game only.
+                    val atlasViewModel: AtlasViewModel = hiltViewModel()
+                    val atlasPresence by atlasViewModel.presence
+                        .collectAsStateWithLifecycle()
+                    val atlasGame = if (isGtaV) CustomMapStore.Game.V
+                                    else CustomMapStore.Game.IV
+                    val hasAtlas = atlasPresence.has(atlasGame)
+                    val pagerState = rememberHudPagerState(hasAtlas = hasAtlas)
                     val scope = rememberCoroutineScope()
                     val scrollToMap: () -> Unit = {
                         scope.launch {
@@ -547,6 +561,25 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     onOpenHud = scrollToHud,
                                 )
                             },
+                            atlas = if (hasAtlas) {
+                                {
+                                    CustomMapScreen(
+                                        game = atlasGame,
+                                        accent = accent,
+                                        blips = mapViewModel.blips
+                                            .collectAsStateWithLifecycle().value,
+                                        pos = liveState?.pos,
+                                        waypoint = liveState?.waypoint,
+                                        isGtaV = isGtaV,
+                                        atlasPath = atlasViewModel.pathFor(atlasGame),
+                                        onOpenHud = scrollToHud,
+                                        onOpenCheats = scrollToCheats,
+                                        onOpenBlips = toggleBlips,
+                                        onOpenRadio = { showRadioSheet = true },
+                                        viewModel = atlasViewModel,
+                                    )
+                                }
+                            } else null,
                         )
                         // First-visit HUD onboarding sheet. Shown
                         // once per installation on the first time the
