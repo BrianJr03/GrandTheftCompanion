@@ -173,3 +173,43 @@ internal fun isOn(mask: Int?, id: Int): Boolean {
     if (id < FIRST_TOGGLE_ID) return false
     return (mask ushr (id - FIRST_TOGGLE_ID)) and 1 == 1
 }
+
+/**
+ * Resolve the effective section order from a user-saved list of
+ * CheatCategory.name values + the categories the current game
+ * actually has. Pure Kotlin, no Compose, no Context — the caller
+ * passes [defaultOrder] already sorted the way it wants (CheatsScreen
+ * passes alphabetical-by-localized-label; tests can pass enum order).
+ *
+ * Rules:
+ *  - Entries in [saved] that are not in [available] are dropped.
+ *  - Categories in [available] missing from [saved] are appended in
+ *    the order [defaultOrder] gives them. Keeps newly added
+ *    categories visible without wiping the user's existing picks.
+ */
+internal fun resolveSectionOrder(
+    saved: List<String>,
+    available: Set<CheatCategory>,
+    defaultOrder: List<CheatCategory>,
+): List<CheatCategory> {
+    val availableNames = available.map { it.name }.toSet()
+    val fromSave = saved
+        .filter { it in availableNames }
+        .mapNotNull { name -> CheatCategory.entries.firstOrNull { it.name == name } }
+    val missing = defaultOrder.filter { it in available && it !in fromSave }
+    return fromSave + missing
+}
+
+/**
+ * Insert-at-drop reorder for section drag. Returns a new list with
+ * the item at [from] moved to [to]. Noop (returns [order] unchanged)
+ * for out-of-range indices or same-position moves.
+ */
+internal fun <T> reorderList(order: List<T>, from: Int, to: Int): List<T> {
+    if (from == to) return order
+    if (from !in order.indices || to !in order.indices) return order
+    val mutable = order.toMutableList()
+    val item = mutable.removeAt(from)
+    mutable.add(to, item)
+    return mutable
+}

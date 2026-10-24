@@ -192,6 +192,27 @@ class HudPrefs @Inject constructor(
             .apply()
     }
 
+    // User-chosen cheat section order (CheatCategory.name values).
+    // Empty list = "use default", so the Compose layer can sort by
+    // localized section label on first launch without needing a
+    // Context here in the data layer. Writes are validated — only
+    // known category names survive — and persisted as a comma-
+    // separated string, same shape as wheel_order_$game.
+    private val cheatSectionOrderFlows: Map<String, MutableStateFlow<List<String>>> =
+        GAME_KEYS.associateWith { g ->
+            MutableStateFlow(loadCheatSectionOrder(g))
+        }
+    fun cheatSectionOrder(gameKey: String): StateFlow<List<String>> =
+        requirePerGameFlow(cheatSectionOrderFlows, gameKey)
+    fun setCheatSectionOrder(gameKey: String, order: List<String>) {
+        val flow = cheatSectionOrderFlows[gameKey] ?: return
+        if (flow.value == order) return
+        flow.value = order
+        prefs.edit()
+            .putString(cheatSectionOrderKey(gameKey), order.joinToString(","))
+            .apply()
+    }
+
     /** True once the user has dismissed the two-slide cheats
      *  onboarding sheet. Shown on first visit to the cheats tab. */
     var hasSeenCheatsOnboarding: Boolean
@@ -229,6 +250,23 @@ class HudPrefs @Inject constructor(
 
     private fun isValidWheelOrder(order: List<Int>): Boolean =
         order.size == DEFAULT_WHEEL_ORDER.size && order.toSet() == DEFAULT_WHEEL_ORDER.toSet()
+
+    private fun cheatSectionOrderKey(gameKey: String) =
+        "${KEY_CHEAT_SECTION_ORDER}_$gameKey"
+
+    // Returns the saved order as a list of category names. Unknown
+    // entries (CheatCategory removed in a later build) are filtered
+    // out so the Compose layer never sees a stale name. Empty list
+    // means "no save" — the Compose layer resolves to its alphabetical
+    // default.
+    private fun loadCheatSectionOrder(gameKey: String): List<String> {
+        val raw = prefs.getString(cheatSectionOrderKey(gameKey), null).orEmpty()
+        if (raw.isEmpty()) return emptyList()
+        val known = KNOWN_CHEAT_CATEGORIES
+        return raw.split(",")
+            .map { it.trim() }
+            .filter { it in known }
+    }
 
     // Build the (iv, v) pair of flows for a per-game boolean pref.
     // Also runs one-shot migration from the pre-split shared key: if
@@ -332,7 +370,16 @@ class HudPrefs @Inject constructor(
         const val KEY_AUTO_REAPPLY_CHEATS = "auto_reapply_cheats"
         const val KEY_AUTO_APPLY_CHEATS = "auto_apply_cheats"
         const val KEY_SEEN_CHEATS_ONBOARDING = "seen_cheats_onboarding"
+        const val KEY_CHEAT_SECTION_ORDER = "cheat_section_order"
         val DEFAULT_WHEEL_ORDER: List<Int> = (0..7).toList()
         val GAME_KEYS = listOf("iv", "v")
+        // Mirrors CheatCategory.entries by name. Kept here (instead of
+        // referencing the ui.cheats package) so the data layer has no
+        // dependency on the UI; CheatCategoryOrderTest asserts the
+        // sets stay in sync.
+        val KNOWN_CHEAT_CATEGORIES: Set<String> = setOf(
+            "Health", "Wanted", "Weapons", "Vehicle",
+            "Paint", "World", "Toggles",
+        )
     }
 }

@@ -83,6 +83,24 @@ internal class CheatsViewModel @Inject constructor(
         prefs.setCheatSectionCollapsed(gameKey(), category, collapsed)
     }
 
+    /** User-saved cheat section order for the connected game, as the
+     *  list of CheatCategory.name values. Empty list = "use default"
+     *  (the Compose layer resolves to alphabetical-by-localized-label
+     *  because the data layer has no Context). Any name that is not a
+     *  known CheatCategory has already been filtered out by the pref
+     *  layer, so this list is always safe to resolve. */
+    val savedSectionOrder: StateFlow<List<String>> = currentGameKey
+        .flatMapLatest { prefs.cheatSectionOrder(it) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /** Replace the saved order with [order] (CheatCategory.name
+     *  values). The caller is responsible for passing every category
+     *  the current game shows; names outside KNOWN_CHEAT_CATEGORIES
+     *  are dropped at the pref layer on reload. */
+    fun setSectionOrder(order: List<String>) {
+        prefs.setCheatSectionOrder(gameKey(), order)
+    }
+
     /** One-shot cheat ids the user has flagged (via long-press) for
      *  auto-fire on reconnect. Lit on the cheats tab the same way
      *  active toggles are, so the user can tell which one-shots are

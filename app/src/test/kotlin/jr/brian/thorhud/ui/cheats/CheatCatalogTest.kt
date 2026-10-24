@@ -137,6 +137,50 @@ class CheatCatalogTest {
     }
 
     @Test
+    fun resolveSectionOrderPrefersSave() {
+        val saved = listOf("Toggles", "Health")
+        val available = setOf(CheatCategory.Health, CheatCategory.Toggles,
+                              CheatCategory.Paint)
+        val fallback = listOf(CheatCategory.Health, CheatCategory.Paint,
+                              CheatCategory.Toggles)
+        val out = resolveSectionOrder(saved, available, fallback)
+        // Saved entries first, in save order; anything missing is
+        // appended using the fallback's order. New categories added
+        // by a later build (not in save) must stay visible.
+        assertEquals(
+            listOf(CheatCategory.Toggles, CheatCategory.Health,
+                   CheatCategory.Paint),
+            out,
+        )
+    }
+
+    @Test
+    fun resolveSectionOrderDropsStaleAndSplicesNew() {
+        // Save references a category the current game does not have
+        // (e.g. Vehicle on IV in some future config) + mentions one
+        // that is simply unknown. Both must be dropped.
+        val saved = listOf("Vehicle", "Unknown_Future_Category", "Health")
+        val available = setOf(CheatCategory.Health, CheatCategory.Toggles)
+        val fallback = listOf(CheatCategory.Toggles, CheatCategory.Health)
+        val out = resolveSectionOrder(saved, available, fallback)
+        assertEquals(
+            listOf(CheatCategory.Health, CheatCategory.Toggles),
+            out,
+        )
+    }
+
+    @Test
+    fun reorderListIsInsertAtDrop() {
+        val base = listOf("a", "b", "c", "d")
+        assertEquals(listOf("b", "a", "c", "d"), reorderList(base, 0, 1))
+        assertEquals(listOf("c", "a", "b", "d"), reorderList(base, 2, 0))
+        // Out-of-range + same-position are no-ops.
+        assertEquals(base, reorderList(base, 1, 1))
+        assertEquals(base, reorderList(base, -1, 0))
+        assertEquals(base, reorderList(base, 0, 99))
+    }
+
+    @Test
     fun paintSectionHasThreeEntriesOnBothGames() {
         // Catalog order inside Paint: respray, next colour, swap. One
         // row of two + one trailing single on the two-wide grid.

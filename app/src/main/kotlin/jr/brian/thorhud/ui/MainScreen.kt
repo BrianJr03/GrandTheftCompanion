@@ -465,6 +465,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     .collectAsStateWithLifecycle()
                                 val autoApply by cheatsViewModel.autoApplyCheats
                                     .collectAsStateWithLifecycle()
+                                val savedSectionOrder by cheatsViewModel.savedSectionOrder
+                                    .collectAsStateWithLifecycle()
                                 var showOnboarding by rememberSaveable {
                                     mutableStateOf(!cheatsViewModel.hasSeenOnboarding())
                                 }
@@ -484,6 +486,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     lastResult = cheatResult,
                                     collapsedSections = collapsed,
                                     autoApplyCheats = autoApply,
+                                    savedSectionOrder = savedSectionOrder,
                                     showOnboarding = showOnboarding,
                                     onToggleSection = { name, wasExpanded ->
                                         cheatsViewModel.setSectionCollapsed(
@@ -493,6 +496,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     onRunCheat = cheatsViewModel::runCheat,
                                     onLongPressOneShot = cheatsViewModel::toggleAutoApply,
                                     onPaintRgb = cheatsViewModel::paintRgb,
+                                    onReorderSections = cheatsViewModel::setSectionOrder,
                                     onOnboardingDismissed = {
                                         cheatsViewModel.markOnboardingSeen()
                                         showOnboarding = false
