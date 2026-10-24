@@ -239,9 +239,12 @@ The app picks the layout from the plugin's hello frame. Both layouts share the s
 - **Special ability** bar (ready / active / charging — the game exposes states, not a level).
 - **Five** wanted stars instead of six.
 - **Vehicle class** on the vehicle card, altitude for aircraft, no engine bar on bicycles, "no radio" where the vehicle has none.
+- **Long-press the vehicle card** to open **[Los Santos Customs](#los-santos-customs-gta-v)** — body, performance, wheels, interior, lights, plate, tint, neon, bulletproof tyres, plus Paint and fix vehicle. A small pencil glyph next to the vehicle name advertises it.
 - **Radio picker built from the running game's own station list**, matched by station name rather than index, so DLC stations and build-to-build reordering don't break it.
 - Tags for mission / cutscene / animal form; non-protagonist peds (Director Mode) get a neutral palette with cash and special hidden.
 - **Story mode only.** In GTA Online the plugin publishes nothing but an "online" flag (and Script Hook V itself closes the game on entering Online).
+
+**First-visit tour** — on both games the HUD page shows a quick onboarding sheet the first time you land on it with a live game. Three slides on GTA IV (cards, taps, tabs), four on GTA V (adds a "long-press the vehicle card" slide for Customs). Dismissed state is persisted; a **Show tips again** row under Settings → Cheats brings every first-visit sheet back.
 
 ### Weapon Wheel
 
@@ -334,13 +337,29 @@ The **color wheel** is a full-screen HSV picker: hue + saturation on the ring, v
 
 <img src="assets/color_wheel.png" width="320" alt="Color wheel full-screen sheet" />
 
-- Two preview tiles up top. The one being edited gets the bright accent border; the dim one is the other layer's current pick.
-- A **switch** on the right of the header row toggles which layer the wheel is editing (primary vs secondary).
-- The ✓ icon in the header saves the current pick for the active layer and closes the sheet.
-- The paint command carries a layer selector in the top byte of its argument, so the plugin writes only the layer you were editing — the other one is left alone.
+- Two preview tiles up top. **Tap either tile** to select that layer for editing — the active one gets the bright accent border, the other dims. No separate switch; the previews themselves are the switcher.
+- Two header icons: **apply both** sends two paint commands back-to-back (one per layer) so a different primary and secondary land in one trip. **apply active** writes only the layer you were editing and leaves the other one alone.
+- Each layer keeps its own hue / saturation / value while the sheet is composed, so changing primary, applying, reopening, and tapping secondary leaves primary exactly where you left it.
+- The paint command carries a layer selector in the top byte of its argument, so the plugin writes only the layer you were editing — the other one is left alone unless you asked for both.
 - The horizontal pager locks while the sheet is up, so dragging on the wheel never pulls you back to the HUD tab.
 
 Paint on GTA V uses eight game natives (two color readers, two palette setters, two custom-RGB setters, two custom-RGB clearers), each hash verified against the community `nativedb`. GTA IV uses two (`CHANGE_CAR_COLOUR`, `GET_CAR_COLOURS`); custom RGB and the color wheel are GTA V–only — IV has no custom-color native, so the color wheel button is hidden and `paint_rgb` is refused with "not in this game".
+
+### Los Santos Customs (GTA V)
+
+A full-screen **Customs** sheet that puts every mod Los Santos Customs sells on the Thor's bottom panel. A small pencil glyph sits next to the vehicle name on the HUD's vehicle card; **long-press the card** while sitting in a car and the sheet slides up with the Paint section on top and every modifiable slot the game exposes below.
+
+- **Paint** at the top: respray, next color, swap colors, color wheel, fix vehicle, plus the same eight-swatch strip the Cheats tab's Paint section uses. Fire-and-forget — the sheet stays open so you can keep tweaking.
+- **Body / Performance / Wheels / Interior / Lights & extras / Plate** sections underneath, each collapsible. Every slot the current car exposes shows up with the game's own localized label (coming through `GET_MOD_SLOT_NAME` + `GET_LABEL_TEXT`); slots the game has no name for fall back to Rockstar's `eVehicleModType` enum names (spoiler, front bumper, hood, engine, brakes, suspension, …).
+- Each slot has ◀ ▶ arrows that wrap through "stock" so you can preview every option in order; the row's label follows the plugin's reply, never the tap, so a write the game refused never looks like it landed.
+- The three toggle slots (turbo, tyre smoke, xenon lights) render as switches instead of arrows, because the game exposes them that way.
+- Wheel type switcher re-lists the wheels when you change it, since each wheel type carries its own option count.
+- Plate text field with inline validation ([A–Z 0–9 space], up to 8 chars) and an **Apply** button that drops focus and closes the IME. Plate style picker next to it.
+- Neon and tyre-smoke rows share the Paint swatch strip; neon gets an **off** button to clear all four sides at once. Xenon color is a ◀ ▶ list over the game's thirteen presets plus a default.
+- Bulletproof tyres switch at the bottom.
+- The sheet closes if you get out of the car for more than three seconds (a brief stall mid-mission won't slam it shut), and reopens with the catalogue for whatever car you climb into next.
+
+The plugin side walks modType 0..48 on the script fiber a slice at a time (eight slots per tick) so a crowded car's catalogue arrives in a few hundred ms without ever hitching the game. Twenty-six new natives on top of what Paint already uses, every hash verified against `nativedb`. GTA IV has no mod kit natives, so the whole feature is V-only and the pencil glyph never appears on the IV HUD.
 
 ### Wanted stick lights (AYN Thor)
 

@@ -1,23 +1,25 @@
-## v0.13.0
+## v0.14.0
 
-- **NOTE:** download the latest ASI files from the release assets and drop them next to the game's exe. ThorBridge.asi goes next to GTAIV.exe; ThorBridgeV.asi goes next to GTA5.exe. The APK update alone won't pick up the new natives.
+- **NOTE:** download the latest `ThorBridgeV.asi` from the release assets and drop it next to `GTA5.exe`. The APK update alone won't pick up the new mods natives. (GTA IV's `ThorBridge.asi` is unchanged this release.)
 
-**Paint section on the Cheats tab**
+**Los Santos Customs (GTA V)**
 
-A new Paint section (both games) turns the Thor into a bottom-screen Pay 'n' Spray. Respray picks a fresh color pair and repairs the car, next color steps the primary color one entry, swap flips primary and secondary. The two boxes at the top show the current palette indices from the game, or "custom" when the car carries a custom color (GTA V). The pair comes from the game itself, so a write it refused never looks like it took.
+Long-press the vehicle card on the HUD to open a full-screen Customs sheet with every mod the shop sells for the car you're in: body, performance, wheels, interior, lights, plate, tint, neon, bulletproof tyres. Each slot shows its current option with ◀ ▶ arrows that wrap through stock; the three toggles (turbo, tyre smoke, xenon) render as switches. Change the plate text or style, flip the wheel type to re-list the wheels, pick a neon or smoke color from the swatch strip, or tap off to clear neon.
 
-**Color wheel (GTA V)**
+Paint sits at the top of the sheet — respray, next color, swap colors, color wheel, and a fix-vehicle button for a quick repair without a palette round-trip.
 
-A color wheel button opens a full-screen HSV picker. Hue + saturation on the ring, value on the slider underneath. Two preview tiles up top (primary and secondary), a switch on the right picks which one the wheel is editing, and the ✓ icon in the header saves and closes. The eight custom-color swatches from the Paint section are still there for a quick pick.
+**HUD first-visit tour**
 
-**Mirror car color to the Thor's sticks**
+The HUD page shows a quick onboarding sheet the first time you land on it with a live game. Three slides on GTA IV, four on GTA V (the extra slide points at the Customs long-press). A new **Show tips again** row under Settings → Cheats re-opens every first-visit sheet.
 
-A toggle at the bottom of the Paint section (GTA V) sends every custom color you pick to the AYN Thor's thumbstick rings via Bifrost, so the car and the controller match. Police lights still take over while you're wanted; the sticks go back to the paint color once the stars drop.
+**Edit glyph on the vehicle card (GTA V)**
 
-**Drag to reorder sections**
+A dim pencil icon sits in front of the vehicle name on the GTA V HUD so the long-press-to-Customs affordance is visible without needing to discover it.
 
-Every cheat section header got a drag handle. Long-press and drag it to move the whole section up or down. Default order is alphabetical by section label; your custom order is saved per game and sticks across launches.
+**Color wheel: per-layer state + apply both**
 
-**Sheet polish**
+The primary/secondary switch is gone — tap either preview tile to pick which layer the wheel is editing. Each layer holds its own color across sheet open/close, so changing primary, applying, reopening, and switching to secondary leaves primary exactly where you left it. A new **apply both** header icon sends both layers in one go for cars where you want two different colors in one trip.
 
-Any full-screen sheet now blocks swipes between tabs while it's open — the color wheel's drag no longer pulls you back to the HUD. Taps that miss a header icon by a few pixels stay inside the sheet instead of leaking through to whatever was behind.
+**Plate field closes the keyboard**
+
+Tapping Apply on the plate text field hides the keyboard and drops focus so the cursor stops blinking after a write.
