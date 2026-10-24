@@ -134,6 +134,13 @@ data class GameState(
     // state — GTA V: the player's map waypoint. See [Waypoint].
     @SerialName("waypoint") val waypoint: Waypoint? = null,
 
+    // state — both games: the player's world position + heading. Present
+    // whenever the plugin saw a live ped this tick (level ≥ 1 on IV);
+    // null in frames taken while loading/paused/switching. The custom-
+    // map (atlas) page renders the player triangle from pos.x/pos.y and
+    // pos.h; nothing else uses it today.
+    @SerialName("pos") val pos: Pos? = null,
+
     // "stations" / "weapons" / "blips" list frames.
     @SerialName("stations") val stations: List<Station> = emptyList(),
     @SerialName("weapons") val weapons: List<VWeapon> = emptyList(),
@@ -248,6 +255,17 @@ data class GameState(
         @SerialName("active") val active: Boolean = false,
         @SerialName("ours") val ours: Boolean = false,
         @SerialName("blip") val blip: Int = 0,
+    )
+
+    /** The player's world position + heading. [h] is degrees, 0 = north,
+     *  measured clockwise from north (the game's convention). z is
+     *  included for completeness but the custom-map page ignores it. */
+    @Serializable
+    data class Pos(
+        @SerialName("x") val x: Float = 0f,
+        @SerialName("y") val y: Float = 0f,
+        @SerialName("z") val z: Float = 0f,
+        @SerialName("h") val h: Float = 0f,
     )
 
     /** One weapon the current GTA V character owns. */

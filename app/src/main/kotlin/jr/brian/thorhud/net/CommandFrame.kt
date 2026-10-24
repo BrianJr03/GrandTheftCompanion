@@ -29,3 +29,25 @@ internal fun commandFrame(id: Int, name: String, arg: Long): String? {
     return "{\"v\":1,\"type\":\"cmd\",\"id\":$id,\"name\":\"$name\"," +
             "\"args\":{\"$argKey\":$arg}}\n"
 }
+
+/**
+ * A command that carries a pair of world coordinates rather than one int.
+ * Used by waypoint_xy; the plugin's parse_cmd walks "x" and "y" keys out
+ * of args. Keeps a stable JSON key order so a future field addition does
+ * not shift what the (single) regex-free parser on the plugin side reads.
+ *
+ * Numbers are printed with up to 2 decimals (the plugin reads them with
+ * strtof, which is tolerant of either form) to keep the frame short and
+ * so a float that happens to be a whole number does not drag a decimal.
+ */
+internal fun commandFrameXy(id: Int, name: String, x: Float, y: Float): String {
+    return "{\"v\":1,\"type\":\"cmd\",\"id\":$id,\"name\":\"$name\"," +
+            "\"args\":{\"x\":${fmt(x)},\"y\":${fmt(y)}}}\n"
+}
+
+private fun fmt(v: Float): String {
+    if (v == 0.0f) return "0"
+    val s = "%.2f".format(v)
+    // Drop trailing zeros / dot so "123.00" -> "123" and "1.50" -> "1.5".
+    return s.trimEnd('0').trimEnd('.')
+}

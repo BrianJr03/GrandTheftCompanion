@@ -214,6 +214,35 @@ class GameStateVTest {
         assertEquals("JAZZ", vStationShort("RADIO_97_X", "Jazzland"))
     }
 
+    @Test
+    fun stateFrameWithPosDecodes() {
+        val f = decode(V_STATE_WITH_POS)
+        assertNotNull(f.pos)
+        val pos = f.pos!!
+        assertEquals(123.5f, pos.x)
+        assertEquals(-67.25f, pos.y)
+        assertEquals(10.0f, pos.z)
+        assertEquals(90.0f, pos.h)
+    }
+
+    @Test
+    fun legacyStateFrameWithoutPosStillDecodes() {
+        // The decoded frame from before the pos change must still work;
+        // the field is optional on the wire.
+        val f = decode(V_STATE_ON_FOOT)
+        assertNull(f.pos)
+    }
+
+    @Test
+    fun ivStateFrameWithPosDecodes() {
+        val f = decode(IV_STATE_WITH_POS)
+        assertNotNull(f.pos)
+        val pos = f.pos!!
+        assertEquals(1234.5f, pos.x)
+        assertEquals(-567.25f, pos.y)
+        assertEquals(45.0f, pos.h)
+    }
+
     private companion object {
         const val V_HELLO = """{"v":1,"type":"hello","game":"v","plugin":"0.1.0","exe":"mock_host.exe","file_version":"","size":250342,"supported":true,"shv":true,"script_started":false,"shv_game_version":9999,"err":""}"""
         const val V_TICK = """{"v":1,"type":"tick","game":"v","t":1269689,"shv":true,"script_started":false}"""
@@ -223,6 +252,10 @@ class GameStateVTest {
         const val V_STATE_IN_VEHICLE = """{"v":1,"type":"state","game":"v","t":1271539,"in_game":true,"online":false,"paused":false,"stalled":false,"switching":false,"cutscene":false,"mission":false,"animal":false,"character":0,"ped_model":225514697,"money":1234567,"health":175,"max_health":200,"armor":40,"max_armor":100,"wanted":3,"special":{"unlocked":true,"enabled":true,"active":false,"full":true},"weapon_hash":453432689,"weapon_name":"weapon_pistol","weapon_group":416676503,"ammo_total":120,"ammo_clip":9,"clip_size":12,"in_vehicle":true,"vehicle":{"model":3078201489,"name":"Adder \"S\" é","class":7,"speed_mps":31.5,"engine_hp":870.0,"body_hp":990.0,"altitude_m":0.0,"has_radio":true},"radio":0,"radio_name":"RADIO_01_CLASS_ROCK"}"""
         const val V_STATIONS = """{"v":1,"type":"stations","game":"v","stations":[{"name":"RADIO_01_CLASS_ROCK","label":"Los Santos Rock Radio"},{"name":"RADIO_02_POP","label":"Non-Stop-Pop FM"},{"name":"RADIO_03_HIPHOP_NEW","label":"Radio Los Santos"},{"name":"RADIO_19_USER","label":"Self Radio"},{"name":"RADIO_99_MOCK_UNLABELLED","label":""}]}"""
         const val V_WEAPONS = """{"v":1,"type":"weapons","game":"v","weapons":[{"hash":2578778090,"group":416676503,"ammo":120,"name":"weapon_knife"},{"hash":453432689,"group":416676503,"ammo":120,"name":"weapon_pistol"},{"hash":3220176749,"group":416676503,"ammo":120,"name":"weapon_assaultrifle"},{"hash":2481070269,"group":416676503,"ammo":120,"name":"weapon_grenade"}]}"""
+        // State frame with the pos object the plugin now emits every
+        // tick a ped is live. Headings are degrees, 0 = north.
+        const val V_STATE_WITH_POS = """{"v":1,"type":"state","game":"v","t":1269829,"in_game":true,"online":false,"paused":false,"stalled":false,"switching":false,"cutscene":false,"mission":false,"animal":false,"character":0,"ped_model":225514697,"money":1234567,"health":175,"max_health":200,"armor":40,"max_armor":100,"wanted":3,"special":{"unlocked":true,"enabled":true,"active":false,"full":true},"weapon_hash":453432689,"weapon_name":"weapon_pistol","weapon_group":416676503,"ammo_total":120,"ammo_clip":9,"clip_size":12,"in_vehicle":false,"radio":-1,"radio_name":"","cheats_mask":0,"pos":{"x":123.5,"y":-67.25,"z":10.0,"h":90.0},"waypoint":{"active":false,"ours":false,"blip":0}}"""
+        const val IV_STATE_WITH_POS = """{"v":1,"type":"state","t":123456,"in_game":true,"in_vehicle":false,"paused":false,"wheel":false,"dpad_down":false,"money":2500,"health":180.0,"max_health":200,"armor":50,"max_armor":100,"wanted":2,"weapon":7,"ammo_total":60,"ammo_clip":12,"owned":[],"vehicle":{"model":0,"name":"","speed_mps":0.00,"engine_hp":0.0},"radio":-1,"episode":0,"mission":false,"route_blip":0,"pos":{"x":1234.5,"y":-567.25,"z":15.0,"h":45.0},"cheats_mask":0}"""
         const val IV_HELLO = """{"v":1,"type":"hello","crc32":"0x1A2B3C4D","size":15628696,"file_version":"1.2.0.59","supported":true}"""
         // Natives level 4, LB held on foot. Follows format_state in
         // asi/src/bridge.cpp; not captured from a running game.

@@ -93,7 +93,13 @@ class GameStateRepository @Inject constructor(
     /** Point the game's route at a blip from [blips]: GTA V sets the
      *  map waypoint on it, GTA IV turns its GPS route on. */
     suspend fun routeBlip(blipId: Int): Int? = client.send("route_blip", blipId.toLong())
-    /** Undo [routeBlip]: remove the waypoint / turn the route off. */
+    /** GTA V only: drop the player's map waypoint on arbitrary world
+     *  xy coordinates. Used by the custom-map (atlas) page's long-press
+     *  to route. The IV plugin refuses this command with
+     *  "not in this game". */
+    suspend fun waypointXy(x: Float, y: Float): Int? = client.sendXy("waypoint_xy", x, y)
+    /** Undo [routeBlip] or [waypointXy]: remove the waypoint / turn
+     *  the route off. */
     suspend fun routeClear(): Int? = client.send("route_clear", 0L)
     /** Ask the plugin to write its blip census to its log file. */
     suspend fun blipCensus(): Int? = client.send("blip_census", 0L)
