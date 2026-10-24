@@ -24,6 +24,11 @@ internal fun commandFrame(id: Int, name: String, arg: Long): String? {
         "set_radio"  -> "station"
         "route_blip" -> "blip"
         "cheat"      -> "cheat"
+        // GTA V only. Packed 0x00RRGGBB; the plugin unpacks and paints
+        // both custom-colour layers of the current vehicle. The id-based
+        // "cheat" command cannot carry the RGB because the id itself
+        // occupies arg0, hence the separate name.
+        "paint_rgb"  -> "rgb"
         else         -> "value"   // route_clear / blip_census ignore it
     }
     return "{\"v\":1,\"type\":\"cmd\",\"id\":$id,\"name\":\"$name\"," +

@@ -52,6 +52,18 @@ class CommandFrameTest {
     }
 
     @Test
+    fun paintRgbCarriesPackedColour() {
+        // 0x00B21E1E = 11,673,118 (a swatch red). The arg key is "rgb",
+        // not "cheat", so the plugin's commands.cpp can tell this from
+        // the id-shaped cheat command.
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":6,\"name\":\"paint_rgb\"," +
+                "\"args\":{\"rgb\":11673118}}\n",
+            commandFrame(6, "paint_rgb", 0x00B21E1EL),
+        )
+    }
+
+    @Test
     fun unknownCommandUsesGenericArgumentName() {
         val line = commandFrame(9, "future_cmd", 1L)
         assertNotNull(line)

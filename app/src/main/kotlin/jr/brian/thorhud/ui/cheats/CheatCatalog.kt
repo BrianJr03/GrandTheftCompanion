@@ -34,6 +34,10 @@ internal enum class CheatCategory(@StringRes val labelRes: Int) {
     Wanted(R.string.cheats_section_wanted),
     Weapons(R.string.cheats_section_weapons),
     Vehicle(R.string.cheats_section_vehicle),
+    // The paint section hangs off CheatsScreen with a custom body
+    // (current pair readout + swatch row on V); the three ids below
+    // still render through the shared button grid.
+    Paint(R.string.cheats_section_paint),
     World(R.string.cheats_section_world),
     Toggles(R.string.cheats_section_toggles),
 }
@@ -95,6 +99,15 @@ internal val CHEATS: List<CheatDef> = listOf(
              labelRes = R.string.cheat_14_spawn_frogger),
     CheatDef(15, isToggle = false, games = CHEAT_V,    category = CheatCategory.Vehicle,
              labelRes = R.string.cheat_15_spawn_bmx),
+
+    // -- Paint (both games; id 63 is RGB-only and sent via paint_rgb,
+    //    not through the catalog) ------------------------------------
+    CheatDef(60, isToggle = false, games = CHEAT_BOTH, category = CheatCategory.Paint,
+             labelRes = R.string.cheat_60_respray),
+    CheatDef(61, isToggle = false, games = CHEAT_BOTH, category = CheatCategory.Paint,
+             labelRes = R.string.cheat_61_next_colour),
+    CheatDef(62, isToggle = false, games = CHEAT_BOTH, category = CheatCategory.Paint,
+             labelRes = R.string.cheat_62_swap_colours),
 
     // -- World ---------------------------------------------------
     CheatDef(7,  isToggle = false, games = CHEAT_BOTH, category = CheatCategory.World,

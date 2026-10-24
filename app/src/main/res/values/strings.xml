@@ -19,9 +19,19 @@
     <string name="cheats_section_wanted">wanted</string>
     <string name="cheats_section_weapons">weapons</string>
     <string name="cheats_section_vehicle">vehicle</string>
+    <string name="cheats_section_paint">paint</string>
     <string name="cheats_section_world">world</string>
     <string name="cheats_section_toggles">toggles</string>
     <string name="cheats_error">%1$s</string>
+
+    <!-- Paint section: pair readout + swatch labels. The pair comes from
+         the state frame, never from the tap, so the labels under the two
+         boxes are palette indices (e.g. "112") or "custom" when the car
+         carries an RGB override on either layer (GTA V only). -->
+    <string name="cheats_paint_get_in_car">get in a car</string>
+    <string name="cheats_paint_custom">custom</string>
+    <string name="cheats_paint_primary">primary</string>
+    <string name="cheats_paint_secondary">secondary</string>
 
     <!-- Cheat button labels. Numbering follows the id in asi/src/cheats.h
          and ui/cheats/CheatCatalog.kt. -->
@@ -61,6 +71,22 @@
     <string name="cheat_32_explosive_melee">explosive melee</string>
     <string name="cheat_33_incendiary_ammo">incendiary ammo</string>
     <string name="cheat_34_slippery">slippery cars</string>
+
+    <!-- Paint one-shots (both games). Palette-index moves. -->
+    <string name="cheat_60_respray">respray</string>
+    <string name="cheat_61_next_colour">next colour</string>
+    <string name="cheat_62_swap_colours">swap colours</string>
+
+    <!-- Custom-colour swatches (GTA V only). Our palette, our names;
+         not Rockstar's carcols entries. -->
+    <string name="swatch_night">night</string>
+    <string name="swatch_bone">bone</string>
+    <string name="swatch_red">red</string>
+    <string name="swatch_blue">blue</string>
+    <string name="swatch_racing_green">racing green</string>
+    <string name="swatch_orange">orange</string>
+    <string name="swatch_purple">purple</string>
+    <string name="swatch_chrome">chrome</string>
 
     <!-- Long-press toast + onboarding sheet copy -->
     <string name="cheats_auto_apply_on">%1$s will auto-apply on reconnect</string>

@@ -195,6 +195,13 @@ data class GameState(
         @SerialName("body_hp") val bodyHp: Float? = null,
         @SerialName("altitude_m") val altitudeM: Float? = null,
         @SerialName("has_radio") val hasRadio: Boolean? = null,
+        // Paint. Both games report GET_*_COLOURS as a pair of palette
+        // indices; GTA V also exposes a per-layer RGB override, and the
+        // `custom` flag is true when either layer carries one.
+        // GTA IV frames never carry [custom]; the field is null there.
+        @SerialName("colour1") val colour1: Int? = null,
+        @SerialName("colour2") val colour2: Int? = null,
+        @SerialName("custom") val custom: Boolean? = null,
     )
 
     /** GTA V special-ability state. The game exposes no meter level to

@@ -103,6 +103,12 @@ class GameStateRepository @Inject constructor(
      *  `cheats_mask` reports the new state. */
     suspend fun runCheat(cheatId: Int): Int? = client.send("cheat", cheatId.toLong())
 
+    /** GTA V only: paint the current vehicle's two custom-colour layers
+     *  to the exact RGB packed in [packed] as 0x00RRGGBB. GTA IV refuses
+     *  the command with "not in this game"; the paint section in the UI
+     *  hides the swatch row on IV so it is never sent there. */
+    suspend fun paintRgb(packed: Long): Int? = client.send("paint_rgb", packed)
+
     /** Force a reconnect to the plugin; see [GameStateClient.reconnect]. */
     fun reconnect() = client.reconnect()
 }

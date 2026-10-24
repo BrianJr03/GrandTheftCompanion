@@ -142,6 +142,34 @@ class GameStateVTest {
     }
 
     @Test
+    fun vehicleColoursDecode() {
+        // GTA V in-vehicle frame with the paint fields present.
+        val v = decode(V_STATE_IN_VEHICLE_PAINT).vehicle
+        assertNotNull(v)
+        assertEquals(112, v!!.colour1)
+        assertEquals(27, v.colour2)
+        assertEquals(false, v.custom)
+
+        // GTA V with a custom RGB override active.
+        val vc = decode(V_STATE_IN_VEHICLE_PAINT_CUSTOM).vehicle!!
+        assertEquals(true, vc.custom)
+
+        // GTA IV publishes the pair without `custom`; the flag reads
+        // as null and the UI falls back to the indices.
+        val vi = decode(IV_STATE_PAINT).vehicle!!
+        assertEquals(3, vi.colour1)
+        assertEquals(12, vi.colour2)
+        assertNull(vi.custom)
+
+        // Older frames (no paint fields at all) read as null, so the
+        // UI knows to grey out instead of painting index 0 / 0.
+        val old = decode(V_STATE_IN_VEHICLE).vehicle!!
+        assertNull(old.colour1)
+        assertNull(old.colour2)
+        assertNull(old.custom)
+    }
+
+    @Test
     fun cheatsFieldsDecode() {
         // Hello carries `cheats` (boolean capability flag).
         val hello = decode(IV_HELLO_CHEATS)
@@ -233,5 +261,11 @@ class GameStateVTest {
         // State frame from the same plugin: invincible + slow motion on
         // (cheat ids 20 and 22 → bits 0 and 2).
         const val IV_STATE_CHEATS = """{"v":1,"type":"state","t":123456,"in_game":true,"in_vehicle":false,"paused":false,"money":2500,"health":180.0,"max_health":200,"armor":50,"max_armor":100,"wanted":0,"weapon":7,"ammo_total":60,"ammo_clip":12,"owned":[],"vehicle":{"model":0,"name":"","speed_mps":0.00,"engine_hp":0.0},"radio":-1,"episode":0,"cheats_mask":5}"""
+        // Paint fields on both sides. V 0.4.0 adds "colour1" / "colour2"
+        // and the "custom" flag in the vehicle block; the IV plugin
+        // built with THORBRIDGE_CHEATS adds the pair but never "custom".
+        const val V_STATE_IN_VEHICLE_PAINT = """{"v":1,"type":"state","game":"v","t":1271839,"in_game":true,"online":false,"paused":false,"stalled":false,"switching":false,"cutscene":false,"mission":false,"animal":false,"character":0,"ped_model":225514697,"money":1234567,"health":175,"max_health":200,"armor":40,"max_armor":100,"wanted":3,"special":{"unlocked":true,"enabled":true,"active":false,"full":true},"weapon_hash":453432689,"weapon_name":"weapon_pistol","weapon_group":416676503,"ammo_total":120,"ammo_clip":9,"clip_size":12,"in_vehicle":true,"vehicle":{"model":3078201489,"name":"Adder","class":7,"speed_mps":12.0,"engine_hp":1000.0,"body_hp":1000.0,"altitude_m":0.0,"has_radio":true,"colour1":112,"colour2":27,"custom":false},"radio":0,"radio_name":"RADIO_01_CLASS_ROCK"}"""
+        const val V_STATE_IN_VEHICLE_PAINT_CUSTOM = """{"v":1,"type":"state","game":"v","t":1272039,"in_game":true,"online":false,"paused":false,"stalled":false,"switching":false,"cutscene":false,"mission":false,"animal":false,"character":0,"ped_model":225514697,"money":1234567,"health":175,"max_health":200,"armor":40,"max_armor":100,"wanted":3,"special":{"unlocked":true,"enabled":true,"active":false,"full":true},"weapon_hash":453432689,"weapon_name":"weapon_pistol","weapon_group":416676503,"ammo_total":120,"ammo_clip":9,"clip_size":12,"in_vehicle":true,"vehicle":{"model":3078201489,"name":"Adder","class":7,"speed_mps":0.0,"engine_hp":1000.0,"body_hp":1000.0,"altitude_m":0.0,"has_radio":true,"colour1":112,"colour2":27,"custom":true},"radio":0,"radio_name":"RADIO_01_CLASS_ROCK"}"""
+        const val IV_STATE_PAINT = """{"v":1,"type":"state","t":223344,"in_game":true,"in_vehicle":true,"paused":false,"money":2500,"health":180.0,"max_health":200,"armor":50,"max_armor":100,"wanted":0,"weapon":7,"ammo_total":60,"ammo_clip":12,"owned":[],"vehicle":{"model":1348744438,"name":"ORACLE","speed_mps":0.0,"engine_hp":1000.0,"colour1":3,"colour2":12},"radio":-1,"episode":0,"cheats_mask":0}"""
     }
 }
