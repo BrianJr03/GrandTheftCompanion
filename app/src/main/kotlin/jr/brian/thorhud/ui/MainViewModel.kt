@@ -78,6 +78,18 @@ class MainViewModel @Inject constructor(
         get() = prefs.hasSeenSwipeHint
         set(value) { prefs.hasSeenSwipeHint = value }
 
+    // HUD onboarding sheet (first-visit tour of the HUD page cards).
+    // One shot per installation, shared across games. Backed by
+    // HudPrefs — read once per MainScreen composition, written when
+    // the user dismisses the sheet.
+    fun hasSeenHudOnboarding(): Boolean = prefs.hasSeenHudOnboarding
+    fun markHudOnboardingSeen() { prefs.hasSeenHudOnboarding = true }
+
+    /** Re-arm every first-visit sheet (HUD + cheats). Settings-sheet
+     *  action; the next time the user lands on that page the
+     *  onboarding reappears. */
+    fun resetOnboarding() { prefs.resetOnboarding() }
+
     // Settings sheet toggles. Backed by HudPrefs per-game StateFlows
     // so Compose sees every flip and the choice survives process
     // death — and switching from IV to V (or back) shows that game's

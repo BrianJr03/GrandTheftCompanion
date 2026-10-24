@@ -57,6 +57,7 @@ import jr.brian.thorhud.ui.components.FullScreenSheet
 import jr.brian.thorhud.ui.components.InfoSheet
 import jr.brian.thorhud.ui.components.IvWeaponWheelOverlay
 import jr.brian.thorhud.ui.components.MoneyRadioPanel
+import jr.brian.thorhud.ui.components.OnboardingSheet
 import jr.brian.thorhud.ui.components.PausedScreen
 import jr.brian.thorhud.ui.components.RadioPanel
 import jr.brian.thorhud.ui.components.SettingsGamePanel
@@ -521,6 +522,28 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                 )
                             },
                         )
+                        // First-visit HUD onboarding sheet. Shown
+                        // once per installation on the first time the
+                        // user lands here with a live game — the else
+                        // branch only runs after SetupScreen /
+                        // PausedScreen / VNotice have cleared, so the
+                        // slides can refer to real cards. isGtaV
+                        // decides which slide list is used (the extra
+                        // Customs slide is V-only).
+                        var showHudOnboarding by rememberSaveable {
+                            mutableStateOf(!viewModel.hasSeenHudOnboarding())
+                        }
+                        OnboardingSheet(
+                            visible = showHudOnboarding,
+                            title = stringResource(R.string.hud_onboarding_title),
+                            accent = accent,
+                            slides = hudOnboardingSlides(isGtaV),
+                            onDismiss = {
+                                viewModel.markHudOnboardingSeen()
+                                showHudOnboarding = false
+                            },
+                        )
+
                         // Drawn over the pager so it covers both pages
                         // and swallows the swipe between them.
                         if (showWheel && isGtaV) {
@@ -597,6 +620,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             autoReapplyCheats = ivAutoReapplyCheats,
             onAutoReapplyCheatsChange = { viewModel.setAutoReapplyCheats("iv", it) },
             onClearSavedCheats = { cheatsViewModelForSettings.clearSavedCheats("iv") },
+            onResetOnboarding = viewModel::resetOnboarding,
         )
         val vPanel = SettingsGamePanel(
             label = stringResource(R.string.settings_tab_v),
@@ -612,6 +636,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             autoReapplyCheats = vAutoReapplyCheats,
             onAutoReapplyCheatsChange = { viewModel.setAutoReapplyCheats("v", it) },
             onClearSavedCheats = { cheatsViewModelForSettings.clearSavedCheats("v") },
+            onResetOnboarding = viewModel::resetOnboarding,
         )
         // Setup screen (no plugin frames at all) shows both tabs so
         // the user can pre-configure either game. The moment a frame

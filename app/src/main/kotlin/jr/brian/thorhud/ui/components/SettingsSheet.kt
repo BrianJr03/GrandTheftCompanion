@@ -80,6 +80,11 @@ internal data class SettingsGamePanel(
     val autoReapplyCheats: Boolean,
     val onAutoReapplyCheatsChange: (Boolean) -> Unit,
     val onClearSavedCheats: () -> Unit,
+    // Re-arm every first-visit sheet (HUD + cheats). Game-agnostic
+    // in effect but surfaced on the per-game panel so the row sits
+    // under the game's own accent — one tap re-opens the sheets on
+    // whichever page you visit next.
+    val onResetOnboarding: () -> Unit,
 )
 
 /**
@@ -326,6 +331,19 @@ private fun PerGameSettings(
                 body = stringResource(R.string.settings_clear_cheats_body),
                 buttonLabel = stringResource(R.string.settings_clear_cheats_button),
                 onClick = panel.onClearSavedCheats,
+                busy = false,
+                palette = panel.palette,
+            )
+            Spacer(Modifier.height(14.dp))
+            // Re-arms both first-visit onboarding sheets (HUD + cheats)
+            // so they show again on the next visit. Sits here rather
+            // than in its own section because the cheats sheet is the
+            // feature a player is most likely to want to revisit.
+            ActionRow(
+                title = stringResource(R.string.settings_show_tips_title),
+                body = stringResource(R.string.settings_show_tips_body),
+                buttonLabel = stringResource(R.string.settings_show_tips_button),
+                onClick = panel.onResetOnboarding,
                 busy = false,
                 palette = panel.palette,
             )

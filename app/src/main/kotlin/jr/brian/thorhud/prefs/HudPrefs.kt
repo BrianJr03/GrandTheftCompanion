@@ -221,6 +221,24 @@ class HudPrefs @Inject constructor(
             prefs.edit().putBoolean(KEY_SEEN_CHEATS_ONBOARDING, value).apply()
         }
 
+    /** True once the user has dismissed the HUD-page onboarding
+     *  sheet. One shot per installation; the sheet is shown on the
+     *  first time the HUD page comes up with a live game. */
+    var hasSeenHudOnboarding: Boolean
+        get() = prefs.getBoolean(KEY_SEEN_HUD_ONBOARDING, false)
+        set(value) {
+            prefs.edit().putBoolean(KEY_SEEN_HUD_ONBOARDING, value).apply()
+        }
+
+    /** Clear both onboarding-seen flags so the "show tips again"
+     *  settings row can re-arm every first-visit sheet in one tap. */
+    fun resetOnboarding() {
+        prefs.edit()
+            .remove(KEY_SEEN_CHEATS_ONBOARDING)
+            .remove(KEY_SEEN_HUD_ONBOARDING)
+            .apply()
+    }
+
     /** Wipe both persisted cheat sets (toggles the user had on, and
      *  one-shots long-pressed for auto-apply) for one game. Leaves
      *  the master auto-reapply switch and the onboarding-seen flag
@@ -370,6 +388,7 @@ class HudPrefs @Inject constructor(
         const val KEY_AUTO_REAPPLY_CHEATS = "auto_reapply_cheats"
         const val KEY_AUTO_APPLY_CHEATS = "auto_apply_cheats"
         const val KEY_SEEN_CHEATS_ONBOARDING = "seen_cheats_onboarding"
+        const val KEY_SEEN_HUD_ONBOARDING = "seen_hud_onboarding"
         const val KEY_CHEAT_SECTION_ORDER = "cheat_section_order"
         val DEFAULT_WHEEL_ORDER: List<Int> = (0..7).toList()
         val GAME_KEYS = listOf("iv", "v")

@@ -109,6 +109,24 @@
     <string name="cheats_onboarding_next">Next</string>
     <string name="cheats_onboarding_done">Got it</string>
 
+    <!-- HUD-page first-visit onboarding sheet. 3 slides on GTA IV
+         (no Customs slide), 4 on GTA V. English only; translations
+         are a follow-up. -->
+    <string name="hud_onboarding_title">About the HUD</string>
+    <string name="hud_onboarding_slide_hud_title">What you\'re looking at</string>
+    <string name="hud_onboarding_slide_hud_body">Cards for cash, weapon and ammo, vehicle and speed, radio station, plus the health and armour bars along the bottom. Everything follows the game on its own.</string>
+    <string name="hud_onboarding_slide_tap_title">Tap to act</string>
+    <string name="hud_onboarding_slide_tap_body">Tap a radio station to retune it. Tap the weapon card on foot (or hold the weapon-wheel button on the controller) to pick a weapon.</string>
+    <string name="hud_onboarding_slide_customs_title">Long-press the vehicle card</string>
+    <string name="hud_onboarding_slide_customs_body">Sitting in a car? A long press on the vehicle card opens Customs: paint, parts, performance, wheels, tint, plate, neon. Look for the small pencil icon next to the vehicle name.</string>
+    <string name="hud_onboarding_slide_tabs_title">More tabs</string>
+    <string name="hud_onboarding_slide_tabs_body">Swipe left for the map (blips, one-tap routing) or right for cheats. The HUD stays in the middle so you always know how to get back.</string>
+
+    <!-- Edit-glyph description on the GTA V vehicle card. The glyph
+         is a visual affordance for the long-press that opens Customs;
+         read aloud by TalkBack, invisible otherwise. -->
+    <string name="v_vehicle_edit_cd">long-press to open Customs</string>
+
     <!-- One-time hint shown on first connect, explaining the pager. -->
     <string name="swipe_hint_title">Tip</string>
     <string name="swipe_hint_body">Swipe left or right between the hud and the minimap.</string>
@@ -155,6 +173,9 @@
     <string name="settings_clear_cheats_body">Forget every toggle you had turned on and every one-shot you had long-pressed for auto-apply. The next reconnect starts from a clean slate. The auto-re-apply switch above is left alone.</string>
     <string name="settings_clear_cheats_button">Clear</string>
     <string name="snackbar_cheats_cleared">Saved cheats cleared</string>
+    <string name="settings_show_tips_title">Show tips again</string>
+    <string name="settings_show_tips_body">Re-open the first-visit sheets on the HUD and the cheats tab the next time you visit them.</string>
+    <string name="settings_show_tips_button">Show</string>
     <string name="settings_reconnect_title">Reconnect to the plugin</string>
     <string name="settings_reconnect_body">Force a fresh connection to ThorBridge. Use if \"not connected\" sticks on a weapon switch and does not clear on its own.</string>
     <string name="settings_reconnect_button">Retry</string>
