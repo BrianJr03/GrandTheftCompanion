@@ -59,6 +59,19 @@ struct Player {
     int32_t route_blip;    // blip the GPS route was last pointed at by
                            // route_blip, 0 = none (see blips.h)
 
+    // --- player position (any level, once a ped is live) ---
+    // pos_valid: these fields were read this frame. Companion renders
+    //   the player triangle on the custom-map (atlas) page from
+    //   pos_x/pos_y and heading (degrees, 0 = north). z is handy to
+    //   have around but the atlas does not currently use it; it is
+    //   the first field to drop if the bridge's frame buffer gets
+    //   tight (see bridge.cpp format_state).
+    bool  pos_valid;
+    float pos_x;
+    float pos_y;
+    float pos_z;
+    float heading;
+
     // --- vehicle (meaningful iff in_vehicle) ---
     uint32_t vehicle_model;    // GET_CAR_MODEL
     char vehicle_name[32];     // GET_DISPLAY_NAME_FROM_VEHICLE_MODEL

@@ -38,6 +38,13 @@ bool get_blip_coords(int32_t blip, float* x, float* y, float* z);
 // GET_CHAR_COORDINATES(Ped, float* x, float* y, float* z).
 bool get_char_coordinates(uint32_t ped, float* x, float* y, float* z);
 
+// GET_CHAR_HEADING(Ped, float* out). Degrees, 0 = north. The ped's own
+// facing, not a camera direction. Shared with cheats (facing-aware
+// spawn offset) and with probes.cpp (atlas player triangle); living in
+// blip_natives means both the stock and cheats builds compile the same
+// wrapper.
+float get_char_heading(uint32_t ped);
+
 // GET_MISSION_FLAG() -> bool: a mission script is running.
 bool get_mission_flag();
 
