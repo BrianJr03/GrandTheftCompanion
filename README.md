@@ -317,6 +317,31 @@ Toggle lights come from what the game reports, not from the tap, so a toggle the
 
 GTA V flags the save as cheated the first time you tap a cheat, same as entering the code on the phone, so cheated saves block Achievements / Trophies for that session. GTA IV has no equivalent flag.
 
+### Paint
+
+A **Paint** section inside the Cheats tab turns the Thor into a bottom-screen Pay 'n' Spray. Four buttons on both games (**respray**, **next color**, **swap colors**, plus a GTA V–only **color wheel** button), a row of eight custom-color swatches on GTA V, and a mirror-to-sticks toggle that pipes the car's current paint to the AYN Thor's analog-stick lights.
+
+<img src="assets/paint_section.png" width="320" alt="Paint section on the Cheats tab" />
+
+- **respray** picks a fresh random palette pair and repairs + washes the car, like the real shop. Reads two indices into the game's `carcols` palette.
+- **next color** steps the primary color one entry along the palette, secondary unchanged.
+- **swap colors** flips primary and secondary.
+- The two **primary / secondary** boxes at the top show the current palette indices from the plugin, or the word "custom" (GTA V) when the car carries an RGB override on either layer. The pair comes from the state frame — never from the tap — so a write the game refused never looks like it took.
+- The eight **swatches** below the buttons (GTA V only) are our picks: night, bone, red, blue, racing green, orange, purple, chrome. Not the game's `carcols` names; the game's palette tables are the game's data.
+- **mirror color to sticks** (GTA V only, bottom of the section): when on, every color wheel / swatch pick is also sent to the Thor's thumbstick rings via Bifrost, so the car and the controller match. Police lights still win while the player is wanted; the sticks go back to the paint color once the stars drop.
+
+The **color wheel** is a full-screen HSV picker: hue + saturation on the ring, value on the slider underneath.
+
+<img src="assets/color_wheel.png" width="320" alt="Color wheel full-screen sheet" />
+
+- Two preview tiles up top. The one being edited gets the bright accent border; the dim one is the other layer's current pick.
+- A **switch** on the right of the header row toggles which layer the wheel is editing (primary vs secondary).
+- The ✓ icon in the header saves the current pick for the active layer and closes the sheet.
+- The paint command carries a layer selector in the top byte of its argument, so the plugin writes only the layer you were editing — the other one is left alone.
+- The horizontal pager locks while the sheet is up, so dragging on the wheel never pulls you back to the HUD tab.
+
+Paint on GTA V uses eight game natives (two color readers, two palette setters, two custom-RGB setters, two custom-RGB clearers), each hash verified against the community `nativedb`. GTA IV uses two (`CHANGE_CAR_COLOUR`, `GET_CAR_COLOURS`); custom RGB and the color wheel are GTA V–only — IV has no custom-color native, so the color wheel button is hidden and `paint_rgb` is refused with "not in this game".
+
 ### Wanted stick lights (AYN Thor)
 
 When the player picks up a wanted level, the Thor's analog-stick RGB rings flash red and blue like a police light bar, one stick red and the other blue, trading places on each beat. More stars means a faster beat (around 600 ms at one star, down to 400 ms at full stars). The sticks go dark again the moment you lose the cops, and stay off during pause, loading, GTA Online, or a character switch.
