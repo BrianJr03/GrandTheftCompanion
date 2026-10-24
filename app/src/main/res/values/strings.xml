@@ -32,6 +32,7 @@
     <string name="cheats_paint_custom">custom</string>
     <string name="cheats_paint_primary">primary</string>
     <string name="cheats_paint_secondary">secondary</string>
+    <string name="cheats_section_reorder_cd">long-press and drag to reorder</string>
 
     <!-- Cheat button labels. Numbering follows the id in asi/src/cheats.h
          and ui/cheats/CheatCatalog.kt. -->
@@ -76,6 +77,11 @@
     <string name="cheat_60_respray">respray</string>
     <string name="cheat_61_next_colour">next colour</string>
     <string name="cheat_62_swap_colours">swap colours</string>
+    <!-- 4th Paint button on GTA V. Opens the colour wheel; same
+         paint_rgb command the swatches use, so no new plugin path. -->
+    <string name="cheats_paint_custom_colour">custom colour</string>
+    <string name="cheats_paint_wheel_title">custom colour</string>
+    <string name="cheats_paint_wheel_apply">apply</string>
 
     <!-- Custom-colour swatches (GTA V only). Our palette, our names;
          not Rockstar's carcols entries. -->

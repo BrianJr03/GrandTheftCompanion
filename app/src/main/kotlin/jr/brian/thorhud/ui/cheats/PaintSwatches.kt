@@ -50,3 +50,33 @@ internal fun unpackRgb(packed: Long): Triple<Int, Int, Int> {
     val b = (packed and 0xFF).toInt()
     return Triple(r, g, b)
 }
+
+/**
+ * HSV → packed 0x00RRGGBB. Pure Kotlin so the color-wheel sheet's math
+ * is unit-testable without Android's java.awt-shaped Color helpers.
+ *   [h] is in degrees, wraps modulo 360.
+ *   [s] and [v] are in 0..1, clamped.
+ * The output always fits an unsigned 32-bit int (high byte zero), the
+ * same shape [commandFrame] accepts for paint_rgb.
+ */
+internal fun hsvToRgbPacked(h: Float, s: Float, v: Float): Long {
+    val hh = ((h % 360f) + 360f) % 360f
+    val ss = s.coerceIn(0f, 1f)
+    val vv = v.coerceIn(0f, 1f)
+    val c = vv * ss
+    val hp = hh / 60f
+    val x = c * (1f - kotlin.math.abs(hp % 2f - 1f))
+    val (r1, g1, b1) = when (hp.toInt()) {
+        0    -> Triple(c, x, 0f)
+        1    -> Triple(x, c, 0f)
+        2    -> Triple(0f, c, x)
+        3    -> Triple(0f, x, c)
+        4    -> Triple(x, 0f, c)
+        else -> Triple(c, 0f, x)   // 5..6 (hue 300..360)
+    }
+    val m = vv - c
+    val r = ((r1 + m) * 255f).toInt().coerceIn(0, 255)
+    val g = ((g1 + m) * 255f).toInt().coerceIn(0, 255)
+    val b = ((b1 + m) * 255f).toInt().coerceIn(0, 255)
+    return packRgb(r, g, b)
+}

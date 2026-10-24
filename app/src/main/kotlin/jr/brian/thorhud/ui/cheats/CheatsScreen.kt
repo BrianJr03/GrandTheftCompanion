@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,9 +30,13 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -47,6 +52,8 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -100,19 +107,28 @@ internal fun CheatsScreen(
     lastResult: CheatResult?,
     collapsedSections: Set<String>,
     autoApplyCheats: Set<Int>,
+    savedSectionOrder: List<String>,
     showOnboarding: Boolean,
     onToggleSection: (String, Boolean) -> Unit,
     onRunCheat: (Int) -> Unit,
     onLongPressOneShot: (Int) -> Boolean,
     onPaintRgb: (Long) -> Unit,
+    // Called with the full list of CheatCategory.name values after
+    // the user finishes a drag; the ViewModel persists it as-is.
+    onReorderSections: (List<String>) -> Unit,
     onOnboardingDismissed: () -> Unit,
+    modifier: Modifier = Modifier,
     onOpenRadio: (() -> Unit)? = null,
     onOpenMap: (() -> Unit)? = null,
     onOpenHud: (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
 ) {
     val dim = Color(0xFF6A7A6E)
     val context = LocalContext.current
+    // Colour-wheel sheet state. Shown by the Paint section's 4th
+    // button (V only). onPick routes through onPaintRgb — same wire
+    // path as a swatch tap, so no new plugin code is involved.
+    var showColorWheel by rememberSaveable { mutableStateOf(false) }
+    var lastWheelPicked by rememberSaveable { mutableStateOf<Long?>(null) }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -190,34 +206,110 @@ internal fun CheatsScreen(
             }
         }
 
-        for ((category, items) in grouped) {
+        // Alphabetical-by-localized-label default. Context is only
+        // reachable from Compose, so the sort happens here, not in
+        // the pref layer. New categories added in a later build drop
+        // in at their alphabetical slot the first time; after a user
+        // reorders, resolveSectionOrder appends them to the end.
+        val available = grouped.keys
+        val defaultOrder = available.sortedBy { context.getString(it.labelRes).lowercase() }
+        val effectiveOrder = resolveSectionOrder(savedSectionOrder, available, defaultOrder)
+
+        // Drag/drop state. Finger Y is tracked in Column-root space;
+        // onGloballyPositioned on each section records its top/bottom
+        // bounds in the same space so the hover check is a plain
+        // range contains(). Dropping outside any header or on the
+        // originating index is a no-op.
+        val sectionBounds = remember { mutableStateMapOf<Int, ClosedFloatingPointRange<Float>>() }
+        var dragFromIdx by remember { mutableStateOf<Int?>(null) }
+        var dragFingerY by remember { mutableFloatStateOf(0f) }
+        val hoverIdx: Int? = run {
+            if (dragFromIdx == null) null
+            else sectionBounds.entries
+                .firstOrNull { (_, range) -> dragFingerY in range }
+                ?.key
+        }
+
+        effectiveOrder.forEachIndexed { idx, category ->
+            val items = grouped[category].orEmpty()
             val expanded = category.name !in collapsedSections
-            CategorySection(
-                category = category,
-                items = items,
-                accent = accent,
-                pendingId = pendingId,
-                cheatsMask = cheatsMask,
-                autoApplyCheats = autoApplyCheats,
-                expanded = expanded,
-                onToggleExpanded = { onToggleSection(category.name, expanded) },
-                onTap = onRunCheat,
-                onLongPress = onLongPress,
-                body = if (category == CheatCategory.Paint) {
-                    { PaintSection(
-                        items = items,
-                        isGtaV = isGtaV,
-                        vehicle = vehicle,
-                        accent = accent,
-                        pendingId = pendingId,
-                        cheatsMask = cheatsMask,
-                        autoApplyCheats = autoApplyCheats,
-                        onTap = onRunCheat,
-                        onLongPress = onLongPress,
-                        onPaintRgb = onPaintRgb,
-                    ) }
-                } else null,
-            )
+            Box(
+                modifier = Modifier.onGloballyPositioned { c ->
+                    // c.boundsInParent() returns a Rect in the parent
+                    // Column's coordinate space (y grows downward); its
+                    // top/bottom are Floats, which match dragFingerY.
+                    val rect = c.boundsInParent()
+                    sectionBounds[idx] = rect.top..rect.bottom
+                },
+            ) {
+                CategorySection(
+                    category = category,
+                    items = items,
+                    accent = accent,
+                    pendingId = pendingId,
+                    cheatsMask = cheatsMask,
+                    autoApplyCheats = autoApplyCheats,
+                    expanded = expanded,
+                    onToggleExpanded = { onToggleSection(category.name, expanded) },
+                    onTap = onRunCheat,
+                    onLongPress = onLongPress,
+                    isDropTarget = hoverIdx == idx
+                        && dragFromIdx != null
+                        && dragFromIdx != idx,
+                    isDragging = dragFromIdx == idx,
+                    dragHandleModifier = Modifier.pointerInput(idx, effectiveOrder) {
+                        detectDragGesturesAfterLongPress(
+                            onDragStart = {
+                                dragFromIdx = idx
+                                // Finger starts somewhere inside this
+                                // section's row; parking the Y at the row's
+                                // vertical center is good enough — the
+                                // first onDrag delta puts it on the real
+                                // position within a frame.
+                                val range = sectionBounds[idx]
+                                dragFingerY = if (range != null)
+                                    (range.start + range.endInclusive) * 0.5f
+                                else 0f
+                            },
+                            onDrag = { change, dragAmount ->
+                                change.consume()
+                                dragFingerY += dragAmount.y
+                            },
+                            onDragEnd = {
+                                val from = dragFromIdx
+                                val to = hoverIdx
+                                if (from != null && to != null && from != to) {
+                                    val reordered = reorderList(effectiveOrder, from, to)
+                                    onReorderSections(reordered.map { it.name })
+                                }
+                                dragFromIdx = null
+                                dragFingerY = 0f
+                            },
+                            onDragCancel = {
+                                dragFromIdx = null
+                                dragFingerY = 0f
+                            },
+                        )
+                    },
+                    body = if (category == CheatCategory.Paint) {
+                        { PaintSection(
+                            items = items,
+                            isGtaV = isGtaV,
+                            vehicle = vehicle,
+                            accent = accent,
+                            pendingId = pendingId,
+                            cheatsMask = cheatsMask,
+                            autoApplyCheats = autoApplyCheats,
+                            onTap = onRunCheat,
+                            onLongPress = onLongPress,
+                            onPaintRgb = onPaintRgb,
+                            onOpenWheel = if (isGtaV)
+                                { -> showColorWheel = true }
+                            else null,
+                        ) }
+                    } else null,
+                )
+            }
         }
 
         // Last refusal, verbatim from the plugin. Blank line when the
@@ -239,6 +331,21 @@ internal fun CheatsScreen(
         accent = accent,
         onDismiss = onOnboardingDismissed,
     )
+
+    // The colour wheel. Always composed so the slide-out animation
+    // plays on dismiss; `visible` gates whether it is on screen. The
+    // picked RGB rides onPaintRgb — exactly the same wire path a
+    // swatch tap uses, so no new plugin code is involved.
+    ColorWheelSheet(
+        visible = showColorWheel,
+        accent = accent,
+        initial = lastWheelPicked,
+        onDismiss = { showColorWheel = false },
+        onPick = { packed ->
+            lastWheelPicked = packed
+            onPaintRgb(packed)
+        },
+    )
 }
 
 @Composable
@@ -253,43 +360,78 @@ private fun CategorySection(
     onToggleExpanded: () -> Unit,
     onTap: (Int) -> Unit,
     onLongPress: (CheatDef) -> Unit,
+    // Drag/drop decoration. The caller attaches a pointerInput to the
+    // handle icon via [dragHandleModifier]; this composable just paints
+    // the handle (leading) and lights the row border on hover.
+    dragHandleModifier: Modifier = Modifier,
+    isDropTarget: Boolean = false,
+    isDragging: Boolean = false,
     // Alternate body for sections that are not a plain two-wide grid
     // (today: Paint, which also shows the current pair and a V-only
     // swatch row). Default null = render the shared CheatGrid.
     body: (@Composable () -> Unit)? = null,
 ) {
+    val dim = Color(0xFF6A7A6E)
     // Expand/collapse state is hoisted to the ViewModel and persisted
     // in HudPrefs so collapsing a section survives app relaunch.
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            // Hover highlight: a thin accent border + a touch of fill
+            // on the drop target so the user can see where the section
+            // will land before letting go.
+            .let { if (isDropTarget) it.border(1.dp, accent, RoundedCornerShape(4.dp)) else it },
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onToggleExpanded() }
                 .padding(vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Drag handle. Six-dot icon; long-press on this icon starts
+            // the section reorder. The handle has its OWN pointerInput
+            // so the chevron / label can still short-tap to collapse.
             Icon(
-                imageVector = if (expanded) Icons.Filled.KeyboardArrowDown
-                              else Icons.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = accent,
-                modifier = Modifier.size(18.dp),
+                imageVector = Icons.Filled.DragIndicator,
+                contentDescription = stringResource(R.string.cheats_section_reorder_cd),
+                tint = if (isDragging) accent else dim,
+                modifier = Modifier
+                    .size(18.dp)
+                    .then(dragHandleModifier),
             )
             Spacer(Modifier.size(4.dp))
-            Text(
-                text = stringResource(category.labelRes),
-                color = accent,
-                fontFamily = FontFamily.Monospace,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-            )
-            Spacer(Modifier.size(6.dp))
-            Text(
-                text = "(${items.size})",
-                color = Color(0xFF6A7A6E),
-                fontFamily = FontFamily.Monospace,
-                fontSize = 10.sp,
-            )
+            // Chevron + label + count: short-tap collapses. Click lives
+            // on this inner Row so the drag handle to its left is NOT a
+            // tap target for collapse.
+            Row(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { onToggleExpanded() },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.KeyboardArrowDown
+                                  else Icons.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.size(4.dp))
+                Text(
+                    text = stringResource(category.labelRes),
+                    color = accent,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+                Spacer(Modifier.size(6.dp))
+                Text(
+                    text = "(${items.size})",
+                    color = dim,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                )
+            }
         }
         AnimatedVisibility(
             visible = expanded,
@@ -335,6 +477,10 @@ private fun PaintSection(
     onTap: (Int) -> Unit,
     onLongPress: (CheatDef) -> Unit,
     onPaintRgb: (Long) -> Unit,
+    // V-only "open the colour wheel" callback. Null on IV so the
+    // button never renders — the plugin would refuse paint_rgb there
+    // with "not in this game" anyway.
+    onOpenWheel: (() -> Unit)? = null,
 ) {
     val inCar = vehicle != null
     val fade = if (inCar) 1f else 0.4f
@@ -402,6 +548,41 @@ private fun PaintSection(
             onTap = if (inCar) onTap else { _ -> },
             onLongPress = if (inCar) onLongPress else { _ -> },
         )
+
+        // "Custom colour" opens the colour wheel. V-only (IV refuses
+        // paint_rgb at the plugin, so the button never renders on
+        // IV). Lives directly under the catalog row so the three
+        // standard buttons + this one feel like one cluster. Pending
+        // alpha mirrors the in-flight state the swatch row uses.
+        if (onOpenWheel != null) {
+            Spacer(Modifier.height(6.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 44.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.Black)
+                        .border(1.dp, accent.copy(alpha = fade), RoundedCornerShape(50))
+                        .clickable(enabled = inCar) { onOpenWheel() }
+                        .padding(horizontal = 8.dp, vertical = 10.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = stringResource(R.string.cheats_paint_custom_colour),
+                        color = accent.copy(alpha = fade),
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 12.sp,
+                    )
+                }
+                // Pad the second slot so this button keeps the
+                // half-width look of the other paint buttons.
+                Spacer(Modifier.weight(1f))
+            }
+        }
 
         if (isGtaV) {
             Spacer(Modifier.height(8.dp))
