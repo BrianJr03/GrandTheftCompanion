@@ -9,6 +9,7 @@
     <string name="tab_hud">hud</string>
     <string name="tab_map">map</string>
     <string name="tab_cheats">cheats</string>
+    <string name="tab_atlas">atlas</string>
 
     <!-- Cheats tab. GTA IV plugin builds without THORBRIDGE_CHEATS
          show the unsupported line; otherwise the two sections. The
