@@ -224,8 +224,11 @@ int format_weapons(char* buf, size_t cap, const snapshot::Lists& l) {
 // filtered client-side by comparing `ver`.
 int format_mods(char* buf, size_t cap, const snapshot::Mods& m) {
     Out o{buf, cap, 0, false};
+    // "vehicle_model" instead of "vehicle" so the frame does not
+    // collide with the state frame's nested vehicle object when both
+    // land on the same client-side GameState model.
     o.add("{\"v\":1,\"type\":\"mods\",\"game\":\"v\",\"ver\":%u,"
-          "\"vehicle\":%u,", m.ver, m.vehicle);
+          "\"vehicle_model\":%u,", m.ver, m.vehicle);
     o.add_bool("kit", m.kit);
     o.add("\"wheel_type\":%d,\"tints\":%d,\"tint\":%d,"
           "\"plate_style\":%d,", m.wheel_type, m.tints, m.tint, m.plate_style);
