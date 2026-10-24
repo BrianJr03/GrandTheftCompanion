@@ -109,6 +109,25 @@ class CommandFrameTest {
     }
 
     @Test
+    fun waypointXyCarriesBothCoords() {
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":7,\"name\":\"waypoint_xy\"," +
+                "\"args\":{\"x\":123.5,\"y\":-67.25}}\n",
+            commandFrameXy(7, "waypoint_xy", 123.5f, -67.25f),
+        )
+    }
+
+    @Test
+    fun waypointXyTrimsTrailingZeros() {
+        // Whole-number coordinates should not drag "123.00".
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":1,\"name\":\"waypoint_xy\"," +
+                "\"args\":{\"x\":123,\"y\":0}}\n",
+            commandFrameXy(1, "waypoint_xy", 123.0f, 0.0f),
+        )
+    }
+
+    @Test
     fun setWheelTypeUsesTypeArgKey() {
         assertTrue(commandFrame(4, "set_wheel_type", 1L)!!
             .contains("\"args\":{\"type\":1}"))
@@ -208,5 +227,24 @@ class CommandFrameTest {
         val add  = (4L shl 16) or 1L
         assertTrue(commandFrame(23, "set_ammo", fill)!!.contains("\"arg\":$fill"))
         assertTrue(commandFrame(24, "set_ammo", add)!!.contains("\"arg\":$add"))
+    }
+
+    @Test
+    fun waypointXyHandlesNegativeAndSmallFractions() {
+        val line = commandFrameXy(2, "waypoint_xy", -0.5f, 10.1f)
+        assertTrue(line.contains("\"x\":-0.5"))
+        assertTrue(line.contains("\"y\":10.1"))
+        assertTrue(line.endsWith("\n"))
+    }
+
+    @Test
+    fun singleArgFramesAreUnchangedByThisChange() {
+        // Byte-identical to the pre-pos change — these frames still
+        // encode the same way the plugin and run_mock_test.py expect.
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":1,\"name\":\"route_clear\"," +
+                "\"args\":{\"value\":0}}\n",
+            commandFrame(1, "route_clear", 0L),
+        )
     }
 }

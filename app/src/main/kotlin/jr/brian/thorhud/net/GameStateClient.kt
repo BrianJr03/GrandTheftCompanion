@@ -176,6 +176,27 @@ class GameStateClient @Inject constructor() {
         }
     }
 
+    /** Send a command whose args are two world coordinates ("x" + "y"),
+     *  used by waypoint_xy. Returns the assigned id or null when
+     *  disconnected. */
+    suspend fun sendXy(name: String, x: Float, y: Float): Int? =
+        withContext(Dispatchers.IO) {
+            val out = currentOut ?: return@withContext null
+            val id = cmdId.incrementAndGet()
+            val line = commandFrameXy(id, name, x, y)
+            writeMutex.withLock {
+                try {
+                    out.write(line.toByteArray(Charsets.UTF_8))
+                    out.flush()
+                    Log.i(TAG, "sent cmd id=$id name=$name x=$x y=$y")
+                    id
+                } catch (t: Throwable) {
+                    Log.w(TAG, "send failed: ${t.message}")
+                    null
+                }
+            }
+        }
+
     companion object {
         const val DEFAULT_HOST = "127.0.0.1"
         const val DEFAULT_PORT = 47801
