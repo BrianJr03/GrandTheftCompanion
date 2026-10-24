@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <cstring>
 
+#include "blip_natives.h"   // game::get_char_coordinates / get_char_heading
 #include "blips.h"
 #include "commands.h"
 #include "hook.h"
@@ -207,6 +208,24 @@ void on_frame() {
     snapshot::Player p{};
     p.in_game = true;
     p.ts_ms = GetTickCount();
+
+    // Player world position + heading. The custom-map (atlas) page
+    // renders the player triangle from these. Available at every
+    // natives level because the wrapper lives in blip_natives.cpp
+    // and GET_CHAR_COORDINATES + GET_CHAR_HEADING are stable natives
+    // in CE 1.2.0.59. Written before the stats read so a frame with
+    // a partially-populated player still carries a pos the atlas can
+    // use.
+    {
+        float px = 0.0f, py = 0.0f, pz = 0.0f;
+        if (game::get_char_coordinates(ped_handle, &px, &py, &pz)) {
+            p.pos_x = px;
+            p.pos_y = py;
+            p.pos_z = pz;
+            p.heading = game::get_char_heading(ped_handle);
+            p.pos_valid = true;
+        }
+    }
 
     // Health. uint32_t out param; IV reports 100..200 where 100 is dead.
     {

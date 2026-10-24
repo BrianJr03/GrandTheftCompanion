@@ -95,6 +95,15 @@ bool get_char_coordinates(uint32_t ped, float* x, float* y, float* z) {
     return true;
 }
 
+float get_char_heading(uint32_t ped) {
+    float out = 0.0f;
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(&out);
+    natives::invoke(natives::GET_CHAR_HEADING, ctx);
+    return out;
+}
+
 bool get_mission_flag() {
     natives::Context ctx;
     if (!natives::invoke(natives::GET_MISSION_FLAG, ctx)) return false;

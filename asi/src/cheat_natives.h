@@ -78,13 +78,12 @@ void warp_char_into_car(uint32_t ped, uint32_t vehicle);
 // Takes a pointer to a Vehicle handle — same calling convention
 // as the V plugin's SET_VEHICLE_AS_NO_LONGER_NEEDED wrapper.
 void mark_car_as_no_longer_needed(uint32_t* vehicle_ptr);
-float get_char_heading(uint32_t ped);
 // Only used to re-orient the car after SET_PED_INTO_VEHICLE if the
 // game spawned it rotated.
 void set_char_heading(uint32_t ped, float heading);
 
-// NOTE: get_char_coordinates is already declared in blip_natives.h
-// (used at natives level 5 for the blip census). cheats::advance_spawn
-// uses that same wrapper rather than redefining it.
+// NOTE: get_char_coordinates and get_char_heading are declared in
+// blip_natives.h (always compiled). cheats::advance_spawn and
+// probes.cpp both share those wrappers.
 
 }  // namespace game

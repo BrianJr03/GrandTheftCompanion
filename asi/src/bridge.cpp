@@ -69,9 +69,28 @@ void json_escape(char* dst, size_t cap, const char* src) {
     dst[i] = '\0';
 }
 
+// JSON has no NaN/Inf: a broken float from the game must not produce
+// an unparseable frame.
+static double finite(float f) {
+    return (f == f && f > -1e30f && f < 1e30f) ? static_cast<double>(f) : 0.0;
+}
+
 int format_state(char* buf, size_t cap, const snapshot::Player& p) {
     char veh_name[64] = {0};
     json_escape(veh_name, sizeof(veh_name), p.vehicle_name);
+
+    // Player position fragment. Lives in its own buffer so format_state's
+    // one big snprintf stays readable; emits an empty string when the
+    // frame has no ped yet, so no partial object leaks into the JSON.
+    // If `frame format overflow` ever starts appearing in the log the
+    // first thing to try is dropping z — the atlas does not use it.
+    char pos[80] = {0};
+    if (p.pos_valid) {
+        std::snprintf(pos, sizeof(pos),
+                      "\"pos\":{\"x\":%.2f,\"y\":%.2f,\"z\":%.2f,\"h\":%.1f},",
+                      finite(p.pos_x), finite(p.pos_y),
+                      finite(p.pos_z), finite(p.heading));
+    }
 
     // Nine scanned slots at up to ~32 bytes each.
     char weapons[512];
@@ -107,6 +126,7 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         "\"speed_mps\":%.2f,\"engine_hp\":%.1f},"
         "\"radio\":%d,\"episode\":%u,"
         "\"mission\":%s,\"route_blip\":%d,"
+        "%s"
         "\"cheats_mask\":%u}\n",
         static_cast<unsigned long long>(p.ts_ms),
         p.in_game ? "true" : "false",
@@ -127,6 +147,7 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         static_cast<double>(p.vehicle_engine_hp),
         p.radio_station, p.episode,
         p.mission ? "true" : "false", p.route_blip,
+        pos,
         p.cheats_mask);
 }
 

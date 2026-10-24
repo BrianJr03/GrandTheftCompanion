@@ -181,6 +181,11 @@ void drain(uint32_t ped_handle, const snapshot::Player& p) {
             post_err_ack(c.id, c.ack_queue, "route_blip: not in this build");
 #endif
 
+        } else if (std::strcmp(c.name, "waypoint_xy") == 0) {
+            // GTA IV has no map waypoint native; the companion keeps
+            // long-press-to-route a GTA V feature only.
+            post_err_ack(c.id, c.ack_queue, "not in this game");
+
         } else if (std::strcmp(c.name, "route_clear") == 0) {
 #if THORBRIDGE_NATIVES_LEVEL >= 5
             blips::route_clear();

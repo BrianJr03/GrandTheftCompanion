@@ -202,14 +202,9 @@ void mark_car_as_no_longer_needed(uint32_t* vehicle_ptr) {
     natives::invoke(natives::MARK_CAR_AS_NO_LONGER_NEEDED, ctx);
 }
 
-float get_char_heading(uint32_t ped) {
-    float out = 0.0f;
-    natives::Context ctx;
-    ctx.push(ped);
-    ctx.push(&out);
-    natives::invoke(natives::GET_CHAR_HEADING, ctx);
-    return out;
-}
+// NOTE: get_char_heading moved to blip_natives.cpp so stock (non-cheats)
+// builds can read the player's heading for the atlas page's player
+// triangle. It stayed logically here through the cheats-first phases.
 
 void set_char_heading(uint32_t ped, float heading) {
     natives::Context ctx;
