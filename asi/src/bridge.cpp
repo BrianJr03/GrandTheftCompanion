@@ -73,6 +73,17 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
     char veh_name[64] = {0};
     json_escape(veh_name, sizeof(veh_name), p.vehicle_name);
 
+    // Paint section: colour pair for the Paint UI (THORBRIDGE_CHEATS
+    // only). Rendered as two extra fields inside the vehicle block
+    // when the probes read fired this frame; omitted otherwise. ~28
+    // bytes against the 1 KB stack buffer.
+    char colours[64] = {0};
+    if (p.vehicle_colours_valid) {
+        std::snprintf(colours, sizeof(colours),
+                      ",\"colour1\":%d,\"colour2\":%d",
+                      p.vehicle_colour1, p.vehicle_colour2);
+    }
+
     // Nine scanned slots at up to ~32 bytes each.
     char weapons[512];
     {
@@ -104,7 +115,7 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         "\"weapon\":%d,\"ammo_total\":%d,\"ammo_clip\":%d,"
         "\"owned\":%s,"
         "\"vehicle\":{\"model\":%u,\"name\":\"%s\","
-        "\"speed_mps\":%.2f,\"engine_hp\":%.1f},"
+        "\"speed_mps\":%.2f,\"engine_hp\":%.1f%s},"
         "\"radio\":%d,\"episode\":%u,"
         "\"mission\":%s,\"route_blip\":%d,"
         "\"cheats_mask\":%u}\n",
@@ -125,6 +136,7 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         p.vehicle_model, veh_name,
         static_cast<double>(p.vehicle_speed_mps),
         static_cast<double>(p.vehicle_engine_hp),
+        colours,
         p.radio_station, p.episode,
         p.mission ? "true" : "false", p.route_blip,
         p.cheats_mask);

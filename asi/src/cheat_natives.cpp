@@ -90,6 +90,22 @@ void wash_vehicle_textures(uint32_t vehicle, uint32_t intensity) {
     natives::invoke(natives::WASH_VEHICLE_TEXTURES, ctx);
 }
 
+void change_car_colour(uint32_t vehicle, uint32_t c1, uint32_t c2) {
+    natives::Context ctx;
+    ctx.push(vehicle);
+    ctx.push(c1);
+    ctx.push(c2);
+    natives::invoke(natives::CHANGE_CAR_COLOUR, ctx);
+}
+
+void get_car_colours(uint32_t vehicle, uint32_t* c1, uint32_t* c2) {
+    natives::Context ctx;
+    ctx.push(vehicle);
+    ctx.push(c1);
+    ctx.push(c2);
+    natives::invoke(natives::GET_CAR_COLOURS, ctx);
+}
+
 void force_weather_now(uint32_t weather) {
     natives::Context ctx;
     ctx.push(weather);

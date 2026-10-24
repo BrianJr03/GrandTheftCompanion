@@ -49,6 +49,14 @@ void set_char_ammo(uint32_t ped, uint32_t weapon, uint32_t ammo);
 void fix_car(uint32_t vehicle);
 void wash_vehicle_textures(uint32_t vehicle, uint32_t intensity);
 
+// --- paint --------------------------------------------------------
+// CHANGE_CAR_COLOUR(Vehicle, c1, c2); GET_CAR_COLOURS writes both
+// indices through out-pointers. Both reads and writes are safe
+// outside a vehicle, but the companion only sends them while the
+// player is in one.
+void change_car_colour(uint32_t vehicle, uint32_t c1, uint32_t c2);
+void get_car_colours(uint32_t vehicle, uint32_t* c1, uint32_t* c2);
+
 // --- world --------------------------------------------------------
 void force_weather_now(uint32_t weather);
 void release_weather();

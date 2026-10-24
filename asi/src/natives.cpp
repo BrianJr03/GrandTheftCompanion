@@ -201,14 +201,18 @@ bool debug_read_pause(bool* user_paused, bool* script_paused) {
 }
 
 // Fixed-size open-addressing cache for native handlers. Tiny: GTA IV
-// has ~1500 natives but we only invoke ~15 per frame; linear scan over a
-// 32-entry array is faster than a hash probe.
+// has ~1500 natives but we only invoke ~15 per frame; linear scan over
+// the array is faster than a hash probe.
 namespace {
 struct CacheEntry { uint32_t hash; natives::Handler fn; };
 // Every distinct native the plugin calls needs a slot; lookup() answers
 // nullptr (and the native silently never runs) once this is full. Level
-// 5 brought the count past 32.
-CacheEntry g_cache[64] = {};
+// 5 brought the count past 32; THORBRIDGE_CHEATS added ~19 more; paint
+// adds two (GET/CHANGE_CAR_COLOUR), landing at ~62/64. A follow-up that
+// adds any native would silently clip, so bump to 128 ahead of time —
+// the cost is 512 bytes once per process and the linear scan still
+// shows up for free in a profiler.
+CacheEntry g_cache[128] = {};
 unsigned   g_cache_count = 0;
 }  // namespace
 

@@ -33,6 +33,7 @@
 #include "snapshot.h"
 #include "weapons.h"
 #if THORBRIDGE_CHEATS
+#include "cheat_natives.h"
 #include "cheats.h"
 #endif
 
@@ -366,6 +367,21 @@ void on_frame() {
                  static_cast<uint32_t>(p.ts_ms));
     p.cheats_mask = cheats::mask();
     g_cheats_in_game_last = true;
+
+    // Paint section: palette-index pair for the car the player is in.
+    // One extra GET_CAR_COLOURS call per in-vehicle frame; same class
+    // of read as GET_CAR_SPEED above. Skipped on foot so the Paint
+    // section greys out from vehicle_colours_valid=false.
+    if (p.in_vehicle) {
+        const uint32_t veh = game::get_car_char_is_using(ped_handle);
+        if (veh != 0 && veh != 0xFFFFFFFFu) {
+            uint32_t c1 = 0, c2 = 0;
+            game::get_car_colours(veh, &c1, &c2);
+            p.vehicle_colour1 = static_cast<int32_t>(c1);
+            p.vehicle_colour2 = static_cast<int32_t>(c2);
+            p.vehicle_colours_valid = true;
+        }
+    }
 #endif
 
     snapshot::publish(p);

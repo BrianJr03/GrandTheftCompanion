@@ -1,5 +1,6 @@
 #include "cheats.h"
 
+#include <cstdlib>
 #include <cstring>
 
 #include "blip_natives.h"   // game::get_char_coordinates (shared with level 5)
@@ -55,6 +56,7 @@ const char* const kErrUnknown      = "unknown cheat";
 const char* const kErrNotInBuild   = "cheat not in this build";
 const char* const kErrNoPed        = "no player ped";
 const char* const kErrNotInVehicle = "not in a vehicle";
+const char* const kErrNotInGame    = "not in this game";
 const char* const kErrSpawnInProgress = "spawn in progress";
 const char* const kErrModelBad     = "model not available";
 const char* const kErrSpawnTimeout = "model load timed out";
@@ -80,6 +82,10 @@ namespace {
 uint32_t g_mask = 0;
 uint32_t g_last_ped = 0;
 uint32_t g_weather_idx = 0;
+// Random-palette seed for respray. One-shot per process; the test
+// supplies a fake game::rand through g_test_rand so results are
+// deterministic in cheats_test.cpp.
+bool     g_rand_seeded = false;
 
 // One pending vehicle spawn at a time. A second tap while one is in
 // flight is refused with kErrSpawnInProgress.
@@ -226,6 +232,52 @@ const char* run_one_shot(uint32_t id, uint32_t player, uint32_t ped,
         game::wash_vehicle_textures(veh, 0);
         return nullptr;
     }
+    case kRespray: {
+        if (!p.in_vehicle) return kErrNotInVehicle;
+        const uint32_t veh = game::get_car_char_is_using(ped);
+        if (veh == 0) return kErrNotInVehicle;
+        if (!g_rand_seeded) {
+            g_rand_seeded = true;
+            // GetTickCount() lives in <windows.h>, which this file does
+            // not include; use std::rand's time-independent default
+            // seed instead. Not cryptographic — just a shuffle.
+            std::srand(static_cast<unsigned>(
+                reinterpret_cast<uintptr_t>(&g_rand_seeded)));
+        }
+        const uint32_t c1 =
+            static_cast<uint32_t>(std::rand()) % (kPaletteMax + 1);
+        const uint32_t c2 =
+            static_cast<uint32_t>(std::rand()) % (kPaletteMax + 1);
+        game::change_car_colour(veh, c1, c2);
+        game::fix_car(veh);
+        game::wash_vehicle_textures(veh, 0);
+        return nullptr;
+    }
+    case kNextColour: {
+        if (!p.in_vehicle) return kErrNotInVehicle;
+        const uint32_t veh = game::get_car_char_is_using(ped);
+        if (veh == 0) return kErrNotInVehicle;
+        uint32_t c1 = 0, c2 = 0;
+        game::get_car_colours(veh, &c1, &c2);
+        const uint32_t next = (c1 + 1) % (kPaletteMax + 1);
+        game::change_car_colour(veh, next, c2);
+        return nullptr;
+    }
+    case kSwapColours: {
+        if (!p.in_vehicle) return kErrNotInVehicle;
+        const uint32_t veh = game::get_car_char_is_using(ped);
+        if (veh == 0) return kErrNotInVehicle;
+        uint32_t c1 = 0, c2 = 0;
+        game::get_car_colours(veh, &c1, &c2);
+        game::change_car_colour(veh, c2, c1);
+        return nullptr;
+    }
+    case kCustomColour:
+        // GTA V-only. The companion sends this via paint_rgb; IV's
+        // commands.cpp never dispatches it, but a stray cheat command
+        // with id=63 still lands here. Answer explicitly so the ack's
+        // reason distinguishes "not here" from "refused".
+        return kErrNotInGame;
     case kNextWeather:
         // Advance, cycling through kWeatherIds and ending on
         // RELEASE_WEATHER (the "let the game decide" step).

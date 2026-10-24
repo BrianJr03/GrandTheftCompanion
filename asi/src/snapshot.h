@@ -64,6 +64,14 @@ struct Player {
     char vehicle_name[32];     // GET_DISPLAY_NAME_FROM_VEHICLE_MODEL
     float vehicle_speed_mps;   // GET_CAR_SPEED (m/s)
     float vehicle_engine_hp;   // GET_ENGINE_HEALTH
+    // Paint (THORBRIDGE_CHEATS only). GET_CAR_COLOURS reads both
+    // palette indices through out-pointers. Zero (and the bridge
+    // omits both fields) in builds that did not read them this
+    // frame; the companion treats zero as "unknown" rather than
+    // index 0.
+    int32_t  vehicle_colour1;
+    int32_t  vehicle_colour2;
+    bool     vehicle_colours_valid;
 
     // --- audio ---
     int32_t radio_station;     // GET_PLAYER_RADIO_STATION_INDEX; -1 = off

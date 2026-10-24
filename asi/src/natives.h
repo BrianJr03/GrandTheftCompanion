@@ -106,6 +106,15 @@ enum : uint32_t {
     MARK_CAR_AS_NO_LONGER_NEEDED        = 0x20C76FD1,  // void (Vehicle* vehPtr)
     GET_CHAR_HEADING                    = 0x057A3AC7,  // void (Ped, float* out)
     SET_CHAR_HEADING                    = 0x46B5523B,  // void (Ped, float)
+
+    // Paint. Palette-index pair, same as GTA V's carcols but with a
+    // narrower vanilla table (prediction: 0..133; pinned on-device in
+    // Gate IV1). Hashes from FusionFix source/natives.ixx; signatures
+    // are the vanilla scripting defs (4-byte args, out-params by
+    // pointer). GTA IV has no custom-colour RGB native, so the Paint
+    // section's swatch row stays V-only.
+    CHANGE_CAR_COLOUR                   = 0x06441EAF,  // void (Vehicle, uint c1, uint c2)
+    GET_CAR_COLOURS                     = 0x6CAC3D62,  // void (Vehicle, uint* c1, uint* c2)
 };
 
 // rage::scrNativeCallContext layout, per FusionFix (source/natives.ixx).

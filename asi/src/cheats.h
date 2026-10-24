@@ -59,6 +59,16 @@ enum CheatId : uint32_t {
     // Complete Edition — the vanilla phone cheats always work.
     kSpawnIvFirst      = 50,  // ids 50..58 (FIB Buffalo..Turismo)
     kSpawnIvLast       = 58,
+
+    // Paint. Shared with asi-v/src/cheats.h; GTA IV runs 60..62 and
+    // refuses 63 (RGB) with kErrNotInGame — the custom-colour natives
+    // are GTA V only. Reachable only via the id-shaped cheat command
+    // for 60..62; id 63 is sent by the companion's paint_rgb command
+    // but IV never advertises paint_rgb support.
+    kRespray           = 60,
+    kNextColour        = 61,
+    kSwapColours       = 62,
+    kCustomColour      = 63,  // refused on IV
 };
 
 // Toggle id range. Toggle id N lights bit (N - kFirstToggle) in the
@@ -141,6 +151,16 @@ extern const char* const kErrUnknown;
 extern const char* const kErrNotInBuild;
 extern const char* const kErrNoPed;
 extern const char* const kErrNotInVehicle;
+// Paint: id 63 (RGB) is only in the GTA V plugin. The IV side keeps
+// the id and the wrapper but answers with this exact string so the
+// companion can tell "feature not here" from "feature refused this
+// time".
+extern const char* const kErrNotInGame;
+
+// Palette cap for respray / next colour / swap. Prediction from the
+// stock carcols.dat; refined on-device in Gate IV1. Writes past the
+// cap are clamped or ignored by the game, not fatal.
+constexpr uint32_t kPaletteMax = 133;
 
 // Dispatch one synchronous tap. Returns nullptr on ok, a short reason
 // string on refusal. For toggles, flips the mask bit then runs the

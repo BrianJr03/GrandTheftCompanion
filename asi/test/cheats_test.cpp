@@ -63,6 +63,14 @@ struct State {
     int fix_calls = 0;
     int wash_calls = 0;
 
+    // Paint state. Pair of palette indices + a counter per write for
+    // the "exactly one X call" checks. kVeh is implicit; the fakes
+    // check that the write landed on it.
+    uint32_t colour1 = 10;
+    uint32_t colour2 = 20;
+    int      change_colour_calls = 0;
+    int      get_colour_calls = 0;
+
     uint32_t forced_weather = 0xFFFFFFFFu;
     int      forced_calls = 0;
     int      release_weather_calls = 0;
@@ -157,6 +165,21 @@ void wash_vehicle_textures(uint32_t veh, uint32_t intensity) {
     check(veh == g.veh, "wash: called with the player's vehicle");
     check(intensity == 0, "wash: intensity 0 means fully clean");
     ++g.wash_calls;
+}
+
+void change_car_colour(uint32_t veh, uint32_t c1, uint32_t c2) {
+    check(veh == g.veh, "change-colour: called with the player's vehicle");
+    check(c1 <= cheats::kPaletteMax, "change-colour: c1 within palette");
+    check(c2 <= cheats::kPaletteMax, "change-colour: c2 within palette");
+    g.colour1 = c1;
+    g.colour2 = c2;
+    ++g.change_colour_calls;
+}
+void get_car_colours(uint32_t veh, uint32_t* c1, uint32_t* c2) {
+    check(veh == g.veh, "get-colours: called with the player's vehicle");
+    if (c1) *c1 = g.colour1;
+    if (c2) *c2 = g.colour2;
+    ++g.get_colour_calls;
 }
 
 // world
@@ -341,6 +364,93 @@ void test_fix_vehicle() {
     check(err == nullptr, "fix vehicle in car: ok");
     check(g.fix_calls == 1 && g.wash_calls == 1,
           "fix vehicle in car: both natives fired once");
+}
+
+void test_paint_respray() {
+    std::printf("paint: respray\n");
+    fake_reset();
+
+    // On foot: refused with the right reason, no native fires.
+    snapshot::Player foot = on_foot();
+    const char* err = cheats::run(cheats::kRespray, kPlayer, kPed, foot);
+    check(err != nullptr && std::strcmp(err, cheats::kErrNotInVehicle) == 0,
+          "respray on foot: refused as 'not in a vehicle'");
+    check(g.change_colour_calls == 0 && g.fix_calls == 0,
+          "respray on foot: no native fired");
+
+    // In a car: writes a fresh pair, each within kPaletteMax, and
+    // reuses the fix path (one fix + one wash). The actual values are
+    // RNG so we check the range + the counters, not specific indices.
+    snapshot::Player car = in_vehicle();
+    const uint32_t before1 = g.colour1, before2 = g.colour2;
+    err = cheats::run(cheats::kRespray, kPlayer, kPed, car);
+    check(err == nullptr, "respray in car: ok");
+    check(g.change_colour_calls == 1,
+          "respray: one change-colour call");
+    check(g.colour1 <= cheats::kPaletteMax
+          && g.colour2 <= cheats::kPaletteMax,
+          "respray: resulting pair within the palette");
+    check(g.fix_calls == 1 && g.wash_calls == 1,
+          "respray: fix + wash fired once");
+    (void)before1; (void)before2;   // not every seed changes both halves
+}
+
+void test_paint_next_colour_wraps() {
+    std::printf("paint: next colour wraps\n");
+    fake_reset();
+    snapshot::Player car = in_vehicle();
+
+    // Start at kPaletteMax and tap once: c1 wraps to 0, c2 unchanged.
+    g.colour1 = cheats::kPaletteMax;
+    g.colour2 = 42;
+    const char* err = cheats::run(cheats::kNextColour, kPlayer, kPed, car);
+    check(err == nullptr, "next colour: ok");
+    check(g.colour1 == 0, "next colour: wraps from kPaletteMax to 0");
+    check(g.colour2 == 42, "next colour: c2 unchanged");
+
+    // Normal step just bumps c1.
+    g.colour1 = 10;
+    cheats::run(cheats::kNextColour, kPlayer, kPed, car);
+    check(g.colour1 == 11, "next colour: 10 -> 11");
+
+    // On foot: refused, nothing changes.
+    snapshot::Player foot = on_foot();
+    err = cheats::run(cheats::kNextColour, kPlayer, kPed, foot);
+    check(err != nullptr && std::strcmp(err, cheats::kErrNotInVehicle) == 0,
+          "next colour on foot: refused as 'not in a vehicle'");
+}
+
+void test_paint_swap() {
+    std::printf("paint: swap colours\n");
+    fake_reset();
+    snapshot::Player car = in_vehicle();
+    g.colour1 = 7;
+    g.colour2 = 100;
+    const char* err = cheats::run(cheats::kSwapColours, kPlayer, kPed, car);
+    check(err == nullptr, "swap: ok");
+    check(g.colour1 == 100 && g.colour2 == 7, "swap: pair reversed");
+
+    // Second swap returns to the original.
+    cheats::run(cheats::kSwapColours, kPlayer, kPed, car);
+    check(g.colour1 == 7 && g.colour2 == 100,
+          "swap twice: back to original");
+
+    // On foot: refused, nothing changes.
+    snapshot::Player foot = on_foot();
+    err = cheats::run(cheats::kSwapColours, kPlayer, kPed, foot);
+    check(err != nullptr && std::strcmp(err, cheats::kErrNotInVehicle) == 0,
+          "swap on foot: refused as 'not in a vehicle'");
+}
+
+void test_paint_custom_colour_refused_on_iv() {
+    std::printf("paint: custom colour (63) refused on IV\n");
+    fake_reset();
+    snapshot::Player car = in_vehicle();
+    const char* err = cheats::run(cheats::kCustomColour, kPlayer, kPed, car);
+    check(err != nullptr && std::strcmp(err, cheats::kErrNotInGame) == 0,
+          "custom colour: refused with 'not in this game'");
+    check(g.change_colour_calls == 0,
+          "custom colour: no CHANGE_CAR_COLOUR fired on refusal");
 }
 
 void test_weather_cycle() {
@@ -601,6 +711,10 @@ int main() {
     test_max_ammo_skips_without_scan();
     test_max_ammo_only_owned();
     test_fix_vehicle();
+    test_paint_respray();
+    test_paint_next_colour_wraps();
+    test_paint_swap();
+    test_paint_custom_colour_refused_on_iv();
     test_weather_cycle();
     test_time_cycle();
     test_toggles_flip_mask_and_fire_natives();
