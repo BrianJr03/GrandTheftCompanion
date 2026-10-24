@@ -176,9 +176,21 @@ int format_state(char* buf, size_t cap, const snapshot::State& s,
 
     o.add("\"cheats_mask\":%u,", s.cheats_mask);
 
+    // Player world position + heading, present whenever a ped exists
+    // (not just when in a vehicle). h is degrees, 0 = north. Omitted
+    // when the plugin had no ped to read from, so the companion can
+    // leave the player marker off the atlas rather than drawing it
+    // stuck at the origin.
+    if (s.pos_valid) {
+        o.add("\"pos\":{\"x\":%.2f,\"y\":%.2f,\"z\":%.2f,\"h\":%.1f},",
+              finite(s.pos_x), finite(s.pos_y),
+              finite(s.pos_z), finite(s.heading));
+    }
+
     // The player's map waypoint. "ours" means the companion set it (via
-    // route_blip) and it has not been moved since, so the companion may
-    // move or clear it; a hand-placed one is left alone.
+    // route_blip or waypoint_xy) and it has not been moved since, so
+    // the companion may move or clear it; a hand-placed one is left
+    // alone.
     o.add("\"waypoint\":{\"active\":%s,\"ours\":%s,\"blip\":%d}}\n",
           b(s.waypoint_active), b(s.waypoint_ours), s.route_blip);
     return o.overflow ? -1 : static_cast<int>(o.len);
@@ -252,10 +264,11 @@ bool send_all(SOCKET sock, const char* buf, int n) {
 }
 
 // Minimal extraction for `cmd` frames — same wire format and the same
-// approach as the GTA IV plugin: id, name, and the first number inside
-// args. Both commands take one unsigned integer.
+// approach as the GTA IV plugin: id, name, the first number inside
+// args, and (for commands that opt in) a pair of floats keyed by
+// "x" and "y". Commands that only need one int ignore the floats.
 bool parse_cmd(const char* line, uint32_t* id, char* name, size_t name_cap,
-               uint32_t* arg0) {
+               uint32_t* arg0, float* fx, float* fy) {
     if (!std::strstr(line, "\"type\":\"cmd\"")) return false;
 
     const char* p = std::strstr(line, "\"id\":");
@@ -274,15 +287,29 @@ bool parse_cmd(const char* line, uint32_t* id, char* name, size_t name_cap,
     if (*n != '"') return false;
 
     *arg0 = 0;
+    *fx = 0.0f;
+    *fy = 0.0f;
     const char* a = std::strstr(line, "\"args\":");
     if (!a) return true;   // args optional
-    while (*a && !(*a >= '0' && *a <= '9')) ++a;
-    if (!*a) return true;
-    // strtoull, not strtoul: `unsigned long` is 32-bit on Windows and
-    // would saturate silently; parse wide, then range-check.
-    unsigned long long v = std::strtoull(a, nullptr, 10);
-    if (v > 0xFFFFFFFFull) return false;
-    *arg0 = static_cast<uint32_t>(v);
+
+    // Named float extraction: `"x":<num>` / `"y":<num>` anywhere after
+    // the args marker. World coords may be negative, so the walk must
+    // not stop at '-'. The scan is tolerant: either key missing leaves
+    // the corresponding float at 0 and the caller decides whether that
+    // matters.
+    if (const char* kx = std::strstr(a, "\"x\":")) *fx = std::strtof(kx + 4, nullptr);
+    if (const char* ky = std::strstr(a, "\"y\":")) *fy = std::strtof(ky + 4, nullptr);
+
+    // First unsigned integer inside args. Used by every single-int
+    // command; waypoint_xy ignores it. Skip minus signs so the walk
+    // past a negative float on its way to a later int keeps working.
+    const char* d = a;
+    while (*d && !(*d >= '0' && *d <= '9')) ++d;
+    if (*d) {
+        unsigned long long v = std::strtoull(d, nullptr, 10);
+        if (v > 0xFFFFFFFFull) return false;
+        *arg0 = static_cast<uint32_t>(v);
+    }
     return true;
 }
 
@@ -311,9 +338,12 @@ DWORD WINAPI reader_main(LPVOID arg) {
             commands::Cmd c{};
             c.client = cx->id;
             c.queued_ms = GetTickCount64();
-            if (parse_cmd(buf, &c.id, c.name, sizeof(c.name), &c.arg0)) {
-                thor_log("[bridge/rx] cmd id=%u name=%s arg0=%u",
-                         c.id, c.name, c.arg0);
+            if (parse_cmd(buf, &c.id, c.name, sizeof(c.name), &c.arg0,
+                          &c.arg_fx, &c.arg_fy)) {
+                thor_log("[bridge/rx] cmd id=%u name=%s arg0=%u xy=(%.1f, %.1f)",
+                         c.id, c.name, c.arg0,
+                         static_cast<double>(c.arg_fx),
+                         static_cast<double>(c.arg_fy));
                 commands::enqueue(c);
             } else {
                 thor_log("[bridge/rx] unparseable line (%u bytes)",

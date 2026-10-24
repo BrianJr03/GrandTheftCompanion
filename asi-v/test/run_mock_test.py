@@ -90,6 +90,11 @@ class Session:
                % (cid, name, key, value))
         self.sock.sendall(msg.encode())
 
+    def send_cmd_xy(self, cid, name, x, y):
+        msg = ('{"v":1,"type":"cmd","id":%d,"name":"%s",'
+               '"args":{"x":%g,"y":%g}}\n' % (cid, name, x, y))
+        self.sock.sendall(msg.encode())
+
     def close(self):
         if self.sock:
             self.sock.close()
@@ -176,6 +181,9 @@ def test_story():
           "on foot at start: no vehicle object")
     check(first.get("radio") == -1 and first.get("radio_name") == "",
           "radio off on foot")
+    pos = first.get("pos", {})
+    check(isinstance(pos, dict) and {"x","y","z","h"} <= set(pos),
+          "every in-game state frame carries pos{x,y,z,h}")
 
     veh = next((f for _, f in states if f.get("in_vehicle")), {})
     v = veh.get("vehicle", {})
@@ -522,6 +530,82 @@ def test_cheats():
         print("---- ThorBridgeV.log ----\n" + log[-3000:])
 
 
+def test_custom_map():
+    """Michael on foot throughout. The mock player walks a 100 m square;
+    pos.x/pos.y/pos.h must track that walk and show up in every state
+    frame. waypoint_xy sets the mock waypoint at a world point and
+    marks it ours; route_clear removes it."""
+    print("scenario: custom_map")
+    s = Session("custom_map", 10)
+    check(s.sock is not None, "bridge accepts a connection")
+    if not s.sock:
+        print(s.close())
+        return
+    states = []
+    acks = {}
+    sent_wp = False
+    sent_clear = False
+    for f in s.frames(8):
+        if f["type"] == "ack":
+            acks[f["id"]] = f
+        if f["type"] != "state":
+            continue
+        states.append(f)
+        if not f.get("in_game"):
+            continue
+        if not sent_wp:
+            sent_wp = True
+            s.send_cmd_xy(1, "waypoint_xy", 123.5, -67.25)
+        elif not sent_clear and f.get("waypoint", {}).get("ours"):
+            sent_clear = True
+            s.send_cmd(2, "route_clear", "value", 0)
+    rc, err, log = s.close()
+
+    live = [f for f in states if f.get("in_game")]
+    check(bool(live), "scenario produced live state frames")
+
+    # pos.x/pos.y should track the square. We check that it varies.
+    xs = [f.get("pos", {}).get("x") for f in live if "pos" in f]
+    ys = [f.get("pos", {}).get("y") for f in live if "pos" in f]
+    hs = [f.get("pos", {}).get("h") for f in live if "pos" in f]
+    check(len(xs) == len(live) and None not in xs,
+          "every live state frame carries pos")
+    check(xs and (max(xs) - min(xs)) > 50,
+          "pos.x spans the square (dx=%.1f)" % ((max(xs)-min(xs)) if xs else 0))
+    check(ys and (max(ys) - min(ys)) > 50,
+          "pos.y spans the square (dy=%.1f)" % ((max(ys)-min(ys)) if ys else 0))
+    check(hs and len(set(round(h, 0) for h in hs)) >= 2,
+          "heading changes during the walk")
+
+    # waypoint_xy should ack ok and the mock's waypoint should be at
+    # the point we sent (within tolerance).
+    check(acks.get(1, {}).get("ok") is True, "waypoint_xy -> ok")
+    check(any(f.get("waypoint", {}).get("active") and
+              f.get("waypoint", {}).get("ours") for f in live),
+          "waypoint reported as active and ours after waypoint_xy")
+    check(all(f.get("waypoint", {}).get("blip", -1) == 0 for f in live
+              if f.get("waypoint", {}).get("ours")),
+          "ours xy waypoint has no blip id")
+    check("waypoint_xy -> (123.5, -67.2)" in log or
+          "waypoint_xy -> (123.5, -67.3)" in log,
+          "plugin logged the xy coordinates")
+    check("[mock] waypoint set at (123, -67)" in err or
+          "[mock] waypoint set at (124, -67)" in err,
+          "mock received SET_NEW_WAYPOINT with the xy")
+
+    # route_clear removes it.
+    check(acks.get(2, {}).get("ok") is True, "route_clear -> ok")
+    check(any(not f.get("waypoint", {}).get("active") for f in live[-5:]),
+          "waypoint cleared in the final frames")
+
+    check("UNKNOWN NATIVE" not in err and "ARITY MISMATCH" not in err,
+          "mock saw no unknown native / arity mismatch")
+    check(rc == 0, "host exited cleanly (rc=%s)" % rc)
+    if failures:
+        print("---- stderr ----\n" + err[-2000:])
+        print("---- ThorBridgeV.log ----\n" + log[-3000:])
+
+
 def simple(scenario, seconds, predicate, what, with_shv=True):
     print("scenario: %s%s" % (scenario, "" if with_shv else " (no Script Hook V)"))
     s = Session(scenario, seconds + 3, with_shv)
@@ -549,6 +633,7 @@ def main():
     test_wheel()
     test_blips()
     test_cheats()
+    test_custom_map()
 
     def states(fr):
         return [f for f in fr if f["type"] == "state"]

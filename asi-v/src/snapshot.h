@@ -107,13 +107,24 @@ struct State {
 
     // --- map waypoint ---
     // waypoint_active: IS_WAYPOINT_ACTIVE, whoever placed it.
-    // waypoint_ours: it sits where the last route_blip command put it,
-    //   so the companion may move or clear it without stepping on one
-    //   the player placed by hand.
-    // route_blip: the blip id that command targeted, 0 = none.
+    // waypoint_ours: it sits where the last route_blip or waypoint_xy
+    //   command put it, so the companion may move or clear it without
+    //   stepping on one the player placed by hand.
+    // route_blip: the blip id that command targeted, 0 = none. A
+    //   waypoint_xy placement has no blip id and leaves this 0.
     bool    waypoint_active;
     bool    waypoint_ours;
     int32_t route_blip;
+
+    // --- player position ---
+    // pos_valid: there is a live ped and these fields were read this
+    //   tick. Companion renders the player triangle on the custom map
+    //   from pos_x/pos_y and heading (degrees, 0 = north).
+    bool  pos_valid;
+    float pos_x;
+    float pos_y;
+    float pos_z;
+    float heading;
 
     // --- cheats ---
     // Toggle cheats currently on, as a bitmask indexed by `cheat_id -

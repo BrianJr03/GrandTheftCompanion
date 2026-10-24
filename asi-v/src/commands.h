@@ -31,7 +31,13 @@ struct Cmd {
     uint32_t client;              // bridge-assigned connection id
     uint32_t id;                  // client-assigned correlation id
     char     name[kMaxNameLen];
-    uint32_t arg0;                // every current command takes one integer
+    uint32_t arg0;                // every single-int command uses this
+    // Secondary float args. waypoint_xy carries two world coordinates
+    // here; parse_cmd leaves them 0 for every other command. The pair
+    // is only meaningful when the command's name opts in to reading
+    // them (see commands.cpp).
+    float    arg_fx;
+    float    arg_fy;
     uint64_t queued_ms;           // GetTickCount64 at enqueue
 };
 
@@ -65,6 +71,11 @@ bool take_ack(uint32_t client, Ack* out);
 //              player's map waypoint on that blip (SET_NEW_WAYPOINT), so
 //              the game's GPS routes there. Refused for an id the last
 //              scan did not publish or that no longer exists.
+//   waypoint_xy arg_fx/arg_fy = world coordinates. Puts the player's
+//              map waypoint on that point (same SET_NEW_WAYPOINT) so
+//              a long-press on the custom-map (atlas) page can route
+//              to any road. g_route is marked ours so waypoint_ours
+//              and route_clear work the same as for a route_blip call.
 //   route_clear no arg. Removes the waypoint (SET_WAYPOINT_OFF).
 //   blip_census no arg. Writes the published blip table to the log,
 //              for working out on-device which sprites are what.

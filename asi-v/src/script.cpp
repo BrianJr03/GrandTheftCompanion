@@ -337,6 +337,21 @@ void tick() {
     s.ped_model = shv::call<uint32_t>(natives::GET_ENTITY_MODEL, ped);
     s.character = character_of(s.ped_model);
 
+    // Player world position + heading. The custom-map (atlas) page
+    // uses these to render the player triangle; blips::tick reads
+    // the player's own x/y once per census pass separately and does
+    // not share this read because the pass start may not line up
+    // with this tick.
+    {
+        const shv::Vec3 c =
+            shv::call_vec3(natives::GET_ENTITY_COORDS, ped, 1);
+        s.pos_x    = c.x;
+        s.pos_y    = c.y;
+        s.pos_z    = c.z;
+        s.heading  = shv::call<float>(natives::GET_ENTITY_HEADING, ped);
+        s.pos_valid = true;
+    }
+
     read_stats(s, player, ped);
     read_weapon(s, ped);
     read_vehicle(s, ped);

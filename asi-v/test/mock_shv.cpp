@@ -21,6 +21,11 @@
 //           closes on its unchanged highlight)
 //   blips   Michael on foot throughout, with three blips on the map; at
 //           4 s the mock "player" drags the waypoint elsewhere by hand
+//   custom_map
+//           Michael on foot throughout; the mock "player" walks a 100 m
+//           square (one side per 1.5 s), heading tracks the direction
+//           of travel. Exercises the pos.x/y/h fields in the state
+//           frame and the waypoint_xy command.
 //
 // Every scenario has the same three map blips, so the blip census and
 // the waypoint natives are exercised by all of them.
@@ -41,7 +46,7 @@ namespace {
 
 using ScriptMain = void (*)();
 
-enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips, kCheats };
+enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips, kCheats, kCustomMap };
 Scenario g_scenario = kStory;
 uint64_t g_t0 = 0;
 
@@ -121,6 +126,25 @@ uint64_t elapsed_ms() { return GetTickCount64() - g_t0; }
 // the waypoint blip (sprite 8, the real game's radar_waypoint) which
 // exists only while a waypoint is set.
 constexpr float kPlayerX = 0.0f, kPlayerY = 0.0f, kPlayerZ = 10.0f;
+
+// Custom-map scenario: a 100 m square at (0,0), one side per 1.5 s.
+// The player walks counterclockwise starting east. Headings are the
+// game's convention (0 = north, measured clockwise from north).
+constexpr float    kSquareSide  = 100.0f;
+constexpr uint64_t kLegMs       = 1500;
+struct PedSample { float x, y, h; };
+PedSample custom_map_sample() {
+    const uint64_t t = elapsed_ms();
+    const int leg = static_cast<int>((t / kLegMs) % 4);
+    const float f  = static_cast<float>(t % kLegMs) / static_cast<float>(kLegMs);
+    const float d  = kSquareSide * f;
+    switch (leg) {
+        case 0: return {d,              0.0f,          90.0f};   // east
+        case 1: return {kSquareSide,    d,              0.0f};   // north
+        case 2: return {kSquareSide - d, kSquareSide, 270.0f};   // west
+        default: return {0.0f,          kSquareSide - d, 180.0f}; // south
+    }
+}
 constexpr int kWaypointSprite = 8;
 constexpr int kWaypointBlip = 777;
 struct MapBlip { int id; int sprite; int colour; int type; float x, y, z; };
@@ -354,7 +378,13 @@ void dispatch() {
         ret<const char*>(i >= 0 && i < kNumStations ? kStations[i] : nullptr);
         break; }
     case GET_ENTITY_COORDS: expect_argc(2, "GET_ENTITY_COORDS");
-        ret_vec3(kPlayerX, kPlayerY, kPlayerZ); break;
+        if (g_scenario == kCustomMap) {
+            const PedSample s = custom_map_sample();
+            ret_vec3(s.x, s.y, kPlayerZ);
+        } else {
+            ret_vec3(kPlayerX, kPlayerY, kPlayerZ);
+        }
+        break;
     case GET_FIRST_BLIP_INFO_ID: expect_argc(1, "GET_FIRST_BLIP_INFO_ID");
         g_walk_sprite = arg<int>(0);
         g_walk_pos = 0;
@@ -494,7 +524,12 @@ void dispatch() {
     case SET_MODEL_AS_NO_LONGER_NEEDED: expect_argc(1, "SET_MODEL_AS_NO_LONGER_NEEDED");
         g_pending_model = 0; break;
     case GET_ENTITY_HEADING: expect_argc(1, "GET_ENTITY_HEADING");
-        ret<float>(0.0f); break;
+        if (g_scenario == kCustomMap) {
+            ret<float>(custom_map_sample().h);
+        } else {
+            ret<float>(0.0f);
+        }
+        break;
     case CREATE_VEHICLE: { expect_argc(8, "CREATE_VEHICLE");
         g_spawn_last_veh = kVeh;   // reuse the car handle from story mock
         ret<int>(g_spawn_last_veh); break; }
@@ -564,6 +599,7 @@ void mock_scriptRegister(HMODULE /*module*/, ScriptMain fn) {
         if (!std::strcmp(buf, "wheel"))   g_scenario = kWheel;
         if (!std::strcmp(buf, "blips"))   g_scenario = kBlips;
         if (!std::strcmp(buf, "cheats"))  g_scenario = kCheats;
+        if (!std::strcmp(buf, "custom_map")) g_scenario = kCustomMap;
     }
     std::fprintf(stderr, "[mock] scriptRegister, scenario=%d\n", g_scenario);
     std::fflush(stderr);
