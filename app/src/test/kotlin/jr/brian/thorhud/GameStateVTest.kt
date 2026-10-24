@@ -228,6 +228,42 @@ class GameStateVTest {
     }
 
     @Test
+    fun modsFrameDecodes() {
+        val f = decode(V_MODS)
+        assertTrue(f.isMods)
+        assertTrue(f.isGtaV)
+        assertEquals(3, f.listVersion)
+        assertEquals(true, f.modsKit)
+        assertEquals(1, f.modsWheelType)
+        assertEquals(6, f.modsTints)
+        assertEquals("GTC 123", f.modsPlate)
+        assertEquals(true, f.modsNeon)
+        assertEquals(false, f.modsBulletproof)
+        assertEquals(2, f.modsSlots.size)
+        val spoiler = f.modsSlots.first { it.slot == 0 }
+        assertEquals(1, spoiler.cur)
+        assertEquals(2, spoiler.options.size)
+        assertEquals("option 0_0", spoiler.options[0])
+        val toggles = f.modsToggles
+        assertEquals(1, toggles.size)
+        assertEquals(18, toggles[0].slot)
+        assertTrue(toggles[0].on)
+        // State / vehicle fields stay at their defaults when a mods
+        // frame is parsed — nothing bleeds through.
+        assertFalse(f.inGame)
+        assertNull(f.vehicle)
+    }
+
+    @Test
+    fun modsFrameWithoutKit() {
+        val f = decode(V_MODS_NO_KIT)
+        assertTrue(f.isMods)
+        assertEquals(false, f.modsKit)
+        assertEquals(0, f.modsSlots.size)
+        assertEquals(0, f.modsToggles.size)
+    }
+
+    @Test
     fun stationLabels() {
         // The game's label wins.
         assertEquals("Custom", vStationLabel("RADIO_02_POP", "Custom"))
@@ -267,5 +303,9 @@ class GameStateVTest {
         const val V_STATE_IN_VEHICLE_PAINT = """{"v":1,"type":"state","game":"v","t":1271839,"in_game":true,"online":false,"paused":false,"stalled":false,"switching":false,"cutscene":false,"mission":false,"animal":false,"character":0,"ped_model":225514697,"money":1234567,"health":175,"max_health":200,"armor":40,"max_armor":100,"wanted":3,"special":{"unlocked":true,"enabled":true,"active":false,"full":true},"weapon_hash":453432689,"weapon_name":"weapon_pistol","weapon_group":416676503,"ammo_total":120,"ammo_clip":9,"clip_size":12,"in_vehicle":true,"vehicle":{"model":3078201489,"name":"Adder","class":7,"speed_mps":12.0,"engine_hp":1000.0,"body_hp":1000.0,"altitude_m":0.0,"has_radio":true,"colour1":112,"colour2":27,"custom":false},"radio":0,"radio_name":"RADIO_01_CLASS_ROCK"}"""
         const val V_STATE_IN_VEHICLE_PAINT_CUSTOM = """{"v":1,"type":"state","game":"v","t":1272039,"in_game":true,"online":false,"paused":false,"stalled":false,"switching":false,"cutscene":false,"mission":false,"animal":false,"character":0,"ped_model":225514697,"money":1234567,"health":175,"max_health":200,"armor":40,"max_armor":100,"wanted":3,"special":{"unlocked":true,"enabled":true,"active":false,"full":true},"weapon_hash":453432689,"weapon_name":"weapon_pistol","weapon_group":416676503,"ammo_total":120,"ammo_clip":9,"clip_size":12,"in_vehicle":true,"vehicle":{"model":3078201489,"name":"Adder","class":7,"speed_mps":0.0,"engine_hp":1000.0,"body_hp":1000.0,"altitude_m":0.0,"has_radio":true,"colour1":112,"colour2":27,"custom":true},"radio":0,"radio_name":"RADIO_01_CLASS_ROCK"}"""
         const val IV_STATE_PAINT = """{"v":1,"type":"state","t":223344,"in_game":true,"in_vehicle":true,"paused":false,"money":2500,"health":180.0,"max_health":200,"armor":50,"max_armor":100,"wanted":0,"weapon":7,"ammo_total":60,"ammo_clip":12,"owned":[],"vehicle":{"model":1348744438,"name":"ORACLE","speed_mps":0.0,"engine_hp":1000.0,"colour1":3,"colour2":12},"radio":-1,"episode":0,"cheats_mask":0}"""
+        // mods frame from the plugin's mods walker. Two slots (spoiler
+        // / engine), one toggle (turbo), non-stock current values.
+        const val V_MODS = """{"v":1,"type":"mods","game":"v","ver":3,"vehicle_model":3078201489,"kit":true,"wheel_type":1,"tints":6,"tint":3,"plate_style":2,"plate":"GTC 123","neon":true,"bulletproof":false,"slots":[{"slot":0,"cur":1,"name":"slot 0","options":["option 0_0","option 0_1"]},{"slot":11,"cur":2,"name":"slot 11","options":["option 11_0","option 11_1","option 11_2","option 11_3"]}],"toggles":[{"slot":18,"on":true,"name":"turbo"}]}"""
+        const val V_MODS_NO_KIT = """{"v":1,"type":"mods","game":"v","ver":1,"vehicle_model":2167295885,"kit":false,"wheel_type":0,"tints":6,"tint":0,"plate_style":0,"plate":"","neon":false,"bulletproof":false,"slots":[],"toggles":[]}"""
     }
 }

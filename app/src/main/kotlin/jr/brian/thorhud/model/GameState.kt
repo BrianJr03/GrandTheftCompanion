@@ -134,12 +134,24 @@ data class GameState(
     // state — GTA V: the player's map waypoint. See [Waypoint].
     @SerialName("waypoint") val waypoint: Waypoint? = null,
 
-    // "stations" / "weapons" / "blips" list frames.
+    // "stations" / "weapons" / "blips" / "mods" list frames.
     @SerialName("stations") val stations: List<Station> = emptyList(),
     @SerialName("weapons") val weapons: List<VWeapon> = emptyList(),
     @SerialName("blips") val blips: List<Blip> = emptyList(),
-    // "blips": the plugin's version counter for the list.
+    // "blips" / "mods": the plugin's version counter for the list.
     @SerialName("ver") val listVersion: Int? = null,
+    // "mods" frame (GTA V only). All optional on non-mods frames.
+    @SerialName("vehicle_model") val modsVehicleModel: Long? = null,
+    @SerialName("kit") val modsKit: Boolean? = null,
+    @SerialName("wheel_type") val modsWheelType: Int? = null,
+    @SerialName("tints") val modsTints: Int? = null,
+    @SerialName("tint") val modsTint: Int? = null,
+    @SerialName("plate_style") val modsPlateStyle: Int? = null,
+    @SerialName("plate") val modsPlate: String? = null,
+    @SerialName("neon") val modsNeon: Boolean? = null,
+    @SerialName("bulletproof") val modsBulletproof: Boolean? = null,
+    @SerialName("slots") val modsSlots: List<ModSlot> = emptyList(),
+    @SerialName("toggles") val modsToggles: List<ModToggle> = emptyList(),
 
     // ack (Phase 3) — correlation id matches the cmd id, ok=true on
     // success, err carries a short reason string on failure.
@@ -154,6 +166,7 @@ data class GameState(
     val isStations: Boolean get() = type == "stations"
     val isWeapons: Boolean get() = type == "weapons"
     val isBlips: Boolean get() = type == "blips"
+    val isMods: Boolean get() = type == "mods"
     val isGtaV: Boolean get() = game == GAME_V
 
     /** Safe to fire a cheat right now: the frame is a real state
@@ -266,8 +279,65 @@ data class GameState(
         @SerialName("name") val name: String = "",
     )
 
+    /**
+     * One modifiable slot on a vehicle (spoiler, engine, wheels...).
+     * [slot] is the game's modType (0..48; see asi-v/src/mods.cpp
+     * for the walked range). [cur] is the current option index with
+     * -1 meaning "stock / nothing fitted". [name] is the game's own
+     * localised slot label (empty when the game has no entry — the
+     * UI falls back to its own `customs_slot_<n>` string). [options]
+     * carries the game's own localised option labels in order; empty
+     * entries become "option <N>" in the UI.
+     */
+    @Serializable
+    data class ModSlot(
+        @SerialName("slot") val slot: Int = 0,
+        @SerialName("cur") val cur: Int = -1,
+        @SerialName("name") val name: String = "",
+        @SerialName("options") val options: List<String> = emptyList(),
+    )
+
+    /**
+     * One three-state toggle (turbo, tyre smoke, xenon). Rendered
+     * as a Switch rather than ◀ ▶ because the game exposes it that
+     * way.
+     */
+    @Serializable
+    data class ModToggle(
+        @SerialName("slot") val slot: Int = 0,
+        @SerialName("on") val on: Boolean = false,
+        @SerialName("name") val name: String = "",
+    )
+
     companion object {
         val WAITING = GameState(type = "waiting")
         const val GAME_V = "v"
     }
 }
+
+/**
+ * The latest Los Santos Customs catalogue the plugin published for the
+ * current vehicle. The repository decodes a "mods" frame into one of
+ * these for the Customs screen to read; the GameState record carries
+ * each field flat because kotlinx-serialization is simpler that way.
+ *
+ * [ver] bumps on every change (catalogue refresh, slot write, toggle
+ * flip, vehicle change). The screen keyes its highlight off the frame
+ * only — never off the tap — so a refusal never leaves the UI in a
+ * state the game is not actually in.
+ */
+data class Mods(
+    val ver: Int,
+    val vehicleModel: Long,
+    val kit: Boolean,
+    val wheelType: Int,
+    val tints: Int,
+    val tint: Int,
+    val plateStyle: Int,
+    val plate: String,
+    val neon: Boolean,
+    val bulletproof: Boolean,
+    val slots: List<GameState.ModSlot>,
+    val toggles: List<GameState.ModToggle>,
+)
+

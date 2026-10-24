@@ -88,4 +88,80 @@ class CommandFrameTest {
         assertTrue(line.endsWith("\n"))
         assertEquals(1, line.count { it == '\n' })
     }
+
+    @Test
+    fun setModUsesModArgKey() {
+        // (slot<<16)|index — 11 << 16 | 2 = 720,898.
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":2,\"name\":\"set_mod\"," +
+                "\"args\":{\"mod\":720898}}\n",
+            commandFrame(2, "set_mod", ((11L shl 16) or 2L)),
+        )
+    }
+
+    @Test
+    fun toggleModUsesSlotArgKey() {
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":3,\"name\":\"toggle_mod\"," +
+                "\"args\":{\"slot\":18}}\n",
+            commandFrame(3, "toggle_mod", 18L),
+        )
+    }
+
+    @Test
+    fun setWheelTypeUsesTypeArgKey() {
+        assertTrue(commandFrame(4, "set_wheel_type", 1L)!!
+            .contains("\"args\":{\"type\":1}"))
+    }
+
+    @Test
+    fun setTintUsesTintArgKey() {
+        assertTrue(commandFrame(5, "set_tint", 3L)!!
+            .contains("\"args\":{\"tint\":3}"))
+    }
+
+    @Test
+    fun setPlateStyleUsesStyleArgKey() {
+        assertTrue(commandFrame(6, "set_plate_style", 2L)!!
+            .contains("\"args\":{\"style\":2}"))
+    }
+
+    @Test
+    fun setNeonUsesRgbArgKeyAndAcceptsZeroForOff() {
+        assertTrue(commandFrame(7, "set_neon", 0L)!!
+            .contains("\"args\":{\"rgb\":0}"))
+        assertTrue(commandFrame(7, "set_neon", 0x00FF8800L)!!
+            .contains("\"args\":{\"rgb\":16746496}"))
+    }
+
+    @Test
+    fun setBulletproofTyresUsesOnArgKey() {
+        assertTrue(commandFrame(8, "set_bulletproof_tyres", 1L)!!
+            .contains("\"args\":{\"on\":1}"))
+    }
+
+    @Test
+    fun modsListUsesVArgKey() {
+        // The arg itself is ignored by the plugin; the key just has to
+        // be present so parse_cmd finds the first digit.
+        assertTrue(commandFrame(9, "mods_list", 0L)!!
+            .contains("\"args\":{\"v\":0}"))
+    }
+
+    @Test
+    fun setPlateCarriesStringArg() {
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":10,\"name\":\"set_plate\"," +
+                "\"args\":{\"text\":\"GTC 123\"}}\n",
+            commandFrameText(10, "set_plate", "GTC 123"),
+        )
+    }
+
+    @Test
+    fun setPlateTextRefusesLongOrControlOrEscaped() {
+        assertNull(commandFrameText(11, "set_plate", "VERYLONGPLATE"))
+        assertNull(commandFrameText(12, "set_plate", "A\"B"))
+        assertNull(commandFrameText(13, "set_plate", "A\\B"))
+        assertNull(commandFrameText(14, "set_plate", "A\nB"))
+    }
 }

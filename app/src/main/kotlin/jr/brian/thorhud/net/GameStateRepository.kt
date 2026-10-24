@@ -1,6 +1,7 @@
 package jr.brian.thorhud.net
 
 import jr.brian.thorhud.model.GameState
+import jr.brian.thorhud.model.Mods
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,6 +49,13 @@ class GameStateRepository @Inject constructor(
     private val _blips = MutableStateFlow<List<GameState.Blip>>(emptyList())
     val blips: StateFlow<List<GameState.Blip>> = _blips.asStateFlow()
 
+    // Latest Los Santos Customs catalogue the plugin reported for the
+    // current vehicle. Null until the user first opens Customs on a
+    // vehicle that has a mod kit; cleared when the plugin reports a
+    // vehicle change (so the stale list never bleeds into a new car).
+    private val _mods = MutableStateFlow<Mods?>(null)
+    val mods: StateFlow<Mods?> = _mods.asStateFlow()
+
     private val _lastUpdateMs = MutableStateFlow(0L)
     val lastUpdateMs: StateFlow<Long> = _lastUpdateMs.asStateFlow()
 
@@ -76,6 +84,7 @@ class GameStateRepository @Inject constructor(
             _stations.value = emptyList()
             _weapons.value = emptyList()
             _blips.value = emptyList()
+            _mods.value = null
             _ack.value = null
             _last.value = GameState.WAITING
             _lastUpdateMs.value = 0L
@@ -83,11 +92,57 @@ class GameStateRepository @Inject constructor(
             return
         }
         if (frame.isHello) _hello.value = frame
-        if (frame.isState) _state.value = frame
+        if (frame.isState) {
+            _state.value = frame
+            // A state frame that says the player is on foot invalidates
+            // the mods catalogue the plugin walked for the previous
+            // vehicle; the plugin also sends a fresh zero-slot frame but
+            // we drop ours a tick sooner so the UI doesn't flash the
+            // old car's slots during the hop out.
+            if (!frame.inVehicle) _mods.value = null
+        }
         if (frame.isAck) _ack.value = frame
         if (frame.isStations) _stations.value = frame.stations
         if (frame.isWeapons) _weapons.value = frame.weapons
         if (frame.isBlips) _blips.value = frame.blips
+        if (frame.isMods) {
+            // Zero-slot + zero-toggle frame means the plugin dropped
+            // the catalogue (vehicle change / on foot). Keep the Mods
+            // object around only when the vehicle still has a kit; the
+            // screen uses null to mean "ask for a fresh list".
+            _mods.value = if (frame.modsKit == true &&
+                              (frame.modsSlots.isNotEmpty()
+                               || frame.modsToggles.isNotEmpty())) {
+                Mods(
+                    ver = frame.listVersion ?: 0,
+                    vehicleModel = frame.modsVehicleModel ?: 0L,
+                    kit = true,
+                    wheelType = frame.modsWheelType ?: 0,
+                    tints = frame.modsTints ?: 0,
+                    tint = frame.modsTint ?: 0,
+                    plateStyle = frame.modsPlateStyle ?: 0,
+                    plate = frame.modsPlate.orEmpty(),
+                    neon = frame.modsNeon == true,
+                    bulletproof = frame.modsBulletproof == true,
+                    slots = frame.modsSlots,
+                    toggles = frame.modsToggles,
+                )
+            } else if (frame.modsKit == false) {
+                // Vehicle without a mod kit: carry the fact so the
+                // screen can show "this vehicle can't be customised".
+                Mods(
+                    ver = frame.listVersion ?: 0,
+                    vehicleModel = frame.modsVehicleModel ?: 0L,
+                    kit = false,
+                    wheelType = 0, tints = 0, tint = 0,
+                    plateStyle = 0, plate = "",
+                    neon = false, bulletproof = false,
+                    slots = emptyList(), toggles = emptyList(),
+                )
+            } else {
+                null
+            }
+        }
         _last.value = frame
         _lastUpdateMs.value = System.currentTimeMillis()
     }
@@ -121,6 +176,29 @@ class GameStateRepository @Inject constructor(
         _lastPaintedRgb.value = packed
         return client.send("paint_rgb", packed)
     }
+
+    /** GTA V only. Customs commands; see
+     *  jr.brian.thorhud.net.commandFrame for the arg-key mapping and
+     *  asi-v/src/mods.cpp for the plugin side. Each returns the
+     *  dispatched command id, or null if the client is not connected. */
+    suspend fun requestMods(): Int? = client.send("mods_list", 0L)
+    suspend fun setMod(slot: Int, index: Int): Int? {
+        val raw = if (index < 0) 0xFFFF else (index and 0xFFFF)
+        val packed = ((slot and 0xFFFF).toLong() shl 16) or raw.toLong()
+        return client.send("set_mod", packed)
+    }
+    suspend fun toggleMod(slot: Int): Int? = client.send("toggle_mod", slot.toLong())
+    suspend fun setWheelType(type: Int): Int? = client.send("set_wheel_type", type.toLong())
+    suspend fun setTint(tint: Int): Int? = client.send("set_tint", tint.toLong())
+    suspend fun setPlateStyle(style: Int): Int? =
+        client.send("set_plate_style", style.toLong())
+    suspend fun setPlate(text: String): Int? = client.sendText("set_plate", text)
+    suspend fun setNeon(packedRgb: Long): Int? = client.send("set_neon", packedRgb)
+    suspend fun setSmoke(packedRgb: Long): Int? = client.send("set_smoke", packedRgb)
+    suspend fun setXenonColour(index: Int): Int? =
+        client.send("set_xenon_colour", (if (index < 0) 0xFFFFFFFFL else index.toLong()))
+    suspend fun setBulletproofTyres(on: Boolean): Int? =
+        client.send("set_bulletproof_tyres", if (on) 1L else 0L)
 
     /** Force a reconnect to the plugin; see [GameStateClient.reconnect]. */
     fun reconnect() = client.reconnect()

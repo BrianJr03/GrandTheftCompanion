@@ -149,6 +149,33 @@ class GameStateClient @Inject constructor() {
         }
     }
 
+    /**
+     * String variant for the single command that carries a C string:
+     * set_plate. Pre-validated by [commandFrameText]; a null return
+     * means the input could not be formed into a safe wire line (bad
+     * chars / too long).
+     */
+    suspend fun sendText(name: String, text: String): Int? = withContext(Dispatchers.IO) {
+        val out = currentOut ?: return@withContext null
+        val id = cmdId.incrementAndGet()
+        val line = commandFrameText(id, name, text)
+        if (line == null) {
+            Log.w(TAG, "cmd $name not sent: text rejected")
+            return@withContext null
+        }
+        writeMutex.withLock {
+            try {
+                out.write(line.toByteArray(Charsets.UTF_8))
+                out.flush()
+                Log.i(TAG, "sent cmd id=$id name=$name text='$text'")
+                id
+            } catch (t: Throwable) {
+                Log.w(TAG, "send failed: ${t.message}")
+                null
+            }
+        }
+    }
+
     companion object {
         const val DEFAULT_HOST = "127.0.0.1"
         const val DEFAULT_PORT = 47801
