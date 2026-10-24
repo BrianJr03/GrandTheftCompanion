@@ -24,6 +24,16 @@ constexpr size_t kMaxStations = 64;
 // nearest ones when there are more.
 constexpr size_t kMaxBlips    = 96;
 
+// Vehicle-mod catalogue limits. Base-game Benny's / shop maxes out
+// around 50 options on a wheel slot; 64 is comfortably above. 40
+// slots covers every walkable modType today (0..48, minus the
+// three toggle slots and the ones no stock car exposes). The frame
+// loudly logs if a car exceeds either cap.
+constexpr size_t kMaxModOptions = 64;
+constexpr size_t kMaxModSlots   = 40;
+constexpr size_t kMaxModToggles = 4;    // slots 18 / 20 / 22 today
+constexpr size_t kPlateLen      = 12;   // 8 chars + wiggle room
+
 // Which protagonist the player ped currently is.
 enum Character : int8_t {
     kCharOther    = -1,  // Director Mode actor, animal, cutscene ped...
@@ -156,6 +166,47 @@ struct Blip {
     float   dist_m;    // from the player ped at scan time
 };
 
+// One modifiable slot on a vehicle (spoiler, engine, wheels, ...).
+// Options carry the game's own localised label; the slot name uses
+// the shop's label when GET_MOD_SLOT_NAME resolves, otherwise ""
+// so the app falls back to its own slot-N string. kIndexStock
+// (-1 at the game level, 0xFFFF on the wire) is "nothing fitted".
+struct ModSlot {
+    int32_t  slot;                             // modType, 0..48
+    int32_t  cur;                              // GET_VEHICLE_MOD; -1 = stock
+    uint32_t n_options;
+    char     name[kLabelLen];                  // "" if no GXT label
+    char     options[kMaxModOptions][kLabelLen];
+};
+
+// One three-state toggle (18 turbo, 20 tyre smoke, 22 xenon). The
+// app renders these as a switch instead of ◀ ▶.
+struct ModToggle {
+    int32_t slot;
+    bool    on;
+    char    name[kLabelLen];
+};
+
+struct Mods {
+    uint32_t ver;                              // bumped on any change
+    uint32_t vehicle;                          // vehicle model hash the
+                                               // catalogue was built for
+    bool     kit;                              // this vehicle has a mod kit
+    int32_t  wheel_type;                       // GET_VEHICLE_WHEEL_TYPE
+    int32_t  tints;                            // GET_NUM_VEHICLE_WINDOW_TINTS
+    int32_t  tint;                             // GET_VEHICLE_WINDOW_TINT
+    int32_t  plate_style;                      // palette index
+    bool     neon;                             // any neon side enabled
+    bool     bulletproof;                      // tyres cannot burst
+    char     plate[kPlateLen];                 // GET_VEHICLE_NUMBER_PLATE_TEXT
+
+    uint32_t n_slots;
+    ModSlot  slots[kMaxModSlots];
+
+    uint32_t n_toggles;
+    ModToggle toggles[kMaxModToggles];
+};
+
 struct Lists {
     uint32_t weapons_ver;   // bumped whenever weapons[] content changes
     uint32_t n_weapons;
@@ -168,6 +219,9 @@ struct Lists {
     uint32_t blips_ver;     // bumped whenever blips[] content changes
     uint32_t n_blips;
     Blip     blips[kMaxBlips];
+
+    uint32_t mods_ver;      // 0 while no catalogue has been published
+    Mods     mods;
 };
 
 // Call once before any other function (startup worker).
@@ -180,6 +234,14 @@ void publish(const State& s);
 void publish_weapons(const Weapon* list, uint32_t n);
 void publish_stations(const Station* list, uint32_t n);
 void publish_blips(const Blip* list, uint32_t n);
+// Replace the vehicle-mods catalogue. Always bumps the version — the
+// catalogue walker already knows when it has something new to publish
+// (option count moved, slot added, toggle flipped by a set_mod).
+void publish_mods(const Mods& m);
+// Clear the catalogue (vehicle changed / player left the car). Zeroes
+// n_slots / n_toggles and bumps mods_ver so the client reads an empty
+// list rather than a stale one.
+void clear_mods();
 
 // Reader side. read() returns the ts_ms of the sample (0 = nothing
 // published yet). read_lists() copies both lists out.
@@ -187,7 +249,7 @@ uint64_t read(State& out);
 void read_lists(Lists& out);
 // Cheap version peek so the bridge can skip copying ~20 KB at 20 Hz.
 void list_versions(uint32_t* weapons_ver, uint32_t* stations_ver,
-                   uint32_t* blips_ver);
+                   uint32_t* blips_ver, uint32_t* mods_ver);
 
 // Station id for a published index, copied into `out`. False if out of
 // range. Used by commands:: to turn a client's index into a name.

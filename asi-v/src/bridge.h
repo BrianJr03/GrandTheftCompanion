@@ -23,6 +23,18 @@
 //   {"v":1,"type":"cmd","id":N,"name":"route_blip","args":{"blip":B}}
 //   {"v":1,"type":"cmd","id":N,"name":"route_clear"}
 //   {"v":1,"type":"cmd","id":N,"name":"blip_census"}
+//   {"v":1,"type":"cmd","id":N,"name":"mods_list","args":{"v":0}}
+//   {"v":1,"type":"cmd","id":N,"name":"set_mod",
+//      "args":{"mod":(slot<<16)|index}}  (index 0xFFFF = stock / -1)
+//   {"v":1,"type":"cmd","id":N,"name":"toggle_mod","args":{"slot":S}}
+//   {"v":1,"type":"cmd","id":N,"name":"set_wheel_type","args":{"type":T}}
+//   {"v":1,"type":"cmd","id":N,"name":"set_tint","args":{"tint":T}}
+//   {"v":1,"type":"cmd","id":N,"name":"set_plate_style","args":{"style":S}}
+//   {"v":1,"type":"cmd","id":N,"name":"set_plate","args":{"text":"..."}}
+//   {"v":1,"type":"cmd","id":N,"name":"set_neon","args":{"rgb":0x00RRGGBB}}
+//   {"v":1,"type":"cmd","id":N,"name":"set_smoke","args":{"rgb":0x00RRGGBB}}
+//   {"v":1,"type":"cmd","id":N,"name":"set_xenon_colour","args":{"index":I}}
+//   {"v":1,"type":"cmd","id":N,"name":"set_bulletproof_tyres","args":{"on":0|1}}
 //
 // H is the weapon's joaat hash as an UNSIGNED decimal (0..4294967295).
 // About half of all weapon hashes are above 2^31, so a client that
@@ -30,7 +42,7 @@
 
 namespace bridge {
 
-constexpr const char* kPluginVersion = "0.4.0";
+constexpr const char* kPluginVersion = "0.5.0";
 
 // Spawn the listener thread. Returns immediately.
 void start(const VersionInfo& vi);

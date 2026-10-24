@@ -12,6 +12,7 @@ add_library(ThorBridgeV SHARED
     src/commands.cpp
     src/dllmain.cpp
     src/log.cpp
+    src/mods.cpp
     src/script.cpp
     src/shv.cpp
     src/snapshot.cpp

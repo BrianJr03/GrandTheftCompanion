@@ -20,6 +20,10 @@ namespace commands {
 
 constexpr size_t kMaxNameLen = 24;
 constexpr size_t kMaxErrLen  = 64;
+// Enough for the GTA V number-plate text (8 chars + NUL) with slack.
+// Only set_plate currently uses it; every other command keeps text
+// empty.
+constexpr size_t kMaxTextLen = 12;
 
 struct Ack {
     uint32_t id;
@@ -31,7 +35,8 @@ struct Cmd {
     uint32_t client;              // bridge-assigned connection id
     uint32_t id;                  // client-assigned correlation id
     char     name[kMaxNameLen];
-    uint32_t arg0;                // every current command takes one integer
+    uint32_t arg0;                // numeric commands
+    char     text[kMaxTextLen];   // set_plate; "" otherwise
     uint64_t queued_ms;           // GetTickCount64 at enqueue
 };
 
@@ -46,8 +51,9 @@ void enqueue(const Cmd& c);
 bool take_ack(uint32_t client, Ack* out);
 
 // Script fiber: run every queued command against the live game.
-// `player`/`ped` are this frame's handles; `s` is this frame's state,
-// used to refuse commands in states where they make no sense.
+// `player`/`ped`/`veh` are this frame's handles (veh=0 on foot); `s`
+// is this frame's state, used to refuse commands in states where
+// they make no sense.
 //
 // Commands:
 //   set_radio  arg0 = index into the published station list
@@ -68,7 +74,8 @@ bool take_ack(uint32_t client, Ack* out);
 //   route_clear no arg. Removes the waypoint (SET_WAYPOINT_OFF).
 //   blip_census no arg. Writes the published blip table to the log,
 //              for working out on-device which sprites are what.
-void drain(int32_t player, int32_t ped, const snapshot::State& s);
+void drain(int32_t player, int32_t ped, int32_t veh,
+           const snapshot::State& s);
 
 // Script fiber, for frames where the game state is not usable (online,
 // loading): answer everything queued with `reason`.

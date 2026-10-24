@@ -8,6 +8,7 @@
 #include "cheats.h"
 #include "commands.h"
 #include "log.h"
+#include "mods.h"
 #include "natives.h"
 #include "shv.h"
 #include "weapons.h"
@@ -229,7 +230,8 @@ void post_ack(uint32_t client, uint32_t id, bool ok, const char* err) {
     ::post_ack(client, id, ok, err);
 }
 
-void drain(int32_t player, int32_t ped, const snapshot::State& s) {
+void drain(int32_t player, int32_t ped, int32_t veh,
+           const snapshot::State& s) {
     if (!g_inited) return;
     const uint64_t now = GetTickCount64();
     settle_wheel_pick(ped, s, now);
@@ -273,6 +275,21 @@ void drain(int32_t player, int32_t ped, const snapshot::State& s) {
             // colour — a `cheat` command would need the id there.
             cheats::run(cheats::kCustomColour, player, ped, s,
                         c.client, c.id, c.arg0);
+        } else if (std::strcmp(c.name, "mods_list") == 0
+                || std::strcmp(c.name, "set_mod") == 0
+                || std::strcmp(c.name, "toggle_mod") == 0
+                || std::strcmp(c.name, "set_wheel_type") == 0
+                || std::strcmp(c.name, "set_tint") == 0
+                || std::strcmp(c.name, "set_plate_style") == 0
+                || std::strcmp(c.name, "set_plate") == 0
+                || std::strcmp(c.name, "set_neon") == 0
+                || std::strcmp(c.name, "set_smoke") == 0
+                || std::strcmp(c.name, "set_xenon_colour") == 0
+                || std::strcmp(c.name, "set_bulletproof_tyres") == 0) {
+            char err[kMaxErrLen] = {0};
+            const bool ok = mods::apply(c.name, c.arg0, c.text, veh,
+                                        err, sizeof(err));
+            post_ack(c.client, c.id, ok, err);
         } else {
             char err[kMaxErrLen];
             std::snprintf(err, sizeof(err), "unknown command: %.20s", c.name);

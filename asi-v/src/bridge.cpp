@@ -219,6 +219,46 @@ int format_weapons(char* buf, size_t cap, const snapshot::Lists& l) {
     return o.overflow ? -1 : static_cast<int>(o.len);
 }
 
+// Vehicle-mods catalogue. One frame per `mods` publish; the version
+// counter rides on the enclosing Mods struct, so stale frames are
+// filtered client-side by comparing `ver`.
+int format_mods(char* buf, size_t cap, const snapshot::Mods& m) {
+    Out o{buf, cap, 0, false};
+    o.add("{\"v\":1,\"type\":\"mods\",\"game\":\"v\",\"ver\":%u,"
+          "\"vehicle\":%u,", m.ver, m.vehicle);
+    o.add_bool("kit", m.kit);
+    o.add("\"wheel_type\":%d,\"tints\":%d,\"tint\":%d,"
+          "\"plate_style\":%d,", m.wheel_type, m.tints, m.tint, m.plate_style);
+    o.add("\"plate\":\"");
+    o.add_escaped(m.plate);
+    o.add("\",");
+    o.add_bool("neon", m.neon);
+    o.add_bool("bulletproof", m.bulletproof);
+    o.add("\"slots\":[");
+    for (uint32_t i = 0; i < m.n_slots; ++i) {
+        const snapshot::ModSlot& s = m.slots[i];
+        o.add("%s{\"slot\":%d,\"cur\":%d,\"name\":\"", i ? "," : "", s.slot, s.cur);
+        o.add_escaped(s.name);
+        o.add("\",\"options\":[");
+        for (uint32_t j = 0; j < s.n_options; ++j) {
+            o.add("%s\"", j ? "," : "");
+            o.add_escaped(s.options[j]);
+            o.add("\"");
+        }
+        o.add("]}");
+    }
+    o.add("],\"toggles\":[");
+    for (uint32_t i = 0; i < m.n_toggles; ++i) {
+        const snapshot::ModToggle& t = m.toggles[i];
+        o.add("%s{\"slot\":%d,\"on\":%s,\"name\":\"",
+              i ? "," : "", t.slot, b(t.on));
+        o.add_escaped(t.name);
+        o.add("\"}");
+    }
+    o.add("]}\n");
+    return o.overflow ? -1 : static_cast<int>(o.len);
+}
+
 int format_stations(char* buf, size_t cap, const snapshot::Lists& l) {
     Out o{buf, cap, 0, false};
     o.add("{\"v\":1,\"type\":\"stations\",\"game\":\"v\",\"stations\":[");
@@ -254,10 +294,13 @@ bool send_all(SOCKET sock, const char* buf, int n) {
 }
 
 // Minimal extraction for `cmd` frames — same wire format and the same
-// approach as the GTA IV plugin: id, name, and the first number inside
-// args. Both commands take one unsigned integer.
+// approach as the GTA IV plugin: id, name, and the first value inside
+// args. Numeric args ride `arg0`; the single string command is
+// `set_plate` which carries `{"text":"..."}` and is copied into
+// `text` (max 8 chars + NUL, matching the game's plate size and the
+// plugin's validator). `text[0]` is set to '\0' on numeric commands.
 bool parse_cmd(const char* line, uint32_t* id, char* name, size_t name_cap,
-               uint32_t* arg0) {
+               uint32_t* arg0, char* text, size_t text_cap) {
     if (!std::strstr(line, "\"type\":\"cmd\"")) return false;
 
     const char* p = std::strstr(line, "\"id\":");
@@ -276,8 +319,31 @@ bool parse_cmd(const char* line, uint32_t* id, char* name, size_t name_cap,
     if (*n != '"') return false;
 
     *arg0 = 0;
+    if (text_cap) text[0] = '\0';
     const char* a = std::strstr(line, "\"args\":");
     if (!a) return true;   // args optional
+
+    // String branch: "text":"..." before any number inside args.
+    const char* t = std::strstr(a, "\"text\":\"");
+    if (t && (t < std::strchr(a, '}') || !std::strchr(a, '}'))) {
+        t += 8;
+        if (!text_cap) return false;
+        size_t j = 0;
+        while (*t && *t != '"' && j + 1 < text_cap) {
+            // Un-escape only the two cases the sender ever produces:
+            // \" and \\. Anything else bails the line.
+            if (*t == '\\') {
+                ++t;
+                if (*t == '"' || *t == '\\') { text[j++] = *t++; continue; }
+                return false;
+            }
+            text[j++] = *t++;
+        }
+        text[j] = '\0';
+        if (*t != '"') return false;
+        return true;
+    }
+
     while (*a && !(*a >= '0' && *a <= '9')) ++a;
     if (!*a) return true;
     // strtoull, not strtoul: `unsigned long` is 32-bit on Windows and
@@ -313,9 +379,10 @@ DWORD WINAPI reader_main(LPVOID arg) {
             commands::Cmd c{};
             c.client = cx->id;
             c.queued_ms = GetTickCount64();
-            if (parse_cmd(buf, &c.id, c.name, sizeof(c.name), &c.arg0)) {
-                thor_log("[bridge/rx] cmd id=%u name=%s arg0=%u",
-                         c.id, c.name, c.arg0);
+            if (parse_cmd(buf, &c.id, c.name, sizeof(c.name), &c.arg0,
+                          c.text, sizeof(c.text))) {
+                thor_log("[bridge/rx] cmd id=%u name=%s arg0=%u text='%s'",
+                         c.id, c.name, c.arg0, c.text);
                 commands::enqueue(c);
             } else {
                 thor_log("[bridge/rx] unparseable line (%u bytes)",
@@ -351,6 +418,7 @@ DWORD WINAPI serve_client(LPVOID arg) {
         std::malloc(sizeof(snapshot::Lists)));
     HANDLE reader = nullptr;
     uint32_t sent_weapons_ver = 0, sent_stations_ver = 0, sent_blips_ver = 0;
+    uint32_t sent_mods_ver = 0;
     int n = 0;
 
     if (!buf || !lists) {
@@ -378,10 +446,10 @@ DWORD WINAPI serve_client(LPVOID arg) {
         }
 
         // 2. Lists, only when they changed since we last sent them.
-        uint32_t wv = 0, sv = 0, bv = 0;
-        snapshot::list_versions(&wv, &sv, &bv);
+        uint32_t wv = 0, sv = 0, bv = 0, mv = 0;
+        snapshot::list_versions(&wv, &sv, &bv, &mv);
         if (wv != sent_weapons_ver || sv != sent_stations_ver ||
-            bv != sent_blips_ver) {
+            bv != sent_blips_ver || mv != sent_mods_ver) {
             snapshot::read_lists(*lists);
             if (lists->weapons_ver != sent_weapons_ver) {
                 n = format_weapons(buf, kBufCap, *lists);
@@ -409,6 +477,15 @@ DWORD WINAPI serve_client(LPVOID arg) {
                     goto done;
                 }
                 sent_blips_ver = lists->blips_ver;
+            }
+            if (lists->mods_ver != sent_mods_ver) {
+                n = format_mods(buf, kBufCap, lists->mods);
+                if (n <= 0) {
+                    thor_log("[bridge] mods frame overflow");
+                } else if (!send_all(sock, buf, n)) {
+                    goto done;
+                }
+                sent_mods_ver = lists->mods_ver;
             }
         }
 

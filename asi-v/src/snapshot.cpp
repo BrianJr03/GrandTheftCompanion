@@ -71,6 +71,27 @@ void publish_blips(const Blip* list, uint32_t n) {
     ++g_lists.blips_ver;
 }
 
+void publish_mods(const Mods& m) {
+    if (!g_inited) return;
+    Lock l;
+    // Preserve the Lists-level ver (incremented here) across the
+    // memcpy of the Mods itself; the Mods struct's own `ver` field
+    // mirrors it for the client, which reads only the frame.
+    const uint32_t next_ver = g_lists.mods_ver + 1;
+    std::memcpy(&g_lists.mods, &m, sizeof(Mods));
+    g_lists.mods.ver = next_ver;
+    g_lists.mods_ver = next_ver;
+}
+
+void clear_mods() {
+    if (!g_inited) return;
+    Lock l;
+    const uint32_t next_ver = g_lists.mods_ver + 1;
+    std::memset(&g_lists.mods, 0, sizeof(Mods));
+    g_lists.mods.ver = next_ver;
+    g_lists.mods_ver = next_ver;
+}
+
 uint64_t read(State& out) {
     if (!g_inited) {
         std::memset(&out, 0, sizeof(out));
@@ -91,17 +112,19 @@ void read_lists(Lists& out) {
 }
 
 void list_versions(uint32_t* weapons_ver, uint32_t* stations_ver,
-                   uint32_t* blips_ver) {
+                   uint32_t* blips_ver, uint32_t* mods_ver) {
     if (!g_inited) {
         *weapons_ver = 0;
         *stations_ver = 0;
         *blips_ver = 0;
+        *mods_ver = 0;
         return;
     }
     Lock l;
     *weapons_ver = g_lists.weapons_ver;
     *stations_ver = g_lists.stations_ver;
     *blips_ver = g_lists.blips_ver;
+    *mods_ver = g_lists.mods_ver;
 }
 
 bool station_name(uint32_t index, char* out, size_t cap) {

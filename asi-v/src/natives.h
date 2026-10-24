@@ -176,6 +176,39 @@ enum : uint64_t {
     CLEAR_VEHICLE_CUSTOM_SECONDARY_COLOUR     = 0x5FFBDEEC3E8E2009,  // void (Vehicle)
     GET_IS_VEHICLE_PRIMARY_COLOUR_CUSTOM      = 0xF095C0405307B21B,  // BOOL (Vehicle)
     GET_IS_VEHICLE_SECONDARY_COLOUR_CUSTOM    = 0x910A32E7AAD2656C,  // BOOL (Vehicle)
+
+    // Vehicle mods (Los Santos Customs). Hashes verified against
+    // alloc8or/gta5-nativedb-data (natives.json / natives_gen9.json
+    // carry the same original hash). SET_VEHICLE_MOD_KIT must run
+    // before any SET_VEHICLE_MOD, GET_NUM_VEHICLE_MODS or
+    // GET_VEHICLE_MOD on a vehicle or every mod call silently fails;
+    // mods::request() calls it when the catalogue walk starts.
+    SET_VEHICLE_MOD_KIT                 = 0x1F2AA07F00B3217A,  // void (Vehicle, int modKit)
+    GET_VEHICLE_MOD_KIT                 = 0x6325D1A044AE510D,  // int (Vehicle)
+    GET_NUM_VEHICLE_MODS                = 0xE38E9162A2500646,  // int (Vehicle, int modType)
+    GET_VEHICLE_MOD                     = 0x772960298DA26FDB,  // int (Vehicle, int modType)
+    SET_VEHICLE_MOD                     = 0x6AF0636DDEDCB6DD,  // void (Vehicle, int modType, int modIndex, BOOL customTires)
+    REMOVE_VEHICLE_MOD                  = 0x92D619E420858204,  // void (Vehicle, int modType)
+    TOGGLE_VEHICLE_MOD                  = 0x2A1F4F37F95BAD08,  // void (Vehicle, int modType, BOOL toggle)
+    IS_TOGGLE_MOD_ON                    = 0x84B233A8C8FC8AE7,  // BOOL (Vehicle, int modType)
+    GET_MOD_TEXT_LABEL                  = 0x8935624F8C5592CC,  // const char* (Vehicle, int modType, int modValue)
+    GET_MOD_SLOT_NAME                   = 0x51F0FEB9F6AE98C0,  // const char* (Vehicle, int modType)
+    DOES_TEXT_LABEL_EXIST               = 0xAC09CA973C564252,  // BOOL (const char* gxt)
+    SET_VEHICLE_WHEEL_TYPE              = 0x487EB21CC7295BA1,  // void (Vehicle, int wheelType)
+    GET_VEHICLE_WHEEL_TYPE              = 0xB3ED1BFB4BE636DC,  // int (Vehicle)
+    SET_VEHICLE_WINDOW_TINT             = 0x57C51E6BAD752696,  // void (Vehicle, int tint)
+    GET_VEHICLE_WINDOW_TINT             = 0x0EE21293DAD47C95,  // int (Vehicle)
+    GET_NUM_VEHICLE_WINDOW_TINTS        = 0x9D1224004B3A6707,  // int ()
+    SET_VEHICLE_NUMBER_PLATE_TEXT       = 0x95A88F0B409CDA47,  // void (Vehicle, const char* plateText)
+    GET_VEHICLE_NUMBER_PLATE_TEXT       = 0x7CE1CCB9B293020E,  // const char* (Vehicle)
+    SET_VEHICLE_NUMBER_PLATE_TEXT_INDEX = 0x9088EB5A43FFB0A1,  // void (Vehicle, int plateIndex)
+    SET_VEHICLE_NEON_ENABLED            = 0x2AA720E4287BF269,  // void (Vehicle, int index, BOOL toggle)
+    GET_VEHICLE_NEON_ENABLED            = 0x8C4B92553E4766A5,  // BOOL (Vehicle, int index)
+    SET_VEHICLE_NEON_COLOUR             = 0x8E0A582209A62695,  // void (Vehicle, int r, int g, int b)
+    SET_VEHICLE_TYRE_SMOKE_COLOR        = 0xB5BA80F839791C0F,  // void (Vehicle, int r, int g, int b)
+    SET_VEHICLE_XENON_LIGHT_COLOR_INDEX = 0xE41033B25D003A07,  // void (Vehicle, int colorIndex)
+    SET_VEHICLE_TYRES_CAN_BURST         = 0xEB9DC3C7D8596C46,  // void (Vehicle, BOOL toggle)
+    GET_VEHICLE_TYRES_CAN_BURST         = 0x678B9BB8C3F58FEB,  // BOOL (Vehicle)
 };
 
 // IS_CONTROL_PRESSED arguments. `control` is the input group, `action`

@@ -34,6 +34,7 @@
 #include "commands.h"
 #include "joaat.h"
 #include "log.h"
+#include "mods.h"
 #include "natives.h"
 #include "script.h"
 #include "shv.h"
@@ -88,6 +89,10 @@ bool     g_cheats_in_game_last = false;
 // pointless to repeat 60x a second for the same car.
 uint32_t g_cached_vehicle_model = 0;
 char     g_cached_vehicle_name[snapshot::kLabelLen] = {0};
+
+// Last-seen vehicle handle for the mods catalogue. Zero on foot, so
+// mods::on_vehicle_changed() fires on entry and exit.
+int32_t  g_last_mods_vehicle = 0;
 
 // Bounded copy of a game-owned C string. Tolerates nullptr.
 void copy_str(char* dst, size_t cap, const char* src) {
@@ -164,11 +169,13 @@ void read_weapon(snapshot::State& s, int32_t ped) {
         shv::call<int32_t>(natives::GET_MAX_AMMO_IN_CLIP, ped, s.weapon, 1);
 }
 
-void read_vehicle(snapshot::State& s, int32_t ped) {
-    if (!shv::call_bool(natives::IS_PED_IN_ANY_VEHICLE, ped, 0)) return;
+// Returns the game-side vehicle handle so the caller can hand it to
+// mods::tick() without a second GET_VEHICLE_PED_IS_IN. 0 = on foot.
+int32_t read_vehicle(snapshot::State& s, int32_t ped) {
+    if (!shv::call_bool(natives::IS_PED_IN_ANY_VEHICLE, ped, 0)) return 0;
     const int32_t veh =
         shv::call<int32_t>(natives::GET_VEHICLE_PED_IS_IN, ped, 0);
-    if (veh == 0 || !shv::call_bool(natives::DOES_ENTITY_EXIST, veh)) return;
+    if (veh == 0 || !shv::call_bool(natives::DOES_ENTITY_EXIST, veh)) return 0;
 
     s.in_vehicle    = true;
     s.vehicle_model = shv::call<uint32_t>(natives::GET_ENTITY_MODEL, veh);
@@ -205,6 +212,7 @@ void read_vehicle(snapshot::State& s, int32_t ped) {
         g_cached_vehicle_model = s.vehicle_model;
     }
     copy_str(s.vehicle_name, sizeof(s.vehicle_name), g_cached_vehicle_name);
+    return veh;
 }
 
 void read_radio(snapshot::State& s) {
@@ -316,6 +324,10 @@ void tick() {
             cheats::reset_world();
             g_cheats_in_game_last = false;
         }
+        if (g_last_mods_vehicle != 0) {
+            mods::on_vehicle_changed();
+            g_last_mods_vehicle = 0;
+        }
         snapshot::publish(s);
         commands::reject_all("blocked: online");
         return;
@@ -330,6 +342,10 @@ void tick() {
         if (g_cheats_in_game_last) {
             cheats::reset_world();
             g_cheats_in_game_last = false;
+        }
+        if (g_last_mods_vehicle != 0) {
+            mods::on_vehicle_changed();
+            g_last_mods_vehicle = 0;
         }
         snapshot::publish(s);   // in_game = false
         commands::reject_all("blocked: not in game");
@@ -348,7 +364,11 @@ void tick() {
 
     read_stats(s, player, ped);
     read_weapon(s, ped);
-    read_vehicle(s, ped);
+    const int32_t veh = read_vehicle(s, ped);
+    if (veh != g_last_mods_vehicle) {
+        mods::on_vehicle_changed();
+        g_last_mods_vehicle = veh;
+    }
     read_radio(s);
     read_wheel(s, now);
     read_dpad_down(s);
@@ -385,11 +405,12 @@ void tick() {
                  s.in_vehicle ? 1 : 0);
     }
 
-    commands::drain(player, ped, s);
+    commands::drain(player, ped, veh, s);
     // After drain so a spawn-car tap this tick already has the model
     // request issued; advance_spawn() will not resolve it on this same
     // tick (HAS_MODEL_LOADED needs at least one game frame).
     cheats::tick(player, ped);
+    mods::tick(veh);
 }
 
 }  // namespace
