@@ -2,6 +2,7 @@
 #include <windows.h>
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 #include "cheats.h"
@@ -36,6 +37,7 @@ const char* const kErrSpecialLocked  = "special ability not unlocked";
 const char* const kErrSpawnInProgress = "spawn in progress";
 const char* const kErrModelBad       = "model not available";
 const char* const kErrSpawnTimeout   = "model load timed out";
+const char* const kErrNotInGame      = "not in this game";
 
 namespace {
 
@@ -43,6 +45,9 @@ namespace {
 uint32_t g_mask = 0;
 uint32_t g_weather_idx = 0;
 bool     g_stat_marked = false;
+// Seeded once from GetTickCount on the first respray tap. Not for
+// cryptography; just so two sessions don't start on the same colour.
+bool     g_rand_seeded = false;
 
 // Pending spawn-car command. One at a time.
 struct Spawn {
@@ -92,6 +97,8 @@ bool v_knows_one_shot(uint32_t id) {
     case kAllWeapons: case kMaxAmmo: case kFixVehicle:
     case kNextWeather: case kNextTimeOfDay: case kFillSpecial:
     case kGiveParachute: case kSkyfall:
+    case kRespray: case kNextColour: case kSwapColours:
+    case kCustomColour:
         return true;
     default:
         return id >= kSpawnCarFirst && id <= kSpawnCarLast;
@@ -249,6 +256,81 @@ const char* run_fix_vehicle(int32_t ped, const snapshot::State& s) {
     return nullptr;
 }
 
+// Resolve the player's current vehicle, or return nullptr if the paint
+// cheat is refused (on foot). Shared by respray / next / swap / custom.
+const char* get_player_veh(int32_t ped, const snapshot::State& s,
+                           int32_t* out_veh) {
+    if (!s.in_vehicle) return kErrNotInVehicle;
+    const int32_t veh = shv::call<int32_t>(natives::GET_VEHICLE_PED_IS_IN, ped, 0);
+    if (veh == 0) return kErrNotInVehicle;
+    *out_veh = veh;
+    return nullptr;
+}
+
+// Clear any RGB override on either layer. Harmless when there was none
+// (the native is a plain write to the custom-colour flag), so it's
+// unconditional before every palette-index write.
+void clear_custom_layers(int32_t veh) {
+    shv::call<void>(natives::CLEAR_VEHICLE_CUSTOM_PRIMARY_COLOUR, veh);
+    shv::call<void>(natives::CLEAR_VEHICLE_CUSTOM_SECONDARY_COLOUR, veh);
+}
+
+const char* run_respray(int32_t ped, const snapshot::State& s) {
+    int32_t veh = 0;
+    if (const char* why = get_player_veh(ped, s, &veh)) return why;
+    if (!g_rand_seeded) {
+        g_rand_seeded = true;
+        std::srand(static_cast<unsigned>(GetTickCount64()));
+    }
+    const int32_t c1 = std::rand() % (static_cast<int32_t>(kPaletteMax) + 1);
+    const int32_t c2 = std::rand() % (static_cast<int32_t>(kPaletteMax) + 1);
+    clear_custom_layers(veh);
+    shv::call<void>(natives::SET_VEHICLE_COLOURS, veh, c1, c2);
+    // Reuse the fix path so a respray repairs + washes, like the shop.
+    shv::call<void>(natives::SET_VEHICLE_FIXED, veh);
+    shv::call<void>(natives::SET_VEHICLE_ENGINE_HEALTH, veh, kFullBodyHealth);
+    shv::call<void>(natives::SET_VEHICLE_BODY_HEALTH, veh, kFullBodyHealth);
+    shv::call<void>(natives::SET_VEHICLE_DIRT_LEVEL, veh, 0.0f);
+    thor_log("[cheat] respray (60) -> ok c1=%d c2=%d", c1, c2);
+    return nullptr;
+}
+
+const char* run_next_colour(int32_t ped, const snapshot::State& s) {
+    int32_t veh = 0;
+    if (const char* why = get_player_veh(ped, s, &veh)) return why;
+    int32_t c1 = 0, c2 = 0;
+    shv::call<void>(natives::GET_VEHICLE_COLOURS, veh, &c1, &c2);
+    const int32_t next = (c1 + 1) % (static_cast<int32_t>(kPaletteMax) + 1);
+    clear_custom_layers(veh);
+    shv::call<void>(natives::SET_VEHICLE_COLOURS, veh, next, c2);
+    thor_log("[cheat] next colour (61) -> ok c1=%d c2=%d", next, c2);
+    return nullptr;
+}
+
+const char* run_swap_colours(int32_t ped, const snapshot::State& s) {
+    int32_t veh = 0;
+    if (const char* why = get_player_veh(ped, s, &veh)) return why;
+    int32_t c1 = 0, c2 = 0;
+    shv::call<void>(natives::GET_VEHICLE_COLOURS, veh, &c1, &c2);
+    clear_custom_layers(veh);
+    shv::call<void>(natives::SET_VEHICLE_COLOURS, veh, c2, c1);
+    thor_log("[cheat] swap colours (62) -> ok c1=%d c2=%d", c2, c1);
+    return nullptr;
+}
+
+const char* run_custom_colour(int32_t ped, const snapshot::State& s,
+                              uint32_t packed) {
+    int32_t veh = 0;
+    if (const char* why = get_player_veh(ped, s, &veh)) return why;
+    const int32_t r = static_cast<int32_t>((packed >> 16) & 0xFF);
+    const int32_t g = static_cast<int32_t>((packed >>  8) & 0xFF);
+    const int32_t b = static_cast<int32_t>( packed        & 0xFF);
+    shv::call<void>(natives::SET_VEHICLE_CUSTOM_PRIMARY_COLOUR,   veh, r, g, b);
+    shv::call<void>(natives::SET_VEHICLE_CUSTOM_SECONDARY_COLOUR, veh, r, g, b);
+    thor_log("[cheat] custom colour (63) rgb=#%02X%02X%02X -> ok", r, g, b);
+    return nullptr;
+}
+
 void run_next_weather() {
     // Cycle through the named weathers, with a final step that hands
     // control back to the game. Wrap on the next tap.
@@ -354,18 +436,27 @@ void advance_spawn(int32_t ped) {
 }  // namespace
 
 void run(uint32_t id, int32_t player, int32_t ped,
-         const snapshot::State& s, uint32_t client, uint32_t cmd_id) {
+         const snapshot::State& s, uint32_t client, uint32_t cmd_id,
+         uint32_t arg) {
     if (ped == 0) {
         commands::post_ack(client, cmd_id, false, kErrNoPed);
         return;
     }
-    if (id == 0 || id > kMaxToggle) {
+    if (id == 0) {
+        commands::post_ack(client, cmd_id, false, kErrUnknown);
+        return;
+    }
+    // Paint one-shots live past the toggle range; whitelisted directly
+    // so they go through the one-shot path below. Every other id past
+    // kMaxToggle is still unknown.
+    const bool is_paint_id = (id >= kRespray && id <= kCustomColour);
+    if (id > kMaxToggle && !is_paint_id) {
         commands::post_ack(client, cmd_id, false, kErrUnknown);
         return;
     }
 
     // Toggles.
-    if (id >= kFirstToggle) {
+    if (id >= kFirstToggle && id <= kMaxToggle) {
         if (!v_knows_toggle(id)) {
             commands::post_ack(client, cmd_id, false, kErrNotInBuild);
             return;
@@ -408,6 +499,10 @@ void run(uint32_t id, int32_t player, int32_t ped,
     case kFillSpecial:   err = run_fill_special(player, s); break;
     case kGiveParachute: run_give_parachute(ped); break;
     case kSkyfall:       run_skyfall(ped); break;
+    case kRespray:       err = run_respray(ped, s); break;
+    case kNextColour:    err = run_next_colour(ped, s); break;
+    case kSwapColours:   err = run_swap_colours(ped, s); break;
+    case kCustomColour:  err = run_custom_colour(ped, s, arg); break;
     default:             err = kErrUnknown; break;
     }
 

@@ -264,6 +264,15 @@ void drain(int32_t player, int32_t ped, const snapshot::State& s) {
             // in cheats::tick resolves (model load may take a few
             // frames). Every other cheat posts its own ack from run().
             cheats::run(c.arg0, player, ped, s, c.client, c.id);
+        } else if (std::strcmp(c.name, "paint_rgb") == 0) {
+            // Paint-by-RGB. arg0 is the packed 0x00RRGGBB; route to
+            // cheats::run with id=kCustomColour so run() reaches the
+            // same code path as every other id-shaped paint cheat and
+            // posts the ack from there. The command name is separate
+            // because the one-u32 wire slot is already carrying the
+            // colour — a `cheat` command would need the id there.
+            cheats::run(cheats::kCustomColour, player, ped, s,
+                        c.client, c.id, c.arg0);
         } else {
             char err[kMaxErrLen];
             std::snprintf(err, sizeof(err), "unknown command: %.20s", c.name);

@@ -58,6 +58,16 @@ enum CheatId : uint32_t {
     kExplosiveMelee    = 32,  // this-frame
     kIncendiaryAmmo    = 33,  // this-frame
     kSlipperyVehicles  = 34,
+
+    // Paint (IV + V). 60..62 are id-shaped one-shots on both games.
+    // 63 is V-only and carries an RGB in arg0 — the `cheat` wire slot
+    // reuses that u32 for the packed 0x00RRGGBB; reachable only via
+    // the companion's `paint_rgb` command, which routes to run() with
+    // id=kCustomColour and arg=packed_rgb.
+    kRespray           = 60,
+    kNextColour        = 61,
+    kSwapColours       = 62,
+    kCustomColour      = 63,  // V only
 };
 
 constexpr uint32_t kFirstToggle = 20;
@@ -86,6 +96,12 @@ extern const char* const kWeatherNames[kWeatherCount];
 constexpr uint32_t kClockHourCount = 4;
 extern const uint32_t kClockHours[kClockHourCount];
 
+// Paint. NativeDB's SET_VEHICLE_COLOURS comment lists colours up to
+// 160 — the game clamps out-of-range indices (or silently ignores
+// them), so a bad write is not fatal. Prediction, pinned on-device
+// in Gates V2 / IV1.
+constexpr uint32_t kPaletteMax = 160;
+
 // Toggle values.
 constexpr float    kSlowTimeScale   = 0.5f;
 constexpr float    kFastRunMult     = 1.49f;  // NativeDB: values above
@@ -110,12 +126,21 @@ extern const char* const kErrSpecialLocked;
 extern const char* const kErrSpawnInProgress;
 extern const char* const kErrModelBad;
 extern const char* const kErrSpawnTimeout;
+// Reserved on the V side so a GTA IV plugin that answers "not in this
+// game" for id 63 (custom-colour RGB) uses the same wording the IV
+// bridge sends.
+extern const char* const kErrNotInGame;
 
 // Dispatch one tap. Posts the ack (via commands::post_ack) itself for
 // synchronous cheats; for spawn-car ids it kicks off the state machine
 // and defers the ack until the next cheats::tick resolves it.
+//
+// [arg] is zero for every id-shaped cheat; the one exception is
+// kCustomColour (63), reachable only via the companion's paint_rgb
+// command, which carries the packed 0x00RRGGBB there.
 void run(uint32_t id, int32_t player, int32_t ped,
-         const snapshot::State& s, uint32_t client, uint32_t cmd_id);
+         const snapshot::State& s, uint32_t client, uint32_t cmd_id,
+         uint32_t arg = 0);
 
 // Called every tick on the script fiber, after commands::drain. Does
 // three things: re-applies active toggles (per-ped ones use the

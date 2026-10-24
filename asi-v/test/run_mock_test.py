@@ -522,6 +522,138 @@ def test_cheats():
         print("---- ThorBridgeV.log ----\n" + log[-3000:])
 
 
+def test_paint():
+    """In a vehicle throughout; the mock reports the current palette
+    pair + the two custom-colour flags. Exercises every paint command:
+    respray writes a fresh pair and fires the fix path, next colour
+    bumps c1 (wrapping at kPaletteMax), swap reverses the pair, and
+    paint_rgb sets both custom-layer flags true (then next colour
+    clears the primary one via CLEAR_VEHICLE_CUSTOM_PRIMARY_COLOUR).
+    """
+    print("scenario: paint")
+    s = Session("paint", 15)
+    check(s.sock is not None, "bridge accepts a connection")
+    if not s.sock:
+        print(s.close())
+        return
+    states = []
+    acks = {}
+    hello = None
+    phase = 0
+    for f in s.frames(13):
+        if f["type"] == "hello":
+            hello = f
+        if f["type"] == "ack":
+            acks[f["id"]] = f
+        if f["type"] != "state":
+            continue
+        states.append(f)
+        if not f.get("in_game") or not f.get("in_vehicle"):
+            continue
+        if phase == 0:
+            phase = 1
+            # One-shots. All send under the same phase so acks pile up.
+            s.send_cmd(1,  "cheat",     "cheat", 60)  # respray
+            s.send_cmd(2,  "cheat",     "cheat", 61)  # next colour
+            s.send_cmd(3,  "cheat",     "cheat", 62)  # swap
+            s.send_cmd(4,  "paint_rgb", "rgb",   0x00B21E1E)
+            s.send_cmd(5,  "cheat",     "cheat", 61)  # next colour clears custom
+            # Wrap check: pound next colour a palette-worth of taps so
+            # c1 wraps back around below kPaletteMax (plugin uses
+            # (c1+1) % (kPaletteMax+1)).
+            for i in range(10):
+                s.send_cmd(10 + i, "cheat", "cheat", 61)
+    rc, err, log = s.close()
+
+    check(hello is not None and hello.get("cheats") is True,
+          "hello advertises cheats support")
+
+    live_in_veh = [f for f in states
+                   if f.get("in_game") and f.get("in_vehicle")]
+    check(bool(live_in_veh), "the paint scenario stays in a vehicle")
+
+    # The vehicle block carries the pair + the custom flag.
+    first = live_in_veh[0]
+    v = first.get("vehicle", {})
+    check(v.get("colour1") is not None and v.get("colour2") is not None,
+          "vehicle block carries colour1 / colour2 before any tap")
+    check(v.get("custom") is False, "custom flag starts false")
+
+    # All four taps are ack'd ok.
+    check(acks.get(1, {}).get("ok") is True, "respray -> ok")
+    check(acks.get(2, {}).get("ok") is True, "next colour -> ok")
+    check(acks.get(3, {}).get("ok") is True, "swap -> ok")
+    check(acks.get(4, {}).get("ok") is True, "paint_rgb -> ok")
+    check(acks.get(5, {}).get("ok") is True, "next colour (after rgb) -> ok")
+
+    # The custom flag flipped true on the paint_rgb tap. Scan for it in
+    # the stream so the race between the ack and the next state frame
+    # does not cause a flake. Then it must return to false after any
+    # id-shaped paint (which clears both layers).
+    custom_true  = [f for f in live_in_veh if f.get("vehicle", {}).get("custom")]
+    check(bool(custom_true),
+          "a state frame reports custom=true while an RGB override is active")
+
+    last_v = live_in_veh[-1].get("vehicle", {})
+    check(last_v.get("custom") is False,
+          "custom flag back to false after the trailing id-shaped paints")
+    # Final palette index must be in-range — the wrap at kPaletteMax
+    # kept it there.
+    check(0 <= (last_v.get("colour1") or -1) <= 160,
+          "colour1 within the palette after the wrap sweep (c1=%s)"
+          % last_v.get("colour1"))
+
+    # Plugin log lines: four distinct effect lines (one per effect
+    # kind), not one per tap — "next colour" fires many times.
+    check("[cheat] respray (60) -> ok" in log,
+          "respray log line present")
+    check("[cheat] next colour (61) -> ok" in log,
+          "next colour log line present")
+    check("[cheat] swap colours (62) -> ok" in log,
+          "swap log line present")
+    check("[cheat] custom colour (63) rgb=#B21E1E -> ok" in log,
+          "custom colour log carries the hex RGB")
+
+    check("UNKNOWN NATIVE" not in err and "ARITY MISMATCH" not in err,
+          "mock saw no unknown native / arity mismatch")
+    check(rc == 0, "host exited cleanly (rc=%s)" % rc)
+    if failures:
+        print("---- stderr ----\n" + err[-2000:])
+        print("---- ThorBridgeV.log ----\n" + log[-3000:])
+
+
+def test_paint_on_foot_refusal():
+    """Reuse the story scenario (on foot for the first 2 s) to confirm
+    every paint command is refused with "not in a vehicle" before the
+    car entry. Keeps the paint scenario itself in-vehicle-only."""
+    print("scenario: paint on-foot refusal (story)")
+    s = Session("story", 10)
+    check(s.sock is not None, "bridge accepts a connection")
+    if not s.sock:
+        print(s.close())
+        return
+    acks = {}
+    sent = False
+    for f in s.frames(5):
+        if f["type"] == "ack":
+            acks[f["id"]] = f
+        if (not sent and f["type"] == "state" and f.get("in_game")
+                and not f.get("in_vehicle")):
+            sent = True
+            s.send_cmd(1, "cheat", "cheat", 60)       # respray
+            s.send_cmd(2, "cheat", "cheat", 61)       # next
+            s.send_cmd(3, "cheat", "cheat", 62)       # swap
+            s.send_cmd(4, "paint_rgb", "rgb", 0x00FFFFFF)
+    rc, err, log = s.close()
+    for cid in (1, 2, 3, 4):
+        a = acks.get(cid, {})
+        check(a.get("ok") is False and a.get("err") == "not in a vehicle",
+              "paint cmd id=%d on foot -> 'not in a vehicle'" % cid)
+    check("UNKNOWN NATIVE" not in err and "ARITY MISMATCH" not in err,
+          "mock saw no unknown native / arity mismatch")
+    check(rc == 0, "host exited cleanly (rc=%s)" % rc)
+
+
 def simple(scenario, seconds, predicate, what, with_shv=True):
     print("scenario: %s%s" % (scenario, "" if with_shv else " (no Script Hook V)"))
     s = Session(scenario, seconds + 3, with_shv)
@@ -549,6 +681,8 @@ def main():
     test_wheel()
     test_blips()
     test_cheats()
+    test_paint()
+    test_paint_on_foot_refusal()
 
     def states(fr):
         return [f for f in fr if f["type"] == "state"]

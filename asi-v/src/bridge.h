@@ -30,7 +30,7 @@
 
 namespace bridge {
 
-constexpr const char* kPluginVersion = "0.3.0";
+constexpr const char* kPluginVersion = "0.4.0";
 
 // Spawn the listener thread. Returns immediately.
 void start(const VersionInfo& vi);

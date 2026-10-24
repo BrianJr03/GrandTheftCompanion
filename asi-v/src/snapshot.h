@@ -100,6 +100,14 @@ struct State {
     float    vehicle_body_hp;             // 0..1000
     float    vehicle_altitude_m;          // above ground; aircraft only
     bool     vehicle_has_radio;
+    // Paint. GET_VEHICLE_COLOURS is a pair of palette indices; the two
+    // custom flags are true when the matching layer carries an RGB
+    // override that would hide the palette index on screen. Read every
+    // tick in-vehicle so the companion's Paint section stays correct
+    // after a shop respray or a mod menu.
+    int32_t  vehicle_colour1;
+    int32_t  vehicle_colour2;
+    bool     vehicle_custom;              // either layer has an RGB override
 
     // --- audio ---
     int32_t radio_index;                  // -1 = off

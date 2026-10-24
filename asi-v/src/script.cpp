@@ -185,6 +185,15 @@ void read_vehicle(snapshot::State& s, int32_t ped) {
     }
     s.vehicle_has_radio = shv::call_bool(natives::DOES_PLAYER_VEH_HAVE_RADIO);
 
+    // Paint. Three extra natives per in-vehicle tick on top of the
+    // existing vehicle reads; the pair is cheap and the Paint section
+    // reads from this field only (never from a tap).
+    shv::call<void>(natives::GET_VEHICLE_COLOURS, veh,
+                    &s.vehicle_colour1, &s.vehicle_colour2);
+    const bool cp = shv::call_bool(natives::GET_IS_VEHICLE_PRIMARY_COLOUR_CUSTOM, veh);
+    const bool cs = shv::call_bool(natives::GET_IS_VEHICLE_SECONDARY_COLOUR_CUSTOM, veh);
+    s.vehicle_custom = cp || cs;
+
     if (s.vehicle_model != g_cached_vehicle_model) {
         const char* key = shv::call<const char*>(
             natives::GET_DISPLAY_NAME_FROM_VEHICLE_MODEL, s.vehicle_model);

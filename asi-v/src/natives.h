@@ -161,6 +161,21 @@ enum : uint64_t {
     SET_VEHICLE_REDUCE_GRIP                = 0x222FF6A823D122E2,  // void (Vehicle, BOOL)
     // Four-arg y/n flags; passing BOOLs is enough for a teleport.
     SET_ENTITY_COORDS                      = 0x621873ECE1178967,  // void (Entity, float, float, float, BOOL, BOOL, BOOL, BOOL)
+
+    // Paint. Palette-index pair + two RGB override layers. Hashes
+    // verified against alloc8or/gta5-nativedb-data (natives.json and
+    // natives_gen9.json carry the same original hash). CLEAR_ natives
+    // run before every index write because an RGB override on a layer
+    // hides SET_VEHICLE_COLOURS for that layer; the clear is cheap and
+    // harmless when there was no override.
+    GET_VEHICLE_COLOURS                       = 0xA19435F193E081AC,  // void (Vehicle, int* c1, int* c2)
+    SET_VEHICLE_COLOURS                       = 0x4F1D4BE3A7F24601,  // void (Vehicle, int c1, int c2)
+    SET_VEHICLE_CUSTOM_PRIMARY_COLOUR         = 0x7141766F91D15BEA,  // void (Vehicle, int r, int g, int b)
+    SET_VEHICLE_CUSTOM_SECONDARY_COLOUR       = 0x36CED73BFED89754,  // void (Vehicle, int r, int g, int b)
+    CLEAR_VEHICLE_CUSTOM_PRIMARY_COLOUR       = 0x55E1D2758F34E437,  // void (Vehicle)
+    CLEAR_VEHICLE_CUSTOM_SECONDARY_COLOUR     = 0x5FFBDEEC3E8E2009,  // void (Vehicle)
+    GET_IS_VEHICLE_PRIMARY_COLOUR_CUSTOM      = 0xF095C0405307B21B,  // BOOL (Vehicle)
+    GET_IS_VEHICLE_SECONDARY_COLOUR_CUSTOM    = 0x910A32E7AAD2656C,  // BOOL (Vehicle)
 };
 
 // IS_CONTROL_PRESSED arguments. `control` is the input group, `action`

@@ -41,7 +41,7 @@ namespace {
 
 using ScriptMain = void (*)();
 
-enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips, kCheats };
+enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips, kCheats, kPaint };
 Scenario g_scenario = kStory;
 uint64_t g_t0 = 0;
 
@@ -113,6 +113,22 @@ constexpr int kSpawnLoadFrames = 2;   // ~80 ms wait at 25 Hz
 int32_t  g_spawn_last_veh = 0;
 bool     g_spawn_released = false;    // SET_VEHICLE_AS_NO_LONGER_NEEDED seen
 
+// Paint state. Palette-index pair plus two layer-custom flags; a
+// clear flips the matching flag off, an RGB write flips it on. The
+// Python scenario watches both the state frame (which reads the pair
+// via GET_VEHICLE_COLOURS and the pair of GET_IS_..._CUSTOM) and the
+// mock counters here to confirm what the plugin wrote.
+int32_t g_colour1 = 42;
+int32_t g_colour2 = 7;
+bool    g_custom_primary = false;
+bool    g_custom_secondary = false;
+int     g_set_colours_calls = 0;
+int     g_set_custom_prim_calls = 0;
+int     g_set_custom_sec_calls = 0;
+int     g_clear_custom_prim_calls = 0;
+int     g_clear_custom_sec_calls = 0;
+int32_t g_last_custom_r = 0, g_last_custom_g = 0, g_last_custom_b = 0;
+
 uint64_t elapsed_ms() { return GetTickCount64() - g_t0; }
 
 // ---- fake map --------------------------------------------------------
@@ -166,8 +182,12 @@ void blips_step() {
     std::fflush(stderr);
 }
 
-// story timeline
-bool in_vehicle()  { return g_scenario == kStory && elapsed_ms() > 2000; }
+// story timeline. Paint scenario is in-vehicle from the first tick so
+// the Python side doesn't have to wait for a transition.
+bool in_vehicle()  {
+    if (g_scenario == kPaint) return true;
+    return g_scenario == kStory && elapsed_ms() > 2000;
+}
 bool switching()   { uint64_t t = elapsed_ms();
                      return g_scenario == kStory && t > 5000 && t < 6000; }
 uint32_t ped_model() {
@@ -516,6 +536,37 @@ void dispatch() {
     case STAT_SET_CHEAT_IS_ACTIVE: expect_argc(0, "STAT_SET_CHEAT_IS_ACTIVE");
         ++g_cheat_stat_set; break;
 
+    // ---- paint natives ---------------------------------------------
+    case GET_VEHICLE_COLOURS: { expect_argc(3, "GET_VEHICLE_COLOURS");
+        int* c1 = arg<int*>(1);
+        int* c2 = arg<int*>(2);
+        if (c1) *c1 = g_colour1;
+        if (c2) *c2 = g_colour2;
+        break; }
+    case SET_VEHICLE_COLOURS: expect_argc(3, "SET_VEHICLE_COLOURS");
+        g_colour1 = arg<int>(1);
+        g_colour2 = arg<int>(2);
+        ++g_set_colours_calls; break;
+    case SET_VEHICLE_CUSTOM_PRIMARY_COLOUR: expect_argc(4, "SET_VEHICLE_CUSTOM_PRIMARY_COLOUR");
+        g_custom_primary = true;
+        g_last_custom_r = arg<int>(1);
+        g_last_custom_g = arg<int>(2);
+        g_last_custom_b = arg<int>(3);
+        ++g_set_custom_prim_calls; break;
+    case SET_VEHICLE_CUSTOM_SECONDARY_COLOUR: expect_argc(4, "SET_VEHICLE_CUSTOM_SECONDARY_COLOUR");
+        g_custom_secondary = true;
+        ++g_set_custom_sec_calls; break;
+    case CLEAR_VEHICLE_CUSTOM_PRIMARY_COLOUR: expect_argc(1, "CLEAR_VEHICLE_CUSTOM_PRIMARY_COLOUR");
+        g_custom_primary = false;
+        ++g_clear_custom_prim_calls; break;
+    case CLEAR_VEHICLE_CUSTOM_SECONDARY_COLOUR: expect_argc(1, "CLEAR_VEHICLE_CUSTOM_SECONDARY_COLOUR");
+        g_custom_secondary = false;
+        ++g_clear_custom_sec_calls; break;
+    case GET_IS_VEHICLE_PRIMARY_COLOUR_CUSTOM: expect_argc(1, "GET_IS_VEHICLE_PRIMARY_COLOUR_CUSTOM");
+        ret_bool(g_custom_primary); break;
+    case GET_IS_VEHICLE_SECONDARY_COLOUR_CUSTOM: expect_argc(1, "GET_IS_VEHICLE_SECONDARY_COLOUR_CUSTOM");
+        ret_bool(g_custom_secondary); break;
+
     // ---- phase-2 cheats --------------------------------------------
     case SET_PED_IS_DRUNK: expect_argc(2, "SET_PED_IS_DRUNK"); break;
     case SET_SWIM_MULTIPLIER_FOR_PLAYER: expect_argc(2, "SET_SWIM_MULTIPLIER_FOR_PLAYER");
@@ -564,6 +615,7 @@ void mock_scriptRegister(HMODULE /*module*/, ScriptMain fn) {
         if (!std::strcmp(buf, "wheel"))   g_scenario = kWheel;
         if (!std::strcmp(buf, "blips"))   g_scenario = kBlips;
         if (!std::strcmp(buf, "cheats"))  g_scenario = kCheats;
+        if (!std::strcmp(buf, "paint"))   g_scenario = kPaint;
     }
     std::fprintf(stderr, "[mock] scriptRegister, scenario=%d\n", g_scenario);
     std::fflush(stderr);
