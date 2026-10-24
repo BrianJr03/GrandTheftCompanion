@@ -552,8 +552,13 @@ private fun PaintSection(
         // "Custom colour" opens the colour wheel. V-only (IV refuses
         // paint_rgb at the plugin, so the button never renders on
         // IV). Lives directly under the catalog row so the three
-        // standard buttons + this one feel like one cluster. Pending
-        // alpha mirrors the in-flight state the swatch row uses.
+        // standard buttons + this one feel like one cluster.
+        //
+        // Deliberately NOT gated on inCar: opening the picker is
+        // harmless, and the player can prepare a colour before
+        // getting in a car. The Apply inside the sheet calls
+        // paintRgb, which the plugin refuses with "not in a vehicle"
+        // on foot — that's where the error wants to live.
         if (onOpenWheel != null) {
             Spacer(Modifier.height(6.dp))
             Row(
@@ -566,14 +571,14 @@ private fun PaintSection(
                         .heightIn(min = 44.dp)
                         .clip(RoundedCornerShape(50))
                         .background(Color.Black)
-                        .border(1.dp, accent.copy(alpha = fade), RoundedCornerShape(50))
-                        .clickable(enabled = inCar) { onOpenWheel() }
+                        .border(1.dp, accent, RoundedCornerShape(50))
+                        .clickable { onOpenWheel() }
                         .padding(horizontal = 8.dp, vertical = 10.dp),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         text = stringResource(R.string.cheats_paint_custom_colour),
-                        color = accent.copy(alpha = fade),
+                        color = accent,
                         fontFamily = FontFamily.Monospace,
                         fontSize = 12.sp,
                     )
