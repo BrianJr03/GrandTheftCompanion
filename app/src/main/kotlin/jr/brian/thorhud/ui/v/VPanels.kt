@@ -1,14 +1,23 @@
 package jr.brian.thorhud.ui.v
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -247,19 +256,53 @@ internal fun VVehiclePanel(
                  modifier = Modifier.fillMaxWidth())
             return@HudCard
         }
-        Text(
-            v.name.ifBlank {
-                stringResource(R.string.v_model_fallback, v.model)
-            },
-            color = Color(0xFFEDEDED),
-            fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = textAlign,
+        // Edit glyph tells the player this card is actionable. The
+        // long-press hook that opens Customs lives on the parent
+        // card modifier (ui/v/VMainScreen.kt); the glyph is a visual
+        // affordance only. Pencil leads for Start/Center, trails for
+        // End so it never sits between the panel edge and the name.
+        val cd = stringResource(R.string.v_vehicle_edit_cd)
+        val editGlyph: @Composable () -> Unit = {
+            Icon(
+                imageVector = Icons.Outlined.Edit,
+                contentDescription = cd,
+                tint = Color(0xFF6A7A6E),
+                modifier = Modifier
+                    .size(14.dp)
+                    .semantics { contentDescription = cd },
+            )
+        }
+        Row(
             modifier = Modifier.fillMaxWidth(),
-        )
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = when (align) {
+                CardAlign.End    -> Arrangement.End
+                CardAlign.Center -> Arrangement.Center
+                CardAlign.Start  -> Arrangement.Start
+            },
+        ) {
+            if (align != CardAlign.End) {
+                editGlyph()
+                Spacer(Modifier.size(6.dp))
+            }
+            Text(
+                v.name.ifBlank {
+                    stringResource(R.string.v_model_fallback, v.model)
+                },
+                color = Color(0xFFEDEDED),
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = textAlign,
+                modifier = Modifier.weight(1f, fill = false),
+            )
+            if (align == CardAlign.End) {
+                Spacer(Modifier.size(6.dp))
+                editGlyph()
+            }
+        }
         Spacer(Modifier.height(20.dp))
         Text(
             stringResource(R.string.label_speed),
