@@ -58,11 +58,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
+import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.components.FullScreenSheet
 import jr.brian.thorhud.ui.components.HeaderIconButton
 import kotlinx.coroutines.launch
@@ -92,6 +95,7 @@ internal fun CheatsScreen(
     isGtaV: Boolean,
     cheatsSupported: Boolean?,
     cheatsMask: Int?,
+    vehicle: GameState.Vehicle?,
     accent: Color,
     lastResult: CheatResult?,
     collapsedSections: Set<String>,
@@ -100,6 +104,7 @@ internal fun CheatsScreen(
     onToggleSection: (String, Boolean) -> Unit,
     onRunCheat: (Int) -> Unit,
     onLongPressOneShot: (Int) -> Boolean,
+    onPaintRgb: (Long) -> Unit,
     onOnboardingDismissed: () -> Unit,
     onOpenRadio: (() -> Unit)? = null,
     onOpenMap: (() -> Unit)? = null,
@@ -198,6 +203,20 @@ internal fun CheatsScreen(
                 onToggleExpanded = { onToggleSection(category.name, expanded) },
                 onTap = onRunCheat,
                 onLongPress = onLongPress,
+                body = if (category == CheatCategory.Paint) {
+                    { PaintSection(
+                        items = items,
+                        isGtaV = isGtaV,
+                        vehicle = vehicle,
+                        accent = accent,
+                        pendingId = pendingId,
+                        cheatsMask = cheatsMask,
+                        autoApplyCheats = autoApplyCheats,
+                        onTap = onRunCheat,
+                        onLongPress = onLongPress,
+                        onPaintRgb = onPaintRgb,
+                    ) }
+                } else null,
             )
         }
 
@@ -234,6 +253,10 @@ private fun CategorySection(
     onToggleExpanded: () -> Unit,
     onTap: (Int) -> Unit,
     onLongPress: (CheatDef) -> Unit,
+    // Alternate body for sections that are not a plain two-wide grid
+    // (today: Paint, which also shows the current pair and a V-only
+    // swatch row). Default null = render the shared CheatGrid.
+    body: (@Composable () -> Unit)? = null,
 ) {
     // Expand/collapse state is hoisted to the ViewModel and persisted
     // in HudPrefs so collapsing a section survives app relaunch.
@@ -274,19 +297,194 @@ private fun CategorySection(
             exit = shrinkVertically() + fadeOut(),
         ) {
             Column(modifier = Modifier.padding(bottom = 8.dp)) {
-                CheatGrid(
-                    items = items,
-                    accent = accent,
-                    pendingId = pendingId,
-                    cheatsMask = cheatsMask,
-                    autoApplyCheats = autoApplyCheats,
-                    onTap = onTap,
-                    onLongPress = onLongPress,
+                if (body != null) {
+                    body()
+                } else {
+                    CheatGrid(
+                        items = items,
+                        accent = accent,
+                        pendingId = pendingId,
+                        cheatsMask = cheatsMask,
+                        autoApplyCheats = autoApplyCheats,
+                        onTap = onTap,
+                        onLongPress = onLongPress,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Paint section body. Renders the current colour pair as two outlined
+ * boxes (reading from [vehicle] — never from the tap), the three
+ * catalog buttons through the shared grid, and (V only) a swatch row
+ * that calls [onPaintRgb] with the packed RGB. When [vehicle] is
+ * null, the whole thing greys out with the "get in a car" hint and
+ * the taps are disabled so the plugin never sees a doomed command.
+ */
+@Composable
+private fun PaintSection(
+    items: List<CheatDef>,
+    isGtaV: Boolean,
+    vehicle: GameState.Vehicle?,
+    accent: Color,
+    pendingId: Int?,
+    cheatsMask: Int?,
+    autoApplyCheats: Set<Int>,
+    onTap: (Int) -> Unit,
+    onLongPress: (CheatDef) -> Unit,
+    onPaintRgb: (Long) -> Unit,
+) {
+    val inCar = vehicle != null
+    val fade = if (inCar) 1f else 0.4f
+    val dim = Color(0xFF6A7A6E)
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Pair readout. On V with a custom override active, show the
+        // word "custom" in place of both indices; otherwise show the
+        // palette indices from the state frame. On IV the vehicle
+        // block never carries `custom`, so we fall through to indices.
+        val custom = vehicle?.custom == true
+        val c1 = vehicle?.colour1
+        val c2 = vehicle?.colour2
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            PairBox(
+                label = stringResource(R.string.cheats_paint_primary),
+                value = when {
+                    !inCar      -> "—"
+                    custom      -> stringResource(R.string.cheats_paint_custom)
+                    c1 != null  -> c1.toString()
+                    else        -> "—"
+                },
+                accent = accent.copy(alpha = fade),
+                dim = dim.copy(alpha = fade),
+                modifier = Modifier.weight(1f),
+            )
+            PairBox(
+                label = stringResource(R.string.cheats_paint_secondary),
+                value = when {
+                    !inCar      -> "—"
+                    custom      -> stringResource(R.string.cheats_paint_custom)
+                    c2 != null  -> c2.toString()
+                    else        -> "—"
+                },
+                accent = accent.copy(alpha = fade),
+                dim = dim.copy(alpha = fade),
+                modifier = Modifier.weight(1f),
+            )
+        }
+
+        if (!inCar) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                stringResource(R.string.cheats_paint_get_in_car),
+                color = dim,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 11.sp,
+            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // Buttons. We route a disabled tap (on foot) through a
+        // no-op so the plugin never sees a doomed command and the
+        // user never sees the "not in a vehicle" error line.
+        CheatGrid(
+            items = items,
+            accent = accent.copy(alpha = fade),
+            pendingId = pendingId,
+            cheatsMask = cheatsMask,
+            autoApplyCheats = autoApplyCheats,
+            onTap = if (inCar) onTap else { _ -> },
+            onLongPress = if (inCar) onLongPress else { _ -> },
+        )
+
+        if (isGtaV) {
+            Spacer(Modifier.height(8.dp))
+            SwatchRow(
+                accent = accent.copy(alpha = fade),
+                enabled = inCar,
+                onPick = onPaintRgb,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PairBox(
+    label: String,
+    value: String,
+    accent: Color,
+    dim: Color,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .border(1.dp, accent, RoundedCornerShape(8.dp))
+            .padding(vertical = 8.dp, horizontal = 10.dp),
+    ) {
+        Text(
+            label,
+            color = dim,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 10.sp,
+        )
+        Spacer(Modifier.height(2.dp))
+        Text(
+            value,
+            color = accent,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+/** V-only swatch row. Eight tappable filled boxes; each one sends a
+ *  paint_rgb with its packed colour. Greyed out when the player is on
+ *  foot so a tap cannot ride into the plugin. */
+@Composable
+private fun SwatchRow(
+    accent: Color,
+    enabled: Boolean,
+    onPick: (Long) -> Unit,
+) {
+    val label = stringResource(R.string.cheats_paint_custom)
+    Column {
+        Text(
+            label,
+            color = accent,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 10.sp,
+        )
+        Spacer(Modifier.height(4.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            for (sw in PAINT_SWATCHES) {
+                val (r, g, b) = unpackRgb(sw.packed)
+                val fill = Color(r, g, b).copy(alpha = if (enabled) 1f else 0.3f)
+                val cd = stringResource(sw.labelRes)
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(28.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(fill)
+                        .border(1.dp, accent, RoundedCornerShape(6.dp))
+                        .semantics { contentDescription = cd }
+                        .clickable(enabled = enabled) { onPick(sw.packed) },
                 )
             }
         }
     }
 }
+
 
 @Composable
 private fun CheatGrid(

@@ -473,6 +473,13 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     cheatsSupported = hello?.cheatsSupported,
                                     cheatsMask = liveState?.cheatsMask
                                         ?: state?.cheatsMask,
+                                    // The Paint section reads the colour pair
+                                    // and `custom` flag from here only. Null
+                                    // on foot or when the plugin frame has no
+                                    // vehicle block, which greys the section.
+                                    vehicle = if (liveState?.inVehicle == true)
+                                                  liveState.vehicle
+                                              else null,
                                     accent = accent,
                                     lastResult = cheatResult,
                                     collapsedSections = collapsed,
@@ -485,6 +492,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     },
                                     onRunCheat = cheatsViewModel::runCheat,
                                     onLongPressOneShot = cheatsViewModel::toggleAutoApply,
+                                    onPaintRgb = cheatsViewModel::paintRgb,
                                     onOnboardingDismissed = {
                                         cheatsViewModel.markOnboardingSeen()
                                         showOnboarding = false

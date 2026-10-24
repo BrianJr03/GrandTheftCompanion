@@ -233,6 +233,34 @@ internal class CheatsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * GTA V only. [packed] is a 0x00RRGGBB value from [PAINT_SWATCHES].
+     * Rides the same pending/ack path as [runCheat] so a second tap
+     * while the first ack is in flight does nothing (double-send
+     * guard), and so the swatch row can grey out from `lastResult`
+     * the same way the three paint buttons do. The pending-id slot
+     * uses [PAINT_RGB_PENDING_ID] — a value outside the catalog id
+     * space so no catalog button ever greys from an in-flight swatch.
+     */
+    fun paintRgb(packed: Long) {
+        pending?.cancel()
+        _result.value = CheatResult(PAINT_RGB_PENDING_ID)
+        pending = viewModelScope.launch {
+            val id = repository.paintRgb(packed)
+            val ack = if (id == null) null else withTimeoutOrNull(ACK_TIMEOUT_MS.milliseconds) {
+                repository.ack.first { it?.ackId == id }
+            }
+            val error = when {
+                id == null     -> "not connected"
+                ack == null    -> "no reply from the game"
+                ack.ok != true -> ack.err?.takeIf { it.isNotBlank() } ?: "refused"
+                else           -> null
+            }
+            _result.value = if (error == null) null
+                            else CheatResult(PAINT_RGB_PENDING_ID, error)
+        }
+    }
+
     private data class ReconcileSnapshot(
         val state: jr.brian.thorhud.model.GameState?,
         val toggles: Set<Int>,
@@ -244,6 +272,10 @@ internal class CheatsViewModel @Inject constructor(
         // Match MainViewModel.ACK_TIMEOUT_MS: the plugin answers on its
         // next tick (25 Hz) and refuses stale commands at 2 s itself.
         const val ACK_TIMEOUT_MS = 2500L
+        // Fake pending id for paint_rgb — outside the catalog id space
+        // (max catalog id today is 62) so a swatch in flight never
+        // greys out a catalog button.
+        const val PAINT_RGB_PENDING_ID = -1
 
         // Gap between reconciliation commands AFTER the previous one
         // has been ack'd. Three plugin ticks is enough breathing room
