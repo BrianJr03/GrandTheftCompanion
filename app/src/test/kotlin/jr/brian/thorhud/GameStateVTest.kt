@@ -235,7 +235,7 @@ class GameStateVTest {
         assertEquals(3, f.listVersion)
         assertEquals(true, f.modsKit)
         assertEquals(1, f.modsWheelType)
-        assertEquals(6, f.modsTints)
+        assertEquals(6, f.tintsRaw)
         assertEquals("GTC 123", f.modsPlate)
         assertEquals(true, f.modsNeon)
         assertEquals(false, f.modsBulletproof)
@@ -261,6 +261,35 @@ class GameStateVTest {
         assertEquals(false, f.modsKit)
         assertEquals(0, f.modsSlots.size)
         assertEquals(0, f.modsToggles.size)
+    }
+
+    @Test
+    fun armoryFrameDecodes() {
+        val f = decode(V_ARMORY_PISTOL)
+        assertTrue(f.isArmory)
+        assertTrue(f.isGtaV)
+        assertEquals(32, f.armoryWidx)
+        assertEquals(0xBFE256D4L, f.weaponHash)
+        assertEquals("Pistol Mk II", f.armoryName)
+        assertEquals(33, f.tintsRaw)
+        assertEquals(0, f.tintRaw)
+        assertEquals(60, f.armoryAmmo)
+        assertEquals(120, f.armoryMaxAmmo)
+        assertEquals(12, f.armoryClip)
+        assertEquals(3, f.armoryOptions.size)
+        val clip = f.armoryOptions[0]
+        assertEquals(0, clip.cidx)
+        assertEquals(3723347892L, clip.bone)
+        assertTrue(clip.isDefault)
+        assertEquals("Default Clip", clip.name)
+    }
+
+    @Test
+    fun armoryFrameNotInShopCarriesEmptyOptionsAndNegativeWidx() {
+        val f = decode(V_ARMORY_KNIFE_NOT_IN_SHOP)
+        assertTrue(f.isArmory)
+        assertEquals(-1, f.armoryWidx)
+        assertEquals(0, f.armoryOptions.size)
     }
 
     @Test
@@ -307,5 +336,14 @@ class GameStateVTest {
         // / engine), one toggle (turbo), non-stock current values.
         const val V_MODS = """{"v":1,"type":"mods","game":"v","ver":3,"vehicle_model":3078201489,"kit":true,"wheel_type":1,"tints":6,"tint":3,"plate_style":2,"plate":"GTC 123","neon":true,"bulletproof":false,"slots":[{"slot":0,"cur":1,"name":"slot 0","options":["option 0_0","option 0_1"]},{"slot":11,"cur":2,"name":"slot 11","options":["option 11_0","option 11_1","option 11_2","option 11_3"]}],"toggles":[{"slot":18,"on":true,"name":"turbo"}]}"""
         const val V_MODS_NO_KIT = """{"v":1,"type":"mods","game":"v","ver":1,"vehicle_model":2167295885,"kit":false,"wheel_type":0,"tints":6,"tint":0,"plate_style":0,"plate":"","neon":false,"bulletproof":false,"slots":[],"toggles":[]}"""
+
+        // Armory frame mirrors Gate A0 shape: three options (Default
+        // Clip, Extended Clip, Flashlight) spanning two bone groups
+        // on a Pistol Mk II. ammo < max_ammo so Fill has somewhere to
+        // go; clip < max_ammo so +1 clip is also meaningful.
+        const val V_ARMORY_PISTOL = """{"v":1,"type":"armory","game":"v","ver":1,"widx":32,"weapon_hash":3219281620,"name":"Pistol Mk II","tints":33,"tint":0,"ammo":60,"max_ammo":120,"clip":12,"options":[{"c":0,"bone":3723347892,"default":true,"fitted":false,"name":"Default Clip"},{"c":1,"bone":3723347892,"default":false,"fitted":true,"name":"Extended Clip"},{"c":7,"bone":679107254,"default":false,"fitted":false,"name":"Flashlight"}]}"""
+        // Weapon not in the DLC catalogue: widx=-1, empty options,
+        // tint and max_ammo still present (natives work on any hash).
+        const val V_ARMORY_KNIFE_NOT_IN_SHOP = """{"v":1,"type":"armory","game":"v","ver":2,"widx":-1,"weapon_hash":2578778090,"name":"weapon_knife","tints":8,"tint":0,"ammo":1,"max_ammo":0,"clip":0,"options":[]}"""
     }
 }

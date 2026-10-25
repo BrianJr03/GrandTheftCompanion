@@ -120,6 +120,8 @@
     <string name="hud_onboarding_slide_tap_body">Tap a radio station to retune it. Tap the weapon card on foot (or hold the weapon-wheel button on the controller) to pick a weapon.</string>
     <string name="hud_onboarding_slide_customs_title">Long-press the vehicle card</string>
     <string name="hud_onboarding_slide_customs_body">Sitting in a car? A long press on the vehicle card opens Customs: paint, parts, performance, wheels, tint, plate, neon. Look for the small pencil icon next to the vehicle name.</string>
+    <string name="hud_onboarding_slide_ammu_title">Long-press the weapon card</string>
+    <string name="hud_onboarding_slide_ammu_body">On foot? A long press on the weapon card opens Ammu-Nation: attachments, weapon tint, and refill ammo. Tap the card still opens the weapon wheel. Look for the small pencil icon next to the weapon name.</string>
     <string name="hud_onboarding_slide_tabs_title">More tabs</string>
     <string name="hud_onboarding_slide_tabs_body">Swipe left for the map (blips, one-tap routing) or right for cheats. The HUD stays in the middle so you always know how to get back.</string>
 
@@ -148,6 +150,33 @@
     <string name="customs_no_kit">This vehicle can\'t be customised.</string>
     <string name="customs_loading">Loading the catalogue…</string>
     <string name="customs_error">%1$s</string>
+
+    <!-- Ammu-Nation sheet (long-press the on-foot weapon card, GTA V
+         only). English only in v1 per the task spec; locale copies
+         land once the Gate A1 walk settles the group names. -->
+    <string name="ammu_title_fallback">Ammu-Nation</string>
+    <string name="ammu_get_on_foot">Get out of the car to use Ammu-Nation.</string>
+    <string name="ammu_get_armed">Equip a weapon to open Ammu-Nation.</string>
+    <string name="ammu_loading">Loading the catalogue…</string>
+    <string name="ammu_section_attachments">Attachments</string>
+    <string name="ammu_section_tint">Tint</string>
+    <string name="ammu_section_ammo">Ammo</string>
+    <string name="ammu_no_components">This weapon has no attachments.</string>
+    <string name="ammu_not_in_shop">This weapon isn\'t in the shop\'s catalogue.</string>
+    <string name="ammu_stock">Stock</string>
+    <!-- current / max -->
+    <string name="ammu_ammo_counts">%1$d / %2$d</string>
+    <string name="ammu_clip_size">Clip: %1$d</string>
+    <string name="ammu_fill">Fill</string>
+    <string name="ammu_add_clip">+1 clip</string>
+    <!-- Numbered tint chips. The game gives us no names for weapon
+         tints; the Gate A2 walk fills in a nicer table. -->
+    <string name="ammu_tint_n">%1$d</string>
+    <!-- Error line under the sheet; mirrors customs_error. -->
+    <string name="ammu_error">%1$s</string>
+    <!-- On the V weapon card: content description for the pencil
+         glyph that advertises the long-press. -->
+    <string name="v_weapon_edit_cd">Long-press to open Ammu-Nation</string>
     <string name="customs_section_paint">Paint</string>
     <string name="customs_section_body">Body</string>
     <string name="customs_section_performance">Performance</string>

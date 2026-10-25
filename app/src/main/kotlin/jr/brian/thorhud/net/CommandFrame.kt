@@ -63,5 +63,11 @@ private fun argKey(name: String): String = when (name) {
     "set_xenon_colour"      -> "index"         // 0xFFFFFFFF = default blue
     "set_bulletproof_tyres" -> "on"            // 0 / 1
     "mods_list"             -> "v"             // numeric placeholder, ignored
+    // Ammu-Nation (GTA V only). armory_list carries the weapon hash;
+    // the set_* commands pack (widx<<16)|payload into one u32 slot.
+    "armory_list"           -> "weapon"
+    "set_component"         -> "arg"
+    "set_weapon_tint"       -> "arg"
+    "set_ammo"              -> "arg"
     else                    -> "value"         // route_clear / blip_census ignore it
 }

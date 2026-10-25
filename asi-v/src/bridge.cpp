@@ -270,7 +270,7 @@ int format_mods(char* buf, size_t cap, const snapshot::Mods& m) {
 int format_armory(char* buf, size_t cap, const snapshot::Armory& a) {
     Out o{buf, cap, 0, false};
     o.add("{\"v\":1,\"type\":\"armory\",\"game\":\"v\",\"ver\":%u,"
-          "\"widx\":%d,\"weapon\":%u,\"name\":\"",
+          "\"widx\":%d,\"weapon_hash\":%u,\"name\":\"",
           a.ver, a.widx, a.weapon);
     o.add_escaped(a.name);
     o.add("\",\"tints\":%d,\"tint\":%d,\"ammo\":%d,\"max_ammo\":%d,"

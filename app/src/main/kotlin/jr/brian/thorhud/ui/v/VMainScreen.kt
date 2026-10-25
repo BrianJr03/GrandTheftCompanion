@@ -78,6 +78,10 @@ internal fun VMainScreen(
     // card tap-only (notice screens, IV, when the sheet is already
     // visible, etc.).
     onOpenCustoms: (() -> Unit)? = null,
+    // Long-press on the on-foot weapon card opens Ammu-Nation. Null
+    // leaves the card wheel-tap only (notice screens, in a vehicle,
+    // the plugin refusing commands, etc.).
+    onOpenAmmu: (() -> Unit)? = null,
 ) {
     val stations by viewModel.stations.collectAsStateWithLifecycle()
     val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
@@ -246,11 +250,13 @@ internal fun VMainScreen(
                     // vehicle, so the in-vehicle card above stays inert.
                     val weaponCard = if (onOpenWeaponWheel != null &&
                                          live?.inGame == true) {
-                        Modifier.weight(1f).clickable(onClick = onOpenWeaponWheel)
+                        Modifier.weight(1f)
+                            .then(weaponCardGestures(onOpenWeaponWheel, onOpenAmmu))
                     } else {
                         Modifier.weight(1f)
                     }
                     VWeaponPanel(live, align = CardAlign.End,
+                                 showEditGlyph = onOpenAmmu != null,
                                  modifier = weaponCard)
                 }
                 Spacer(Modifier.height(16.dp))
@@ -289,5 +295,25 @@ private fun longPressCustomsModifier(onOpen: (() -> Unit)?): Modifier {
         indication = null,
         onClick = {},
         onLongClick = onOpen,
+    )
+}
+
+/** Pair of (tap → wheel, long-press → Ammu-Nation) on the on-foot
+ *  weapon card. combinedClickable swallows the tap on a long-press,
+ *  so a successful hold does not also flash the wheel open. The
+ *  tap action is required (opening the wheel) — the on-foot card
+ *  is only reached when onOpenWheel is non-null. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun weaponCardGestures(
+    onOpenWheel: () -> Unit,
+    onOpenAmmu: (() -> Unit)?,
+): Modifier {
+    val source = remember { MutableInteractionSource() }
+    return Modifier.combinedClickable(
+        interactionSource = source,
+        indication = null,
+        onClick = onOpenWheel,
+        onLongClick = onOpenAmmu,
     )
 }

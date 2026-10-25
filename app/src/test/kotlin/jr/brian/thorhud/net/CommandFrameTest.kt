@@ -164,4 +164,49 @@ class CommandFrameTest {
         assertNull(commandFrameText(13, "set_plate", "A\\B"))
         assertNull(commandFrameText(14, "set_plate", "A\nB"))
     }
+
+    // ---- Ammu-Nation ------------------------------------------------
+
+    @Test
+    fun armoryListCarriesWeaponHashUnsigned() {
+        // weapon_pistol_mk2 = 0xBFE256D4 (verified in Gate A0): the
+        // hash is above Int.MAX_VALUE, so Long is mandatory on the
+        // wire or the plugin receives a different weapon.
+        val mk2 = 0xBFE256D4L
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":20,\"name\":\"armory_list\"," +
+                "\"args\":{\"weapon\":$mk2}}\n",
+            commandFrame(20, "armory_list", mk2),
+        )
+    }
+
+    @Test
+    fun setComponentPacksWidxCidxOn() {
+        // widx=32, cidx=5, on=true → (32<<16)|(5<<1)|1 = 2097163.
+        val arg = ((32L shl 16) or (5L shl 1) or 1L)
+        assertEquals(2097163L, arg)
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":21,\"name\":\"set_component\"," +
+                "\"args\":{\"arg\":$arg}}\n",
+            commandFrame(21, "set_component", arg),
+        )
+    }
+
+    @Test
+    fun setWeaponTintPacksWidxTint() {
+        // widx=32, tint=5 → (32<<16)|5 = 2097157.
+        val arg = (32L shl 16) or 5L
+        assertEquals(2097157L, arg)
+        assertTrue(commandFrame(22, "set_weapon_tint", arg)!!
+            .contains("\"args\":{\"arg\":$arg}"))
+    }
+
+    @Test
+    fun setAmmoPacksWidxAction() {
+        // widx=4, action=0 (fill) and action=1 (+1 clip).
+        val fill = (4L shl 16) or 0L
+        val add  = (4L shl 16) or 1L
+        assertTrue(commandFrame(23, "set_ammo", fill)!!.contains("\"arg\":$fill"))
+        assertTrue(commandFrame(24, "set_ammo", add)!!.contains("\"arg\":$add"))
+    }
 }

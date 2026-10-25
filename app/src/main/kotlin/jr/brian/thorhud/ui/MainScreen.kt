@@ -70,6 +70,7 @@ import jr.brian.thorhud.ui.map.titleCase
 import jr.brian.thorhud.ui.cheats.CheatsScreen
 import jr.brian.thorhud.ui.cheats.CheatsViewModel
 import jr.brian.thorhud.ui.components.HudPalette
+import jr.brian.thorhud.ui.ammunation.AmmuNationScreen
 import jr.brian.thorhud.ui.customs.LSCustomsScreen
 import jr.brian.thorhud.ui.v.VMainScreen
 import jr.brian.thorhud.ui.v.VRadioPicker
@@ -399,6 +400,19 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             { showCustoms = true }
                         } else null
 
+                    // Ammu-Nation sheet state. On foot, V only, same
+                    // cheats-supported gate as Customs (both require
+                    // the plugin's command dispatcher). Live state
+                    // must say inGame so the long-press is inert on
+                    // pause / loading / cutscene.
+                    var showAmmu by rememberSaveable { mutableStateOf(false) }
+                    val openAmmu: (() -> Unit)? =
+                        if (isGtaV && !inVehicleNow &&
+                            hello?.cheatsSupported == true &&
+                            liveState?.inGame == true) {
+                            { showAmmu = true }
+                        } else null
+
                     CompositionLocalProvider(
                         LocalFullScreenSheetCount provides sheetCount,
                     ) {
@@ -421,6 +435,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         onScrollToMap = scrollToMap,
                                         onOpenCheats = scrollToCheats,
                                         onOpenCustoms = openCustoms,
+                                        onOpenAmmu = openAmmu,
                                     )
                                 } else {
                                     IvHudScreen(
@@ -588,6 +603,16 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             visible = showCustoms && isGtaV,
                             accent = accent,
                             onDismiss = { showCustoms = false },
+                        )
+
+                        // Ammu-Nation sheet. V-only, on-foot only.
+                        // Composed unconditionally for the slide-out
+                        // animation; the openAmmu gate upstream makes
+                        // the long-press inert in a vehicle.
+                        AmmuNationScreen(
+                            visible = showAmmu && isGtaV,
+                            accent = accent,
+                            onDismiss = { showAmmu = false },
                         )
 
                         // Drawn over the pager so it covers both pages

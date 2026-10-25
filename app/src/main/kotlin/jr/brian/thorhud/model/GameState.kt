@@ -144,14 +144,26 @@ data class GameState(
     @SerialName("vehicle_model") val modsVehicleModel: Long? = null,
     @SerialName("kit") val modsKit: Boolean? = null,
     @SerialName("wheel_type") val modsWheelType: Int? = null,
-    @SerialName("tints") val modsTints: Int? = null,
-    @SerialName("tint") val modsTint: Int? = null,
+    // tintsRaw / tintRaw are shared between "mods" and "armory"
+    // frames; the right projection pulls them out by frame type.
+    @SerialName("tints") val tintsRaw: Int? = null,
+    @SerialName("tint") val tintRaw: Int? = null,
     @SerialName("plate_style") val modsPlateStyle: Int? = null,
     @SerialName("plate") val modsPlate: String? = null,
     @SerialName("neon") val modsNeon: Boolean? = null,
     @SerialName("bulletproof") val modsBulletproof: Boolean? = null,
     @SerialName("slots") val modsSlots: List<ModSlot> = emptyList(),
     @SerialName("toggles") val modsToggles: List<ModToggle> = emptyList(),
+
+    // "armory" frame (GTA V only). All optional on non-armory frames.
+    // widx = -1 means the weapon has no DLC-catalogue entry; its
+    // Ammu-Nation page shows "no attachments" and hides Tint / Ammo.
+    @SerialName("widx") val armoryWidx: Int? = null,
+    @SerialName("max_ammo") val armoryMaxAmmo: Int? = null,
+    @SerialName("clip") val armoryClip: Int? = null,
+    @SerialName("ammo") val armoryAmmo: Int? = null,
+    @SerialName("name") val armoryName: String? = null,
+    @SerialName("options") val armoryOptions: List<ArmoryOption> = emptyList(),
 
     // ack (Phase 3) — correlation id matches the cmd id, ok=true on
     // success, err carries a short reason string on failure.
@@ -167,6 +179,7 @@ data class GameState(
     val isWeapons: Boolean get() = type == "weapons"
     val isBlips: Boolean get() = type == "blips"
     val isMods: Boolean get() = type == "mods"
+    val isArmory: Boolean get() = type == "armory"
     val isGtaV: Boolean get() = game == GAME_V
 
     /** Safe to fire a cheat right now: the frame is a real state
@@ -309,6 +322,23 @@ data class GameState(
         @SerialName("name") val name: String = "",
     )
 
+    /**
+     * One attachment option on the Ammu-Nation page. `bone` is the
+     * game's own attachBone id — the UI groups options with the same
+     * bone into one slot (clip / scope / muzzle / grip / finish).
+     * `isDefault` marks the stock option that can never be removed.
+     * `fitted` is the live install state; the UI reads it, never the
+     * tap, so a refusal never leaves a wrong highlight behind.
+     */
+    @Serializable
+    data class ArmoryOption(
+        @SerialName("c") val cidx: Int = 0,
+        @SerialName("bone") val bone: Long = 0,
+        @SerialName("default") val isDefault: Boolean = false,
+        @SerialName("fitted") val fitted: Boolean = false,
+        @SerialName("name") val name: String = "",
+    )
+
     companion object {
         val WAITING = GameState(type = "waiting")
         const val GAME_V = "v"
@@ -339,5 +369,53 @@ data class Mods(
     val bulletproof: Boolean,
     val slots: List<GameState.ModSlot>,
     val toggles: List<GameState.ModToggle>,
+)
+
+/**
+ * One Ammu-Nation page for a specific weapon. Built by the repository
+ * from the plugin's flat `armory` frame: options with the same bone
+ * id are gathered into one [ArmoryGroup] so the UI renders a row per
+ * attachment category (clip, scope, muzzle, grip, flashlight,
+ * finish).
+ *
+ * [widx] = -1 means the weapon has no DLC-catalogue entry (knife,
+ * grenade, vanilla pistol / carbine). The sheet in that case shows
+ * "no attachments" and hides the Tint and Ammo sections — their
+ * plugin-side writes refuse without a valid widx anyway.
+ *
+ * [ver] bumps on every change (catalogue refresh, component fit /
+ * remove, tint write, ammo write). The screen keyes its highlight
+ * off the frame only — never off the tap — so a refusal never
+ * leaves the UI in a state the game is not actually in.
+ */
+data class Armory(
+    val ver: Int,
+    val widx: Int,
+    val weaponHash: Long,
+    val name: String,
+    val tints: Int,
+    val tint: Int,
+    val ammo: Int,
+    val maxAmmo: Int,
+    val clip: Int,
+    val groups: List<ArmoryGroup>,
+) {
+    /** True when the weapon has a DLC-catalogue entry — attachments
+     *  and tint / ammo writes are available. */
+    val inShop: Boolean get() = widx >= 0
+}
+
+/**
+ * One attachment group on an Ammu-Nation page. [bone] is the game's
+ * own attachBone id used by the plugin to identify the slot
+ * (clip / scope / muzzle / etc.). [curCidx] is the component index of
+ * the fitted non-default option, or -1 when only the stock default
+ * is present. [options] carries every option in insertion order
+ * (default first in every observed catalogue).
+ */
+data class ArmoryGroup(
+    val bone: Long,
+    val curCidx: Int,
+    val options: List<GameState.ArmoryOption>,
 )
 

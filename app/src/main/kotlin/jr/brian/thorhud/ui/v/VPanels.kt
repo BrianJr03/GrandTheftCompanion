@@ -180,22 +180,61 @@ internal fun VWeaponPanel(
     s: GameState?,
     align: CardAlign = CardAlign.Center,
     verticalCenter: Boolean = false,
+    // When true, draws a pencil glyph in front of the weapon name to
+    // advertise the long-press-to-Ammu-Nation gesture. False on
+    // notice screens, in a vehicle, or when the plugin can't accept
+    // armory commands — matches the parent's weapon-card gesture.
+    showEditGlyph: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val textAlign = textAlignOf(align)
     HudCard(modifier, stringResource(R.string.panel_weapon),
             align = align, verticalCenter = verticalCenter) {
-        Text(
-            vWeaponLabel(s?.weaponName, s?.weaponHash),
-            color = Color(0xFFEDEDED),
-            fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = textAlign,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        if (showEditGlyph && s != null && !vIsUnarmed(s.weaponName, s.weaponHash)) {
+            val cd = stringResource(R.string.v_weapon_edit_cd)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = when (align) {
+                    CardAlign.End    -> Arrangement.End
+                    CardAlign.Center -> Arrangement.Center
+                    CardAlign.Start  -> Arrangement.Start
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Edit,
+                    contentDescription = cd,
+                    tint = Color(0xFF6A7A6E),
+                    modifier = Modifier
+                        .size(14.dp)
+                        .semantics { contentDescription = cd },
+                )
+                Spacer(Modifier.size(6.dp))
+                Text(
+                    vWeaponLabel(s.weaponName, s.weaponHash),
+                    color = Color(0xFFEDEDED),
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = textAlign,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+            }
+        } else {
+            Text(
+                vWeaponLabel(s?.weaponName, s?.weaponHash),
+                color = Color(0xFFEDEDED),
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = textAlign,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         if (s == null || vIsUnarmed(s.weaponName, s.weaponHash)) return@HudCard
 
         // GTA V: melee weapons have no ammo, and thrown weapons have a

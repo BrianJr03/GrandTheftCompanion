@@ -17,7 +17,10 @@
 //             census result changes (see format_blips in bridge.cpp)
 //   mods      Los Santos Customs page; versioned, re-sent on change
 //   armory    Ammu-Nation page for the last-requested weapon;
-//             versioned, re-sent on change (see format_armory)
+//             versioned, re-sent on change (see format_armory). The
+//             weapon hash rides under "weapon_hash" so the same Long
+//             field on the client model catches both state and armory
+//             frames.
 //   ack       reply to a client command
 //
 // Client -> server:

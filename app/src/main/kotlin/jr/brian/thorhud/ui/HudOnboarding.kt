@@ -4,9 +4,10 @@ import jr.brian.thorhud.R
 import jr.brian.thorhud.ui.components.OnboardingSlide
 
 /**
- * The first-visit tour of the HUD page. Three slides on GTA IV, four
- * on GTA V — the extra slide names Customs and the vehicle-card long
- * press, which the IV plugin does not expose.
+ * The first-visit tour of the HUD page. Three slides on GTA IV, five
+ * on GTA V — the two extra slides name Customs (vehicle-card long
+ * press) and Ammu-Nation (weapon-card long press), both of which the
+ * IV plugin does not expose.
  *
  * Pure function, no Compose imports, so it can be unit-tested without
  * instrumentation. The Compose layer hands this list to
@@ -29,6 +30,12 @@ internal fun hudOnboardingSlides(isGtaV: Boolean): List<OnboardingSlide> {
             OnboardingSlide(
                 titleRes = R.string.hud_onboarding_slide_customs_title,
                 bodyRes = R.string.hud_onboarding_slide_customs_body,
+            )
+        )
+        slides.add(
+            OnboardingSlide(
+                titleRes = R.string.hud_onboarding_slide_ammu_title,
+                bodyRes = R.string.hud_onboarding_slide_ammu_body,
             )
         )
     }
