@@ -70,6 +70,7 @@ private fun cycle(group: ArmoryGroup, forward: Boolean): CycleCommand? {
  *  [groupHeader]. English only in v1; locale copies land once the
  *  catalogue stabilises on-device. */
 val kBoneSlotNames: Map<Long, String> = mapOf(
+    // Seeded in Gate A0 (pistol family + Special Carbine + Mk II).
     3723347892L to "Clip",
     679107254L  to "Flashlight",
     945598191L  to "Muzzle",
@@ -78,6 +79,13 @@ val kBoneSlotNames: Map<Long, String> = mapOf(
     196630833L  to "Scope",
     2972950469L to "Grip",
     962500902L  to "Finish",
+    // Added after the Gate A1 sweep on Franklin's loadout: the same
+    // attachment category uses different bone ids on different DLC
+    // weapon families (Combat PDW, Bullpup Rifle, Heavy Shotgun,
+    // Marksman Rifle).
+    291640902L  to "Clip",         // Combat PDW clips (Default / Extended / Drum)
+    2722126698L to "Flashlight",   // Bullpup Rifle flashlight
+    3748215485L to "Grip",         // Combat PDW / Heavy Shotgun / Marksman Rifle
 )
 
 /**

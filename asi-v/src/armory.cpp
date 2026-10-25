@@ -178,7 +178,11 @@ bool publish_for(uint32_t hash, int32_t ped) {
     if (shv::call_bool(natives::GET_MAX_AMMO, ped, hash, &max_slot)) {
         out.max_ammo = static_cast<int32_t>(max_slot);
     }
-    out.clip     = shv::call<int32_t>(natives::GET_WEAPON_CLIP_SIZE, hash);
+    // GET_WEAPON_CLIP_SIZE is weapon-archetype only — it does not
+    // follow a fitted extended clip. GET_MAX_AMMO_IN_CLIP reads the
+    // current clip for this ped's fit, which is what the sheet needs.
+    out.clip     = shv::call<int32_t>(natives::GET_MAX_AMMO_IN_CLIP,
+                                      ped, hash, 1);
 
     // Components, when the weapon is in the catalogue.
     if (out.widx >= 0) {
@@ -386,8 +390,11 @@ bool apply(const char* name, uint32_t arg, uint32_t request_hash,
             thor_log("[armory] set_ammo fill weapon=0x%08X -> %d",
                      g_current_hash, cap_ammo);
         } else if (action == 1) {
+            // Use the live per-ped clip size so +1 clip tops up by
+            // whatever the fitted extended clip provides, not the
+            // stock archetype size.
             const int32_t clip = shv::call<int32_t>(
-                natives::GET_WEAPON_CLIP_SIZE, g_current_hash);
+                natives::GET_MAX_AMMO_IN_CLIP, ped, g_current_hash, 1);
             if (clip <= 0) return fail("no clip for this weapon");
             // ADD_AMMO_TO_PED adds without a cap-check; clamp here.
             const int32_t cur = shv::call<int32_t>(

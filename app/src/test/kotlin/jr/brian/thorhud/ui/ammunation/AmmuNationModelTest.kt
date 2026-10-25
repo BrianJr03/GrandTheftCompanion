@@ -125,12 +125,18 @@ class AmmuNationModelTest {
     }
 
     @Test
-    fun kBoneSlotNamesCoversEveryGateA0Bone() {
-        // Pin the probe-captured bones so a rename of this map is a
-        // deliberate change, not an accidental one.
+    fun kBoneSlotNamesCoversEveryObservedBone() {
+        // Pin the probe-captured bones (Gate A0) + the Gate A1 sweep
+        // additions so a rename of this map is a deliberate change,
+        // not an accidental one. Add new bones here as new weapons /
+        // DLCs land.
         val expected = setOf(
+            // Gate A0
             3723347892L, 679107254L, 945598191L, 1863181664L,
             1684637069L, 196630833L, 2972950469L, 962500902L,
+            // Gate A1 (Combat PDW, Bullpup Rifle, Heavy Shotgun,
+            // Marksman Rifle on Franklin's save)
+            291640902L, 2722126698L, 3748215485L,
         )
         assertTrue(
             "missing bones: ${expected - kBoneSlotNames.keys}",
