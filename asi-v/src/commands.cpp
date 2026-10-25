@@ -13,6 +13,10 @@
 #include "shv.h"
 #include "weapons.h"
 
+#ifdef THORBRIDGE_ARMORY_PROBE
+#include "armory_probe.h"
+#endif
+
 namespace {
 
 constexpr unsigned kQueueCap = 16;
@@ -290,6 +294,15 @@ void drain(int32_t player, int32_t ped, int32_t veh,
             const bool ok = mods::apply(c.name, c.arg0, c.text, veh,
                                         err, sizeof(err));
             post_ack(c.client, c.id, ok, err);
+#ifdef THORBRIDGE_ARMORY_PROBE
+        } else if (std::strcmp(c.name, "armory_probe") == 0) {
+            if (veh != 0) {
+                post_ack(c.client, c.id, false, "not on foot");
+                continue;
+            }
+            armory_probe::run(ped);
+            post_ack(c.client, c.id, true, "");
+#endif
         } else {
             char err[kMaxErrLen];
             std::snprintf(err, sizeof(err), "unknown command: %.20s", c.name);

@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.Icon
@@ -81,6 +82,10 @@ internal fun BlipListPanel(
     // natives can't be trusted (currently GTA IV; see MainScreen's
     // BlipsOverlay for why). Groups are still sorted nearest-first.
     showDistance: Boolean = true,
+    // Gate A0 one-shot. Non-null and BuildConfig.DEBUG lights a bug
+    // icon in the header that fires the plugin's armory_probe command.
+    // Only wired on GTA V; removed before v1 of Ammu-Nation ships.
+    onArmoryProbe: (() -> Unit)? = null,
 ) {
     val dim = Color(0xFF6A7A6E)
     // One section at a time: expanding a group hides every other
@@ -155,6 +160,14 @@ internal fun BlipListPanel(
                     tint = accent,
                     onClick = onLogCensus,
                 )
+                onArmoryProbe?.let { fire ->
+                    HeaderIcon(
+                        icon = Icons.Filled.BugReport,
+                        cd = stringResource(R.string.map_blips_armory_probe),
+                        tint = accent,
+                        onClick = fire,
+                    )
+                }
             }
             HeaderIcon(
                 icon = Icons.Filled.Close,

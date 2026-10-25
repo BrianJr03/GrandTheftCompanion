@@ -31,6 +31,14 @@ if(THORBRIDGE_LAN_DEBUG)
     target_compile_definitions(ThorBridgeV PRIVATE THORBRIDGE_LAN_DEBUG=1)
 endif()
 
+# Gate A0 one-shot: expose an `armory_probe` command that hex-dumps the
+# game's DLC-weapon catalogue. Debug-only; removed before v1 ships.
+option(THORBRIDGE_ARMORY_PROBE "Build the Gate A0 armory probe command" OFF)
+if(THORBRIDGE_ARMORY_PROBE)
+    target_sources(ThorBridgeV PRIVATE src/armory_probe.cpp)
+    target_compile_definitions(ThorBridgeV PRIVATE THORBRIDGE_ARMORY_PROBE=1)
+endif()
+
 target_link_libraries(ThorBridgeV PRIVATE
     version   # GetFileVersionInfoA / VerQueryValueA
     ws2_32    # winsock

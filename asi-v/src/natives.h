@@ -209,6 +209,27 @@ enum : uint64_t {
     SET_VEHICLE_XENON_LIGHT_COLOR_INDEX = 0xE41033B25D003A07,  // void (Vehicle, int colorIndex)
     SET_VEHICLE_TYRES_CAN_BURST         = 0xEB9DC3C7D8596C46,  // void (Vehicle, BOOL toggle)
     GET_VEHICLE_TYRES_CAN_BURST         = 0x678B9BB8C3F58FEB,  // BOOL (Vehicle)
+
+    // Weapons - armory (Ammu-Nation on the companion). Hashes verified
+    // against alloc8or/gta5-nativedb-data commit
+    // 424fb51b089049a9fbcebcc641500b1d44d255b4 on 2026-10-25, both
+    // natives.json and natives_gen9.json; name, hash and parameter list
+    // identical in both. The DLC_WEAPON_* pair is how the shop's own
+    // menu discovers "what parts does this weapon take" — the plugin
+    // reuses that list rather than carrying its own.
+    GIVE_WEAPON_COMPONENT_TO_PED        = 0xD966D51AA5B28BB9,  // void (Ped, Hash weaponHash, Hash componentHash)
+    REMOVE_WEAPON_COMPONENT_FROM_PED    = 0x1E8BE90C74FB4C09,  // void (Ped, Hash weaponHash, Hash componentHash)
+    HAS_PED_GOT_WEAPON_COMPONENT        = 0xC593212475FAE340,  // BOOL (Ped, Hash weaponHash, Hash componentHash)
+    DOES_WEAPON_TAKE_WEAPON_COMPONENT   = 0x5CEE3DF569CECAB0,  // BOOL (Hash weaponHash, Hash componentHash)
+    GET_PED_WEAPON_TINT_INDEX           = 0x2B9EEDC07BD06B9F,  // int (Ped, Hash weaponHash)
+    SET_PED_WEAPON_TINT_INDEX           = 0x50969B9B89ED5738,  // void (Ped, Hash weaponHash, int tintIndex)
+    GET_WEAPON_TINT_COUNT                = 0x5DCF6C5CAB2E9BF7, // int (Hash weaponHash)
+    GET_NUM_DLC_WEAPONS                 = 0xEE47635F352DA367,  // int ()
+    GET_DLC_WEAPON_DATA                 = 0x79923CD21BECE14E,  // BOOL (int dlcWeaponIndex, Any* outData, 312-byte struct)
+    GET_NUM_DLC_WEAPON_COMPONENTS       = 0x405425358A7D61FE,  // int (int dlcWeaponIndex)
+    GET_DLC_WEAPON_COMPONENT_DATA       = 0x6CF598A2957C2BF8,  // BOOL (int dlcWeaponIndex, int dlcWeapCompIndex, Any* componentDataPtr, 176-byte struct)
+    GET_WEAPON_CLIP_SIZE                = 0x583BE370B1EC6EB4,  // int (Hash weaponHash)
+    ADD_AMMO_TO_PED                     = 0x78F0424C34306220,  // void (Ped, Hash weaponHash, int ammo)
 };
 
 // IS_CONTROL_PRESSED arguments. `control` is the input group, `action`

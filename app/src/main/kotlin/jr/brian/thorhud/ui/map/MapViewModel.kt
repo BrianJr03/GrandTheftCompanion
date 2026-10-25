@@ -59,6 +59,9 @@ class MapViewModel @Inject constructor(
     fun blipCensus() {
         viewModelScope.launch { repository.blipCensus() }
     }
+    fun armoryProbe() {
+        viewModelScope.launch { repository.armoryProbe() }
+    }
 
     private val _transforms = MutableStateFlow(
         mapOf(

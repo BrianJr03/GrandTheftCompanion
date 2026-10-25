@@ -35,6 +35,10 @@
 //   {"v":1,"type":"cmd","id":N,"name":"set_smoke","args":{"rgb":0x00RRGGBB}}
 //   {"v":1,"type":"cmd","id":N,"name":"set_xenon_colour","args":{"index":I}}
 //   {"v":1,"type":"cmd","id":N,"name":"set_bulletproof_tyres","args":{"on":0|1}}
+//   {"v":1,"type":"cmd","id":N,"name":"armory_probe"}
+//      Gate A0 one-shot. Only present when the plugin is built with
+//      -DTHORBRIDGE_ARMORY_PROBE=ON; writes a hex dump of the DLC
+//      weapon catalogue to ThorBridgeV.log. Refused when not on foot.
 //
 // H is the weapon's joaat hash as an UNSIGNED decimal (0..4294967295).
 // About half of all weapon hashes are above 2^31, so a client that

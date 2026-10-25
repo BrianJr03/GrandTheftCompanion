@@ -755,6 +755,10 @@ private fun BlipsOverlay(
             onRoute = mapViewModel::routeBlip,
             onClear = mapViewModel::routeClear,
             onLogCensus = mapViewModel::blipCensus,
+            // Gate A0: V-only, debug-only one-shot. BlipListPanel
+            // hides the bug icon when this is null, so IV never sees
+            // it. Deleted before v1 of Ammu-Nation ships.
+            onArmoryProbe = if (isGtaV) mapViewModel::armoryProbe else null,
             onClose = onClose,
         )
     }
