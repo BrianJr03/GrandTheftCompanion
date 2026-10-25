@@ -204,10 +204,6 @@ class GameStateRepository @Inject constructor(
     suspend fun routeClear(): Int? = client.send("route_clear", 0L)
     /** Ask the plugin to write its blip census to its log file. */
     suspend fun blipCensus(): Int? = client.send("blip_census", 0L)
-    /** GTA V Gate A0 one-shot: dump the DLC-weapon catalogue to the
-     *  plugin's log. Only present when the plugin is built with the
-     *  armory probe enabled; a stock plugin answers "unknown command". */
-    suspend fun armoryProbe(): Int? = client.send("armory_probe", 0L)
 
     /** Run a cheat by id (see [jr.brian.thorhud.ui.cheats.CheatCatalog]).
      *  One-shots fire once; toggles flip and the next state frame's

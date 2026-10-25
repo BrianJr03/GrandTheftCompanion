@@ -63,11 +63,6 @@
 //      action = 0 fills to GET_MAX_AMMO; action = 1 adds one clip
 //      (clamped to the cap).
 //
-//   {"v":1,"type":"cmd","id":N,"name":"armory_probe"}
-//      Gate A0 one-shot. Only present when the plugin is built with
-//      -DTHORBRIDGE_ARMORY_PROBE=ON; writes a hex dump of the DLC
-//      weapon catalogue to ThorBridgeV.log. Refused when not on foot.
-//
 // H is the weapon's joaat hash as an UNSIGNED decimal (0..4294967295).
 // About half of all weapon hashes are above 2^31, so a client that
 // formats it from a signed 32-bit int sends garbage.

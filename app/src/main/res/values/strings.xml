@@ -164,7 +164,6 @@
     <string name="ammu_section_tint">Tint</string>
     <string name="ammu_section_ammo">Ammo</string>
     <string name="ammu_no_components">This weapon has no attachments.</string>
-    <string name="ammu_not_in_shop">This weapon isn\'t in the shop\'s catalogue.</string>
     <string name="ammu_stock">Stock</string>
     <!-- current / max -->
     <string name="ammu_ammo_counts">%1$d / %2$d</string>
@@ -357,10 +356,6 @@
     <string name="map_blips_routed">routed</string>
     <string name="map_blips_clear">clear route</string>
     <string name="map_blips_log">log census</string>
-    <!-- Gate A0 one-shot: debug-only header icon on the GTA V blips
-         panel that fires the armory_probe command. Removed before v1
-         ships, so no localised copies. -->
-    <string name="map_blips_armory_probe" translatable="false">armory probe</string>
     <string name="map_blips_info">info</string>
     <string name="map_blips_info_title">About the blip list</string>
     <string name="map_blips_info_body">Blip names are a work in progress. If a row shows \"sprite N\" instead of a readable name, tap route, drive there, and see what you find. Then open an issue with the sprite number and what it turned out to be. It\'ll be added to the next build once verified.</string>
