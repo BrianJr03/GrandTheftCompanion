@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "armory.h"
+#include "components.h"
 #include "log.h"
 #include "natives.h"
 #include "shv.h"
@@ -62,6 +63,19 @@ PendingRequest g_req{};
 // land on a different weapon.
 int32_t  g_current_widx = -1;
 uint32_t g_current_hash = 0;
+
+// Fallback cache: the per-cidx component hashes the plugin published
+// most recently for a non-catalogue weapon. set_component for widx=-1
+// uses this to resolve cidx to a hash — GET_DLC_WEAPON_COMPONENT_DATA
+// has no entry for a weapon the DLC catalogue does not list.
+struct FallbackCache {
+    uint32_t weapon_hash;
+    uint32_t count;
+    uint32_t hashes[snapshot::kMaxArmoryComponents];
+    uint32_t bones[snapshot::kMaxArmoryComponents];
+    bool     is_default[snapshot::kMaxArmoryComponents];
+};
+FallbackCache g_fallback{};
 
 uint32_t read_u32(const uint8_t* buf, size_t off) {
     uint32_t v = 0;
@@ -184,7 +198,15 @@ bool publish_for(uint32_t hash, int32_t ped) {
     out.clip     = shv::call<int32_t>(natives::GET_MAX_AMMO_IN_CLIP,
                                       ped, hash, 1);
 
-    // Components, when the weapon is in the catalogue.
+    // Components. Two sources:
+    //   out.widx >= 0: walk GET_DLC_WEAPON_COMPONENT_DATA — the game's
+    //     own shop list, labels resolve via GET_LABEL_TEXT.
+    //   out.widx == -1: fall back to components.h for base-game weapons
+    //     the DLC catalogue intentionally omits (vanilla Pistol, Micro
+    //     SMG, Carbine Rifle, Pump Shotgun, etc.). Each candidate is
+    //     filtered by DOES_WEAPON_TAKE_WEAPON_COMPONENT, so a stale
+    //     entry in a future game build just drops out.
+    g_fallback = FallbackCache{};
     if (out.widx >= 0) {
         const int32_t n_comp = shv::call<int32_t>(
             natives::GET_NUM_DLC_WEAPON_COMPONENTS, out.widx);
@@ -209,6 +231,33 @@ bool publish_for(uint32_t hash, int32_t ped) {
             const char* key =
                 reinterpret_cast<const char*>(cbuf + kCompOffNameLabel);
             label_for(key, op.name, sizeof(op.name));
+        }
+    } else if (const components::WeaponTable* fb = components::lookup(hash)) {
+        g_fallback.weapon_hash = hash;
+        for (size_t i = 0; i < fb->count; ++i) {
+            const components::Entry& e = fb->entries[i];
+            if (!shv::call_bool(natives::DOES_WEAPON_TAKE_WEAPON_COMPONENT,
+                                hash, e.hash)) continue;
+            if (out.n_options >= snapshot::kMaxArmoryComponents) {
+                thor_log("[armory] WARN weapon 0x%08X: fallback component %u "
+                         "dropped (kMaxArmoryComponents exceeded)",
+                         hash, static_cast<unsigned>(i));
+                break;
+            }
+            const uint32_t idx = out.n_options;
+            snapshot::ArmoryOption& op = out.options[idx];
+            op.cidx       = static_cast<int32_t>(idx);
+            op.bone       = (e.category < 6)
+                            ? components::kBoneForCategory[e.category] : 0;
+            op.is_default = e.is_default;
+            op.is_fitted  = shv::call_bool(
+                natives::HAS_PED_GOT_WEAPON_COMPONENT, ped, hash, e.hash);
+            std::snprintf(op.name, sizeof(op.name), "%s", e.label);
+            g_fallback.hashes[idx]     = e.hash;
+            g_fallback.bones[idx]      = op.bone;
+            g_fallback.is_default[idx] = e.is_default;
+            out.n_options = idx + 1;
+            g_fallback.count = idx + 1;
         }
     }
 
@@ -273,6 +322,7 @@ namespace armory {
 void reset() {
     std::memset(&g_s, 0, sizeof(g_s));
     std::memset(&g_req, 0, sizeof(g_req));
+    std::memset(&g_fallback, 0, sizeof(g_fallback));
     g_current_widx = -1;
     g_current_hash = 0;
 }
@@ -318,31 +368,74 @@ bool apply(const char* name, uint32_t arg, uint32_t request_hash,
     // in the lower half. Decode consistently; refuse if widx differs
     // from the last-published weapon's widx so a stale frame cannot
     // apply to a different weapon.
-    const int32_t widx = static_cast<int32_t>((arg >> 16) & 0xFFFF);
+    //
+    // 0xFFFF on the wire is the client's representation of widx=-1
+    // (non-catalogue weapon with fallback components), kept as a
+    // positive 16-bit field so the parser never sees a sign bit;
+    // convert back to -1 here so a fallback frame's widx matches the
+    // plugin's g_current_widx == -1.
+    int32_t widx = static_cast<int32_t>((arg >> 16) & 0xFFFF);
+    if (widx == 0xFFFF) widx = -1;
     const uint32_t payload = arg & 0xFFFFu;
 
     if (std::strcmp(name, "set_component") == 0) {
         const int32_t cidx = static_cast<int32_t>((payload >> 1) & 0x7FFF);
         const bool    on   = (payload & 0x1) != 0;
-        if (widx < 0 || widx != g_current_widx || g_current_hash == 0) {
+        if (widx != g_current_widx || g_current_hash == 0) {
             return fail(kErrStaleWeapon);
         }
-        if (widx_for(g_current_hash) != widx) {
-            return fail(kErrNotInShop);
-        }
-        const int32_t n_comp = shv::call<int32_t>(
-            natives::GET_NUM_DLC_WEAPON_COMPONENTS, widx);
-        if (cidx < 0 || cidx >= n_comp) return fail(kErrOutOfRange);
-        const bool is_default = component_is_default(widx, cidx);
-        if (is_default && !on) return fail(kErrDefault);
 
-        const uint32_t chash = component_hash_for(widx, cidx);
-        if (chash == 0) return fail(kErrOutOfRange);
+        if (widx >= 0) {
+            // DLC catalogue path.
+            if (widx_for(g_current_hash) != widx) return fail(kErrNotInShop);
+            const int32_t n_comp = shv::call<int32_t>(
+                natives::GET_NUM_DLC_WEAPON_COMPONENTS, widx);
+            if (cidx < 0 || cidx >= n_comp) return fail(kErrOutOfRange);
+            const bool is_default = component_is_default(widx, cidx);
+            if (is_default && !on) return fail(kErrDefault);
+
+            const uint32_t chash = component_hash_for(widx, cidx);
+            if (chash == 0) return fail(kErrOutOfRange);
+            if (on) {
+                uint8_t cbuf[kComponentBufBytes];
+                if (read_component(widx, cidx, cbuf)) {
+                    const uint32_t bone = read_u32(cbuf, kCompOffBone);
+                    clear_group(widx, cidx, bone, ped, g_current_hash);
+                }
+                shv::call<void>(natives::GIVE_WEAPON_COMPONENT_TO_PED,
+                                ped, g_current_hash, chash);
+            } else {
+                shv::call<void>(natives::REMOVE_WEAPON_COMPONENT_FROM_PED,
+                                ped, g_current_hash, chash);
+            }
+            thor_log("[armory] set_component weapon=0x%08X widx=%d cidx=%d on=%d",
+                     g_current_hash, widx, cidx, on ? 1 : 0);
+            publish_for(g_current_hash, ped);
+            return true;
+        }
+
+        // Fallback path (widx == -1).
+        if (g_fallback.weapon_hash != g_current_hash) return fail(kErrStaleWeapon);
+        if (cidx < 0 ||
+            static_cast<uint32_t>(cidx) >= g_fallback.count) {
+            return fail(kErrOutOfRange);
+        }
+        const uint32_t chash = g_fallback.hashes[cidx];
+        if (g_fallback.is_default[cidx] && !on) return fail(kErrDefault);
         if (on) {
-            uint8_t cbuf[kComponentBufBytes];
-            if (read_component(widx, cidx, cbuf)) {
-                const uint32_t bone = read_u32(cbuf, kCompOffBone);
-                clear_group(widx, cidx, bone, ped, g_current_hash);
+            // Clear any other non-default component in the same bone
+            // group so the shop's "one scope / one muzzle at a time"
+            // rule holds for fallback weapons too.
+            const uint32_t bone = g_fallback.bones[cidx];
+            for (uint32_t i = 0; i < g_fallback.count; ++i) {
+                if (static_cast<int32_t>(i) == cidx) continue;
+                if (g_fallback.bones[i] != bone) continue;
+                if (g_fallback.is_default[i]) continue;
+                if (!shv::call_bool(natives::HAS_PED_GOT_WEAPON_COMPONENT,
+                                    ped, g_current_hash,
+                                    g_fallback.hashes[i])) continue;
+                shv::call<void>(natives::REMOVE_WEAPON_COMPONENT_FROM_PED,
+                                ped, g_current_hash, g_fallback.hashes[i]);
             }
             shv::call<void>(natives::GIVE_WEAPON_COMPONENT_TO_PED,
                             ped, g_current_hash, chash);
@@ -350,15 +443,16 @@ bool apply(const char* name, uint32_t arg, uint32_t request_hash,
             shv::call<void>(natives::REMOVE_WEAPON_COMPONENT_FROM_PED,
                             ped, g_current_hash, chash);
         }
-        thor_log("[armory] set_component weapon=0x%08X widx=%d cidx=%d on=%d",
-                 g_current_hash, widx, cidx, on ? 1 : 0);
+        thor_log("[armory] set_component (fallback) weapon=0x%08X cidx=%d "
+                 "chash=0x%08X on=%d",
+                 g_current_hash, cidx, chash, on ? 1 : 0);
         publish_for(g_current_hash, ped);
         return true;
     }
 
     if (std::strcmp(name, "set_weapon_tint") == 0) {
         if (g_current_hash == 0) return fail(kErrStaleWeapon);
-        if (widx >= 0 && widx != g_current_widx) return fail(kErrStaleWeapon);
+        if (widx != g_current_widx) return fail(kErrStaleWeapon);
         const int32_t tint  = static_cast<int32_t>(payload);
         const int32_t tints = shv::call<int32_t>(
             natives::GET_WEAPON_TINT_COUNT, g_current_hash);
@@ -373,7 +467,7 @@ bool apply(const char* name, uint32_t arg, uint32_t request_hash,
 
     if (std::strcmp(name, "set_ammo") == 0) {
         if (g_current_hash == 0) return fail(kErrStaleWeapon);
-        if (widx >= 0 && widx != g_current_widx) return fail(kErrStaleWeapon);
+        if (widx != g_current_widx) return fail(kErrStaleWeapon);
         const uint32_t action = payload;
         alignas(8) int64_t max_slot = 0;
         if (!shv::call_bool(natives::GET_MAX_AMMO, ped, g_current_hash,

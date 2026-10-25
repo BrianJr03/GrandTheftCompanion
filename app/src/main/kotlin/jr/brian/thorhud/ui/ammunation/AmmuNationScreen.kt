@@ -220,11 +220,9 @@ private fun AmmuBody(
     }
     Spacer(Modifier.height(8.dp))
 
-    // Tint and Ammo only work for weapons the DLC catalogue knows.
-    if (!armory.inShop) {
-        Note(stringResource(R.string.ammu_not_in_shop))
-        return
-    }
+    // Tint and Ammo work off the weapon hash via natives that don't
+    // need a DLC-catalogue entry, so they're independent of whether
+    // the Attachments section had anything to offer.
 
     // Tint.
     if (armory.tints > 0) {

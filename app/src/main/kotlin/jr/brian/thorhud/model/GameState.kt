@@ -402,6 +402,10 @@ data class Armory(
 ) {
     /** True when the weapon has a DLC-catalogue entry — attachments
      *  and tint / ammo writes are available. */
+    /** True when the weapon has a DLC-catalogue entry. Attachments
+     *  can still show for widx == -1 via the plugin's fallback table
+     *  (components.h) — this flag is kept only for debug / future
+     *  branching that genuinely needs the distinction. */
     val inShop: Boolean get() = widx >= 0
 }
 
