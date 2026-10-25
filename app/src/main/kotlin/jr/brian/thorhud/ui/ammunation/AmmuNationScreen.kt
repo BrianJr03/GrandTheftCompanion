@@ -121,13 +121,29 @@ internal fun AmmuNationScreen(
         }
     }
 
-    val collapsedSections = rememberSaveable(saver = SetSaver) {
+    // Rail accordions start fully collapsed: 54 owned weapons across
+    // eight slots do not fit even with the smallest chip height, and
+    // the rail is where the user picks a weapon rather than where
+    // they want to see everything at once. expandedSections flips
+    // membership → visibility; a tap on a header adds its key.
+    val expandedRail = rememberSaveable(saver = SetSaver) {
         mutableStateOf(emptySet<String>())
     }
-    val toggleSection: (String) -> Unit = { s ->
-        collapsedSections.value =
-            if (s in collapsedSections.value) collapsedSections.value - s
-            else collapsedSections.value + s
+    val toggleRailSection: (String) -> Unit = { s ->
+        expandedRail.value =
+            if (s in expandedRail.value) expandedRail.value - s
+            else expandedRail.value + s
+    }
+    // Details pane keeps the collapsed-set shape: Attachments / Tint
+    // / Ammo start expanded so the first thing the user sees after
+    // picking a weapon is the content they came for.
+    val collapsedDetails = rememberSaveable(saver = SetSaver) {
+        mutableStateOf(emptySet<String>())
+    }
+    val toggleDetailsSection: (String) -> Unit = { s ->
+        collapsedDetails.value =
+            if (s in collapsedDetails.value) collapsedDetails.value - s
+            else collapsedDetails.value + s
     }
 
     val title = armory?.name?.ifBlank { null }
@@ -147,8 +163,10 @@ internal fun AmmuNationScreen(
                 armory = armory,
                 weapons = weapons,
                 pendingKey = result?.takeIf { it.error == null }?.pendingKey,
-                collapsedSections = collapsedSections.value,
-                onToggleSection = toggleSection,
+                expandedRail = expandedRail.value,
+                onToggleRailSection = toggleRailSection,
+                collapsedDetails = collapsedDetails.value,
+                onToggleDetailsSection = toggleDetailsSection,
                 onSelectWeapon = viewModel::selectWeapon,
                 onSetComponent = viewModel::setComponent,
                 onSetWeaponTint = viewModel::setWeaponTint,
@@ -176,8 +194,10 @@ private fun SplitLayout(
     armory: Armory?,
     weapons: List<GameState.VWeapon>,
     pendingKey: String?,
-    collapsedSections: Set<String>,
-    onToggleSection: (String) -> Unit,
+    expandedRail: Set<String>,
+    onToggleRailSection: (String) -> Unit,
+    collapsedDetails: Set<String>,
+    onToggleDetailsSection: (String) -> Unit,
     onSelectWeapon: (Long) -> Unit,
     onSetComponent: (widx: Int, cidx: Int, on: Boolean) -> Unit,
     onSetWeaponTint: (widx: Int, tint: Int) -> Unit,
@@ -191,13 +211,16 @@ private fun SplitLayout(
             accent = accent,
             rail = rail,
             selectedHash = selectedHash,
-            collapsedSections = collapsedSections,
-            onToggleSection = onToggleSection,
+            expandedSections = expandedRail,
+            onToggleSection = onToggleRailSection,
             onSelect = onSelectWeapon,
             modifier = Modifier
                 .width(RAIL_WIDTH)
                 .fillMaxHeight()
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                // Trailing padding so the per-section weapon count
+                // doesn't kiss the vertical divider to its right.
+                .padding(end = 8.dp),
         )
         Spacer(
             modifier = Modifier
@@ -215,8 +238,8 @@ private fun SplitLayout(
                 accent = accent,
                 armory = armory,
                 pendingKey = pendingKey,
-                collapsedSections = collapsedSections,
-                onToggleSection = onToggleSection,
+                collapsedSections = collapsedDetails,
+                onToggleSection = onToggleDetailsSection,
                 onSetComponent = onSetComponent,
                 onSetWeaponTint = onSetWeaponTint,
                 onFillAmmo = onFillAmmo,
@@ -231,23 +254,23 @@ private fun WeaponRail(
     accent: Color,
     rail: List<RailSection>,
     selectedHash: Long,
-    collapsedSections: Set<String>,
+    expandedSections: Set<String>,
     onToggleSection: (String) -> Unit,
     onSelect: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         for (section in rail) {
-            val collapsed = section.key in collapsedSections
+            val expanded = section.key in expandedSections
             SectionHeader(
                 title = section.title,
                 count = section.weapons.size,
                 accent = accent,
-                collapsed = collapsed,
+                collapsed = !expanded,
                 onClick = { onToggleSection(section.key) },
             )
             AnimatedVisibility(
-                visible = !collapsed,
+                visible = expanded,
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically(),
             ) {
