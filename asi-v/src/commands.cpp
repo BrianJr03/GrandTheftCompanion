@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "armory.h"
 #include "blips.h"
 #include "cheats.h"
 #include "commands.h"
@@ -293,6 +294,24 @@ void drain(int32_t player, int32_t ped, int32_t veh,
             char err[kMaxErrLen] = {0};
             const bool ok = mods::apply(c.name, c.arg0, c.text, veh,
                                         err, sizeof(err));
+            post_ack(c.client, c.id, ok, err);
+        } else if (std::strcmp(c.name, "armory_list") == 0
+                || std::strcmp(c.name, "set_component") == 0
+                || std::strcmp(c.name, "set_weapon_tint") == 0
+                || std::strcmp(c.name, "set_ammo") == 0) {
+            if (veh != 0) {
+                post_ack(c.client, c.id, false, "not on foot");
+                continue;
+            }
+            // armory_list carries the weapon hash in arg0; the set_*
+            // commands pack their payload in arg0 and the server uses
+            // the hash of the current page. armory::apply disambiguates
+            // on name.
+            const uint32_t req_hash =
+                std::strcmp(c.name, "armory_list") == 0 ? c.arg0 : 0u;
+            char err[kMaxErrLen] = {0};
+            const bool ok = armory::apply(c.name, c.arg0, req_hash, ped,
+                                          err, sizeof(err));
             post_ack(c.client, c.id, ok, err);
 #ifdef THORBRIDGE_ARMORY_PROBE
         } else if (std::strcmp(c.name, "armory_probe") == 0) {

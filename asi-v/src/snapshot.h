@@ -34,6 +34,13 @@ constexpr size_t kMaxModSlots   = 40;
 constexpr size_t kMaxModToggles = 4;    // slots 18 / 20 / 22 today
 constexpr size_t kPlateLen      = 12;   // 8 chars + wiggle room
 
+// Armory (per-weapon Ammu-Nation page). Max observed on Pistol Mk II
+// in Gate A0 was 22 components spread over 6 bone groups; 32 / 8 is
+// comfortable headroom. The frame drops any option past kMaxArmory
+// Components and logs it.
+constexpr size_t kMaxArmoryComponents = 32;
+constexpr size_t kMaxArmoryGroups     = 8;
+
 // Which protagonist the player ped currently is.
 enum Character : int8_t {
     kCharOther    = -1,  // Director Mode actor, animal, cutscene ped...
@@ -207,6 +214,42 @@ struct Mods {
     ModToggle toggles[kMaxModToggles];
 };
 
+// One attachment option on an Ammu-Nation page. `bone` is the opaque
+// attachBone id from GET_DLC_WEAPON_COMPONENT_DATA — the app groups
+// options with the same bone into one slot (clip / scope / muzzle /
+// grip / flashlight / finish). `is_default` marks the `WCT_CLIP1`-
+// style stock option, which the game treats as never-removable: the
+// walker records it so the app renders ◀ ▶ with wrap-through-default,
+// never "remove to nothing". `is_fitted` is per-ped state, read right
+// before publish so the "cur" selection on the sheet matches the gun.
+struct ArmoryOption {
+    int32_t  cidx;                             // DLC component index
+    uint32_t bone;                             // attachBone
+    bool     is_default;                       // bActiveByDefault
+    bool     is_fitted;                        // HAS_PED_GOT_WEAPON_COMPONENT
+    char     name[kLabelLen];                  // localised label, "" if missing
+};
+
+// One weapon's Ammu-Nation page. widx < 0 means the weapon is owned
+// but has no DLC-catalogue entry (knife, grenade, base-vanilla pistol
+// / carbine / etc.) — the app shows "no attachments" and hides the
+// Tint and Ammo sections for v1. Everything else carries the live
+// per-ped values (tint index, ammo count), re-read on every
+// publish so a successful apply bumps `ver` and the sheet follows.
+struct Armory {
+    uint32_t ver;                              // bumped on any change
+    int32_t  widx;                             // DLC weapon index, -1 = not in catalogue
+    uint32_t weapon;                           // joaat weapon hash
+    char     name[kLabelLen];                  // localised weapon name
+    int32_t  tints;                            // GET_WEAPON_TINT_COUNT
+    int32_t  tint;                             // GET_PED_WEAPON_TINT_INDEX
+    int32_t  ammo;                             // GET_AMMO_IN_PED_WEAPON
+    int32_t  max_ammo;                         // GET_MAX_AMMO
+    int32_t  clip;                             // GET_WEAPON_CLIP_SIZE (current fit)
+    uint32_t n_options;
+    ArmoryOption options[kMaxArmoryComponents];
+};
+
 struct Lists {
     uint32_t weapons_ver;   // bumped whenever weapons[] content changes
     uint32_t n_weapons;
@@ -222,6 +265,9 @@ struct Lists {
 
     uint32_t mods_ver;      // 0 while no catalogue has been published
     Mods     mods;
+
+    uint32_t armory_ver;    // 0 while no armory page has been published
+    Armory   armory;
 };
 
 // Call once before any other function (startup worker).
@@ -243,13 +289,23 @@ void publish_mods(const Mods& m);
 // list rather than a stale one.
 void clear_mods();
 
+// Replace the current Ammu-Nation page. Always bumps `armory_ver`.
+// The walker calls this on first catalogue read and after any
+// successful set_component / set_weapon_tint / set_ammo.
+void publish_armory(const Armory& a);
+// Clear the page (session reset, character switch, player went
+// online). Zeroes n_options and bumps armory_ver so the client
+// drops its sheet rather than acting on a stale page.
+void clear_armory();
+
 // Reader side. read() returns the ts_ms of the sample (0 = nothing
 // published yet). read_lists() copies both lists out.
 uint64_t read(State& out);
 void read_lists(Lists& out);
 // Cheap version peek so the bridge can skip copying ~20 KB at 20 Hz.
 void list_versions(uint32_t* weapons_ver, uint32_t* stations_ver,
-                   uint32_t* blips_ver, uint32_t* mods_ver);
+                   uint32_t* blips_ver, uint32_t* mods_ver,
+                   uint32_t* armory_ver);
 
 // Station id for a published index, copied into `out`. False if out of
 // range. Used by commands:: to turn a client's index into a name.

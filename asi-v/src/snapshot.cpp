@@ -92,6 +92,25 @@ void clear_mods() {
     g_lists.mods_ver = next_ver;
 }
 
+void publish_armory(const Armory& a) {
+    if (!g_inited) return;
+    Lock l;
+    const uint32_t next_ver = g_lists.armory_ver + 1;
+    std::memcpy(&g_lists.armory, &a, sizeof(Armory));
+    g_lists.armory.ver = next_ver;
+    g_lists.armory_ver = next_ver;
+}
+
+void clear_armory() {
+    if (!g_inited) return;
+    Lock l;
+    const uint32_t next_ver = g_lists.armory_ver + 1;
+    std::memset(&g_lists.armory, 0, sizeof(Armory));
+    g_lists.armory.widx = -1;
+    g_lists.armory.ver = next_ver;
+    g_lists.armory_ver = next_ver;
+}
+
 uint64_t read(State& out) {
     if (!g_inited) {
         std::memset(&out, 0, sizeof(out));
@@ -112,12 +131,14 @@ void read_lists(Lists& out) {
 }
 
 void list_versions(uint32_t* weapons_ver, uint32_t* stations_ver,
-                   uint32_t* blips_ver, uint32_t* mods_ver) {
+                   uint32_t* blips_ver, uint32_t* mods_ver,
+                   uint32_t* armory_ver) {
     if (!g_inited) {
         *weapons_ver = 0;
         *stations_ver = 0;
         *blips_ver = 0;
         *mods_ver = 0;
+        *armory_ver = 0;
         return;
     }
     Lock l;
@@ -125,6 +146,7 @@ void list_versions(uint32_t* weapons_ver, uint32_t* stations_ver,
     *stations_ver = g_lists.stations_ver;
     *blips_ver = g_lists.blips_ver;
     *mods_ver = g_lists.mods_ver;
+    *armory_ver = g_lists.armory_ver;
 }
 
 bool station_name(uint32_t index, char* out, size_t cap) {

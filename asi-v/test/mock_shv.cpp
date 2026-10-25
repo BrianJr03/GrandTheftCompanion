@@ -41,7 +41,7 @@ namespace {
 
 using ScriptMain = void (*)();
 
-enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips, kCheats, kPaint, kMods, kModsNoKit };
+enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips, kCheats, kPaint, kMods, kModsNoKit, kArmory };
 Scenario g_scenario = kStory;
 uint64_t g_t0 = 0;
 
@@ -72,6 +72,12 @@ uint32_t g_weapon = joaat("weapon_pistol");
 const uint32_t kOwned[] = {
     joaat("weapon_pistol"), joaat("weapon_assaultrifle"),
     joaat("weapon_knife"),  joaat("weapon_grenade"),
+    // Fake catalogue weapons for test_armory: owned so HAS_PED_GOT_
+    // WEAPON returns true. Hashes do not need to be real joaat values
+    // because this list is only consulted via HAS_PED_GOT_WEAPON on
+    // the mock side; the plugin uses whatever hash the DLC catalogue
+    // writes into the weapon struct.
+    0x11111111u, 0x22222222u, 0x33333333u, 0x44444444u,
 };
 
 // Cheats mock state. Written by the natives the cheats subsystem calls;
@@ -154,6 +160,36 @@ int32_t g_colour1 = 42;
 int32_t g_colour2 = 7;
 bool    g_custom_primary = false;
 bool    g_custom_secondary = false;
+
+// ---- fake armory catalogue --------------------------------------
+// Three DLC weapons with distinct component shapes:
+//   widx 0  mock_pistol    (owned) 3 components in 2 bone groups:
+//                          CLIP1 default + CLIP2 extended + FLASH
+//   widx 1  mock_carbine   (owned) 2 components in 2 bone groups:
+//                          CLIP1 default + SCOPE
+//   widx 2  mock_knife     (owned) 0 components (empty catalogue)
+// Plus weapon_grenade (owned but NOT in catalogue) so the plugin's
+// widx=-1 path is exercised.
+constexpr uint32_t kMockPistol  = 0x11111111;
+constexpr uint32_t kMockCarbine = 0x22222222;
+constexpr uint32_t kMockKnife   = 0x33333333;
+constexpr uint32_t kMockGrenade = 0x44444444;   // owned, not in catalogue
+constexpr uint32_t kMockClip1   = 0xC0010001;
+constexpr uint32_t kMockClip2   = 0xC0010002;
+constexpr uint32_t kMockFlash   = 0xC0020001;
+constexpr uint32_t kMockClipC   = 0xC0010003;
+constexpr uint32_t kMockScope   = 0xC0030001;
+constexpr uint32_t kBoneClip    = 3723347892u;  // same values seen in Gate A0
+constexpr uint32_t kBoneFlash   = 679107254u;
+constexpr uint32_t kBoneScope   = 1684637069u;
+int32_t  g_mock_tint[4] = {0};           // per-weapon tint (indexed by widx)
+int32_t  g_mock_ammo[4] = {12, 60, 1, 5}; // starting ammo per owned weapon
+bool     g_mock_has_component[4][4] = {}; // widx -> cidx -> fitted
+int      g_give_comp_calls = 0;
+int      g_remove_comp_calls = 0;
+int      g_set_tint_calls_v = 0;
+int      g_set_ammo_calls = 0;
+int      g_add_ammo_calls = 0;
 int     g_set_colours_calls = 0;
 int     g_set_custom_prim_calls = 0;
 int     g_set_custom_sec_calls = 0;
@@ -219,6 +255,7 @@ void blips_step() {
 bool in_vehicle()  {
     if (g_scenario == kPaint) return true;
     if (g_scenario == kMods || g_scenario == kModsNoKit) return true;
+    if (g_scenario == kArmory) return false;   // on foot throughout
     return g_scenario == kStory && elapsed_ms() > 2000;
 }
 bool switching()   { uint64_t t = elapsed_ms();
@@ -344,7 +381,14 @@ void dispatch() {
         ret<uint32_t>(g_weapon); break;
     case GET_WEAPONTYPE_GROUP: expect_argc(1, "GET_WEAPONTYPE_GROUP");
         ret<uint32_t>(joaat("GROUP_PISTOL")); break;
-    case GET_AMMO_IN_PED_WEAPON: expect_argc(2, "GET_AMMO_IN_PED_WEAPON"); ret<int>(120); break;
+    case GET_AMMO_IN_PED_WEAPON: { expect_argc(2, "GET_AMMO_IN_PED_WEAPON");
+        const uint32_t hash = arg<uint32_t>(1);
+        if (hash == kMockPistol)  ret<int>(g_mock_ammo[0]);
+        else if (hash == kMockCarbine) ret<int>(g_mock_ammo[1]);
+        else if (hash == kMockKnife)   ret<int>(g_mock_ammo[2]);
+        else if (hash == kMockGrenade) ret<int>(g_mock_ammo[3]);
+        else ret<int>(120);
+        break; }
     case GET_AMMO_IN_CLIP: { expect_argc(3, "GET_AMMO_IN_CLIP");
         int* out = arg<int*>(2);
         if (out) *out = 9;
@@ -498,11 +542,24 @@ void dispatch() {
             ExitProcess(3);
         }
         ++g_given_count; break; }
-    case SET_PED_AMMO: expect_argc(4, "SET_PED_AMMO");
-        ++g_ammo_set_count; break;
+    case SET_PED_AMMO: { expect_argc(4, "SET_PED_AMMO");
+        const uint32_t hash = arg<uint32_t>(1);
+        const int val = arg<int>(2);
+        if (hash == kMockPistol)       g_mock_ammo[0] = val;
+        else if (hash == kMockCarbine) g_mock_ammo[1] = val;
+        else if (hash == kMockKnife)   g_mock_ammo[2] = val;
+        else if (hash == kMockGrenade) g_mock_ammo[3] = val;
+        ++g_ammo_set_count;
+        ++g_set_ammo_calls; break; }
     case GET_MAX_AMMO: { expect_argc(3, "GET_MAX_AMMO");
         int* out = arg<int*>(2);
-        if (out) *out = 999;
+        const uint32_t hash = arg<uint32_t>(1);
+        int cap = 999;
+        if (hash == kMockPistol)  cap = g_mock_has_component[0][1] ? 160 : 120;
+        else if (hash == kMockCarbine) cap = 250;
+        else if (hash == kMockKnife)   { ret_bool(false); break; }
+        else if (hash == kMockGrenade) cap = 25;
+        if (out) *out = cap;
         ret_bool(true); break; }
     case SET_PED_INFINITE_AMMO_CLIP: expect_argc(2, "SET_PED_INFINITE_AMMO_CLIP");
         g_infinite_clip = arg<int>(1) != 0; break;
@@ -704,6 +761,151 @@ void dispatch() {
     case GET_VEHICLE_TYRES_CAN_BURST: expect_argc(1, "GET_VEHICLE_TYRES_CAN_BURST");
         ret_bool(!g_bulletproof); break;
 
+    // ---- armory natives (Ammu-Nation page) -------------------------
+    case GET_NUM_DLC_WEAPONS: expect_argc(0, "GET_NUM_DLC_WEAPONS");
+        ret<int>(3); break;    // mock pistol / carbine / knife
+    case GET_DLC_WEAPON_DATA: { expect_argc(2, "GET_DLC_WEAPON_DATA");
+        const int32_t idx = arg<int>(0);
+        uint8_t* buf = arg<uint8_t*>(1);
+        if (!buf || idx < 0 || idx > 2) { ret_bool(false); break; }
+        std::memset(buf, 0, 312);
+        uint32_t hash = (idx == 0) ? kMockPistol
+                     : (idx == 1) ? kMockCarbine
+                                  : kMockKnife;
+        std::memcpy(buf + 0x08, &hash, sizeof(hash));            // weaponHash
+        const int32_t clip = (idx == 0) ? 12 : (idx == 1) ? 30 : 0;
+        std::memcpy(buf + 0x30, &clip, sizeof(clip));            // defaultClipSize
+        const char* name = (idx == 0) ? "MOCK_PISTOL"
+                        : (idx == 1) ? "MOCK_CARBINE"
+                                     : "MOCK_KNIFE";
+        std::snprintf(reinterpret_cast<char*>(buf + 0x38), 64, "%s", name);
+        ret_bool(true); break; }
+    case GET_NUM_DLC_WEAPON_COMPONENTS: { expect_argc(1, "GET_NUM_DLC_WEAPON_COMPONENTS");
+        const int32_t idx = arg<int>(0);
+        if (idx == 0) ret<int>(3);
+        else if (idx == 1) ret<int>(2);
+        else ret<int>(0);
+        break; }
+    case GET_DLC_WEAPON_COMPONENT_DATA: { expect_argc(3, "GET_DLC_WEAPON_COMPONENT_DATA");
+        const int32_t widx = arg<int>(0);
+        const int32_t cidx = arg<int>(1);
+        uint8_t* buf = arg<uint8_t*>(2);
+        if (!buf || widx < 0 || widx > 2) { ret_bool(false); break; }
+        std::memset(buf, 0, 176);
+        uint32_t bone = 0, chash = 0, active = 0;
+        const char* name_key = "";
+        if (widx == 0) {
+            if (cidx == 0)      { bone = kBoneClip;  chash = kMockClip1; active = 1; name_key = "MOCK_CLIP1"; }
+            else if (cidx == 1) { bone = kBoneClip;  chash = kMockClip2; name_key = "MOCK_CLIP2"; }
+            else if (cidx == 2) { bone = kBoneFlash; chash = kMockFlash; name_key = "MOCK_FLASH"; }
+            else { ret_bool(false); break; }
+        } else if (widx == 1) {
+            if (cidx == 0)      { bone = kBoneClip;  chash = kMockClipC; active = 1; name_key = "MOCK_CLIP1"; }
+            else if (cidx == 1) { bone = kBoneScope; chash = kMockScope; name_key = "MOCK_SCOPE"; }
+            else { ret_bool(false); break; }
+        } else {
+            ret_bool(false); break;
+        }
+        std::memcpy(buf + 0x00, &bone,   sizeof(bone));
+        std::memcpy(buf + 0x08, &active, sizeof(active));
+        std::memcpy(buf + 0x18, &chash,  sizeof(chash));
+        std::snprintf(reinterpret_cast<char*>(buf + 0x30), 64, "%s", name_key);
+        ret_bool(true); break; }
+    case GET_WEAPON_TINT_COUNT: expect_argc(1, "GET_WEAPON_TINT_COUNT");
+        ret<int>(8); break;
+    case GET_PED_WEAPON_TINT_INDEX: { expect_argc(2, "GET_PED_WEAPON_TINT_INDEX");
+        const uint32_t hash = arg<uint32_t>(1);
+        int widx = (hash == kMockPistol)  ? 0
+                 : (hash == kMockCarbine) ? 1
+                 : (hash == kMockKnife)   ? 2
+                                          : 3;
+        ret<int>(g_mock_tint[widx]); break; }
+    case SET_PED_WEAPON_TINT_INDEX: { expect_argc(3, "SET_PED_WEAPON_TINT_INDEX");
+        const uint32_t hash = arg<uint32_t>(1);
+        int widx = (hash == kMockPistol)  ? 0
+                 : (hash == kMockCarbine) ? 1
+                 : (hash == kMockKnife)   ? 2
+                                          : 3;
+        g_mock_tint[widx] = arg<int>(2);
+        ++g_set_tint_calls_v; break; }
+    case GET_WEAPON_CLIP_SIZE: { expect_argc(1, "GET_WEAPON_CLIP_SIZE");
+        const uint32_t hash = arg<uint32_t>(0);
+        int clip = (hash == kMockPistol)  ? 12
+                 : (hash == kMockCarbine) ? 30
+                 : (hash == kMockGrenade) ? 0
+                                          : 0;
+        // When MOCK_CLIP2 (extended) is fitted on the pistol, clip
+        // size grows to 16 so the Ammu-Nation ammo gate for extended
+        // clip picks up the change.
+        if (hash == kMockPistol && g_mock_has_component[0][1]) clip = 16;
+        ret<int>(clip); break; }
+    case ADD_AMMO_TO_PED: expect_argc(3, "ADD_AMMO_TO_PED");
+        {
+            const uint32_t hash = arg<uint32_t>(1);
+            int widx = (hash == kMockPistol)  ? 0
+                     : (hash == kMockCarbine) ? 1
+                     : (hash == kMockKnife)   ? 2
+                                              : 3;
+            g_mock_ammo[widx] += arg<int>(2);
+            ++g_add_ammo_calls;
+        } break;
+    case GIVE_WEAPON_COMPONENT_TO_PED: { expect_argc(3, "GIVE_WEAPON_COMPONENT_TO_PED");
+        const uint32_t hash  = arg<uint32_t>(1);
+        const uint32_t chash = arg<uint32_t>(2);
+        int widx = (hash == kMockPistol)  ? 0
+                 : (hash == kMockCarbine) ? 1
+                 : (hash == kMockKnife)   ? 2
+                                          : 3;
+        int cidx = -1;
+        if (widx == 0) {
+            if (chash == kMockClip1) cidx = 0;
+            else if (chash == kMockClip2) cidx = 1;
+            else if (chash == kMockFlash) cidx = 2;
+        } else if (widx == 1) {
+            if (chash == kMockClipC) cidx = 0;
+            else if (chash == kMockScope) cidx = 1;
+        }
+        if (cidx >= 0) g_mock_has_component[widx][cidx] = true;
+        ++g_give_comp_calls; break; }
+    case REMOVE_WEAPON_COMPONENT_FROM_PED: { expect_argc(3, "REMOVE_WEAPON_COMPONENT_FROM_PED");
+        const uint32_t hash  = arg<uint32_t>(1);
+        const uint32_t chash = arg<uint32_t>(2);
+        int widx = (hash == kMockPistol)  ? 0
+                 : (hash == kMockCarbine) ? 1
+                 : (hash == kMockKnife)   ? 2
+                                          : 3;
+        int cidx = -1;
+        if (widx == 0) {
+            if (chash == kMockClip1) cidx = 0;
+            else if (chash == kMockClip2) cidx = 1;
+            else if (chash == kMockFlash) cidx = 2;
+        } else if (widx == 1) {
+            if (chash == kMockClipC) cidx = 0;
+            else if (chash == kMockScope) cidx = 1;
+        }
+        if (cidx >= 0) g_mock_has_component[widx][cidx] = false;
+        ++g_remove_comp_calls; break; }
+    case HAS_PED_GOT_WEAPON_COMPONENT: { expect_argc(3, "HAS_PED_GOT_WEAPON_COMPONENT");
+        const uint32_t hash  = arg<uint32_t>(1);
+        const uint32_t chash = arg<uint32_t>(2);
+        int widx = (hash == kMockPistol)  ? 0
+                 : (hash == kMockCarbine) ? 1
+                 : (hash == kMockKnife)   ? 2
+                                          : 3;
+        bool has = false;
+        if (widx == 0) {
+            if (chash == kMockClip1) has = g_mock_has_component[0][0];
+            else if (chash == kMockClip2) has = g_mock_has_component[0][1];
+            else if (chash == kMockFlash) has = g_mock_has_component[0][2];
+        } else if (widx == 1) {
+            if (chash == kMockClipC) has = g_mock_has_component[1][0];
+            else if (chash == kMockScope) has = g_mock_has_component[1][1];
+        }
+        ret_bool(has); break; }
+    case DOES_WEAPON_TAKE_WEAPON_COMPONENT:
+        expect_argc(2, "DOES_WEAPON_TAKE_WEAPON_COMPONENT");
+        ret_bool(true); break;
+
     // ---- phase-2 cheats --------------------------------------------
     case SET_PED_IS_DRUNK: expect_argc(2, "SET_PED_IS_DRUNK"); break;
     case SET_SWIM_MULTIPLIER_FOR_PLAYER: expect_argc(2, "SET_SWIM_MULTIPLIER_FOR_PLAYER");
@@ -755,6 +957,7 @@ void mock_scriptRegister(HMODULE /*module*/, ScriptMain fn) {
         if (!std::strcmp(buf, "paint"))   g_scenario = kPaint;
         if (!std::strcmp(buf, "mods"))    g_scenario = kMods;
         if (!std::strcmp(buf, "mods_no_kit")) g_scenario = kModsNoKit;
+        if (!std::strcmp(buf, "armory"))  g_scenario = kArmory;
     }
     std::fprintf(stderr, "[mock] scriptRegister, scenario=%d\n", g_scenario);
     std::fflush(stderr);

@@ -29,6 +29,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "armory.h"
 #include "blips.h"
 #include "cheats.h"
 #include "commands.h"
@@ -328,6 +329,7 @@ void tick() {
             mods::on_vehicle_changed();
             g_last_mods_vehicle = 0;
         }
+        armory::on_session_reset();
         snapshot::publish(s);
         commands::reject_all("blocked: online");
         return;
@@ -347,6 +349,7 @@ void tick() {
             mods::on_vehicle_changed();
             g_last_mods_vehicle = 0;
         }
+        armory::on_session_reset();
         snapshot::publish(s);   // in_game = false
         commands::reject_all("blocked: not in game");
         return;
@@ -411,6 +414,7 @@ void tick() {
     // tick (HAS_MODEL_LOADED needs at least one game frame).
     cheats::tick(player, ped);
     mods::tick(veh);
+    armory::tick(ped);
 }
 
 }  // namespace

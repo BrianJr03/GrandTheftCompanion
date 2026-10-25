@@ -262,6 +262,33 @@ int format_mods(char* buf, size_t cap, const snapshot::Mods& m) {
     return o.overflow ? -1 : static_cast<int>(o.len);
 }
 
+// One weapon's Ammu-Nation page. The client groups `options` by
+// `bone` to render clip / scope / muzzle / etc. slot rows; each
+// group's "cur" is the option with `fitted:true`. `widx` = -1 means
+// the weapon is owned but has no DLC-catalogue entry — the Tint and
+// Ammo sections are hidden on the client in that case.
+int format_armory(char* buf, size_t cap, const snapshot::Armory& a) {
+    Out o{buf, cap, 0, false};
+    o.add("{\"v\":1,\"type\":\"armory\",\"game\":\"v\",\"ver\":%u,"
+          "\"widx\":%d,\"weapon\":%u,\"name\":\"",
+          a.ver, a.widx, a.weapon);
+    o.add_escaped(a.name);
+    o.add("\",\"tints\":%d,\"tint\":%d,\"ammo\":%d,\"max_ammo\":%d,"
+          "\"clip\":%d,\"options\":[",
+          a.tints, a.tint, a.ammo, a.max_ammo, a.clip);
+    for (uint32_t i = 0; i < a.n_options; ++i) {
+        const snapshot::ArmoryOption& op = a.options[i];
+        o.add("%s{\"c\":%d,\"bone\":%u,\"default\":%s,\"fitted\":%s,"
+              "\"name\":\"",
+              i ? "," : "", op.cidx, op.bone,
+              b(op.is_default), b(op.is_fitted));
+        o.add_escaped(op.name);
+        o.add("\"}");
+    }
+    o.add("]}\n");
+    return o.overflow ? -1 : static_cast<int>(o.len);
+}
+
 int format_stations(char* buf, size_t cap, const snapshot::Lists& l) {
     Out o{buf, cap, 0, false};
     o.add("{\"v\":1,\"type\":\"stations\",\"game\":\"v\",\"stations\":[");
@@ -421,7 +448,7 @@ DWORD WINAPI serve_client(LPVOID arg) {
         std::malloc(sizeof(snapshot::Lists)));
     HANDLE reader = nullptr;
     uint32_t sent_weapons_ver = 0, sent_stations_ver = 0, sent_blips_ver = 0;
-    uint32_t sent_mods_ver = 0;
+    uint32_t sent_mods_ver = 0, sent_armory_ver = 0;
     int n = 0;
 
     if (!buf || !lists) {
@@ -449,10 +476,11 @@ DWORD WINAPI serve_client(LPVOID arg) {
         }
 
         // 2. Lists, only when they changed since we last sent them.
-        uint32_t wv = 0, sv = 0, bv = 0, mv = 0;
-        snapshot::list_versions(&wv, &sv, &bv, &mv);
+        uint32_t wv = 0, sv = 0, bv = 0, mv = 0, av = 0;
+        snapshot::list_versions(&wv, &sv, &bv, &mv, &av);
         if (wv != sent_weapons_ver || sv != sent_stations_ver ||
-            bv != sent_blips_ver || mv != sent_mods_ver) {
+            bv != sent_blips_ver || mv != sent_mods_ver ||
+            av != sent_armory_ver) {
             snapshot::read_lists(*lists);
             if (lists->weapons_ver != sent_weapons_ver) {
                 n = format_weapons(buf, kBufCap, *lists);
@@ -489,6 +517,15 @@ DWORD WINAPI serve_client(LPVOID arg) {
                     goto done;
                 }
                 sent_mods_ver = lists->mods_ver;
+            }
+            if (lists->armory_ver != sent_armory_ver) {
+                n = format_armory(buf, kBufCap, lists->armory);
+                if (n <= 0) {
+                    thor_log("[bridge] armory frame overflow");
+                } else if (!send_all(sock, buf, n)) {
+                    goto done;
+                }
+                sent_armory_ver = lists->armory_ver;
             }
         }
 

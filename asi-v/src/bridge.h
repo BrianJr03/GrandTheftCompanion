@@ -15,6 +15,9 @@
 //   stations  radio-station list; on connect and whenever it changes
 //   blips     map blips, nearest first; on connect and whenever the
 //             census result changes (see format_blips in bridge.cpp)
+//   mods      Los Santos Customs page; versioned, re-sent on change
+//   armory    Ammu-Nation page for the last-requested weapon;
+//             versioned, re-sent on change (see format_armory)
 //   ack       reply to a client command
 //
 // Client -> server:
@@ -35,6 +38,28 @@
 //   {"v":1,"type":"cmd","id":N,"name":"set_smoke","args":{"rgb":0x00RRGGBB}}
 //   {"v":1,"type":"cmd","id":N,"name":"set_xenon_colour","args":{"index":I}}
 //   {"v":1,"type":"cmd","id":N,"name":"set_bulletproof_tyres","args":{"on":0|1}}
+//
+//   Ammu-Nation. All four refuse unless the player is on foot in a
+//   non-online session; the server tracks the "current weapon" as the
+//   last armory_list request so set_* work without re-sending the hash.
+//   {"v":1,"type":"cmd","id":N,"name":"armory_list","args":{"weapon":HASH}}
+//      Request the Ammu-Nation page for an owned weapon. Even weapons
+//      with no DLC-catalogue entry (knife, grenade, vanilla pistol)
+//      get a frame back with widx=-1 and an empty option list.
+//   {"v":1,"type":"cmd","id":N,"name":"set_component",
+//      "args":{"arg":(widx<<16)|(cidx<<1)|on}}
+//      Fit (on=1) or remove (on=0) a component from the current page's
+//      weapon. widx is the DLC weapon index published in the frame;
+//      cidx is the DLC component index. Default components (WCT_CLIP1
+//      style) cannot be removed and the server refuses on=0 for them.
+//   {"v":1,"type":"cmd","id":N,"name":"set_weapon_tint",
+//      "args":{"arg":(widx<<16)|tint}}
+//      Set the tint index on the current page's weapon.
+//   {"v":1,"type":"cmd","id":N,"name":"set_ammo",
+//      "args":{"arg":(widx<<16)|action}}
+//      action = 0 fills to GET_MAX_AMMO; action = 1 adds one clip
+//      (clamped to the cap).
+//
 //   {"v":1,"type":"cmd","id":N,"name":"armory_probe"}
 //      Gate A0 one-shot. Only present when the plugin is built with
 //      -DTHORBRIDGE_ARMORY_PROBE=ON; writes a hex dump of the DLC
@@ -46,7 +71,7 @@
 
 namespace bridge {
 
-constexpr const char* kPluginVersion = "0.5.0";
+constexpr const char* kPluginVersion = "0.6.0";
 
 // Spawn the listener thread. Returns immediately.
 void start(const VersionInfo& vi);
