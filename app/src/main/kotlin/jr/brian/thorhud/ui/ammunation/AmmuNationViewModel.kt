@@ -47,13 +47,25 @@ internal class AmmuNationViewModel @Inject constructor(
     private var pending: Job? = null
 
     /** Ask the plugin for the Ammu-Nation page of [weaponHash].
-     *  Called on open and when the user picks a different weapon in
-     *  the strip. No-op when the client is not connected. */
+     *  Called on sheet open and from the follow-equipped
+     *  LaunchedEffect — does NOT touch what the ped has in hand, so
+     *  arriving on a weapon via auto-select doesn't equip something
+     *  the player didn't ask for. */
     fun open(weaponHash: Long) {
         viewModelScope.launch { repository.requestArmory(weaponHash) }
     }
 
-    fun selectWeapon(weaponHash: Long) = open(weaponHash)
+    /** Rail tap: equip the weapon in-game and request its page. The
+     *  set_weapon ack lets the plugin defer the equip until the game
+     *  wheel closes (same discipline as the wheel UI). The sheet
+     *  follows the server's next state frame, so the HUD and rail
+     *  highlight match the gun that comes up in hand. */
+    fun selectWeapon(weaponHash: Long) {
+        viewModelScope.launch {
+            repository.setWeapon(weaponHash)
+            repository.requestArmory(weaponHash)
+        }
+    }
 
     fun setComponent(widx: Int, cidx: Int, on: Boolean) =
         dispatch("set_component:$cidx") {
