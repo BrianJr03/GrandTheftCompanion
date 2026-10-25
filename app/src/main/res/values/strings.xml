@@ -4,6 +4,8 @@
     <string name="brand" translatable="false">Grand Theft Companion</string>
     <string name="brand_iv" translatable="false">Grand Theft Companion IV</string>
     <string name="brand_v" translatable="false">Grand Theft Companion V</string>
+    <string name="brand_iv_debug" translatable="false">GTC Debug IV</string>
+    <string name="brand_v_debug" translatable="false">GTC Debug V</string>
 
     <!-- Pager tabs. Lower-case to match the card-title styling. -->
     <string name="tab_hud">hud</string>
@@ -325,6 +327,12 @@
     <string name="settings_controls_side_title">Map controls on the right</string>
     <string name="settings_controls_side_body">Move the map\'s lock, reset, pin and stop icons to the right of the mirror. Default puts them on the left. The map stays centered and keeps the same breathing room on the free side.</string>
     <string name="settings_section_minimap">Minimap</string>
+
+    <!-- Ammu-Nation settings section (GTA V only; the IV plugin has
+         no armory natives). -->
+    <string name="settings_section_ammu">Ammu-Nation</string>
+    <string name="settings_ammu_auto_select_title">Auto-select equipped weapon</string>
+    <string name="settings_ammu_auto_select_body">When the Ammu-Nation sheet opens, start on whichever weapon you\'re currently holding. Off: the sheet opens on the first weapon in the rail instead, so switching weapons in-game doesn\'t move your place.</string>
     <string name="settings_section_plugin">Plugin</string>
     <string name="settings_section_cheats">Cheats</string>
     <string name="settings_auto_reapply_cheats_title">Re-apply toggles on reconnect</string>

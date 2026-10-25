@@ -169,6 +169,19 @@ class HudPrefs @Inject constructor(
     fun setAutoReapplyCheats(gameKey: String, enabled: Boolean) =
         setPerGameBool(autoReapplyCheatFlows, KEY_AUTO_REAPPLY_CHEATS, gameKey, enabled)
 
+    // Ammu-Nation: whether opening the sheet auto-selects the
+    // currently-equipped weapon. Default on — the common case is "I
+    // want to tweak the gun in my hand right now". Off is useful for
+    // a Mk II weapon in another slot: the user wants the sheet to
+    // land on their last manual pick instead of jumping back to the
+    // equipped one every time. GTA V only in effect, but stored per
+    // game for parity with every other setting.
+    private val autoSelectEquippedFlows = perGameBool(KEY_AUTO_SELECT_EQUIPPED, default = true)
+    fun autoSelectEquippedWeapon(gameKey: String): StateFlow<Boolean> =
+        requirePerGameFlow(autoSelectEquippedFlows, gameKey)
+    fun setAutoSelectEquippedWeapon(gameKey: String, enabled: Boolean) =
+        setPerGameBool(autoSelectEquippedFlows, KEY_AUTO_SELECT_EQUIPPED, gameKey, enabled)
+
     // One-shot cheat ids the user flagged (via long-press) for
     // auto-fire on reconnect. Reconciler fires each one once per
     // safe-state entry (unlike toggles, which also check whether
@@ -396,6 +409,7 @@ class HudPrefs @Inject constructor(
         const val KEY_COLLAPSED_CHEAT_SECTIONS = "collapsed_cheat_sections"
         const val KEY_ENABLED_CHEAT_TOGGLES = "enabled_cheat_toggles"
         const val KEY_AUTO_REAPPLY_CHEATS = "auto_reapply_cheats"
+        const val KEY_AUTO_SELECT_EQUIPPED = "auto_select_equipped_weapon"
         const val KEY_AUTO_APPLY_CHEATS = "auto_apply_cheats"
         const val KEY_SEEN_CHEATS_ONBOARDING = "seen_cheats_onboarding"
         const val KEY_SEEN_HUD_ONBOARDING = "seen_hud_onboarding"

@@ -224,6 +224,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         .collectAsStateWithLifecycle()
     val vAutoReapplyCheats by viewModel.autoReapplyCheats("v")
         .collectAsStateWithLifecycle()
+    val vAutoSelectEquipped by viewModel.autoSelectEquippedWeapon("v")
+        .collectAsStateWithLifecycle()
     val autoSwipeOnDrive = if (isGtaV) vAutoSwipe else ivAutoSwipe
     val autoStartMirror = if (isGtaV) vAutoStartMirror else ivAutoStartMirror
     val alwaysReturnToHud = if (isGtaV) vAlwaysReturn else ivAlwaysReturn
@@ -612,6 +614,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                         AmmuNationScreen(
                             visible = showAmmu && isGtaV,
                             accent = accent,
+                            autoSelectEquipped = vAutoSelectEquipped,
                             onDismiss = { showAmmu = false },
                         )
 
@@ -708,6 +711,11 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             onAutoReapplyCheatsChange = { viewModel.setAutoReapplyCheats("v", it) },
             onClearSavedCheats = { cheatsViewModelForSettings.clearSavedCheats("v") },
             onResetOnboarding = viewModel::resetOnboarding,
+            // Ammu-Nation section (V-only; the IV panel leaves these
+            // at their defaults and the section is suppressed there).
+            showAmmuSection = true,
+            autoSelectEquipped = vAutoSelectEquipped,
+            onAutoSelectEquippedChange = { viewModel.setAutoSelectEquippedWeapon("v", it) },
         )
         // Setup screen (no plugin frames at all) shows both tabs so
         // the user can pre-configure either game. The moment a frame

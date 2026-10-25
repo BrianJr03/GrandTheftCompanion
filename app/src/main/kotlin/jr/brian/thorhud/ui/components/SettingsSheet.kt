@@ -85,6 +85,15 @@ internal data class SettingsGamePanel(
     // under the game's own accent — one tap re-opens the sheets on
     // whichever page you visit next.
     val onResetOnboarding: () -> Unit,
+    // Ammu-Nation section. V-only in effect (IV has no armory
+    // natives); showAmmuSection is false on the IV panel so the
+    // header never appears there. autoSelectEquipped drives the
+    // sheet's first-open behavior: true (default) opens on the
+    // currently-equipped weapon, false opens on the first owned
+    // weapon so the user can walk the list themselves.
+    val showAmmuSection: Boolean = false,
+    val autoSelectEquipped: Boolean = true,
+    val onAutoSelectEquippedChange: (Boolean) -> Unit = {},
 )
 
 /**
@@ -389,12 +398,34 @@ private fun PerGameSettings(
                 palette = panel.palette,
             )
         }
+
+        if (panel.showAmmuSection) {
+            Spacer(Modifier.height(16.dp))
+            Section(
+                name = SECTION_AMMU,
+                title = stringResource(R.string.settings_section_ammu),
+                palette = panel.palette,
+                expanded = openSection == SECTION_AMMU,
+                onToggle = { onToggleSection(SECTION_AMMU) },
+            ) {
+                SettingRow(
+                    title = stringResource(
+                        R.string.settings_ammu_auto_select_title),
+                    body = stringResource(
+                        R.string.settings_ammu_auto_select_body),
+                    checked = panel.autoSelectEquipped,
+                    onCheckedChange = panel.onAutoSelectEquippedChange,
+                    palette = panel.palette,
+                )
+            }
+        }
     }
 }
 
 private const val SECTION_MINIMAP = "minimap"
 private const val SECTION_CHEATS = "cheats"
 private const val SECTION_PLUGIN = "plugin"
+private const val SECTION_AMMU = "ammu"
 
 /**
  * One collapsible section inside the settings sheet. Header is a

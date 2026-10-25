@@ -1,5 +1,10 @@
 package jr.brian.thorhud.ui.ammunation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +14,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,14 +28,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,24 +53,32 @@ import jr.brian.thorhud.model.Armory
 import jr.brian.thorhud.model.ArmoryGroup
 import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.components.FullScreenSheet
+import jr.brian.thorhud.ui.v.vWheelSlotOf
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * The Ammu-Nation sheet (GTA V only). Opens on a long-press of the
- * on-foot weapon card. Shows a horizontally-scrolling strip of every
- * owned weapon, then — for whichever is picked — Attachments / Tint
- * / Ammo sections built off the plugin's `armory` frame.
+ * on-foot weapon card.
  *
- * Compose unconditionally with [visible] so the slide-out animation
- * plays on close. Opens by requesting the equipped weapon's page;
- * tapping a weapon in the strip asks the plugin for that one instead
- * and the sheet follows the server's `ver` bump.
+ * Layout: two columns. Left is a vertical rail of every owned weapon
+ * grouped by weapon-wheel slot (pistols / SMGs / rifles / snipers /
+ * melee / shotguns / heavy / thrown), each with a tap-to-collapse
+ * header. Right pane is the current weapon's Attachments / Tint /
+ * Ammo. Both columns scroll independently so a long rail does not
+ * fight the details page.
+ *
+ * Behaviour follows the user's `autoSelectEquipped` preference
+ * (default on): the sheet opens on the currently-equipped weapon and
+ * follows weapon changes in-game. Off: the sheet opens on the first
+ * owned weapon of the first non-empty section and stays wherever the
+ * user tapped last.
  */
 @Composable
 internal fun AmmuNationScreen(
     visible: Boolean,
     accent: Color,
+    autoSelectEquipped: Boolean,
     onDismiss: () -> Unit,
     viewModel: AmmuNationViewModel = hiltViewModel(),
 ) {
@@ -76,8 +89,8 @@ internal fun AmmuNationScreen(
     val onFoot = state?.inVehicle == false
 
     // 3-second grace: a stall that briefly drops on-foot should not
-    // slam the sheet shut. Also hop out if the plugin says in-vehicle
-    // for longer than that: the plugin refuses our commands anyway.
+    // slam the sheet shut. Hop out if the plugin says in-vehicle for
+    // longer — the plugin refuses our commands anyway.
     LaunchedEffect(visible, state?.inVehicle) {
         if (visible && state?.inVehicle == true) {
             delay(3000.milliseconds)
@@ -85,24 +98,36 @@ internal fun AmmuNationScreen(
         }
     }
 
-    // On open, ask for the currently-equipped weapon. If the player
-    // is unarmed (hash 0 or the kUnarmed table slot) nothing opens;
-    // the sheet shows "equip a weapon".
-    LaunchedEffect(visible) {
+    // Target weapon selection:
+    //   - autoSelectEquipped on: pin to state.weaponHash, so a weapon
+    //     switch in-game while the sheet is open moves the rail with
+    //     the player.
+    //   - autoSelectEquipped off: open on the first owned weapon and
+    //     stay there until the user picks another in the rail.
+    // weapons must contain the hash — the state frame may report a
+    // weapon the plugin hasn't yet published in the owned list.
+    val equippedHash = state?.weaponHash
+    LaunchedEffect(visible, autoSelectEquipped, equippedHash, weapons.size,
+                   armory?.weaponHash) {
         if (!visible) return@LaunchedEffect
-        val equipped = state?.weaponHash
-        val fallback = weapons.firstOrNull()?.hash
-        val target = equipped?.takeIf { it != 0L && weapons.any { w -> w.hash == it } }
-            ?: fallback
-        if (target != null) viewModel.open(target)
+        val desired = when {
+            autoSelectEquipped && equippedHash != null && equippedHash != 0L
+                && weapons.any { it.hash == equippedHash } -> equippedHash
+            armory == null -> weapons.firstOrNull()?.hash
+            else -> null
+        }
+        if (desired != null && desired != armory?.weaponHash) {
+            viewModel.open(desired)
+        }
     }
 
-    val collapsed = rememberSaveable(saver = SetSaver) {
+    val collapsedSections = rememberSaveable(saver = SetSaver) {
         mutableStateOf(emptySet<String>())
     }
     val toggleSection: (String) -> Unit = { s ->
-        collapsed.value =
-            if (s in collapsed.value) collapsed.value - s else collapsed.value + s
+        collapsedSections.value =
+            if (s in collapsedSections.value) collapsedSections.value - s
+            else collapsedSections.value + s
     }
 
     val title = armory?.name?.ifBlank { null }
@@ -114,51 +139,44 @@ internal fun AmmuNationScreen(
         title = title,
         accent = accent,
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                when {
-                    !onFoot -> Note(stringResource(R.string.ammu_get_on_foot))
-                    weapons.isEmpty() -> Note(stringResource(R.string.ammu_get_armed))
-                    else -> AmmuBody(
-                        accent = accent,
-                        armory = armory,
-                        weapons = weapons,
-                        pendingKey = result?.takeIf { it.error == null }?.pendingKey,
-                        collapsed = collapsed.value,
-                        onToggleSection = toggleSection,
-                        onSelectWeapon = viewModel::selectWeapon,
-                        onSetComponent = viewModel::setComponent,
-                        onSetWeaponTint = viewModel::setWeaponTint,
-                        onFillAmmo = viewModel::fillAmmo,
-                        onAddClip = viewModel::addClip,
-                    )
-                }
-                val err = result?.error
-                if (!err.isNullOrBlank()) {
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        stringResource(R.string.ammu_error, err),
-                        color = Color(0xFFE07070),
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 13.sp,
-                    )
-                }
-            }
+        when {
+            !onFoot -> Note(stringResource(R.string.ammu_get_on_foot))
+            weapons.isEmpty() -> Note(stringResource(R.string.ammu_get_armed))
+            else -> SplitLayout(
+                accent = accent,
+                armory = armory,
+                weapons = weapons,
+                pendingKey = result?.takeIf { it.error == null }?.pendingKey,
+                collapsedSections = collapsedSections.value,
+                onToggleSection = toggleSection,
+                onSelectWeapon = viewModel::selectWeapon,
+                onSetComponent = viewModel::setComponent,
+                onSetWeaponTint = viewModel::setWeaponTint,
+                onFillAmmo = viewModel::fillAmmo,
+                onAddClip = viewModel::addClip,
+            )
+        }
+        val err = result?.error
+        if (!err.isNullOrBlank()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                stringResource(R.string.ammu_error, err),
+                color = Color(0xFFE07070),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(horizontal = 8.dp),
+            )
         }
     }
 }
 
 @Composable
-private fun AmmuBody(
+private fun SplitLayout(
     accent: Color,
     armory: Armory?,
     weapons: List<GameState.VWeapon>,
     pendingKey: String?,
-    collapsed: Set<String>,
+    collapsedSections: Set<String>,
     onToggleSection: (String) -> Unit,
     onSelectWeapon: (Long) -> Unit,
     onSetComponent: (widx: Int, cidx: Int, on: Boolean) -> Unit,
@@ -166,25 +184,183 @@ private fun AmmuBody(
     onFillAmmo: (widx: Int) -> Unit,
     onAddClip: (widx: Int) -> Unit,
 ) {
-    WeaponStrip(
-        accent = accent,
-        weapons = weapons,
-        selectedHash = armory?.weaponHash ?: 0L,
-        onSelect = onSelectWeapon,
-    )
-    Spacer(Modifier.height(8.dp))
+    val rail = railGroupsFor(weapons)
+    val selectedHash = armory?.weaponHash ?: 0L
+    Row(modifier = Modifier.fillMaxSize()) {
+        WeaponRail(
+            accent = accent,
+            rail = rail,
+            selectedHash = selectedHash,
+            collapsedSections = collapsedSections,
+            onToggleSection = onToggleSection,
+            onSelect = onSelectWeapon,
+            modifier = Modifier
+                .width(RAIL_WIDTH)
+                .fillMaxHeight()
+                .verticalScroll(rememberScrollState()),
+        )
+        Spacer(
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight()
+                .background(accent.copy(alpha = 0.3f)),
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(start = 10.dp)
+                .verticalScroll(rememberScrollState()),
+        ) {
+            DetailsPane(
+                accent = accent,
+                armory = armory,
+                pendingKey = pendingKey,
+                collapsedSections = collapsedSections,
+                onToggleSection = onToggleSection,
+                onSetComponent = onSetComponent,
+                onSetWeaponTint = onSetWeaponTint,
+                onFillAmmo = onFillAmmo,
+                onAddClip = onAddClip,
+            )
+        }
+    }
+}
 
+@Composable
+private fun WeaponRail(
+    accent: Color,
+    rail: List<RailSection>,
+    selectedHash: Long,
+    collapsedSections: Set<String>,
+    onToggleSection: (String) -> Unit,
+    onSelect: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        for (section in rail) {
+            val collapsed = section.key in collapsedSections
+            SectionHeader(
+                title = section.title,
+                count = section.weapons.size,
+                accent = accent,
+                collapsed = collapsed,
+                onClick = { onToggleSection(section.key) },
+            )
+            AnimatedVisibility(
+                visible = !collapsed,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
+            ) {
+                Column {
+                    for (w in section.weapons) {
+                        RailChip(
+                            label = displayNameOf(w),
+                            selected = w.hash == selectedHash,
+                            accent = accent,
+                            onClick = { onSelect(w.hash) },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(
+    title: String,
+    count: Int,
+    accent: Color,
+    collapsed: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = if (collapsed) Icons.AutoMirrored.Filled.KeyboardArrowRight
+                          else Icons.Filled.KeyboardArrowDown,
+            contentDescription = null,
+            tint = accent,
+            modifier = Modifier.size(16.dp),
+        )
+        Spacer(Modifier.width(4.dp))
+        Text(
+            title,
+            color = accent,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            count.toString(),
+            color = Color(0xFF6A7A6E),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 11.sp,
+        )
+    }
+}
+
+@Composable
+private fun RailChip(
+    label: String,
+    selected: Boolean,
+    accent: Color,
+    onClick: () -> Unit,
+) {
+    val fg = if (selected) Color.Black else Color(0xFFEDEDED)
+    val bg = if (selected) accent else Color.Transparent
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 2.dp, horizontal = 4.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(bg)
+            .border(
+                1.dp,
+                accent.copy(alpha = if (selected) 1f else 0.3f),
+                RoundedCornerShape(4.dp),
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 6.dp),
+    ) {
+        Text(
+            label,
+            color = fg,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 11.sp,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun DetailsPane(
+    accent: Color,
+    armory: Armory?,
+    pendingKey: String?,
+    collapsedSections: Set<String>,
+    onToggleSection: (String) -> Unit,
+    onSetComponent: (widx: Int, cidx: Int, on: Boolean) -> Unit,
+    onSetWeaponTint: (widx: Int, tint: Int) -> Unit,
+    onFillAmmo: (widx: Int) -> Unit,
+    onAddClip: (widx: Int) -> Unit,
+) {
     if (armory == null) {
         Note(stringResource(R.string.ammu_loading))
         return
     }
 
-    // Attachments.
     Section(
         key = SECTION_ATTACHMENTS,
         title = stringResource(R.string.ammu_section_attachments),
         accent = accent,
-        collapsed = SECTION_ATTACHMENTS in collapsed,
+        collapsed = SECTION_ATTACHMENTS in collapsedSections,
         onToggle = { onToggleSection(SECTION_ATTACHMENTS) },
     ) {
         if (armory.groups.isEmpty()) {
@@ -220,17 +396,12 @@ private fun AmmuBody(
     }
     Spacer(Modifier.height(8.dp))
 
-    // Tint and Ammo work off the weapon hash via natives that don't
-    // need a DLC-catalogue entry, so they're independent of whether
-    // the Attachments section had anything to offer.
-
-    // Tint.
     if (armory.tints > 0) {
         Section(
             key = SECTION_TINT,
             title = stringResource(R.string.ammu_section_tint),
             accent = accent,
-            collapsed = SECTION_TINT in collapsed,
+            collapsed = SECTION_TINT in collapsedSections,
             onToggle = { onToggleSection(SECTION_TINT) },
         ) {
             TintChips(
@@ -244,13 +415,12 @@ private fun AmmuBody(
         Spacer(Modifier.height(8.dp))
     }
 
-    // Ammo.
     if (armory.maxAmmo > 0) {
         Section(
             key = SECTION_AMMO,
             title = stringResource(R.string.ammu_section_ammo),
             accent = accent,
-            collapsed = SECTION_AMMO in collapsed,
+            collapsed = SECTION_AMMO in collapsedSections,
             onToggle = { onToggleSection(SECTION_AMMO) },
         ) {
             AmmoRow(
@@ -263,60 +433,6 @@ private fun AmmuBody(
                 onAddClip = { onAddClip(armory.widx) },
             )
         }
-    }
-}
-
-@Composable
-private fun WeaponStrip(
-    accent: Color,
-    weapons: List<GameState.VWeapon>,
-    selectedHash: Long,
-    onSelect: (Long) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        for (w in weapons) {
-            WeaponChip(
-                label = w.name.ifBlank { "0x%08X".format(w.hash) },
-                selected = w.hash == selectedHash,
-                accent = accent,
-                onClick = { onSelect(w.hash) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun WeaponChip(
-    label: String,
-    selected: Boolean,
-    accent: Color,
-    onClick: () -> Unit,
-) {
-    val fg = if (selected) Color.Black else Color(0xFFEDEDED)
-    val bg = if (selected) accent else Color.Transparent
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(bg)
-            .border(1.dp, accent.copy(alpha = if (selected) 1f else 0.5f),
-                    RoundedCornerShape(6.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            label.removePrefix("weapon_"),
-            color = fg,
-            fontFamily = FontFamily.Monospace,
-            fontSize = 12.sp,
-            maxLines = 1,
-        )
     }
 }
 
@@ -337,7 +453,7 @@ private fun Section(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
-            imageVector = if (collapsed) Icons.Filled.KeyboardArrowRight
+            imageVector = if (collapsed) Icons.AutoMirrored.Filled.KeyboardArrowRight
                           else Icons.Filled.KeyboardArrowDown,
             contentDescription = null,
             tint = accent,
@@ -376,13 +492,13 @@ private fun ArrowRow(
                 label,
                 color = Color(0xFF8EA096),
                 fontFamily = FontFamily.Monospace,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
             )
             Text(
                 value,
                 color = Color(0xFFEDEDED),
                 fontFamily = FontFamily.Monospace,
-                fontSize = 14.sp,
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
             )
@@ -413,7 +529,7 @@ private fun ArrowIconButton(
     val alpha = if (pending) 0.4f else 1f
     Box(
         modifier = Modifier
-            .size(36.dp)
+            .size(32.dp)
             .clip(RoundedCornerShape(50))
             .border(1.dp, accent.copy(alpha = alpha), RoundedCornerShape(50))
             .clickable(enabled = !pending, onClick = onClick),
@@ -423,7 +539,7 @@ private fun ArrowIconButton(
             imageVector = icon,
             contentDescription = null,
             tint = accent.copy(alpha = alpha),
-            modifier = Modifier.size(22.dp),
+            modifier = Modifier.size(20.dp),
         )
     }
 }
@@ -448,11 +564,14 @@ private fun TintChips(
             val alpha = if (pending) 0.6f else 1f
             Box(
                 modifier = Modifier
-                    .size(width = 56.dp, height = 32.dp)
+                    .size(width = 48.dp, height = 28.dp)
                     .clip(RoundedCornerShape(6.dp))
                     .background(if (isSel) accent.copy(alpha = alpha) else Color.Transparent)
-                    .border(1.dp, accent.copy(alpha = alpha * if (isSel) 1f else 0.5f),
-                            RoundedCornerShape(6.dp))
+                    .border(
+                        1.dp,
+                        accent.copy(alpha = alpha * if (isSel) 1f else 0.5f),
+                        RoundedCornerShape(6.dp),
+                    )
                     .clickable(enabled = !pending) { onPick(i) },
                 contentAlignment = Alignment.Center,
             ) {
@@ -478,13 +597,13 @@ private fun AmmoRow(
     onAddClip: () -> Unit,
 ) {
     val fillPending = pendingKey == "set_ammo:fill"
-    val addPending  = pendingKey == "set_ammo:add_clip"
+    val addPending = pendingKey == "set_ammo:add_clip"
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
         Text(
             stringResource(R.string.ammu_ammo_counts, current, max),
             color = Color(0xFFEDEDED),
             fontFamily = FontFamily.Monospace,
-            fontSize = 14.sp,
+            fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
         )
         if (clip > 0) {
@@ -534,7 +653,7 @@ private fun AmmoButton(
             label,
             color = accent.copy(alpha = alpha),
             fontFamily = FontFamily.Monospace,
-            fontSize = 13.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
         )
     }
@@ -547,12 +666,68 @@ private fun Note(text: String) {
         color = Color(0xFFCFCFCF),
         fontFamily = FontFamily.Monospace,
         fontSize = 13.sp,
+        modifier = Modifier.padding(8.dp),
     )
+}
+
+/**
+ * One accordion section in the weapon rail. [key] is a stable id used
+ * by the collapsed-sections saveable set so a rotation does not snap
+ * expanded sections closed. [title] is lower-case to match the wheel
+ * slot labels ("pistols", "SMGs", "rifles", ...).
+ */
+private data class RailSection(
+    val key: String,
+    val title: String,
+    val weapons: List<GameState.VWeapon>,
+)
+
+/** Section order in the rail — matches the weapon wheel's slot
+ *  ordering (pistols at three o'clock, melee at nine, etc.). */
+private val RAIL_ORDER = listOf(
+    "pistols", "smgs", "rifles", "snipers",
+    "shotguns", "heavy", "melee", "thrown",
+)
+
+/**
+ * Group the owned weapons into rail sections, using the same slot
+ * table the weapon wheel uses so the rail matches whichever slot a
+ * weapon lives in on the ◯. Weapons the wheel maps nowhere fall into
+ * a trailing "misc" group.
+ */
+private fun railGroupsFor(weapons: List<GameState.VWeapon>): List<RailSection> {
+    val bySlot = linkedMapOf<String, MutableList<GameState.VWeapon>>()
+    for (w in weapons) {
+        val slot = vWheelSlotOf(w.name, w.group)
+        val key = slot?.name?.lowercase() ?: "misc"
+        bySlot.getOrPut(key) { mutableListOf() }.add(w)
+    }
+    // Order by RAIL_ORDER, then anything new at the end.
+    val ordered = linkedMapOf<String, MutableList<GameState.VWeapon>>()
+    for (k in RAIL_ORDER) bySlot[k]?.let { ordered[k] = it }
+    for ((k, v) in bySlot) if (k !in ordered) ordered[k] = v
+    return ordered.map { (key, list) ->
+        RailSection(
+            key = key,
+            title = key.replaceFirstChar { it.titlecase() },
+            weapons = list,
+        )
+    }
+}
+
+/** "weapon_pistol_mk2" → "pistol mk2" for the rail chip. The game's
+ *  localised label from the armory frame is used for the title of the
+ *  details pane; the rail stays on the stable id so weapons without
+ *  a shop entry still read sensibly. */
+private fun displayNameOf(w: GameState.VWeapon): String {
+    val raw = w.name.ifBlank { "0x%08X".format(w.hash) }
+    return raw.removePrefix("weapon_").replace('_', ' ')
 }
 
 private const val SECTION_ATTACHMENTS = "attachments"
 private const val SECTION_TINT = "tint"
 private const val SECTION_AMMO = "ammo"
+private val RAIL_WIDTH = 140.dp
 
 private val SetSaver = androidx.compose.runtime.saveable.Saver<
     androidx.compose.runtime.MutableState<Set<String>>, String>(

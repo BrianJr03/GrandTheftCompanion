@@ -120,6 +120,10 @@ class MainViewModel @Inject constructor(
         prefs.setMapControlsRight(gameKey, enabled)
     fun setAutoReapplyCheats(gameKey: String, enabled: Boolean) =
         prefs.setAutoReapplyCheats(gameKey, enabled)
+    fun autoSelectEquippedWeapon(gameKey: String): StateFlow<Boolean> =
+        prefs.autoSelectEquippedWeapon(gameKey)
+    fun setAutoSelectEquippedWeapon(gameKey: String, enabled: Boolean) =
+        prefs.setAutoSelectEquippedWeapon(gameKey, enabled)
 
     // Weapon-wheel slot order, per game. Backed by HudPrefs flows so a
     // reorder on one wheel does not leak into the other game. VWheelSlot
