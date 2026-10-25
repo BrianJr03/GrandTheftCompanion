@@ -431,4 +431,26 @@
     <string name="customs_opt_susp_competition">コンペティションサスペンション</string>
     <string name="customs_opt_susp_race">レースサスペンション</string>
     <string name="customs_opt_armor_pct">装甲 %1$d%%</string>
+
+    <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
+    <string name="hud_onboarding_slide_ammu_title">武器カードを長押し</string>
+    <string name="hud_onboarding_slide_ammu_body">徒歩中なら、武器カードを長押しで Ammu-Nation を開けます。アタッチメント、カラー、弾薬の補充。タップは引き続き武器ホイールを開きます。武器名の横の小さな鉛筆アイコンが目印です。</string>
+
+    <!-- Ammu-Nation sheet (GTA V only). -->
+    <string name="ammu_get_on_foot">車を降りて Ammu-Nation を使ってください。</string>
+    <string name="ammu_get_armed">武器を装備して Ammu-Nation を開いてください。</string>
+    <string name="ammu_loading">カタログを読み込み中…</string>
+    <string name="ammu_section_attachments">アタッチメント</string>
+    <string name="ammu_section_tint">カラー</string>
+    <string name="ammu_section_ammo">弾薬</string>
+    <string name="ammu_no_components">この武器にアタッチメントはありません。</string>
+    <string name="ammu_stock">標準</string>
+    <string name="ammu_clip_size">マガジン: %1$d</string>
+    <string name="ammu_fill">満タン</string>
+    <string name="ammu_add_clip">+1 マガジン</string>
+    <string name="v_weapon_edit_cd">長押しで Ammu-Nation を開く</string>
+
+    <!-- Settings → Ammu-Nation (GTA V only). -->
+    <string name="settings_ammu_auto_select_title">装備中の武器を自動選択</string>
+    <string name="settings_ammu_auto_select_body">Ammu-Nation を開くとき、今持っている武器から始めます。オフ: パネルはレールの最初の武器で開き、ゲーム内で武器を替えても位置は動きません。</string>
 </resources>

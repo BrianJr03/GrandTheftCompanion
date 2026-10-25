@@ -431,4 +431,26 @@
     <string name="customs_opt_susp_competition">Соревновательная подвеска</string>
     <string name="customs_opt_susp_race">Гоночная подвеска</string>
     <string name="customs_opt_armor_pct">Броня %1$d%%</string>
+
+    <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
+    <string name="hud_onboarding_slide_ammu_title">Долгое нажатие на карточке оружия</string>
+    <string name="hud_onboarding_slide_ammu_body">Пешком? Долгое нажатие на карточке оружия открывает Ammu-Nation: насадки, окраска оружия и пополнение патронов. Короткое нажатие по-прежнему открывает колесо оружия. Ищите маленький значок карандаша рядом с названием оружия.</string>
+
+    <!-- Ammu-Nation sheet (GTA V only). -->
+    <string name="ammu_get_on_foot">Выйдите из машины, чтобы использовать Ammu-Nation.</string>
+    <string name="ammu_get_armed">Возьмите оружие, чтобы открыть Ammu-Nation.</string>
+    <string name="ammu_loading">Загрузка каталога…</string>
+    <string name="ammu_section_attachments">Насадки</string>
+    <string name="ammu_section_tint">Окраска</string>
+    <string name="ammu_section_ammo">Патроны</string>
+    <string name="ammu_no_components">У этого оружия нет насадок.</string>
+    <string name="ammu_stock">Стандарт</string>
+    <string name="ammu_clip_size">Магазин: %1$d</string>
+    <string name="ammu_fill">Пополнить</string>
+    <string name="ammu_add_clip">+1 магазин</string>
+    <string name="v_weapon_edit_cd">Долгое нажатие — открыть Ammu-Nation</string>
+
+    <!-- Settings → Ammu-Nation (GTA V only). -->
+    <string name="settings_ammu_auto_select_title">Выбирать активное оружие</string>
+    <string name="settings_ammu_auto_select_body">При открытии Ammu-Nation начинать с того оружия, что сейчас в руках. Выкл: экран открывается на первом оружии в ленте, и смена оружия в игре не сдвигает вашу позицию.</string>
 </resources>

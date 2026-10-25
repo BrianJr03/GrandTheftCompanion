@@ -431,4 +431,26 @@
     <string name="customs_opt_susp_competition">Suspensión de competición</string>
     <string name="customs_opt_susp_race">Suspensión de carreras</string>
     <string name="customs_opt_armor_pct">Blindaje %1$d%%</string>
+
+    <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
+    <string name="hud_onboarding_slide_ammu_title">Mantén pulsada la tarjeta de arma</string>
+    <string name="hud_onboarding_slide_ammu_body">¿A pie? Mantén pulsada la tarjeta de arma para abrir Ammu-Nation: accesorios, tinte y recarga de munición. Un toque sigue abriendo la rueda de armas. Fíjate en el pequeño lápiz junto al nombre del arma.</string>
+
+    <!-- Ammu-Nation sheet (GTA V only). -->
+    <string name="ammu_get_on_foot">Sal del coche para usar Ammu-Nation.</string>
+    <string name="ammu_get_armed">Equipa un arma para abrir Ammu-Nation.</string>
+    <string name="ammu_loading">Cargando el catálogo…</string>
+    <string name="ammu_section_attachments">Accesorios</string>
+    <string name="ammu_section_tint">Tinte</string>
+    <string name="ammu_section_ammo">Munición</string>
+    <string name="ammu_no_components">Esta arma no tiene accesorios.</string>
+    <string name="ammu_stock">De serie</string>
+    <string name="ammu_clip_size">Cargador: %1$d</string>
+    <string name="ammu_fill">Rellenar</string>
+    <string name="ammu_add_clip">+1 cargador</string>
+    <string name="v_weapon_edit_cd">Mantén pulsado para abrir Ammu-Nation</string>
+
+    <!-- Settings → Ammu-Nation (GTA V only). -->
+    <string name="settings_ammu_auto_select_title">Seleccionar arma equipada</string>
+    <string name="settings_ammu_auto_select_body">Al abrir Ammu-Nation, empezar en el arma que llevas en la mano. Desactivado: el panel se abre en la primera arma del carril, así cambiar de arma en el juego no mueve tu posición.</string>
 </resources>

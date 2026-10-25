@@ -431,4 +431,26 @@
     <string name="customs_opt_susp_competition">Wettkampf-Federung</string>
     <string name="customs_opt_susp_race">Rennfederung</string>
     <string name="customs_opt_armor_pct">Panzerung %1$d%%</string>
+
+    <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
+    <string name="hud_onboarding_slide_ammu_title">Lange auf die Waffenkarte drücken</string>
+    <string name="hud_onboarding_slide_ammu_body">Zu Fuß? Ein langer Druck auf die Waffenkarte öffnet Ammu-Nation: Aufsätze, Waffenfarbe und Munition auffüllen. Ein kurzer Tipp öffnet weiterhin das Waffenrad. Achte auf das kleine Stiftsymbol neben dem Waffennamen.</string>
+
+    <!-- Ammu-Nation sheet (GTA V only). -->
+    <string name="ammu_get_on_foot">Steig aus, um Ammu-Nation zu nutzen.</string>
+    <string name="ammu_get_armed">Rüste eine Waffe aus, um Ammu-Nation zu öffnen.</string>
+    <string name="ammu_loading">Katalog wird geladen…</string>
+    <string name="ammu_section_attachments">Aufsätze</string>
+    <string name="ammu_section_tint">Farbe</string>
+    <string name="ammu_section_ammo">Munition</string>
+    <string name="ammu_no_components">Diese Waffe hat keine Aufsätze.</string>
+    <string name="ammu_stock">Standard</string>
+    <string name="ammu_clip_size">Magazin: %1$d</string>
+    <string name="ammu_fill">Auffüllen</string>
+    <string name="ammu_add_clip">+1 Magazin</string>
+    <string name="v_weapon_edit_cd">Lange drücken, um Ammu-Nation zu öffnen</string>
+
+    <!-- Settings → Ammu-Nation (GTA V only). -->
+    <string name="settings_ammu_auto_select_title">Ausgerüstete Waffe auswählen</string>
+    <string name="settings_ammu_auto_select_body">Beim Öffnen von Ammu-Nation mit der aktuell geführten Waffe starten. Aus: Das Menü öffnet mit der ersten Waffe in der Leiste, sodass Waffenwechsel im Spiel deine Position nicht verschieben.</string>
 </resources>

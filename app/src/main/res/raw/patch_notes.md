@@ -1,25 +1,23 @@
-## v0.14.0
+## v0.15.0
 
-- **NOTE:** download the latest `ThorBridgeV.asi` from the release assets and drop it next to `GTA5.exe`. The APK update alone won't pick up the new mods natives. (GTA IV's `ThorBridge.asi` is unchanged this release.)
+- **NOTE:** download the latest `ThorBridgeV.asi` from the release assets and drop it next to `GTA5.exe`. The APK update alone won't pick up the new armory natives. (GTA IV's `ThorBridge.asi` is unchanged this release.)
 
-**Los Santos Customs (GTA V)**
+**Ammu-Nation (GTA V)**
 
-Long-press the vehicle card on the HUD to open a full-screen Customs sheet with every mod the shop sells for the car you're in: body, performance, wheels, interior, lights, plate, tint, neon, bulletproof tyres. Each slot shows its current option with ◀ ▶ arrows that wrap through stock; the three toggles (turbo, tyre smoke, xenon) render as switches. Change the plate text or style, flip the wheel type to re-list the wheels, pick a neon or smoke color from the swatch strip, or tap off to clear neon.
+Long-press the on-foot weapon card on the HUD to open a full-screen Ammu-Nation sheet. A vertical rail on the left lists every weapon you own, grouped under tap-to-open sections for pistols, SMGs, rifles, snipers, shotguns, heavy, melee and thrown. The right side shows the picked weapon's attachments, tint and ammo.
 
-Paint sits at the top of the sheet — respray, next color, swap colors, color wheel, and a fix-vehicle button for a quick repair without a palette round-trip.
+Each attachment slot shows its current fit with ◀ ▶ arrows that wrap through stock — clip, scope, muzzle, grip, flashlight, camo, finish. Pick a different scope and the first one comes off on its own. Tint chips sit in a scrolling strip; Fill tops the ammo pool and +1 clip adds whatever your fitted magazine holds, so an extended clip tops up by more than stock.
+
+Edits apply to any owned weapon, not just the one in your hand — tweak a Pistol Mk II in another slot and the change sticks when you draw it. The sheet closes on its own if you get in a car.
+
+**Weapon rail follows the game**
+
+By default the sheet opens on whichever weapon you're holding and the rail follows along if you switch weapons in-game. Prefer the sheet to stay put on your last manual pick? Settings → Ammu-Nation → **Auto-select equipped weapon** turns the follow behavior off.
+
+**Weapon card now shows its edit affordance**
+
+A dim pencil icon sits in front of the weapon name on the GTA V HUD so the long-press-to-Ammu-Nation hint is visible without needing to discover it. A tap still opens the weapon wheel.
 
 **HUD first-visit tour**
 
-The HUD page shows a quick onboarding sheet the first time you land on it with a live game. Three slides on GTA IV, four on GTA V (the extra slide points at the Customs long-press). A new **Show tips again** row under Settings → Cheats re-opens every first-visit sheet.
-
-**Edit glyph on the vehicle card (GTA V)**
-
-A dim pencil icon sits in front of the vehicle name on the GTA V HUD so the long-press-to-Customs affordance is visible without needing to discover it.
-
-**Color wheel: per-layer state + apply both**
-
-The primary/secondary switch is gone — tap either preview tile to pick which layer the wheel is editing. Each layer holds its own color across sheet open/close, so changing primary, applying, reopening, and switching to secondary leaves primary exactly where you left it. A new **apply both** header icon sends both layers in one go for cars where you want two different colors in one trip.
-
-**Plate field closes the keyboard**
-
-Tapping Apply on the plate text field hides the keyboard and drops focus so the cursor stops blinking after a write.
+The HUD onboarding sheet gains one more slide on GTA V pointing at the Ammu-Nation long-press (five slides total; GTA IV stays at three). Re-open every first-visit sheet from Settings → Cheats → **Show tips again**.
