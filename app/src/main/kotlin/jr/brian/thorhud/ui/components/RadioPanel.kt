@@ -201,7 +201,19 @@ internal fun stationListFor(episode: Int?): IntArray = when (episode) {
 
 internal fun gameRadioIndexToEnumIndex(episode: Int?, localIdx: Int?): Int {
     if (localIdx == null || localIdx < 0) return -1
-    return stationListFor(episode).getOrElse(localIdx) { -1 }
+    val table = stationListFor(episode)
+    if (localIdx < table.size) return table[localIdx]
+    // Past the end of the episode's known local map. GTA IV Complete
+    // Edition on-device returned local=16 for IF99 Int'l Funk (enum
+    // 16) in base IV, which is one past the historical 16-entry
+    // table. Fall back to identity for any 0..19 the table doesn't
+    // cover — worst case the HUD shows a wrong label, best case it
+    // shows the real station (as it does for IF99). The picker
+    // stays on the historical table so the button count doesn't
+    // shift until we have enough on-device data to rebuild the
+    // full base-IV CE mapping.
+    if (localIdx < 20) return localIdx
+    return -1
 }
 
 @Composable
