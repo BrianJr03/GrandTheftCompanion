@@ -162,6 +162,8 @@ internal fun AmmuNationScreen(
                 accent = accent,
                 armory = armory,
                 weapons = weapons,
+                equippedHash = state?.weaponHash,
+                liveEquippedAmmo = state?.ammoTotal,
                 pendingKey = result?.takeIf { it.error == null }?.pendingKey,
                 expandedRail = expandedRail.value,
                 onToggleRailSection = toggleRailSection,
@@ -193,6 +195,8 @@ private fun SplitLayout(
     accent: Color,
     armory: Armory?,
     weapons: List<GameState.VWeapon>,
+    equippedHash: Long?,
+    liveEquippedAmmo: Int?,
     pendingKey: String?,
     expandedRail: Set<String>,
     onToggleRailSection: (String) -> Unit,
@@ -211,6 +215,8 @@ private fun SplitLayout(
             accent = accent,
             rail = rail,
             selectedHash = selectedHash,
+            equippedHash = equippedHash,
+            liveEquippedAmmo = liveEquippedAmmo,
             expandedSections = expandedRail,
             onToggleSection = onToggleRailSection,
             onSelect = onSelectWeapon,
@@ -254,6 +260,8 @@ private fun WeaponRail(
     accent: Color,
     rail: List<RailSection>,
     selectedHash: Long,
+    equippedHash: Long?,
+    liveEquippedAmmo: Int?,
     expandedSections: Set<String>,
     onToggleSection: (String) -> Unit,
     onSelect: (Long) -> Unit,
@@ -276,8 +284,20 @@ private fun WeaponRail(
             ) {
                 Column {
                     for (w in section.weapons) {
+                        // Equipped weapon: use the live 20 Hz state
+                        // ammo so the count ticks down as the player
+                        // fires. Everything else is from the ~1 Hz
+                        // weapon-list scan, which also moves (just
+                        // slower). Melee weapons report ammo=0 and
+                        // we hide the number for them.
+                        val isEquipped = equippedHash != null && w.hash == equippedHash
+                        val ammo = when {
+                            isEquipped -> liveEquippedAmmo ?: w.ammo
+                            else       -> w.ammo
+                        }
                         RailChip(
                             label = displayNameOf(w),
+                            ammo = ammo.takeIf { it > 0 },
                             selected = w.hash == selectedHash,
                             accent = accent,
                             onClick = { onSelect(w.hash) },
@@ -332,12 +352,17 @@ private fun SectionHeader(
 @Composable
 private fun RailChip(
     label: String,
+    ammo: Int?,
     selected: Boolean,
     accent: Color,
     onClick: () -> Unit,
 ) {
     val fg = if (selected) Color.Black else Color(0xFFEDEDED)
     val bg = if (selected) accent else Color.Transparent
+    // Ammo colour tracks the chip's foreground so it still reads
+    // against the selected-state fill, just dimmer than the label.
+    val ammoColor = if (selected) Color.Black.copy(alpha = 0.6f)
+                    else Color(0xFF8EA096)
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -352,13 +377,27 @@ private fun RailChip(
             .clickable(onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 6.dp),
     ) {
-        Text(
-            label,
-            color = fg,
-            fontFamily = FontFamily.Monospace,
-            fontSize = 11.sp,
-            maxLines = 1,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                label,
+                color = fg,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 11.sp,
+                maxLines = 1,
+                modifier = Modifier.weight(1f, fill = false),
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            )
+            if (ammo != null) {
+                Spacer(Modifier.weight(1f))
+                Text(
+                    ammo.toString(),
+                    color = ammoColor,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                    maxLines = 1,
+                )
+            }
+        }
     }
 }
 
