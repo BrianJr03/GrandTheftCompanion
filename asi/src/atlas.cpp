@@ -446,23 +446,28 @@ DWORD WINAPI worker_main(LPVOID /*unused*/) {
     // can render blips + player triangle without any manual three-tap
     // from the user.
     //
-    // Refined 2026-10-27 from THREE in-game captures of Niko's green
-    // diamond on the pause-map tab. Not the orange "M". That's a story
-    // mission marker, which was the mistake baked into the previous
-    // defaults. Captures: Alderney NW (-1138, +1404), Francis airport
-    // (+2476, +240), south-central (+987, -299). Pause-map rect inside
-    // the 1920 x 1080 primary display is (341, 67) to (1501, 937),
-    // found by multi-scale NCC against the stitched 1536 x 1152 atlas,
-    // which confirms the pause-map and atlas share aspect ratio 1.333
-    // (no x/y stretch to compensate for). Square-pixel least-squares
-    // fit on the three samples gave the bounds below with 47 px max
-    // residual. The companion's three-tap flow still refines from
-    // here; see scripts/calib_capture.py + scripts/calib_solve.py.
+    // Refined 2026-10-27 from four captures of Niko on the pause-map:
+    // three in-game (Alderney NW -1138/+1404; Francis airport
+    // +2476/+240; south-central +987/-299) via the green diamond
+    // detector, plus a fourth hand-measured against the three "X"
+    // landmark cluster at Niko's north-Algonquin safehouse
+    // (-422/+1488). Pause-map rect inside the 1920 x 1080 primary
+    // display is (341, 67) to (1501, 937), found by multi-scale NCC
+    // against the stitched 1536 x 1152 atlas; aspects match (1.333)
+    // so no x/y stretch to compensate for. Square-pixel least-squares
+    // fit lands within 42 px max residual, free-scale fit asymmetry
+    // drops to 4 percent (so square is a fair approximation). The
+    // companion's three-tap flow still refines from here; see
+    // scripts/calib_capture.py + scripts/calib_solve.py.
+    //
+    // NB: the orange "M" letters on the pause-map are story mission
+    // markers (Mallorie / Michelle), NOT Niko. That was the mistake
+    // in the previous one-point defaults.
     //
     // pixel_x = a*world_x + c, pixel_y = e*world_y + f with no
     // rotation / shear → b = d = 0 and a = -e for square px.
-    constexpr float kWorldMinX = -2815.1f, kWorldMaxX = 2857.5f;
-    constexpr float kWorldMinY = -1481.7f, kWorldMaxY = 2772.8f;
+    constexpr float kWorldMinX = -2902.5f, kWorldMaxX = 2846.6f;
+    constexpr float kWorldMinY = -1517.5f, kWorldMaxY = 2794.3f;
     const float a_coef = static_cast<float>(kStitchW) / (kWorldMaxX - kWorldMinX);
     const float c_coef = -kWorldMinX * a_coef;
     const float e_coef = -static_cast<float>(kStitchH) / (kWorldMaxY - kWorldMinY);
