@@ -162,6 +162,19 @@ data class GameState(
     @SerialName("slots") val modsSlots: List<ModSlot> = emptyList(),
     @SerialName("toggles") val modsToggles: List<ModToggle> = emptyList(),
 
+    // "atlas" frame — in-plugin minimap extractor progress. The
+    // worker thread publishes a frame whenever any of these fields
+    // move; the companion routes to AtlasReceiver / the custom-map
+    // page's progress panel. Both games emit the same shape with
+    // `game` = "4" or "5".
+    @SerialName("state") val atlasState: String? = null,
+    @SerialName("pct") val atlasPct: Int? = null,
+    @SerialName("tiles") val atlasTiles: Int? = null,
+    @SerialName("cols") val atlasCols: Int? = null,
+    @SerialName("rows") val atlasRows: Int? = null,
+    @SerialName("tile_w") val atlasTileW: Int? = null,
+    @SerialName("tile_h") val atlasTileH: Int? = null,
+
     // "armory" frame (GTA V only). All optional on non-armory frames.
     // widx = -1 means the weapon has no DLC-catalogue entry; its
     // Ammu-Nation page shows "no attachments" and hides Tint / Ammo.
@@ -187,6 +200,7 @@ data class GameState(
     val isBlips: Boolean get() = type == "blips"
     val isMods: Boolean get() = type == "mods"
     val isArmory: Boolean get() = type == "armory"
+    val isAtlas: Boolean get() = type == "atlas"
     val isGtaV: Boolean get() = game == GAME_V
 
     /** Safe to fire a cheat right now: the frame is a real state
@@ -440,4 +454,31 @@ data class ArmoryGroup(
     val curCidx: Int,
     val options: List<GameState.ArmoryOption>,
 )
+
+/**
+ * Minimap-extractor progress snapshot. The plugin publishes one of
+ * these per state transition on the "atlas" wire frame; the UI
+ * subscribes to [jr.brian.thorhud.net.GameStateRepository.atlas].
+ *
+ * [state] values: "scanning", "reading", "sending", "done", "error".
+ * [err] is empty on success; carries a short human-readable reason
+ * on "error" (e.g. "archives not found", "wtd decode pending: see
+ * ThorBridge.log"). [game] is "4" for GTA IV and "5" for GTA V.
+ */
+data class AtlasProgress(
+    val game: String,
+    val state: String,
+    val pct: Int,
+    val tiles: Int,
+    val cols: Int,
+    val rows: Int,
+    val tileW: Int,
+    val tileH: Int,
+    val err: String,
+) {
+    val isRunning: Boolean
+        get() = state == "scanning" || state == "reading" || state == "sending"
+    val isDone: Boolean get() = state == "done"
+    val isError: Boolean get() = state == "error"
+}
 

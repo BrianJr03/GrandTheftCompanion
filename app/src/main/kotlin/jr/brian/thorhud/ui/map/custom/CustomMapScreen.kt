@@ -98,7 +98,14 @@ internal fun CustomMapScreen(
     ) {
         val bitmap = data.overview
         if (bitmap == null) {
-            NoImageState(path = atlasPath, accent = accent)
+            val progress by viewModel.atlasProgress.collectAsStateWithLifecycle()
+            NoImageState(
+                path = atlasPath,
+                accent = accent,
+                progress = progress,
+                onBuild = viewModel::requestAtlasExtract,
+                onCancel = viewModel::requestAtlasCancel,
+            )
             return@Box
         }
         val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
@@ -512,7 +519,13 @@ private fun FlowButton(
 }
 
 @Composable
-private fun NoImageState(path: String, accent: Color) {
+private fun NoImageState(
+    path: String,
+    accent: Color,
+    progress: jr.brian.thorhud.model.AtlasProgress?,
+    onBuild: () -> Unit,
+    onCancel: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -528,8 +541,46 @@ private fun NoImageState(path: String, accent: Color) {
             fontSize = 20.sp,
         )
         Spacer(Modifier.height(10.dp))
+
+        // Primary call to action — build from the game's own archives.
+        // Replaces the pure "drop a file" hint, which stays underneath
+        // as the manual fallback.
+        val running = progress?.isRunning == true
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(accent)
+                .clickable(role = Role.Button) {
+                    if (running) onCancel() else onBuild()
+                }
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+        ) {
+            Text(
+                text = if (running) "cancel" else "build from my game files",
+                color = Color.Black,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+            )
+        }
+        if (progress != null) {
+            Spacer(Modifier.height(8.dp))
+            val label = when {
+                progress.isError -> "error: ${progress.err.ifBlank { "unknown" }}"
+                progress.isDone -> "done — reload the atlas tab"
+                else -> "${progress.state} · ${progress.pct}%"
+            }
+            Text(
+                text = label,
+                color = if (progress.isError) Color(0xFFD88080)
+                        else Color(0xFFB6CCBC),
+                fontFamily = FontFamily.Monospace,
+                fontSize = 11.sp,
+            )
+        }
+        Spacer(Modifier.height(18.dp))
         Text(
-            text = "drop a map image at:",
+            text = "or drop a map image at:",
             color = Color(0xFF6A7A6E),
             fontFamily = FontFamily.Monospace,
             fontSize = 12.sp,

@@ -2,6 +2,7 @@ package jr.brian.thorhud.net
 
 import jr.brian.thorhud.model.Armory
 import jr.brian.thorhud.model.ArmoryGroup
+import jr.brian.thorhud.model.AtlasProgress
 import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.model.Mods
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,6 +66,13 @@ class GameStateRepository @Inject constructor(
     // sheet must close too).
     private val _armory = MutableStateFlow<Armory?>(null)
     val armory: StateFlow<Armory?> = _armory.asStateFlow()
+
+    // Atlas extractor progress: null while the plugin has sent no
+    // atlas frame this session. Updated on every "atlas" frame; the
+    // UI watches `state` for scanning / reading / sending / done /
+    // error. See AtlasProgress for the shape.
+    private val _atlas = MutableStateFlow<AtlasProgress?>(null)
+    val atlas: StateFlow<AtlasProgress?> = _atlas.asStateFlow()
 
     private val _lastUpdateMs = MutableStateFlow(0L)
     val lastUpdateMs: StateFlow<Long> = _lastUpdateMs.asStateFlow()
@@ -160,6 +168,19 @@ class GameStateRepository @Inject constructor(
             }
         }
         if (frame.isArmory) _armory.value = frame.toArmory()
+        if (frame.isAtlas) {
+            _atlas.value = AtlasProgress(
+                game = frame.game.orEmpty(),
+                state = frame.atlasState.orEmpty(),
+                pct = frame.atlasPct ?: 0,
+                tiles = frame.atlasTiles ?: 0,
+                cols = frame.atlasCols ?: 0,
+                rows = frame.atlasRows ?: 0,
+                tileW = frame.atlasTileW ?: 0,
+                tileH = frame.atlasTileH ?: 0,
+                err = frame.err.orEmpty(),
+            )
+        }
         _last.value = frame
         _lastUpdateMs.value = System.currentTimeMillis()
     }
@@ -210,6 +231,13 @@ class GameStateRepository @Inject constructor(
     suspend fun routeClear(): Int? = client.send("route_clear", 0L)
     /** Ask the plugin to write its blip census to its log file. */
     suspend fun blipCensus(): Int? = client.send("blip_census", 0L)
+
+    /** Kick off (or cancel) a map-tile extraction out of the game's own
+     *  archives. Progress rides the "atlas" frame; see [atlas]. The
+     *  argument on `atlas_extract` is unused by the plugin — the key
+     *  just has to be present so parse_cmd finds a digit. */
+    suspend fun atlasExtract(): Int? = client.send("atlas_extract", 0L)
+    suspend fun atlasCancel(): Int? = client.send("atlas_cancel", 0L)
 
     /** Run a cheat by id (see [jr.brian.thorhud.ui.cheats.CheatCatalog]).
      *  One-shots fire once; toggles flip and the next state frame's

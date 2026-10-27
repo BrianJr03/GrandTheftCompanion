@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import jr.brian.thorhud.model.AtlasProgress
 import jr.brian.thorhud.net.GameStateRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,6 +64,12 @@ class AtlasViewModel @Inject constructor(
     val followMode: StateFlow<Boolean> = _followMode.asStateFlow()
 
     val presence: StateFlow<CustomMapStore.AtlasPresence> = store.presence
+
+    /** Latest atlas-extractor progress from the plugin, or null if the
+     *  user has never kicked one off this session. The NoImageState
+     *  listens to this to swap between the "drop a file" hint, a
+     *  running progress line, and a finished / error summary. */
+    val atlasProgress: StateFlow<AtlasProgress?> = repository.atlas
 
     /** The exact adb-reachable path the user needs to drop a map image
      *  at for a given game. The settings panel reads this. */
@@ -155,5 +162,16 @@ class AtlasViewModel @Inject constructor(
     }
     fun requestRouteClear() {
         viewModelScope.launch { repository.routeClear() }
+    }
+
+    // -- "Build from my game files" -----------------------------------
+    /** Ask the running plugin to extract the atlas out of the game's
+     *  own archives. The plugin acks immediately; the real work runs
+     *  on a worker thread and reports via [atlasProgress]. */
+    fun requestAtlasExtract() {
+        viewModelScope.launch { repository.atlasExtract() }
+    }
+    fun requestAtlasCancel() {
+        viewModelScope.launch { repository.atlasCancel() }
     }
 }
