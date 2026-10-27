@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -105,6 +106,7 @@ internal fun CustomMapScreen(
                 progress = progress,
                 onBuild = viewModel::requestAtlasExtract,
                 onCancel = viewModel::requestAtlasCancel,
+                onReload = { viewModel.reload(game) },
             )
             return@Box
         }
@@ -525,6 +527,7 @@ private fun NoImageState(
     progress: jr.brian.thorhud.model.AtlasProgress?,
     onBuild: () -> Unit,
     onCancel: () -> Unit,
+    onReload: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -533,13 +536,28 @@ private fun NoImageState(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
-            text = "no atlas image",
-            color = accent,
-            fontFamily = FontFamily.Monospace,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "no atlas image",
+                color = accent,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+            )
+            Spacer(Modifier.width(12.dp))
+            // Refresh icon: re-reads the drop-in folder + decodes the
+            // atlas overview on-screen. Needed after the plugin writes
+            // iv.png into the picked folder (no app process restart).
+            Icon(
+                imageVector = Icons.Filled.Refresh,
+                contentDescription = "reload",
+                tint = accent,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .clickable(role = Role.Button, onClick = onReload),
+            )
+        }
         Spacer(Modifier.height(10.dp))
 
         // Primary call to action — build from the game's own archives.

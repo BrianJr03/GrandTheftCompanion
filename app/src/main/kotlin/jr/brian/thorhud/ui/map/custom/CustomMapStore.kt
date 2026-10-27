@@ -45,6 +45,18 @@ class CustomMapStore @Inject constructor(
     private val folderPrefs: AtlasFolderPrefs,
 ) {
 
+    init {
+        // Create /storage/emulated/0/GTC/map/gta{4,5} eagerly so the
+        // plugin's z:\ writes land in an existing tree and the user
+        // can see the folders from any file manager. Silently fails
+        // when MANAGE_EXTERNAL_STORAGE isn't granted yet — the next
+        // refresh picks it up once the permission lands.
+        runCatching {
+            defaultSharedDir(Game.IV).mkdirs()
+            defaultSharedDir(Game.V).mkdirs()
+        }
+    }
+
     private val _presence = MutableStateFlow(scanPresence())
     val presence: StateFlow<AtlasPresence> = _presence.asStateFlow()
 
@@ -71,40 +83,75 @@ class CustomMapStore @Inject constructor(
      *  `iv.png` + `iv.json` for GTA IV, `v.png` + `v.json` for GTA V.
      */
     fun atlasPathFor(game: Game): String {
-        val uri = folderPrefs.uriFor(game) ?: return imageFile(game).absolutePath
-        val name = runCatching {
-            DocumentFile.fromTreeUri(appContext, uri)?.name
-        }.getOrNull()
-        return name?.let { "picked folder: $it / ${fileName(game, "png")}" }
-            ?: uri.toString()
+        val uri = folderPrefs.uriFor(game)
+        if (uri != null) {
+            val name = runCatching {
+                DocumentFile.fromTreeUri(appContext, uri)?.name
+            }.getOrNull()
+            return name?.let { "picked folder: $it / ${fileName(game, "png")}" }
+                ?: uri.toString()
+        }
+        return defaultSharedImage(game).absolutePath
     }
 
     fun hasImage(game: Game): Boolean = imageFile(game).exists()
 
     /** Refresh [presence] from disk; call after the user pushes a
-     *  file in or the activity resumes. If a drop-in folder is set
-     *  for a game, we try to copy a newer-mtime file from there
-     *  before taking the presence snapshot. */
+     *  file in or the activity resumes. For each game we try, in
+     *  order: the user's SAF-picked drop-in folder, then the
+     *  default shared path /storage/emulated/0/GTC/map/gta{4,5}
+     *  (requires MANAGE_EXTERNAL_STORAGE on API 30+). Newer-mtime
+     *  files get copied into app-private storage so the renderer
+     *  stays unchanged. */
     fun refresh() {
         syncFromExternal(Game.IV)
         syncFromExternal(Game.V)
         _presence.value = scanPresence()
     }
 
-    /** Copy the user's drop-in `<game>.png` / `<game>.json` from the
-     *  picked tree into the app-private location when either side is
-     *  newer. No-op when no folder is picked for [game]. */
+    /** The fixed shared-storage path the companion plugin writes
+     *  stitched map files to on-device, so the user doesn't have to
+     *  reach app-private storage with adb. Game-scoped so IV and V
+     *  can live side by side. */
+    private fun defaultSharedDir(game: Game): File {
+        val sub = when (game) {
+            Game.IV -> "gta4"
+            Game.V  -> "gta5"
+        }
+        return File("/storage/emulated/0/GTC/map/$sub")
+    }
+
+    private fun defaultSharedImage(game: Game): File =
+        File(defaultSharedDir(game), fileName(game, "png"))
+    private fun defaultSharedJson(game: Game): File =
+        File(defaultSharedDir(game), fileName(game, "json"))
+
+    /** True when the plugin-written iv.png / v.png sits at the
+     *  shared default path. If the app lacks file-access permission
+     *  this check silently returns false and the SAF path is the
+     *  only option. */
+    fun hasDefaultShared(game: Game): Boolean = runCatching {
+        defaultSharedImage(game).exists()
+    }.getOrDefault(false)
+
+    /** Copy the user's drop-in `<game>.png` / `<game>.json` from a
+     *  SAF-picked tree into the app-private cache so the decoder can
+     *  read via a plain file path. No-op when no SAF folder is picked
+     *  (in that case [imageFile] already points at the shared default
+     *  path directly). */
     private fun syncFromExternal(game: Game) {
         val tree = folderPrefs.uriFor(game) ?: return
         val root = runCatching {
             DocumentFile.fromTreeUri(appContext, tree)
-        }.getOrNull() ?: return
-        if (!root.canRead()) {
-            Log.w(TAG, "picked folder for $game is not readable: $tree")
+        }.getOrNull()
+        if (root == null || !root.canRead()) {
+            Log.w(TAG, "picked folder for $game not readable: $tree")
             return
         }
-        copyIfNewer(root, fileName(game, "png"), imageFile(game))
-        copyIfNewer(root, fileName(game, "json"), jsonFile(game))
+        val cachePng = File(mapDir(), fileName(game, "png"))
+        val cacheJson = File(mapDir(), fileName(game, "json"))
+        copyIfNewer(root, fileName(game, "png"), cachePng)
+        copyIfNewer(root, fileName(game, "json"), cacheJson)
     }
 
     private fun copyIfNewer(root: DocumentFile, name: String, dest: File) {
@@ -212,8 +259,32 @@ class CustomMapStore @Inject constructor(
         return File(root, "map")
     }
 
-    private fun imageFile(game: Game): File = File(mapDir(), fileName(game, "png"))
-    private fun jsonFile(game: Game):  File = File(mapDir(), fileName(game, "json"))
+    /**
+     * Resolve a game's PNG path. Priority:
+     *   1) SAF-picked folder (if set) → sync-copy to app-private cache
+     *      and read from there (SAF Uris don't expose a filesystem
+     *      path that BitmapRegionDecoder can consume directly).
+     *   2) The shared default `/storage/emulated/0/GTC/map/gta{4,5}`
+     *      → read directly, no cache.
+     *
+     * The app-private cache is only ever written when a SAF folder is
+     * picked, so clearing the shared file reliably clears what the
+     * atlas page renders.
+     */
+    private fun imageFile(game: Game): File {
+        return if (folderPrefs.uriFor(game) != null) {
+            File(mapDir(), fileName(game, "png"))
+        } else {
+            defaultSharedImage(game)
+        }
+    }
+    private fun jsonFile(game: Game): File {
+        return if (folderPrefs.uriFor(game) != null) {
+            File(mapDir(), fileName(game, "json"))
+        } else {
+            defaultSharedJson(game)
+        }
+    }
 
     private fun fileName(game: Game, ext: String): String = when (game) {
         Game.IV -> "iv.$ext"

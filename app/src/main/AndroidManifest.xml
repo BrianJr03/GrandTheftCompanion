@@ -24,6 +24,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 
+    <!-- Lets the atlas page read the plugin-written map files at the
+         fixed path /storage/emulated/0/GTC/map/gta{4,5}/*.png on
+         Android 11+. The user grants this manually via Settings →
+         Apps → GTC → All files access; the atlas empty state links
+         them straight there if the permission is missing. -->
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+
     <!-- Lets us tell "Bifrost is not installed" from "Bifrost did not
          answer". -->
     <queries>
