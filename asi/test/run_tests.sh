@@ -17,3 +17,7 @@ mkdir -p build
     test/cheats_test.cpp src/cheats.cpp src/weapons.cpp \
     -o build/cheats_test
 ./build/cheats_test
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
+    ../common/test/dxt_png_test.cpp ../common/dxt.cpp ../common/png.cpp \
+    -o build/dxt_png_test
+./build/dxt_png_test

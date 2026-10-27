@@ -20,6 +20,12 @@ add_library(ThorBridge SHARED
     src/version_detect.cpp
     src/weapon_natives.cpp
     src/weapons.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/dxt.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/png.cpp
+)
+
+target_include_directories(ThorBridge PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common
 )
 
 target_compile_options(ThorBridge PRIVATE
