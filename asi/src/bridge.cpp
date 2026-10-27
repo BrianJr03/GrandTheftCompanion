@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "atlas.h"
 #include "bridge.h"
 #include "commands.h"
 #include "log.h"
@@ -197,6 +198,31 @@ int format_ack(char* buf, size_t cap, const commands::Ack& a) {
         a.id, a.ok ? "true" : "false", escaped);
 }
 
+// atlas progress frame — identifies the game (`"4"` here on IV) so the
+// companion routes to the right CustomMapStore slot without reparsing
+// the active hello.
+int format_atlas(char* buf, size_t cap, const atlas::Progress& p) {
+    const char* st = "idle";
+    switch (p.state) {
+        case atlas::State::Idle:     st = "idle";     break;
+        case atlas::State::Scanning: st = "scanning"; break;
+        case atlas::State::Reading:  st = "reading";  break;
+        case atlas::State::Sending:  st = "sending";  break;
+        case atlas::State::Done:     st = "done";     break;
+        case atlas::State::Error:    st = "error";    break;
+    }
+    char escaped[192];
+    json_escape(escaped, sizeof(escaped), p.err);
+    return std::snprintf(buf, cap,
+        "{\"v\":1,\"type\":\"atlas\",\"game\":\"4\",\"state\":\"%s\","
+        "\"pct\":%u,\"tiles\":%u,\"cols\":%u,\"rows\":%u,"
+        "\"tile_w\":%u,\"tile_h\":%u,\"err\":\"%s\"}\n",
+        st, static_cast<unsigned>(p.pct), static_cast<unsigned>(p.tiles),
+        static_cast<unsigned>(p.cols), static_cast<unsigned>(p.rows),
+        static_cast<unsigned>(p.tile_w), static_cast<unsigned>(p.tile_h),
+        escaped);
+}
+
 bool send_all(SOCKET sock, const char* buf, int n) {
     int sent = 0;
     while (sent < n) {
@@ -318,6 +344,7 @@ DWORD WINAPI serve_client(LPVOID arg) {
     char* blip_buf = static_cast<char*>(std::malloc(kBlipBufCap));
     auto* blips = static_cast<snapshot::Blips*>(std::malloc(sizeof(snapshot::Blips)));
     uint32_t sent_blips_ver = 0;
+    uint32_t sent_atlas_ver = 0;
 
     for (;;) {
         // 1. Flush any pending acks first — snappier perceived latency
@@ -340,6 +367,18 @@ DWORD WINAPI serve_client(LPVOID arg) {
                 goto done;
             }
             sent_blips_ver = blips->ver;
+        }
+
+        // 2b. Atlas progress — only when it moved. Shares the small
+        //     stack buffer with state/tick; the frame is ~160 bytes.
+        {
+            atlas::Progress atlas_p{};
+            if (atlas::read_progress(atlas_p, sent_atlas_ver)) {
+                n = format_atlas(buf, sizeof(buf), atlas_p);
+                if (n > 0 && static_cast<size_t>(n) < sizeof(buf)) {
+                    if (!send_all(sock, buf, n)) goto done;
+                }
+            }
         }
 
         // 3. State or tick frame.

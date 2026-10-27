@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "atlas.h"
 #include "blips.h"
 #include "commands.h"
 #include "log.h"
@@ -201,6 +202,23 @@ void drain(uint32_t ped_handle, const snapshot::Player& p) {
 #else
             post_err_ack(c.id, c.ack_queue, "blip_census: not in this build");
 #endif
+
+        } else if (std::strcmp(c.name, "atlas_extract") == 0) {
+            // Pure file-and-CPU work on a worker thread; no natives,
+            // runs even while the game is paused. The ack is immediate;
+            // progress rides the per-frame atlas progress frame.
+            if (atlas::start()) {
+                thor_log("[cmd] atlas_extract -> started");
+                post_ok_ack(c.id, c.ack_queue);
+            } else {
+                thor_log("[cmd] atlas_extract -> already running");
+                post_err_ack(c.id, c.ack_queue, "already running");
+            }
+
+        } else if (std::strcmp(c.name, "atlas_cancel") == 0) {
+            atlas::cancel();
+            thor_log("[cmd] atlas_cancel -> flagged");
+            post_ok_ack(c.id, c.ack_queue);
 
         } else if (std::strcmp(c.name, "cheat") == 0) {
 #if THORBRIDGE_CHEATS

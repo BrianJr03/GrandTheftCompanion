@@ -8,6 +8,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include "atlas.h"
 #include "bridge.h"
 #include "log.h"
 #include "natives.h"
@@ -57,6 +58,7 @@ DWORD WINAPI startup(LPVOID /*unused*/) {
     // socket worker never races with the game-thread hook on first init
     // of the critical section.
     snapshot::init();
+    atlas::init();
 
     VersionInfo vi = detect_version();
     thor_log("[init] exe fingerprint: crc32=0x%08X size=%u file_version=%s",
@@ -82,6 +84,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE /*hinst*/, DWORD reason, LPVOID /*reser
         CreateThread(NULL, 0, startup, NULL, 0, NULL);
         break;
     case DLL_PROCESS_DETACH:
+        atlas::shutdown();
         thor_log("=== ThorBridge unloaded ===");
         break;
     default:

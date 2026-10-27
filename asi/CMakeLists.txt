@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(ThorBridge SHARED
+    src/atlas.cpp
     src/blip_natives.cpp
     src/blips.cpp
     src/bridge.cpp
@@ -21,6 +22,8 @@ add_library(ThorBridge SHARED
     src/weapon_natives.cpp
     src/weapons.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/dxt.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/img.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/inflate.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/png.cpp
 )
 
