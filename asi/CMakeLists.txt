@@ -21,10 +21,15 @@ add_library(ThorBridge SHARED
     src/version_detect.cpp
     src/weapon_natives.cpp
     src/weapons.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/aes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/dxt.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/img.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/img_v3.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/inflate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/keys_iv.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/keys_search.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/png.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/sha1.cpp
 )
 
 target_include_directories(ThorBridge PRIVATE

@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "img.h"
+#include "img_v3.h"
+#include "keys_iv.h"
 #include "log.h"
 
 namespace atlas {
@@ -62,10 +64,10 @@ std::wstring plugin_dir() {
     return p;
 }
 
-// Depth-first search for radar.img under `root`. Stops at the first
-// match. The common install layout is <game>/pc/textures/radar.img so
-// in practice the search is shallow.
-std::wstring find_radar(const std::wstring& root, int depth = 0) {
+// Depth-first search for a filename under `root`. Stops at the first
+// match. Used for both radar.img and GTAIV.exe. Case-insensitive.
+std::wstring find_file(const std::wstring& root, const wchar_t* name,
+                       int depth = 0) {
     if (depth > 6) return L"";  // defensive against symlink loops
     WIN32_FIND_DATAW fd;
     std::wstring probe = root + L"\\*";
@@ -78,11 +80,10 @@ std::wstring find_radar(const std::wstring& root, int depth = 0) {
              (fd.cFileName[1] == L'.' && fd.cFileName[2] == 0))) continue;
         std::wstring full = root + L"\\" + fd.cFileName;
         if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-            found = find_radar(full, depth + 1);
+            found = find_file(full, name, depth + 1);
             if (!found.empty()) break;
         } else {
-            // Case-insensitive compare on the name.
-            if (_wcsicmp(fd.cFileName, L"radar.img") == 0) {
+            if (_wcsicmp(fd.cFileName, name) == 0) {
                 found = full;
                 break;
             }
@@ -132,7 +133,8 @@ DWORD WINAPI worker_main(LPVOID /*unused*/) {
 
     std::wstring root = plugin_dir();
     thor_log("[atlas] searching below %s", narrow(root).c_str());
-    std::wstring img_path = find_radar(root);
+    std::wstring img_path = find_file(root, L"radar.img");
+    std::wstring exe_path = find_file(root, L"GTAIV.exe");
     if (InterlockedCompareExchange(&g.cancel, 0, 0)) {
         thor_log("[atlas] cancelled during scan");
         publish(State::Error, 0, "cancelled");
@@ -145,8 +147,38 @@ DWORD WINAPI worker_main(LPVOID /*unused*/) {
         InterlockedExchange(&g.running, 0);
         return 0;
     }
-    thor_log("[atlas] found %s", narrow(img_path).c_str());
-    publish(State::Reading, 10, nullptr);
+    if (exe_path.empty()) {
+        thor_log("[atlas] GTAIV.exe not found under %s", narrow(root).c_str());
+        publish(State::Error, 0, "GTAIV.exe not found");
+        InterlockedExchange(&g.running, 0);
+        return 0;
+    }
+    thor_log("[atlas] found radar: %s", narrow(img_path).c_str());
+    thor_log("[atlas] found exe:   %s", narrow(exe_path).c_str());
+    publish(State::Reading, 5, nullptr);
+
+    auto exe_bytes = read_whole_file(exe_path);
+    if (exe_bytes.empty()) {
+        thor_log("[atlas] GTAIV.exe empty or unreadable");
+        publish(State::Error, 0, "GTAIV.exe unreadable");
+        InterlockedExchange(&g.running, 0);
+        return 0;
+    }
+    thor_log("[atlas] GTAIV.exe size = %u bytes",
+             static_cast<unsigned>(exe_bytes.size()));
+
+    publish(State::Reading, 15, nullptr);
+    std::uint8_t key[thorbridge::keys_iv::kAesKeyBytes];
+    if (!thorbridge::keys_iv::locate_aes_key(
+            exe_bytes.data(), exe_bytes.size(), key)) {
+        thor_log("[atlas] AES-256 key not found in GTAIV.exe "
+                 "(sha1 whitelist did not match any 32 B window)");
+        publish(State::Error, 0,
+                "AES key not found in GTAIV.exe (unknown build?)");
+        InterlockedExchange(&g.running, 0);
+        return 0;
+    }
+    thor_log("[atlas] AES-256 key located in GTAIV.exe (offset not logged)");
 
     auto bytes = read_whole_file(img_path);
     if (bytes.empty()) {
@@ -157,27 +189,29 @@ DWORD WINAPI worker_main(LPVOID /*unused*/) {
     }
     thor_log("[atlas] radar.img size = %u bytes",
              static_cast<unsigned>(bytes.size()));
+    publish(State::Reading, 30, nullptr);
 
-    auto toc = thorbridge::img::parse_toc(bytes.data(), bytes.size());
-    thor_log("[atlas] radar.img head bytes: %s", toc.head_hex.c_str());
+    auto toc = thorbridge::img_v3::parse_toc(
+        bytes.data(), bytes.size(), key);
     if (!toc.ok) {
-        thor_log("[atlas] IMG parse refused: %s", toc.error.c_str());
+        thor_log("[atlas] IMG v3 parse refused: %s", toc.error.c_str());
         char buf[160];
         std::snprintf(buf, sizeof(buf),
-                      "img format pending (head: %s)",
-                      toc.head_hex.c_str());
+                      "img v3 decrypt failed: %s", toc.error.c_str());
         publish(State::Error, 0, buf);
+        // Scrub the key from stack before returning.
+        std::memset(key, 0, sizeof(key));
         InterlockedExchange(&g.running, 0);
         return 0;
     }
-    thor_log("[atlas] IMG VER2 TOC: %u entries",
-             static_cast<unsigned>(toc.entries.size()));
+    thor_log("[atlas] IMG v3 TOC: %u entries (table_size=%u, head: %s)",
+             static_cast<unsigned>(toc.entries.size()),
+             static_cast<unsigned>(toc.table_size),
+             toc.head_hex_plain.c_str());
 
-    // Log the first few entries by name + a hex head of their body so
-    // Gate IV-1 can show us the real WTD / RSC header. The real WTD
-    // decoder lands in the next pass once that header is known.
-    std::size_t probe_n = toc.entries.size() < 3 ? toc.entries.size() : 3;
-    for (std::size_t i = 0; i < probe_n; ++i) {
+    // Log every entry's name + size so the next-pass WTD decoder knows
+    // exactly what the archive looks like.
+    for (std::size_t i = 0; i < toc.entries.size(); ++i) {
         const auto& e = toc.entries[i];
         char head[128] = {0};
         std::size_t take = e.size < 32 ? e.size : 32;
@@ -187,18 +221,23 @@ DWORD WINAPI worker_main(LPVOID /*unused*/) {
                           bytes[e.offset + j]);
             w += 3;
         }
-        thor_log("[atlas] entry[%zu] name='%s' size=%u head: %s",
-                 i, e.name.c_str(), static_cast<unsigned>(e.size), head);
+        thor_log("[atlas] entry[%zu] name='%s' size=%u rsc=%d type=%u head: %s",
+                 i, e.name.c_str(), static_cast<unsigned>(e.size),
+                 e.is_rsc ? 1 : 0,
+                 static_cast<unsigned>(e.resource_type), head);
     }
 
-    // Diagnostic-only pass for this session: the archive was found and
-    // read, but the WTD -> DXT -> PNG pipeline needs real bytes from
-    // Gate IV-1 to be sure of the resource header shape. Report done
-    // with a clear note so the companion shows a specific message.
-    publish(State::Error, 0,
-            "wtd decode pending: see ThorBridge.log for entry heads");
+    // WTD / RSC / DXT decode lands next session with the first entry
+    // heads above in hand. For now, publish a clean "decrypted ok,
+    // decode pending" result the companion can show.
+    char ok_msg[160];
+    std::snprintf(ok_msg, sizeof(ok_msg),
+                  "TOC decrypted: %u entries. wtd decode pending.",
+                  static_cast<unsigned>(toc.entries.size()));
+    publish(State::Error, 0, ok_msg);
+    std::memset(key, 0, sizeof(key));
     InterlockedExchange(&g.running, 0);
-    thor_log("[atlas] worker exiting (diagnostic pass)");
+    thor_log("[atlas] worker exiting (TOC-only pass)");
     return 0;
 }
 

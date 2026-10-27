@@ -27,6 +27,23 @@ are derived from:
     https://github.com/Zolika1351/iv-sdk
     Historical reference for GTA IV 1.0.7.0 / 1.0.8.0 natives.
 
+The GTA IV AES-256 key SHA-1 fingerprint (20 bytes) embedded in
+common/keys_iv.cpp as kAesKeySha1Hex is the published fingerprint
+used by several open-source IV tools, including:
+
+  ReneSchimmelpfennig/GTA-IV-PS3Decode
+    https://github.com/ReneSchimmelpfennig/GTA-IV-PS3Decode
+    (tools/rpf3.py, KEY_SHA1 constant)
+
+No key bytes are shipped. The fingerprint only identifies the 32-byte
+key material inside the user's own GTAIV.exe at run time. The IMG v3
+on-disk layout driving common/img_v3.cpp was cross-checked against
+GTAIV.EFLC.FusionFix's imgloader.ixx (which stores the key itself
+inline in its binary; we do not) and against the independent format
+notes in ReneSchimmelpfennig/GTA-IV-PS3Decode. The AES-256 and SHA-1
+implementations in common/aes.cpp and common/sha1.cpp are clean-room
+from NIST FIPS-197 and RFC 3174 respectively.
+
 Any direct source lifts from the above projects are tagged with inline
 `[FusionFix: path:line]` comments at the lift site. Code marked that way
 is covered by its originating project's copyright and license. This
