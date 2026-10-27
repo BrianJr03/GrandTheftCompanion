@@ -51,3 +51,8 @@ mkdir -p build
     ../common/keys_search.cpp ../common/sha1.cpp \
     -o build/keys_v_test
 ./build/keys_v_test
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
+    ../common/test/rpf7_test.cpp ../common/rpf7.cpp \
+    ../common/aes.cpp ../common/jenk.cpp ../common/ng.cpp \
+    -o build/rpf7_test
+./build/rpf7_test
