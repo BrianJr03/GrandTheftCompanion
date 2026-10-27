@@ -66,10 +66,12 @@ class AtlasViewModel @Inject constructor(
     private val _flow = MutableStateFlow(CalibrationFlow())
     val calibrationFlow: StateFlow<CalibrationFlow> = _flow.asStateFlow()
 
-    // Follow mode is persisted per-game; the atlas screen reads this
-    // flow and the user toggles it from the atlas header. Default
-    // true (fresh install) but any user flip is remembered.
-    private val _followMode = MutableStateFlow(true)
+    // Follow mode (session-local). Default off so the saved viewport
+    // is what the user sees on every app start; a stale follow=true
+    // would clobber the restored pan/zoom with a recentre on the
+    // player's current pos on the first frame. The feature is kept
+    // (set from Compose when needed) but no longer has a header icon.
+    private val _followMode = MutableStateFlow(false)
     val followMode: StateFlow<Boolean> = _followMode.asStateFlow()
 
     // Session-local lock on the atlas pan/zoom gesture; same pattern as
@@ -80,6 +82,36 @@ class AtlasViewModel @Inject constructor(
     val isLocked: StateFlow<Boolean> = _isLocked.asStateFlow()
 
     fun toggleLock() { _isLocked.value = !_isLocked.value }
+
+    // Session-local re-anchor mode (IV-only in UI). While on, the next
+    // tap on the atlas pairs the tapped image pixel with Niko's live
+    // `pos` and shifts translation only, keeping the existing scale.
+    // Lets the user kill a drifted calibration in one tap instead of
+    // walking the three-tap flow.
+    private val _anchorMode = MutableStateFlow(false)
+    val anchorMode: StateFlow<Boolean> = _anchorMode.asStateFlow()
+
+    fun toggleAnchorMode() { _anchorMode.value = !_anchorMode.value }
+
+    /** One-tap re-anchor: keep the game's current calibration scale
+     *  (a, b, d, e), shift translation (c, f) so [world] lands at
+     *  [pixel]. No-op if the game has no calibration yet (nothing to
+     *  nudge). Exits anchor mode on success. */
+    fun reanchor(game: CustomMapStore.Game, world: WorldPoint, pixel: PixelPoint) {
+        val existing = when (game) {
+            CustomMapStore.Game.IV -> _iv.value.calibration
+            CustomMapStore.Game.V  -> _v.value.calibration
+        } ?: return
+        val newC = pixel.px - existing.a * world.x - existing.b * world.y
+        val newF = pixel.py - existing.d * world.x - existing.e * world.y
+        val nudged = existing.copy(c = newC, f = newF, maxResidualPx = 0f)
+        store.writeCalibration(game, nudged)
+        when (game) {
+            CustomMapStore.Game.IV -> _iv.value = _iv.value.copy(calibration = nudged)
+            CustomMapStore.Game.V  -> _v.value  = _v.value.copy(calibration = nudged)
+        }
+        _anchorMode.value = false
+    }
 
     /** Last saved viewport (zoom + pan) for a game, or null when the
      *  user has never panned/zoomed this game. The screen uses this

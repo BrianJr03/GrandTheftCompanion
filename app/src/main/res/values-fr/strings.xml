@@ -23,6 +23,11 @@
     <string name="map_reset">réinitialiser</string>
     <string name="map_lock">verrouiller</string>
     <string name="map_unlock">déverrouiller</string>
+    <string name="atlas_reanchor_hint">touche l\'atlas là où %1$s se trouve</string>
+    <string name="atlas_reanchor_at">ancré à (%1$s, %2$s)</string>
+    <string name="atlas_reanchor_waiting">en attente d\'une position du plugin…</string>
+    <string name="atlas_reanchor_cd">réancrer d\'un geste</string>
+    <string name="atlas_reanchor_cancel_cd">annuler le réancrage</string>
     <string name="map_gesture_hint_zoom">pincer pour zoomer</string>
     <string name="map_gesture_hint_pan">glisser pour déplacer</string>
     <string name="map_view_cd">miroir de l\'écran du haut ; pincer pour zoomer, glisser pour déplacer</string>

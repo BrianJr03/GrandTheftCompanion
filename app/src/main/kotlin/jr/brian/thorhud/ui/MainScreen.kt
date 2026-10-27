@@ -581,6 +581,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         .collectAsStateWithLifecycle().value,
                                     pos = liveState?.pos,
                                     waypoint = liveState?.waypoint,
+                                    episode = liveState?.episode
+                                        ?: state?.episode,
                                     isGtaV = isGtaV,
                                     atlasPath = atlasViewModel.pathFor(atlasGame),
                                     onOpenHud = scrollToHud,

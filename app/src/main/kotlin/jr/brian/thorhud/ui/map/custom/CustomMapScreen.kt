@@ -22,10 +22,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Casino
+import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Refresh
@@ -42,10 +42,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
@@ -81,7 +79,17 @@ internal fun CustomMapScreen(
     blips: List<GameState.Blip>,
     pos: GameState.Pos?,
     waypoint: GameState.Waypoint?,
-    headingOffsetDeg: Float = -90f,
+    // Compose-side triangle rotation offset. Default 0 so a world
+    // heading of 0 (facing north) draws the triangle pointing up on
+    // screen; matches the gold "Player" arrow the game draws on its
+    // own pause-map. Overridable per game if V ever needs a different
+    // convention.
+    headingOffsetDeg: Float = 0f,
+    // Episode id from the IV state frame; 0 = GTA IV (Niko),
+    // 1 = The Lost and Damned (Johnny), 2 = TBoGT (Luis). Used by the
+    // re-anchor hint so the copy says "where Niko / Johnny / Luis is".
+    // Null = unknown yet; falls back to "the player".
+    episode: Int? = null,
     isGtaV: Boolean,
     atlasPath: String,
     onOpenHud: (() -> Unit)? = null,
@@ -94,6 +102,7 @@ internal fun CustomMapScreen(
     val flow by viewModel.calibrationFlow.collectAsStateWithLifecycle()
     val follow by viewModel.followMode.collectAsStateWithLifecycle()
     val isLocked by viewModel.isLocked.collectAsStateWithLifecycle()
+    val anchorMode by viewModel.anchorMode.collectAsStateWithLifecycle()
 
     Box(
         modifier = Modifier
@@ -182,7 +191,7 @@ internal fun CustomMapScreen(
                         }
                     }
                 )
-                .pointerInput(bitmap, calibration, flow.active) {
+                .pointerInput(bitmap, calibration, flow.active, anchorMode) {
                     detectTapGestures(
                         onTap = { offset ->
                             val vp = viewport.copy(
@@ -190,6 +199,18 @@ internal fun CustomMapScreen(
                                 screenHeight = canvasSize.height,
                             )
                             val img = vp.screenToImage(offset.x, offset.y)
+                            if (anchorMode) {
+                                // One-tap re-anchor: pair tapped pixel with
+                                // Niko's live world pos; nudges translation
+                                // only (keeps scale).
+                                val p = pos ?: return@detectTapGestures
+                                viewModel.reanchor(
+                                    game = game,
+                                    world = WorldPoint(p.x, p.y),
+                                    pixel = PixelPoint(img[0], img[1]),
+                                )
+                                return@detectTapGestures
+                            }
                             if (flow.active) {
                                 val world = flow.pendingWorld
                                     ?: nearestBlipWorld(blips, img[0], img[1], calibration)
@@ -234,6 +255,11 @@ internal fun CustomMapScreen(
                 playerPos = pos,
                 waypoint = waypoint,
                 accent = accent,
+                // Match the gold "Player" arrow the game draws on its
+                // own pause-map tab (sampled on-device, RGB 228/163/57).
+                // V keeps the per-episode accent until Brian asks.
+                triangleColor = if (game == CustomMapStore.Game.IV)
+                    Color(0xFFE4A339) else accent,
                 headingOffsetDeg = headingOffsetDeg,
             )
             // Calibration taps drawn as yellow circles so the user can
@@ -246,20 +272,54 @@ internal fun CustomMapScreen(
             }
         }
 
-        // Header: title + nav icons + recentre + recalibrate.
+        // Header: title + nav icons + lock + anchor (IV only).
         AtlasHeader(
             game = game,
             accent = accent,
-            follow = follow,
             isLocked = isLocked,
-            onToggleFollow = { viewModel.setFollowMode(!follow) },
+            anchorMode = anchorMode,
             onToggleLock = { viewModel.toggleLock() },
-            onBeginCalibration = { viewModel.beginCalibration() },
+            onToggleAnchor = { viewModel.toggleAnchorMode() },
             onOpenHud = onOpenHud,
             onOpenCheats = onOpenCheats,
             onOpenBlips = onOpenBlips,
             onOpenRadio = onOpenRadio,
         )
+
+        if (anchorMode && !flow.active) {
+            // Dim hint banner. Same bg + font as the three-tap flow bar
+            // so the two modes read as a family. Takes priority if the
+            // user flips anchor on while the 3-tap flow is also active;
+            // tap handler already returns early in that case.
+            val name = ivProtagonistFirstName(episode)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 44.dp)
+                    .background(Color(0xDD000000))
+                    .padding(8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.atlas_reanchor_hint, name),
+                    color = accent,
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 12.sp,
+                )
+                Text(
+                    text = if (pos != null)
+                        stringResource(
+                            R.string.atlas_reanchor_at,
+                            "%.0f".format(pos.x),
+                            "%.0f".format(pos.y),
+                        )
+                    else
+                        stringResource(R.string.atlas_reanchor_waiting),
+                    color = Color(0xFF6A7A6E),
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 11.sp,
+                )
+            }
+        }
 
         if (flow.active) {
             CalibrationBar(
@@ -277,6 +337,18 @@ internal fun CustomMapScreen(
             )
         }
     }
+}
+
+// Protagonist first name for the IV episode currently reporting.
+// Game-specific proper noun, same spelling in every locale (so no
+// translatable=false quirks: the string is composed at call time via
+// the %1$s slot in `atlas_reanchor_hint`). Any unknown episode falls
+// back to "Niko", which is the base-game protagonist and the right
+// default on a fresh install.
+private fun ivProtagonistFirstName(episode: Int?): String = when (episode) {
+    1    -> "Johnny"
+    2    -> "Luis"
+    else -> "Niko"
 }
 
 private fun nearestBlipWorld(
@@ -315,6 +387,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawOverlays(
     playerPos: GameState.Pos?,
     waypoint: GameState.Waypoint?,
     accent: Color,
+    triangleColor: Color,
     headingOffsetDeg: Float,
 ) {
     if (calibration == null) return
@@ -327,20 +400,17 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawOverlays(
             center = Offset(s[0], s[1]),
         )
     }
-    // Player triangle.
+    // Player dot. No direction — matches the small gold spot the game
+    // draws on its own pause-map once Niko stops. Slightly bigger
+    // radius than the regular blip dots (5 f) so the player still
+    // reads as the primary marker.
     if (playerPos != null) {
         val s = viewport.worldToScreen(calibration, playerPos.x, playerPos.y)
-        val cx = s[0]; val cy = s[1]
-        val rot = viewport.headingToScreenDegrees(playerPos.h, offsetDeg = headingOffsetDeg)
-        rotate(rot, pivot = Offset(cx, cy)) {
-            val path = Path().apply {
-                moveTo(cx, cy - 14f)
-                lineTo(cx - 9f, cy + 9f)
-                lineTo(cx + 9f, cy + 9f)
-                close()
-            }
-            drawPath(path = path, color = accent)
-        }
+        drawCircle(
+            color = triangleColor,
+            radius = 7f,
+            center = Offset(s[0], s[1]),
+        )
     }
     // Active waypoint (xy, no blip id).
     if (waypoint?.active == true && waypoint.ours && waypoint.blip == 0) {
@@ -354,11 +424,10 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawOverlays(
 private fun AtlasHeader(
     game: CustomMapStore.Game,
     accent: Color,
-    follow: Boolean,
     isLocked: Boolean,
-    onToggleFollow: () -> Unit,
+    anchorMode: Boolean,
     onToggleLock: () -> Unit,
-    onBeginCalibration: () -> Unit,
+    onToggleAnchor: () -> Unit,
     onOpenHud: (() -> Unit)?,
     onOpenCheats: (() -> Unit)?,
     onOpenBlips: (() -> Unit)?,
@@ -394,18 +463,22 @@ private fun AtlasHeader(
             tint = accent,
             onClick = onToggleLock,
         )
-        HeaderIconButton(
-            icon = Icons.Filled.MyLocation,
-            contentDescription = if (follow) "follow on" else "follow off",
-            tint = if (follow) accent else Color(0xFF6A7A6E),
-            onClick = onToggleFollow,
-        )
-        HeaderIconButton(
-            icon = Icons.Filled.Refresh,
-            contentDescription = "recalibrate",
-            tint = accent,
-            onClick = onBeginCalibration,
-        )
+        if (game == CustomMapStore.Game.IV) {
+            // IV only. V's scale will shift with new map DLC, so the
+            // scale-preserving one-tap re-anchor would just hide a real
+            // calibration gap. On IV the radar.img extents are stable,
+            // so a translation nudge is almost always the fix the user
+            // actually wants when the triangle drifts.
+            HeaderIconButton(
+                icon = Icons.Filled.GpsFixed,
+                contentDescription = stringResource(
+                    if (anchorMode) R.string.atlas_reanchor_cancel_cd
+                    else R.string.atlas_reanchor_cd,
+                ),
+                tint = if (anchorMode) accent else Color(0xFF6A7A6E),
+                onClick = onToggleAnchor,
+            )
+        }
         onOpenCheats?.let { open ->
             HeaderIconButton(
                 icon = Icons.Filled.Casino,

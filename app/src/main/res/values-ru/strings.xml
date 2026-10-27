@@ -23,6 +23,11 @@
     <string name="map_reset">сброс</string>
     <string name="map_lock">заблокировать</string>
     <string name="map_unlock">разблокировать</string>
+    <string name="atlas_reanchor_hint">коснитесь атласа там, где сейчас %1$s</string>
+    <string name="atlas_reanchor_at">привязка к (%1$s, %2$s)</string>
+    <string name="atlas_reanchor_waiting">ждём координаты от плагина…</string>
+    <string name="atlas_reanchor_cd">перепривязать касанием</string>
+    <string name="atlas_reanchor_cancel_cd">отменить перепривязку</string>
     <string name="map_gesture_hint_zoom">свести для зума</string>
     <string name="map_gesture_hint_pan">перетащить для сдвига</string>
     <string name="map_view_cd">зеркало верхнего экрана; свести пальцы для зума, перетащить для сдвига</string>

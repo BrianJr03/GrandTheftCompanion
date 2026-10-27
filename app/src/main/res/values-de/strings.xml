@@ -23,6 +23,11 @@
     <string name="map_reset">zurücksetzen</string>
     <string name="map_lock">sperren</string>
     <string name="map_unlock">entsperren</string>
+    <string name="atlas_reanchor_hint">tippe auf den atlas, wo %1$s gerade ist</string>
+    <string name="atlas_reanchor_at">verankert bei (%1$s, %2$s)</string>
+    <string name="atlas_reanchor_waiting">warte auf position vom plugin…</string>
+    <string name="atlas_reanchor_cd">per tipp neu verankern</string>
+    <string name="atlas_reanchor_cancel_cd">neuverankern abbrechen</string>
     <string name="map_gesture_hint_zoom">zum zoomen zusammenziehen</string>
     <string name="map_gesture_hint_pan">zum verschieben ziehen</string>
     <string name="map_view_cd">Spiegelung des oberen Bildschirms; zusammenziehen zum zoomen, ziehen zum verschieben</string>

@@ -23,6 +23,11 @@
     <string name="map_reset">リセット</string>
     <string name="map_lock">ロック</string>
     <string name="map_unlock">ロック解除</string>
+    <string name="atlas_reanchor_hint">%1$sがいる地点をアトラスでタップ</string>
+    <string name="atlas_reanchor_at">(%1$s, %2$s) に固定</string>
+    <string name="atlas_reanchor_waiting">プラグインの位置情報を待機中…</string>
+    <string name="atlas_reanchor_cd">タップで再固定</string>
+    <string name="atlas_reanchor_cancel_cd">再固定をキャンセル</string>
     <string name="map_gesture_hint_zoom">ピンチでズーム</string>
     <string name="map_gesture_hint_pan">ドラッグで移動</string>
     <string name="map_view_cd">上画面のミラー;ピンチでズーム、ドラッグで移動</string>

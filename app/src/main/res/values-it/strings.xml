@@ -23,6 +23,11 @@
     <string name="map_reset">ripristina</string>
     <string name="map_lock">blocca</string>
     <string name="map_unlock">sblocca</string>
+    <string name="atlas_reanchor_hint">tocca l\'atlante dove si trova %1$s</string>
+    <string name="atlas_reanchor_at">ancorato a (%1$s, %2$s)</string>
+    <string name="atlas_reanchor_waiting">in attesa della posizione dal plugin…</string>
+    <string name="atlas_reanchor_cd">riancorare con un tocco</string>
+    <string name="atlas_reanchor_cancel_cd">annulla il riancoraggio</string>
     <string name="map_gesture_hint_zoom">pizzica per zoom</string>
     <string name="map_gesture_hint_pan">trascina per spostare</string>
     <string name="map_view_cd">specchio dello schermo superiore; pizzica per zoom, trascina per spostare</string>
