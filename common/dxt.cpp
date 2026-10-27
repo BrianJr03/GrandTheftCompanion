@@ -61,6 +61,21 @@ void decode_colour_block(const uint8_t* b, bool allow_1bit_alpha,
     }
 }
 
+// Decode one 8-byte BC2 (DXT3) alpha block into 16 alpha samples. The
+// 16 alpha nibbles are packed little-endian: pixel i's nibble is at bit
+// `i*4` of the 64-bit block value. Each 4-bit value is expanded to 8-bit
+// by replicating the nibble (`v << 4 | v`) so 0xF becomes 0xFF.
+void decode_bc2_alpha_block(const uint8_t* b, uint8_t out_a[16]) {
+    uint64_t packed = 0;
+    for (int i = 0; i < 8; ++i) {
+        packed |= static_cast<uint64_t>(b[i]) << (i * 8);
+    }
+    for (int i = 0; i < 16; ++i) {
+        uint8_t v = static_cast<uint8_t>((packed >> (i * 4)) & 0xF);
+        out_a[i] = static_cast<uint8_t>((v << 4) | v);
+    }
+}
+
 // Decode one 8-byte BC3 alpha block into 16 alpha samples. The two alpha
 // endpoints are 8-bit; the 16 three-bit selectors occupy the next 48
 // bits, little-endian, lsb-first within the 48-bit stream.
@@ -116,7 +131,7 @@ std::size_t compressed_size(Format fmt, int width, int height) {
     if ((width % 4) != 0 || (height % 4) != 0) return 0;
     std::size_t blocks = static_cast<std::size_t>(width / 4) *
                          static_cast<std::size_t>(height / 4);
-    return blocks * (fmt == Format::BC1 ? 8u : 16u);
+    return blocks * (fmt == Format::BC1 ? 8u : 16u);  // BC2 + BC3 are both 16
 }
 
 bool decode(Format fmt,
@@ -135,6 +150,11 @@ bool decode(Format fmt,
             uint8_t a[16];
             if (fmt == Format::BC1) {
                 decode_colour_block(blk, /*allow_1bit_alpha=*/true, rgb, a);
+            } else if (fmt == Format::BC2) {
+                decode_bc2_alpha_block(blk, a);
+                uint8_t ignored[16];
+                decode_colour_block(blk + 8, /*allow_1bit_alpha=*/false,
+                                    rgb, ignored);
             } else {
                 decode_alpha_block(blk, a);
                 uint8_t ignored[16];

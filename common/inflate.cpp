@@ -233,19 +233,29 @@ uint32_t adler32(const uint8_t* data, std::size_t n) {
 
 bool decompress(const uint8_t* src, std::size_t src_bytes,
                 std::vector<uint8_t>& out,
-                bool expect_zlib) {
+                bool expect_zlib,
+                bool check_adler) {
     std::size_t out_start = out.size();
     const uint8_t* defl = src;
     std::size_t defl_bytes = src_bytes;
     if (expect_zlib) {
-        if (src_bytes < 6) return false;
+        if (src_bytes < 2) return false;
         // CMF low 4 bits == 8 → deflate, upper 4 == log2(window) - 8.
         uint8_t cmf = src[0], flg = src[1];
         if ((cmf & 0x0F) != 8) return false;
         if ((static_cast<unsigned>(cmf) * 256u + flg) % 31u != 0) return false;
         if (flg & 0x20) return false;  // preset dictionary not supported
         defl = src + 2;
-        defl_bytes = src_bytes - 6;  // reserve the trailing 4-byte Adler
+        // When the caller promises an Adler-32 at the tail, carve off
+        // the last 4 bytes so the DEFLATE walker can't overshoot into
+        // them. When they don't, the DEFLATE walker still stops cleanly
+        // at the BFINAL=1 block header so a longer buffer is fine.
+        if (check_adler) {
+            if (src_bytes < 6) return false;
+            defl_bytes = src_bytes - 6;
+        } else {
+            defl_bytes = src_bytes - 2;
+        }
     }
 
     Bits bits(defl, defl_bytes);
@@ -278,7 +288,7 @@ bool decompress(const uint8_t* src, std::size_t src_bytes,
         if (bfinal) break;
     }
 
-    if (expect_zlib) {
+    if (expect_zlib && check_adler) {
         // After the final block the reader is byte-aligned; the Adler
         // trailer is the last 4 bytes of src.
         if (src_bytes < 4) return false;

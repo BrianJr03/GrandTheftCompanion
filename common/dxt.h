@@ -16,7 +16,8 @@ namespace thorbridge::dxt {
 
 enum class Format {
     BC1,   // DXT1 — RGB or RGB + 1-bit alpha, 8 bytes per 4x4 block
-    BC3,   // DXT5 — RGBA with an 8-bit alpha channel, 16 bytes per block
+    BC2,   // DXT3 — RGB + explicit 4-bit alpha per pixel, 16 bytes/block
+    BC3,   // DXT5 — RGB + 3-bit interpolated alpha, 16 bytes/block
 };
 
 // Decodes `src` into `rgba` (width*height*4 bytes). Returns false if the
