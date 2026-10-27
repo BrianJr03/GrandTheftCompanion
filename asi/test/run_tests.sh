@@ -29,3 +29,12 @@ mkdir -p build
     ../common/test/img_test.cpp ../common/img.cpp \
     -o build/img_test
 ./build/img_test
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
+    ../common/test/crypto_test.cpp ../common/aes.cpp ../common/sha1.cpp \
+    ../common/keys_search.cpp \
+    -o build/crypto_test
+./build/crypto_test
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
+    ../common/test/img_v3_test.cpp ../common/aes.cpp ../common/img_v3.cpp \
+    -o build/img_v3_test
+./build/img_v3_test
