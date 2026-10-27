@@ -112,6 +112,17 @@ uint32_t g_last_episode = 0;
 bool g_cheats_in_game_last = false;
 #endif
 
+// Last known player position + heading. Captured in the normal
+// on_frame path (below) and re-emitted on paused / waiting frames so
+// the atlas page's player triangle stays put while the game is paused.
+// Separate from the full snapshot because publish_waiting() otherwise
+// resets everything.
+static float    g_last_pos_x = 0.0f;
+static float    g_last_pos_y = 0.0f;
+static float    g_last_pos_z = 0.0f;
+static float    g_last_heading = 0.0f;
+static bool     g_last_pos_valid = false;
+
 void publish_waiting() {
     snapshot::Player p{};
     p.ts_ms = GetTickCount();
@@ -122,6 +133,16 @@ void publish_waiting() {
     natives::debug_read_pause(&u, &s);
     p.paused = u;
     p.episode = g_last_episode;
+    // Carry the last known position over the pause so the atlas page's
+    // player triangle stays visible. The timestamp still updates each
+    // frame so the companion knows the plugin is alive.
+    if (g_last_pos_valid) {
+        p.pos_x = g_last_pos_x;
+        p.pos_y = g_last_pos_y;
+        p.pos_z = g_last_pos_z;
+        p.heading = g_last_heading;
+        p.pos_valid = true;
+    }
 #if THORBRIDGE_CHEATS
     // Keep the mask in the published snapshot so the UI toggle lights
     // do not flicker off on pause / cutscene / loading. The underlying
@@ -225,6 +246,13 @@ void on_frame() {
             p.pos_z = pz;
             p.heading = game::get_char_heading(ped_handle);
             p.pos_valid = true;
+            // Capture for publish_waiting() so the atlas player triangle
+            // stays live across pause / cutscene / loading frames.
+            g_last_pos_x = px;
+            g_last_pos_y = py;
+            g_last_pos_z = pz;
+            g_last_heading = p.heading;
+            g_last_pos_valid = true;
         }
     }
 

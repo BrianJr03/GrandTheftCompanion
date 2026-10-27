@@ -442,7 +442,42 @@ DWORD WINAPI worker_main(LPVOID /*unused*/) {
     thor_log("[atlas] decode complete: %u ok, %u failed, dir=%s",
              ok_count, fail_count, narrow(atlas_dir).c_str());
 
-    // Stitch pass: encode the 1280 x 1280 accumulator and write to two
+    // Default calibration JSON for the stitched map, so the companion
+    // can render blips + player triangle without any manual three-tap
+    // from the user.
+    //
+    // Refined 2026-10-27 from THREE in-game captures of Niko's green
+    // diamond on the pause-map tab. Not the orange "M". That's a story
+    // mission marker, which was the mistake baked into the previous
+    // defaults. Captures: Alderney NW (-1138, +1404), Francis airport
+    // (+2476, +240), south-central (+987, -299). Pause-map rect inside
+    // the 1920 x 1080 primary display is (341, 67) to (1501, 937),
+    // found by multi-scale NCC against the stitched 1536 x 1152 atlas,
+    // which confirms the pause-map and atlas share aspect ratio 1.333
+    // (no x/y stretch to compensate for). Square-pixel least-squares
+    // fit on the three samples gave the bounds below with 47 px max
+    // residual. The companion's three-tap flow still refines from
+    // here; see scripts/calib_capture.py + scripts/calib_solve.py.
+    //
+    // pixel_x = a*world_x + c, pixel_y = e*world_y + f with no
+    // rotation / shear → b = d = 0 and a = -e for square px.
+    constexpr float kWorldMinX = -2815.1f, kWorldMaxX = 2857.5f;
+    constexpr float kWorldMinY = -1481.7f, kWorldMaxY = 2772.8f;
+    const float a_coef = static_cast<float>(kStitchW) / (kWorldMaxX - kWorldMinX);
+    const float c_coef = -kWorldMinX * a_coef;
+    const float e_coef = -static_cast<float>(kStitchH) / (kWorldMaxY - kWorldMinY);
+    const float f_coef = -kWorldMaxY * e_coef;
+    char iv_json[256];
+    std::snprintf(iv_json, sizeof(iv_json),
+                  "{\"a\":%.6f,\"b\":0,\"c\":%.6f,\"d\":0,"
+                  "\"e\":%.6f,\"f\":%.6f,\"residual\":0}\n",
+                  static_cast<double>(a_coef), static_cast<double>(c_coef),
+                  static_cast<double>(e_coef), static_cast<double>(f_coef));
+    std::vector<std::uint8_t> iv_json_bytes(
+        reinterpret_cast<std::uint8_t*>(iv_json),
+        reinterpret_cast<std::uint8_t*>(iv_json) + std::strlen(iv_json));
+
+    // Stitch pass: encode the 1536 x 1152 accumulator and write to two
     // places: the debug ThorBridge-atlas/iv.png and the shared app-
     // readable path /sdcard/GTC/map/gta4/iv.png (via Wine z:\ drive).
     std::vector<std::uint8_t> stitch_png;
@@ -470,6 +505,20 @@ DWORD WINAPI worker_main(LPVOID /*unused*/) {
             thor_log("[atlas] WARN: could not write shared iv.png — "
                      "z:\\ drive may not reach /storage/emulated/0; "
                      "pull from ThorBridge-atlas\\iv.png instead");
+        }
+        // Default calibration JSON next to iv.png so the companion
+        // immediately shows blips + player without a three-tap pass.
+        std::wstring shared_iv_json =
+            L"z:\\storage\\emulated\\0\\GTC\\map\\gta4\\iv.json";
+        std::wstring debug_iv_json = atlas_dir + L"\\iv.json";
+        write_whole_file(debug_iv_json, iv_json_bytes);
+        if (write_whole_file(shared_iv_json, iv_json_bytes)) {
+            thor_log("[atlas] default iv.json written with world bounds "
+                     "X=[%.0f,%.0f], Y=[%.0f,%.0f]",
+                     static_cast<double>(kWorldMinX),
+                     static_cast<double>(kWorldMaxX),
+                     static_cast<double>(kWorldMinY),
+                     static_cast<double>(kWorldMaxY));
         }
     }
 
