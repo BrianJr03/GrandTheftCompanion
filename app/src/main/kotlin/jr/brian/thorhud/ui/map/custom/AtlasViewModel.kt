@@ -38,6 +38,7 @@ class AtlasViewModel @Inject constructor(
     private val store: CustomMapStore,
     private val repository: GameStateRepository,
     private val folderPrefs: AtlasFolderPrefs,
+    private val viewportPrefs: AtlasViewportPrefs,
 ) : ViewModel() {
 
     data class AtlasData(
@@ -65,8 +66,34 @@ class AtlasViewModel @Inject constructor(
     private val _flow = MutableStateFlow(CalibrationFlow())
     val calibrationFlow: StateFlow<CalibrationFlow> = _flow.asStateFlow()
 
+    // Follow mode is persisted per-game; the atlas screen reads this
+    // flow and the user toggles it from the atlas header. Default
+    // true (fresh install) but any user flip is remembered.
     private val _followMode = MutableStateFlow(true)
     val followMode: StateFlow<Boolean> = _followMode.asStateFlow()
+
+    // Session-local lock on the atlas pan/zoom gesture; same pattern as
+    // MapViewModel.isLocked, so a horizontal swipe between tabs can't
+    // get swallowed by an accidental drag. Taps (calibration + waypoint)
+    // stay live either way.
+    private val _isLocked = MutableStateFlow(true)
+    val isLocked: StateFlow<Boolean> = _isLocked.asStateFlow()
+
+    fun toggleLock() { _isLocked.value = !_isLocked.value }
+
+    /** Last saved viewport (zoom + pan) for a game, or null when the
+     *  user has never panned/zoomed this game. The screen uses this
+     *  on its first fit() call so an app restart lands on the view
+     *  the user left. */
+    fun savedViewport(game: CustomMapStore.Game): AtlasViewportPrefs.Saved? =
+        viewportPrefs.read(game)
+
+    /** Called by the screen on every user-driven pan / zoom; the
+     *  SharedPreferences write is cheap enough to do inline. */
+    fun saveViewport(game: CustomMapStore.Game,
+                     scale: Float, offsetX: Float, offsetY: Float) {
+        viewportPrefs.writeViewport(game, scale, offsetX, offsetY)
+    }
 
     val presence: StateFlow<CustomMapStore.AtlasPresence> = store.presence
 

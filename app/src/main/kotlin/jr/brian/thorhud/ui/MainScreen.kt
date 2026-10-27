@@ -295,13 +295,12 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     // dropped and re-created it, which reset its internal state and
     // in some cases dropped the live subscriptions it depends on.
     Box(Modifier.fillMaxSize()) {
+        // IV pause used to be a full-screen takeover here. Moved into
+        // the HUD tab render below so the Atlas tab stays live during
+        // pause — Brian wants to compare the game's own pause-map
+        // with the companion's extracted atlas side-by-side.
         when {
             isDisconnected -> SetupScreen(lastError, onOpenSettings = openSettings)
-            !isGtaV && state?.paused == true -> PausedScreen(
-                hello = hello,
-                palette = paletteFor(liveState?.episode ?: state?.episode),
-                onOpenSettings = openSettings,
-            )
             isGtaV && vIsNoticeState(hello, state) -> VMainScreen(
                 viewModel = viewModel,
                 hello = hello,
@@ -438,7 +437,19 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                         HudPager(
                             pagerState = pagerState,
                             hud = {
-                                if (isGtaV) {
+                                // IV pause takes over the HUD tab here
+                                // (used to be a MainScreen-wide branch);
+                                // Atlas / Cheats / Map stay live. V has
+                                // its own pause handling inside VMainScreen.
+                                if (!isGtaV && state?.paused == true) {
+                                    PausedScreen(
+                                        hello = hello,
+                                        palette = paletteFor(
+                                            liveState?.episode
+                                                ?: state?.episode),
+                                        onOpenSettings = openSettings,
+                                    )
+                                } else if (isGtaV) {
                                     VMainScreen(
                                         viewModel = viewModel,
                                         hello = hello,

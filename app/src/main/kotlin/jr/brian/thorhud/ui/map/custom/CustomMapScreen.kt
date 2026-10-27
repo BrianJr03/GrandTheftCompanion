@@ -23,6 +23,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Radio
@@ -91,6 +93,7 @@ internal fun CustomMapScreen(
     val data by viewModel.dataFor(game).collectAsStateWithLifecycle()
     val flow by viewModel.calibrationFlow.collectAsStateWithLifecycle()
     val follow by viewModel.followMode.collectAsStateWithLifecycle()
+    val isLocked by viewModel.isLocked.collectAsStateWithLifecycle()
 
     Box(
         modifier = Modifier
@@ -113,13 +116,21 @@ internal fun CustomMapScreen(
         val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
 
         var viewport by remember(bitmap) {
+            val saved = viewModel.savedViewport(game)
+            val fit = ViewportModel.fit(
+                imageWidth = bitmap.width,
+                imageHeight = bitmap.height,
+                screenWidth = 1,
+                screenHeight = 1,
+            )
             mutableStateOf(
-                ViewportModel.fit(
-                    imageWidth = bitmap.width,
-                    imageHeight = bitmap.height,
-                    screenWidth = 1,
-                    screenHeight = 1,
-                )
+                if (saved != null) {
+                    fit.copy(
+                        scale = saved.scale,
+                        offsetX = saved.offsetX,
+                        offsetY = saved.offsetY,
+                    )
+                } else fit
             )
         }
         var canvasSize by remember { mutableStateOf(IntSize.Zero) }
@@ -145,21 +156,32 @@ internal fun CustomMapScreen(
                 // two-finger pinch or a one-finger pan here. A plain
                 // horizontal drag that isn't a transform still reaches
                 // the pager.
-                .pointerInput(bitmap, calibration, flow.active) {
-                    detectTransformGestures { _, pan, zoom, _ ->
-                        if (pan != Offset.Zero) viewModel.setFollowMode(false)
-                        viewport = viewport
-                            .copy(
-                                screenWidth = canvasSize.width,
-                                screenHeight = canvasSize.height,
+                //
+                // Lock gates ONLY the pan/zoom gesture; tap+long-press
+                // below stay live so calibration taps and GTA V waypoint
+                // drops still work with the atlas locked.
+                .then(
+                    if (isLocked) Modifier
+                    else Modifier.pointerInput(bitmap, calibration, flow.active) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            if (pan != Offset.Zero) viewModel.setFollowMode(false)
+                            viewport = viewport
+                                .copy(
+                                    screenWidth = canvasSize.width,
+                                    screenHeight = canvasSize.height,
+                                )
+                                .transform(
+                                    deltaOffsetX = pan.x,
+                                    deltaOffsetY = pan.y,
+                                    zoom = zoom,
+                                )
+                            viewModel.saveViewport(
+                                game, viewport.scale,
+                                viewport.offsetX, viewport.offsetY,
                             )
-                            .transform(
-                                deltaOffsetX = pan.x,
-                                deltaOffsetY = pan.y,
-                                zoom = zoom,
-                            )
+                        }
                     }
-                }
+                )
                 .pointerInput(bitmap, calibration, flow.active) {
                     detectTapGestures(
                         onTap = { offset ->
@@ -229,7 +251,9 @@ internal fun CustomMapScreen(
             game = game,
             accent = accent,
             follow = follow,
+            isLocked = isLocked,
             onToggleFollow = { viewModel.setFollowMode(!follow) },
+            onToggleLock = { viewModel.toggleLock() },
             onBeginCalibration = { viewModel.beginCalibration() },
             onOpenHud = onOpenHud,
             onOpenCheats = onOpenCheats,
@@ -331,7 +355,9 @@ private fun AtlasHeader(
     game: CustomMapStore.Game,
     accent: Color,
     follow: Boolean,
+    isLocked: Boolean,
     onToggleFollow: () -> Unit,
+    onToggleLock: () -> Unit,
     onBeginCalibration: () -> Unit,
     onOpenHud: (() -> Unit)?,
     onOpenCheats: (() -> Unit)?,
@@ -360,6 +386,14 @@ private fun AtlasHeader(
                 tint = accent, onClick = open,
             )
         }
+        HeaderIconButton(
+            icon = if (isLocked) Icons.Filled.Lock else Icons.Filled.LockOpen,
+            contentDescription = stringResource(
+                if (isLocked) R.string.map_unlock else R.string.map_lock,
+            ),
+            tint = accent,
+            onClick = onToggleLock,
+        )
         HeaderIconButton(
             icon = Icons.Filled.MyLocation,
             contentDescription = if (follow) "follow on" else "follow off",
