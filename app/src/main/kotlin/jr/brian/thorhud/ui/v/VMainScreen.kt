@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import jr.brian.thorhud.BuildConfig
 import jr.brian.thorhud.R
 import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.MainViewModel
@@ -184,7 +185,9 @@ internal fun VMainScreen(
             // showing "—" (no live money for a protagonist). The
             // moment real data flows the "V" rejoins.
             val hasCash = live?.money != null && character.isProtagonist
-            val titleRes = if (hasCash) R.string.brand_v else R.string.brand
+            val titleRes = if (hasCash) {
+                if (BuildConfig.DEBUG) R.string.brand_v_debug else R.string.brand_v
+            } else R.string.brand
             StatusBar(
                 isDisconnected = false,
                 isStale = isStale,

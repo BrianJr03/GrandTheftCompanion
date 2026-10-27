@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import jr.brian.thorhud.BuildConfig
 import jr.brian.thorhud.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import jr.brian.thorhud.model.GameState
@@ -788,10 +789,6 @@ private fun BlipsOverlay(
             onRoute = mapViewModel::routeBlip,
             onClear = mapViewModel::routeClear,
             onLogCensus = mapViewModel::blipCensus,
-            // Gate A0: V-only, debug-only one-shot. BlipListPanel
-            // hides the bug icon when this is null, so IV never sees
-            // it. Deleted before v1 of Ammu-Nation ships.
-            onArmoryProbe = if (isGtaV) mapViewModel::armoryProbe else null,
             onClose = onClose,
         )
     }
@@ -836,8 +833,9 @@ private fun IvHudScreen(
             // Drop the "IV" suffix when there's no live cash to show
             // (the HUD is a shell with "—" everywhere) — the title
             // naming a game it can't read from feels like a lie.
-            val titleRes = if (liveState?.money != null) R.string.brand_iv
-                           else R.string.brand
+            val titleRes = if (liveState?.money != null) {
+                if (BuildConfig.DEBUG) R.string.brand_iv_debug else R.string.brand_iv
+            } else R.string.brand
             StatusBar(
                 isDisconnected = false,
                 isStale = isStale,
