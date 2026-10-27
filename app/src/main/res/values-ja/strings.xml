@@ -186,6 +186,12 @@
     <string name="settings_controls_side_title">マップ操作を右に配置</string>
     <string name="settings_controls_side_body">ロック・リセット・ピン・停止のアイコンをマップの右側に移動します。既定は左側です。マップは中央のまま、空いた側に同じ余白が残ります。</string>
     <string name="settings_section_minimap">ミニマップ</string>
+    <string name="settings_atlas_folder_title">ドロップイン用フォルダ</string>
+    <string name="settings_atlas_folder_body">ファイル管理アプリから開けるフォルダを選んでください。そこへ iv.png か v.png としてマップ画像を置くと、本アプリがそこから読み込みます。adb は不要です。未選択なら、本アプリは自身の非公開フォルダに戻ります。</string>
+    <string name="settings_atlas_folder_none">フォルダ未選択（adb のみの代替）</string>
+    <string name="settings_atlas_folder_pick">フォルダを選ぶ</string>
+    <string name="settings_atlas_folder_change">フォルダを変更</string>
+    <string name="settings_atlas_folder_clear">クリア</string>
     <string name="settings_section_plugin">プラグイン</string>
     <string name="settings_reconnect_title">プラグインに再接続</string>
     <string name="settings_reconnect_body">ThorBridge への接続をやり直します。武器を切り替えても「接続されていません」が消えないときに使ってください。</string>

@@ -186,6 +186,12 @@
     <string name="settings_controls_side_title">Comandi mappa a destra</string>
     <string name="settings_controls_side_body">Sposta le icone blocca, azzera, spilla e stop a destra dello specchio. L\'impostazione predefinita le mette a sinistra. La mappa resta centrata e mantiene lo stesso margine sul lato libero.</string>
     <string name="settings_section_minimap">Minimappa</string>
+    <string name="settings_atlas_folder_title">Cartella di drop-in</string>
+    <string name="settings_atlas_folder_body">Scegli una cartella raggiungibile dal tuo file manager. Metti un\'immagine della mappa come iv.png o v.png e l\'app la leggerà da lì. Nessun adb. Senza scelta l\'app ripiega sulla sua cartella privata.</string>
+    <string name="settings_atlas_folder_none">nessuna cartella scelta (solo via adb)</string>
+    <string name="settings_atlas_folder_pick">scegli cartella</string>
+    <string name="settings_atlas_folder_change">cambia cartella</string>
+    <string name="settings_atlas_folder_clear">cancella</string>
     <string name="settings_section_plugin">Plugin</string>
     <string name="settings_reconnect_title">Riconnetti al plugin</string>
     <string name="settings_reconnect_body">Forza una nuova connessione a ThorBridge. Usalo se \"non connesso\" resta visibile dopo un cambio d\'arma e non sparisce da solo.</string>

@@ -186,6 +186,12 @@
     <string name="settings_controls_side_title">Kartenbedienung rechts</string>
     <string name="settings_controls_side_body">Verschiebt die Symbole Sperren, Zurücksetzen, Pin und Stopp auf die rechte Seite des Spiegels. Standard ist links. Die Karte bleibt zentriert und behält auf der freien Seite denselben Abstand.</string>
     <string name="settings_section_minimap">Minikarte</string>
+    <string name="settings_atlas_folder_title">Ablageordner</string>
+    <string name="settings_atlas_folder_body">Wähle einen Ordner, den dein Datei-Explorer erreichen kann. Lege ein Kartenbild als iv.png oder v.png hinein, dann liest die App es von dort. Kein adb nötig. Ohne Auswahl greift die App auf ihren privaten Dateiordner zurück.</string>
+    <string name="settings_atlas_folder_none">kein Ordner gewählt (nur adb als Ausweg)</string>
+    <string name="settings_atlas_folder_pick">Ordner wählen</string>
+    <string name="settings_atlas_folder_change">Ordner ändern</string>
+    <string name="settings_atlas_folder_clear">löschen</string>
     <string name="settings_section_plugin">Plugin</string>
     <string name="settings_reconnect_title">Mit dem Plugin neu verbinden</string>
     <string name="settings_reconnect_body">Erzwingt eine frische Verbindung zu ThorBridge. Verwende das, wenn \"nicht verbunden\" nach einem Waffenwechsel hängen bleibt und sich nicht von selbst löst.</string>

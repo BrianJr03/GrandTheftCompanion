@@ -1,9 +1,12 @@
 package jr.brian.thorhud.ui.map.custom
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import jr.brian.thorhud.model.AtlasProgress
 import jr.brian.thorhud.net.GameStateRepository
 import kotlinx.coroutines.Dispatchers
@@ -31,8 +34,10 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AtlasViewModel @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     private val store: CustomMapStore,
     private val repository: GameStateRepository,
+    private val folderPrefs: AtlasFolderPrefs,
 ) : ViewModel() {
 
     data class AtlasData(
@@ -74,6 +79,38 @@ class AtlasViewModel @Inject constructor(
     /** The exact adb-reachable path the user needs to drop a map image
      *  at for a given game. The settings panel reads this. */
     fun pathFor(game: CustomMapStore.Game): String = store.atlasPathFor(game)
+
+    /** Latest picked-folder Uri per game, as a stable flow for the
+     *  settings panel. Null when nothing is picked (fall back to the
+     *  app-private files dir, which only adb can reach on Android 11+). */
+    val folderIv: StateFlow<Uri?> = folderPrefs.iv
+    val folderV: StateFlow<Uri?> = folderPrefs.v
+
+    /** Persist the user's folder pick for a game. Takes persistable
+     *  read permission so the Uri survives process death, then
+     *  triggers a refresh so the newly-picked folder's files sync
+     *  into app-private storage at once. */
+    fun setFolder(game: CustomMapStore.Game, uri: Uri?) {
+        if (uri != null) {
+            runCatching {
+                appContext.contentResolver.takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+            }
+        } else {
+            folderPrefs.uriFor(game)?.let { old ->
+                runCatching {
+                    appContext.contentResolver.releasePersistableUriPermission(
+                        old,
+                        android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                    )
+                }
+            }
+        }
+        folderPrefs.set(game, uri)
+        reload(game)
+    }
 
     init {
         reload(CustomMapStore.Game.IV)

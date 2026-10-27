@@ -94,6 +94,14 @@ internal data class SettingsGamePanel(
     val showAmmuSection: Boolean = false,
     val autoSelectEquipped: Boolean = true,
     val onAutoSelectEquippedChange: (Boolean) -> Unit = {},
+    // Drop-in folder: the user-pickable (SAF) folder the companion
+    // syncs `<game>.png` / `<game>.json` from on refresh. Null when
+    // nothing is picked yet; the fallback is the app-private files
+    // dir, which the current adb-less user can't reach. [onPickFolder]
+    // launches an ActivityResultLauncher the caller owns.
+    val atlasFolderDisplay: String? = null,
+    val onPickAtlasFolder: () -> Unit = {},
+    val onClearAtlasFolder: () -> Unit = {},
 )
 
 /**
@@ -397,6 +405,13 @@ private fun PerGameSettings(
                 onCheckedChange = panel.onMapControlsRightChange,
                 palette = panel.palette,
             )
+            Spacer(Modifier.height(14.dp))
+            AtlasFolderRow(
+                display = panel.atlasFolderDisplay,
+                onPick = panel.onPickAtlasFolder,
+                onClear = panel.onClearAtlasFolder,
+                palette = panel.palette,
+            )
         }
 
         if (panel.showAmmuSection) {
@@ -531,6 +546,74 @@ private fun SettingRow(
                 uncheckedTrackColor = Color(0xFF1F2A24),
             ),
         )
+    }
+}
+
+@Composable
+private fun AtlasFolderRow(
+    display: String?,
+    onPick: () -> Unit,
+    onClear: () -> Unit,
+    palette: HudPalette,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            stringResource(R.string.settings_atlas_folder_title),
+            color = Color(0xFFEDEDED),
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            stringResource(R.string.settings_atlas_folder_body),
+            color = Color(0xFF8EA096),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 12.sp,
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            display ?: stringResource(R.string.settings_atlas_folder_none),
+            color = if (display == null) Color(0xFF6A7A6E) else palette.accent,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 11.sp,
+        )
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = onPick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = palette.accent,
+                    contentColor = Color.Black,
+                ),
+            ) {
+                Text(
+                    stringResource(
+                        if (display == null) R.string.settings_atlas_folder_pick
+                        else R.string.settings_atlas_folder_change,
+                    ),
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                )
+            }
+            if (display != null) {
+                Button(
+                    onClick = onClear,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF1F2A24),
+                        contentColor = Color(0xFFEDEDED),
+                    ),
+                ) {
+                    Text(
+                        stringResource(R.string.settings_atlas_folder_clear),
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                    )
+                }
+            }
+        }
     }
 }
 

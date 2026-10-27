@@ -186,6 +186,12 @@
     <string name="settings_controls_side_title">Commandes de la carte à droite</string>
     <string name="settings_controls_side_body">Déplace les icônes verrouiller, réinitialiser, épingler et arrêter à droite du miroir. Par défaut, elles sont à gauche. La carte reste centrée et garde la même marge sur le côté libre.</string>
     <string name="settings_section_minimap">Minicarte</string>
+    <string name="settings_atlas_folder_title">Dossier de dépôt</string>
+    <string name="settings_atlas_folder_body">Choisis un dossier accessible à ton gestionnaire de fichiers. Dépose une image de carte sous le nom iv.png ou v.png et l\'app la lira depuis là. Pas besoin d\'adb. Sans rien choisi, l\'app retombe sur son dossier privé.</string>
+    <string name="settings_atlas_folder_none">aucun dossier choisi (recours adb uniquement)</string>
+    <string name="settings_atlas_folder_pick">choisir le dossier</string>
+    <string name="settings_atlas_folder_change">changer de dossier</string>
+    <string name="settings_atlas_folder_clear">effacer</string>
     <string name="settings_section_plugin">Plugin</string>
     <string name="settings_reconnect_title">Reconnexion au plugin</string>
     <string name="settings_reconnect_body">Force une nouvelle connexion à ThorBridge. À utiliser si \"non connecté\" reste affiché après un changement d\'arme et ne disparaît pas tout seul.</string>

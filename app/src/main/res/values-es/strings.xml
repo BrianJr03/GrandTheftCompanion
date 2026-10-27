@@ -186,6 +186,12 @@
     <string name="settings_controls_side_title">Controles del mapa a la derecha</string>
     <string name="settings_controls_side_body">Mueve los iconos de bloquear, restablecer, chincheta y parar a la derecha del espejo. Por defecto están a la izquierda. El mapa sigue centrado y mantiene el mismo margen en el lado libre.</string>
     <string name="settings_section_minimap">Minimapa</string>
+    <string name="settings_atlas_folder_title">Carpeta de entrada</string>
+    <string name="settings_atlas_folder_body">Elige una carpeta a la que llegue tu gestor de archivos. Deja ahí una imagen del mapa como iv.png o v.png y la app la leerá de ahí. Sin adb. Si no eliges ninguna, la app vuelve a su directorio privado.</string>
+    <string name="settings_atlas_folder_none">ninguna carpeta elegida (solo recurso adb)</string>
+    <string name="settings_atlas_folder_pick">elegir carpeta</string>
+    <string name="settings_atlas_folder_change">cambiar carpeta</string>
+    <string name="settings_atlas_folder_clear">borrar</string>
     <string name="settings_section_plugin">Plugin</string>
     <string name="settings_reconnect_title">Reconectar con el plugin</string>
     <string name="settings_reconnect_body">Fuerza una nueva conexión con ThorBridge. Úsalo si \"no conectado\" se queda tras cambiar de arma y no desaparece solo.</string>

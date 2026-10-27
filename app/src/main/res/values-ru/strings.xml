@@ -186,6 +186,12 @@
     <string name="settings_controls_side_title">Элементы карты справа</string>
     <string name="settings_controls_side_body">Переносит значки блокировки, сброса, метки и остановки справа от зеркала. По умолчанию они слева. Карта остаётся по центру и сохраняет такой же отступ со свободной стороны.</string>
     <string name="settings_section_minimap">Миникарта</string>
+    <string name="settings_atlas_folder_title">Папка для файлов</string>
+    <string name="settings_atlas_folder_body">Выбери папку, в которую может зайти твой файловый менеджер. Положи туда изображение карты под именем iv.png или v.png, и приложение прочтёт его оттуда. adb не нужен. Если ничего не выбрано, приложение возвращается к своей личной папке.</string>
+    <string name="settings_atlas_folder_none">папка не выбрана (резерв только через adb)</string>
+    <string name="settings_atlas_folder_pick">выбрать папку</string>
+    <string name="settings_atlas_folder_change">сменить папку</string>
+    <string name="settings_atlas_folder_clear">очистить</string>
     <string name="settings_section_plugin">Плагин</string>
     <string name="settings_reconnect_title">Переподключиться к плагину</string>
     <string name="settings_reconnect_body">Принудительно устанавливает новое соединение с ThorBridge. Используйте, если \"не подключено\" остаётся после смены оружия и не исчезает само.</string>

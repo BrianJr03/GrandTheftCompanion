@@ -319,18 +319,19 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                 // (or vice versa) always lands on the HUD tab of the
                 // new game.
                 key(gameKey) {
-                    // Atlas tab visibility depends on the user having
-                    // dropped an image under files/map/. The view
-                    // model's presence flow is refreshed on
-                    // reload(game); the pager keeps the atlas slot
-                    // for the connected game only.
+                    // Atlas tab is always visible now that the empty
+                    // state hosts the "build from my game files"
+                    // button — hiding the tab until an image existed
+                    // was a chicken-and-egg block. The presence flow
+                    // is still read so a V→IV switch keeps the slot
+                    // targeted at the right game.
                     val atlasViewModel: AtlasViewModel = hiltViewModel()
                     val atlasPresence by atlasViewModel.presence
                         .collectAsStateWithLifecycle()
                     val atlasGame = if (isGtaV) CustomMapStore.Game.V
                                     else CustomMapStore.Game.IV
-                    val hasAtlas = atlasPresence.has(atlasGame)
-                    val pagerState = rememberHudPagerState(hasAtlas = hasAtlas)
+                    atlasPresence.has(atlasGame)   // kept for Flow collection; result unused
+                    val pagerState = rememberHudPagerState(hasAtlas = true)
                     val scope = rememberCoroutineScope()
                     val scrollToMap: () -> Unit = {
                         scope.launch {
@@ -561,25 +562,23 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     onOpenHud = scrollToHud,
                                 )
                             },
-                            atlas = if (hasAtlas) {
-                                {
-                                    CustomMapScreen(
-                                        game = atlasGame,
-                                        accent = accent,
-                                        blips = mapViewModel.blips
-                                            .collectAsStateWithLifecycle().value,
-                                        pos = liveState?.pos,
-                                        waypoint = liveState?.waypoint,
-                                        isGtaV = isGtaV,
-                                        atlasPath = atlasViewModel.pathFor(atlasGame),
-                                        onOpenHud = scrollToHud,
-                                        onOpenCheats = scrollToCheats,
-                                        onOpenBlips = toggleBlips,
-                                        onOpenRadio = { showRadioSheet = true },
-                                        viewModel = atlasViewModel,
-                                    )
-                                }
-                            } else null,
+                            atlas = {
+                                CustomMapScreen(
+                                    game = atlasGame,
+                                    accent = accent,
+                                    blips = mapViewModel.blips
+                                        .collectAsStateWithLifecycle().value,
+                                    pos = liveState?.pos,
+                                    waypoint = liveState?.waypoint,
+                                    isGtaV = isGtaV,
+                                    atlasPath = atlasViewModel.pathFor(atlasGame),
+                                    onOpenHud = scrollToHud,
+                                    onOpenCheats = scrollToCheats,
+                                    onOpenBlips = toggleBlips,
+                                    onOpenRadio = { showRadioSheet = true },
+                                    viewModel = atlasViewModel,
+                                )
+                            },
                         )
                         // First-visit HUD onboarding sheet. Shown
                         // once per installation on the first time the
@@ -710,6 +709,31 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         // Hilt VM are cheap to resolve each frame; the inner
         // AnimatedVisibility gates actual rendering.
         val cheatsViewModelForSettings: CheatsViewModel = hiltViewModel()
+        // Atlas drop-in folder: one picker per game. Each launcher's
+        // callback asks the atlas VM to persist the Uri (which also
+        // takes persistable read permission for next launch).
+        val atlasVmSettings: AtlasViewModel = hiltViewModel()
+        val atlasFolderIv by atlasVmSettings.folderIv.collectAsStateWithLifecycle()
+        val atlasFolderV  by atlasVmSettings.folderV.collectAsStateWithLifecycle()
+        val atlasPickerContext = androidx.compose.ui.platform.LocalContext.current
+        val pickIvFolder = androidx.activity.compose.rememberLauncherForActivityResult(
+            androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()
+        ) { uri: android.net.Uri? ->
+            if (uri != null) atlasVmSettings.setFolder(CustomMapStore.Game.IV, uri)
+        }
+        val pickVFolder = androidx.activity.compose.rememberLauncherForActivityResult(
+            androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()
+        ) { uri: android.net.Uri? ->
+            if (uri != null) atlasVmSettings.setFolder(CustomMapStore.Game.V, uri)
+        }
+        fun atlasFolderDisplay(uri: android.net.Uri?): String? {
+            if (uri == null) return null
+            val name = runCatching {
+                androidx.documentfile.provider.DocumentFile
+                    .fromTreeUri(atlasPickerContext, uri)?.name
+            }.getOrNull()
+            return name ?: uri.toString()
+        }
         // Palettes default sensibly when nothing is connected
         // (paletteFor(null) → neutral IV orange, vCharacterOf(null)
         // → V default) so the pager still has colour in the setup
@@ -729,6 +753,11 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             onAutoReapplyCheatsChange = { viewModel.setAutoReapplyCheats("iv", it) },
             onClearSavedCheats = { cheatsViewModelForSettings.clearSavedCheats("iv") },
             onResetOnboarding = viewModel::resetOnboarding,
+            atlasFolderDisplay = atlasFolderDisplay(atlasFolderIv),
+            onPickAtlasFolder = { pickIvFolder.launch(null) },
+            onClearAtlasFolder = {
+                atlasVmSettings.setFolder(CustomMapStore.Game.IV, null)
+            },
         )
         val vPanel = SettingsGamePanel(
             label = stringResource(R.string.settings_tab_v),
@@ -750,6 +779,11 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             showAmmuSection = true,
             autoSelectEquipped = vAutoSelectEquipped,
             onAutoSelectEquippedChange = { viewModel.setAutoSelectEquippedWeapon("v", it) },
+            atlasFolderDisplay = atlasFolderDisplay(atlasFolderV),
+            onPickAtlasFolder = { pickVFolder.launch(null) },
+            onClearAtlasFolder = {
+                atlasVmSettings.setFolder(CustomMapStore.Game.V, null)
+            },
         )
         // Setup screen (no plugin frames at all) shows both tabs so
         // the user can pre-configure either game. The moment a frame

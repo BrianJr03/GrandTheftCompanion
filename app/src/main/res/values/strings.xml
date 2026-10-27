@@ -327,6 +327,12 @@
     <string name="settings_controls_side_title">Map controls on the right</string>
     <string name="settings_controls_side_body">Move the map\'s lock, reset, pin and stop icons to the right of the mirror. Default puts them on the left. The map stays centered and keeps the same breathing room on the free side.</string>
     <string name="settings_section_minimap">Minimap</string>
+    <string name="settings_atlas_folder_title">Drop-in folder</string>
+    <string name="settings_atlas_folder_body">Pick a folder your file manager can reach. Drop a map image into it as iv.png or v.png and the app will read it from there. No adb needed. Leave unset and the app falls back to its private files directory.</string>
+    <string name="settings_atlas_folder_none">no folder picked (adb-only fallback in use)</string>
+    <string name="settings_atlas_folder_pick">pick folder</string>
+    <string name="settings_atlas_folder_change">change folder</string>
+    <string name="settings_atlas_folder_clear">clear</string>
 
     <!-- Ammu-Nation settings section (GTA V only; the IV plugin has
          no armory natives). -->

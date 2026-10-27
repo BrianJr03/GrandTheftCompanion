@@ -5,12 +5,15 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.BitmapRegionDecoder
 import android.graphics.Rect
+import android.net.Uri
 import android.util.Log
+import androidx.documentfile.provider.DocumentFile
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.max
@@ -39,6 +42,7 @@ import kotlin.math.min
 @Singleton
 class CustomMapStore @Inject constructor(
     @ApplicationContext private val appContext: Context,
+    private val folderPrefs: AtlasFolderPrefs,
 ) {
 
     private val _presence = MutableStateFlow(scanPresence())
@@ -55,15 +59,69 @@ class CustomMapStore @Inject constructor(
         }
     }
 
-    fun atlasPathFor(game: Game): String =
-        imageFile(game).absolutePath
+    /** The path the user drops files at.
+     *
+     *  When a drop-in folder has been picked for [game], this is the
+     *  human-readable name of that folder (SAF Uris don't expose a
+     *  filesystem path, but the DocumentFile name reads cleanly in
+     *  the settings panel). Otherwise it's the app-private absolute
+     *  path the user would need adb for.
+     *
+     *  The expected filenames inside either location are the same:
+     *  `iv.png` + `iv.json` for GTA IV, `v.png` + `v.json` for GTA V.
+     */
+    fun atlasPathFor(game: Game): String {
+        val uri = folderPrefs.uriFor(game) ?: return imageFile(game).absolutePath
+        val name = runCatching {
+            DocumentFile.fromTreeUri(appContext, uri)?.name
+        }.getOrNull()
+        return name?.let { "picked folder: $it / ${fileName(game, "png")}" }
+            ?: uri.toString()
+    }
 
     fun hasImage(game: Game): Boolean = imageFile(game).exists()
 
     /** Refresh [presence] from disk; call after the user pushes a
-     *  file in or the activity resumes. */
+     *  file in or the activity resumes. If a drop-in folder is set
+     *  for a game, we try to copy a newer-mtime file from there
+     *  before taking the presence snapshot. */
     fun refresh() {
+        syncFromExternal(Game.IV)
+        syncFromExternal(Game.V)
         _presence.value = scanPresence()
+    }
+
+    /** Copy the user's drop-in `<game>.png` / `<game>.json` from the
+     *  picked tree into the app-private location when either side is
+     *  newer. No-op when no folder is picked for [game]. */
+    private fun syncFromExternal(game: Game) {
+        val tree = folderPrefs.uriFor(game) ?: return
+        val root = runCatching {
+            DocumentFile.fromTreeUri(appContext, tree)
+        }.getOrNull() ?: return
+        if (!root.canRead()) {
+            Log.w(TAG, "picked folder for $game is not readable: $tree")
+            return
+        }
+        copyIfNewer(root, fileName(game, "png"), imageFile(game))
+        copyIfNewer(root, fileName(game, "json"), jsonFile(game))
+    }
+
+    private fun copyIfNewer(root: DocumentFile, name: String, dest: File) {
+        val src = root.findFile(name) ?: return
+        if (!src.isFile) return
+        val srcTs = src.lastModified()
+        val destTs = if (dest.exists()) dest.lastModified() else 0L
+        if (srcTs == 0L || srcTs <= destTs) return
+        try {
+            appContext.contentResolver.openInputStream(src.uri)?.use { input ->
+                dest.parentFile?.mkdirs()
+                FileOutputStream(dest).use { out -> input.copyTo(out) }
+            }
+            dest.setLastModified(srcTs)
+        } catch (t: Throwable) {
+            Log.w(TAG, "copy ${src.uri} -> ${dest.absolutePath} failed: ${t.message}")
+        }
     }
 
     fun readCalibration(game: Game): Calibration? =
