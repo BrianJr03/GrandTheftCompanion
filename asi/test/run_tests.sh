@@ -56,3 +56,7 @@ mkdir -p build
     ../common/aes.cpp ../common/jenk.cpp ../common/ng.cpp \
     -o build/rpf7_test
 ./build/rpf7_test
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
+    ../common/test/rsc7_test.cpp ../common/rsc7.cpp ../common/inflate.cpp \
+    -o build/rsc7_test
+./build/rsc7_test
