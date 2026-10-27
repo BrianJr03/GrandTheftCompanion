@@ -34,13 +34,28 @@ class AtlasViewportPrefs @Inject constructor(
 
     fun read(game: CustomMapStore.Game): Saved? {
         val k = keyPrefix(game)
-        if (!prefs.contains(k + "scale")) return null
+        if (!prefs.contains(k + "scale")) return defaultFor(game)
         return Saved(
             scale   = prefs.getFloat(k + "scale",   1f),
             offsetX = prefs.getFloat(k + "ox",      0f),
             offsetY = prefs.getFloat(k + "oy",      0f),
-            follow  = prefs.getBoolean(k + "follow", true),
+            follow  = prefs.getBoolean(k + "follow", false),
         )
+    }
+
+    /** Baseline viewport for a game before the user ever pans / zooms.
+     *  Captured from a dialled-in device so a fresh install opens on
+     *  the same framing. V has no baseline yet; returning null keeps
+     *  the ViewportModel fit() path (centre + "contain" scale) as the
+     *  fallback. */
+    private fun defaultFor(game: CustomMapStore.Game): Saved? = when (game) {
+        CustomMapStore.Game.IV -> Saved(
+            scale   = 0.91276604f,
+            offsetX = -76.26889f,
+            offsetY = -83.921234f,
+            follow  = false,
+        )
+        CustomMapStore.Game.V  -> null
     }
 
     fun writeViewport(game: CustomMapStore.Game,

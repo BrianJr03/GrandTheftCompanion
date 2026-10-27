@@ -401,14 +401,14 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawOverlays(
         )
     }
     // Player dot. No direction — matches the small gold spot the game
-    // draws on its own pause-map once Niko stops. Slightly bigger
-    // radius than the regular blip dots (5 f) so the player still
-    // reads as the primary marker.
+    // draws on its own pause-map once the player stops. 2× the blip
+    // radius so the player still reads as the primary marker without
+    // dominating the zoomed-out view.
     if (playerPos != null) {
         val s = viewport.worldToScreen(calibration, playerPos.x, playerPos.y)
         drawCircle(
             color = triangleColor,
-            radius = 7f,
+            radius = 10f,
             center = Offset(s[0], s[1]),
         )
     }
