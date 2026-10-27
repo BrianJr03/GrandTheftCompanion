@@ -448,4 +448,100 @@ bool locate_all(const std::uint8_t* exe, std::size_t exe_bytes,
     return true;
 }
 
+namespace {
+
+// SHA-1 a blob and check its digest appears in the sorted-digest
+// index built once in verify_and_load. Linear scan is fine here;
+// the index is at most 272 entries and verification runs on four
+// known-size blobs totalling ~306 KB, so the cost is dominated by
+// SHA-1 of the blob itself, not the lookup.
+bool blob_sha1_in(const std::uint8_t* blob, std::size_t bytes,
+                  const std::uint8_t* digests, std::size_t digest_count) {
+    std::uint8_t have[sha1::kDigestBytes];
+    sha1::hash(blob, bytes, have);
+    for (std::size_t i = 0; i < digest_count; ++i) {
+        if (sha1::equals(have, digests + i * sha1::kDigestBytes)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool blob_sha1_equals(const std::uint8_t* blob, std::size_t bytes,
+                      const char* want_hex) {
+    std::uint8_t want[sha1::kDigestBytes];
+    if (!keys::parse_hex(want_hex, want)) return false;
+    std::uint8_t have[sha1::kDigestBytes];
+    sha1::hash(blob, bytes, have);
+    return sha1::equals(have, want);
+}
+
+}  // namespace
+
+bool verify_and_load(const std::uint8_t* aes_key_bytes,
+                     std::size_t aes_key_size,
+                     const std::uint8_t* ng_keys_bytes,
+                     std::size_t ng_keys_size,
+                     const std::uint8_t* ng_tables_bytes,
+                     std::size_t ng_tables_size,
+                     const std::uint8_t* lut_bytes,
+                     std::size_t lut_size,
+                     ExtractedKeys& out) {
+    std::memset(&out, 0, sizeof(out));
+    if (!aes_key_bytes || aes_key_size != kAesKeyBytes) return false;
+    if (!ng_keys_bytes || ng_keys_size != kNgKeyCount * kNgKeyBytes) return false;
+    if (!ng_tables_bytes ||
+        ng_tables_size != kNgTableCount * kNgTableBytes) return false;
+    if (!lut_bytes || lut_size != kLutBytes) return false;
+
+    // AES key: single published hash.
+    if (!blob_sha1_equals(aes_key_bytes, kAesKeyBytes, kAesKeySha1Hex)) {
+        return false;
+    }
+    // LUT: single published hash.
+    if (!blob_sha1_equals(lut_bytes, kLutBytes, kLutSha1Hex)) {
+        return false;
+    }
+
+    // Pack the NG-key digest list and verify each of the 101 blobs
+    // has a SHA-1 appearing in it. Order of blobs inside the side-car
+    // doesn't need to match the publish order, so we accept any
+    // permutation.
+    std::vector<std::uint8_t> ng_key_digests(kNgKeyCount * sha1::kDigestBytes);
+    if (!pack_digests(kNgKeySha1Hex, kNgKeyCount, ng_key_digests.data())) {
+        return false;
+    }
+    for (std::size_t i = 0; i < kNgKeyCount; ++i) {
+        const std::uint8_t* blob = ng_keys_bytes + i * kNgKeyBytes;
+        if (!blob_sha1_in(blob, kNgKeyBytes,
+                          ng_key_digests.data(), kNgKeyCount)) {
+            return false;
+        }
+    }
+
+    // Same for the 272 NG decrypt tables. CodeWalker's published
+    // list has 272 slots but only 84 distinct SHA-1 digests; we
+    // accept any of the 272 slot hashes for each blob since the
+    // slot assignment is baked into the retail data layout and we
+    // only care that each blob is one of the published tables.
+    std::vector<std::uint8_t> ng_table_digests(kNgTableCount * sha1::kDigestBytes);
+    if (!pack_digests(kNgTableSha1Hex, kNgTableCount, ng_table_digests.data())) {
+        return false;
+    }
+    for (std::size_t i = 0; i < kNgTableCount; ++i) {
+        const std::uint8_t* blob = ng_tables_bytes + i * kNgTableBytes;
+        if (!blob_sha1_in(blob, kNgTableBytes,
+                          ng_table_digests.data(), kNgTableCount)) {
+            return false;
+        }
+    }
+
+    std::memcpy(out.aes_key, aes_key_bytes, kAesKeyBytes);
+    std::memcpy(out.ng_keys, ng_keys_bytes, kNgKeyCount * kNgKeyBytes);
+    std::memcpy(out.ng_decrypt_tables, ng_tables_bytes,
+                kNgTableCount * kNgTableBytes);
+    std::memcpy(out.lut, lut_bytes, kLutBytes);
+    return true;
+}
+
 }  // namespace thorbridge::keys_v

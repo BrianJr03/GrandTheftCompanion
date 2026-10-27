@@ -56,4 +56,33 @@ constexpr std::size_t kExtractedKeysBytes = sizeof(ExtractedKeys);
 bool locate_all(const std::uint8_t* exe, std::size_t exe_bytes,
                 ExtractedKeys& out);
 
+// Validate four already-loaded key buffers against the published
+// SHA-1 fingerprints and copy them into `out` if every blob is
+// recognised. Rejects any blob whose SHA-1 does not appear in the
+// published list, so a tampered side-car file cannot pass. Used by
+// the atlas worker as a fall-back when locate_all fails on an exe
+// whose embedded keys have been stripped or re-packed (common on
+// mobile / Wine distributions where the exe is < 50 MB).
+//
+// Layout matches CodeWalker's on-disk convention (flat raw bytes,
+// no headers) so a user who already has CodeWalker set up on a PC
+// can SaveToPath -> adb push the four files unchanged:
+//
+//   aes_key_bytes       32 bytes
+//   ng_keys_bytes       27,472 bytes (101 × 272, concatenated)
+//   ng_tables_bytes     278,528 bytes (272 × 1024, little-endian uint32)
+//   lut_bytes           256 bytes
+//
+// All four pointers must be non-null and the sizes must match
+// exactly or the call returns false and `out` is zero-wiped.
+bool verify_and_load(const std::uint8_t* aes_key_bytes,
+                     std::size_t aes_key_size,
+                     const std::uint8_t* ng_keys_bytes,
+                     std::size_t ng_keys_size,
+                     const std::uint8_t* ng_tables_bytes,
+                     std::size_t ng_tables_size,
+                     const std::uint8_t* lut_bytes,
+                     std::size_t lut_size,
+                     ExtractedKeys& out);
+
 }  // namespace thorbridge::keys_v
