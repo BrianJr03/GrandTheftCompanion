@@ -21,3 +21,11 @@ mkdir -p build
     ../common/test/dxt_png_test.cpp ../common/dxt.cpp ../common/png.cpp \
     -o build/dxt_png_test
 ./build/dxt_png_test
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
+    ../common/test/inflate_test.cpp ../common/inflate.cpp \
+    -o build/inflate_test
+./build/inflate_test
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
+    ../common/test/img_test.cpp ../common/img.cpp \
+    -o build/img_test
+./build/img_test
