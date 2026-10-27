@@ -29,7 +29,9 @@ add_library(ThorBridge SHARED
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/keys_iv.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/keys_search.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/png.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/rsc.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/sha1.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/wtd.cpp
 )
 
 target_include_directories(ThorBridge PRIVATE
