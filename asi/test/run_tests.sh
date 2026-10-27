@@ -38,3 +38,7 @@ mkdir -p build
     ../common/test/img_v3_test.cpp ../common/aes.cpp ../common/img_v3.cpp \
     -o build/img_v3_test
 ./build/img_v3_test
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
+    ../common/test/ng_test.cpp ../common/ng.cpp \
+    -o build/ng_test
+./build/ng_test
