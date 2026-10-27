@@ -6,54 +6,62 @@ namespace thorbridge::ng {
 
 namespace {
 
-// One table pass. For each of the 16 input byte positions, index the
-// per-position table by the byte value to get a 32-bit mask, then XOR
-// that mask into the 4-byte output column for this input's quartile
-// (positions 0..3 feed column 0, 4..7 feed column 1, etc). The retail
-// tables publish their masks little-endian; the Tables struct we take
-// here is already in native uint32 (see load_tables).
-void table_pass(
-    std::uint8_t block[kBlockBytes],
-    const std::uint32_t table[kTablesPerRound][kEntriesPerTable]) {
-    std::uint8_t res[kBlockBytes] = {};
-    for (std::size_t i = 0; i < kBlockBytes; ++i) {
-        std::uint32_t val = table[i][block[i]];
-        std::size_t base = (i / 4) * 4;
-        res[base + 0] = static_cast<std::uint8_t>(res[base + 0] ^ (val & 0xffu));
-        res[base + 1] = static_cast<std::uint8_t>(res[base + 1] ^ ((val >> 8) & 0xffu));
-        res[base + 2] = static_cast<std::uint8_t>(res[base + 2] ^ ((val >> 16) & 0xffu));
-        res[base + 3] = static_cast<std::uint8_t>(res[base + 3] ^ ((val >> 24) & 0xffu));
+// Which 4 input positions feed each of the 4 output columns.
+// RoundA (rounds 0, 1, 16) is block-diagonal; RoundB (rounds 2..15)
+// is permuted so an input byte in one column reaches a different
+// column, giving the cipher its cross-column diffusion.
+constexpr std::size_t kRoundAPositions[4][4] = {
+    { 0,  1,  2,  3},
+    { 4,  5,  6,  7},
+    { 8,  9, 10, 11},
+    {12, 13, 14, 15},
+};
+
+constexpr std::size_t kRoundBPositions[4][4] = {
+    {0,  7, 10, 13},
+    {1,  4, 11, 14},
+    {2,  5,  8, 15},
+    {3,  6,  9, 12},
+};
+
+// Both round flavours have the same shape: for each output column c,
+// XOR four position-table lookups together with the round subkey's
+// uint32 at index c, then pack LE into the output 16 bytes.
+void round(std::uint8_t block[kBlockBytes],
+           const std::uint32_t subkey[kRoundKeyUInts],
+           const std::uint32_t table[kTablesPerRound][kEntriesPerTable],
+           const std::size_t positions[4][4]) {
+    std::uint32_t out[4];
+    for (int c = 0; c < 4; ++c) {
+        out[c] =
+            table[positions[c][0]][block[positions[c][0]]] ^
+            table[positions[c][1]][block[positions[c][1]]] ^
+            table[positions[c][2]][block[positions[c][2]]] ^
+            table[positions[c][3]][block[positions[c][3]]] ^
+            subkey[c];
     }
-    std::memcpy(block, res, kBlockBytes);
-}
-
-void xor_bytes(std::uint8_t block[kBlockBytes],
-               const std::uint8_t key[kRoundKeyBytes]) {
-    for (std::size_t i = 0; i < kBlockBytes; ++i) block[i] ^= key[i];
-}
-
-// RoundA: XOR the round subkey first, then do the table pass. Applied
-// at rounds 0, 1, 16.
-void round_a(std::uint8_t block[kBlockBytes],
-             const std::uint8_t key[kRoundKeyBytes],
-             const std::uint32_t table[kTablesPerRound][kEntriesPerTable]) {
-    xor_bytes(block, key);
-    table_pass(block, table);
-}
-
-// RoundB: table pass first, then XOR. Applied at rounds 2..15.
-void round_b(std::uint8_t block[kBlockBytes],
-             const std::uint8_t key[kRoundKeyBytes],
-             const std::uint32_t table[kTablesPerRound][kEntriesPerTable]) {
-    table_pass(block, table);
-    xor_bytes(block, key);
+    for (int c = 0; c < 4; ++c) {
+        block[c * 4 + 0] = static_cast<std::uint8_t>( out[c]        & 0xffu);
+        block[c * 4 + 1] = static_cast<std::uint8_t>((out[c] >>  8) & 0xffu);
+        block[c * 4 + 2] = static_cast<std::uint8_t>((out[c] >> 16) & 0xffu);
+        block[c * 4 + 3] = static_cast<std::uint8_t>((out[c] >> 24) & 0xffu);
+    }
 }
 
 }  // namespace
 
 bool load_key(const std::uint8_t* src, std::size_t src_bytes, Key& out) {
     if (!src || src_bytes != kKeyBytes) return false;
-    std::memcpy(out.rounds, src, kKeyBytes);
+    for (std::size_t r = 0; r < kRoundsPerBlock; ++r) {
+        for (std::size_t u = 0; u < kRoundKeyUInts; ++u) {
+            std::size_t off = (r * kRoundKeyUInts + u) * sizeof(std::uint32_t);
+            out.rounds[r][u] =
+                 static_cast<std::uint32_t>(src[off + 0])        |
+                (static_cast<std::uint32_t>(src[off + 1]) <<  8) |
+                (static_cast<std::uint32_t>(src[off + 2]) << 16) |
+                (static_cast<std::uint32_t>(src[off + 3]) << 24);
+        }
+    }
     return true;
 }
 
@@ -66,8 +74,8 @@ bool load_tables(const std::uint8_t* src, std::size_t src_bytes, Tables& out) {
                     (((r * kTablesPerRound) + p) * kEntriesPerTable + e) *
                     kBytesPerEntry;
                 out.rounds[r][p][e] =
-                    (static_cast<std::uint32_t>(src[off + 0])) |
-                    (static_cast<std::uint32_t>(src[off + 1]) << 8) |
+                     static_cast<std::uint32_t>(src[off + 0])        |
+                    (static_cast<std::uint32_t>(src[off + 1]) <<  8) |
                     (static_cast<std::uint32_t>(src[off + 2]) << 16) |
                     (static_cast<std::uint32_t>(src[off + 3]) << 24);
             }
@@ -78,12 +86,12 @@ bool load_tables(const std::uint8_t* src, std::size_t src_bytes, Tables& out) {
 
 void decrypt_block(const Key& key, const Tables& tables,
                    std::uint8_t block[kBlockBytes]) {
-    round_a(block, key.rounds[0],  tables.rounds[0]);
-    round_a(block, key.rounds[1],  tables.rounds[1]);
+    round(block, key.rounds[0],  tables.rounds[0],  kRoundAPositions);
+    round(block, key.rounds[1],  tables.rounds[1],  kRoundAPositions);
     for (std::size_t r = 2; r <= 15; ++r) {
-        round_b(block, key.rounds[r], tables.rounds[r]);
+        round(block, key.rounds[r], tables.rounds[r], kRoundBPositions);
     }
-    round_a(block, key.rounds[16], tables.rounds[16]);
+    round(block, key.rounds[16], tables.rounds[16], kRoundAPositions);
 }
 
 void decrypt_ecb(const Key& key, const Tables& tables,
@@ -93,6 +101,14 @@ void decrypt_ecb(const Key& key, const Tables& tables,
     for (std::size_t off = 0; off < full; off += kBlockBytes) {
         decrypt_block(key, tables, data + off);
     }
+}
+
+const std::uint8_t* pick_file_key(std::uint32_t name_hash,
+                                  std::uint32_t file_size,
+                                  const std::uint8_t* pool_keys) {
+    if (!pool_keys) return nullptr;
+    std::uint32_t idx = (name_hash + file_size + 61u) % 101u;
+    return pool_keys + idx * kKeyBytes;
 }
 
 }  // namespace thorbridge::ng
