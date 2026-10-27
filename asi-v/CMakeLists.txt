@@ -7,6 +7,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(ThorBridgeV SHARED
     src/armory.cpp
+    src/atlas.cpp
     src/blips.cpp
     src/bridge.cpp
     src/cheats.cpp
@@ -18,6 +19,19 @@ add_library(ThorBridgeV SHARED
     src/shv.cpp
     src/snapshot.cpp
     src/version_info.cpp
+
+    # Shared primitives for the atlas probe worker. See
+    # context.md -> atlas-extract-gta5 for how these fit together.
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/aes.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/inflate.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/jenk.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/keys_search.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/keys_v.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/ng.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/rpf7.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/rsc7.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/sha1.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/ytd.cpp
 )
 
 target_compile_options(ThorBridgeV PRIVATE

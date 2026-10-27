@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "armory.h"
+#include "atlas.h"
 #include "blips.h"
 #include "cheats.h"
 #include "commands.h"
@@ -312,6 +313,21 @@ void drain(int32_t player, int32_t ped, int32_t veh,
             const bool ok = armory::apply(c.name, c.arg0, req_hash, ped,
                                           err, sizeof(err));
             post_ack(c.client, c.id, ok, err);
+        } else if (std::strcmp(c.name, "atlas_extract") == 0) {
+            // Fire-and-forget — this ack only reports the WORKER was
+            // started (or refused due to one already running); the
+            // atlas progress frame carries real completion state.
+            if (atlas::start()) {
+                thor_log("[cmd] atlas_extract -> started");
+                post_ack(c.client, c.id, true, "");
+            } else {
+                thor_log("[cmd] atlas_extract -> already running");
+                post_ack(c.client, c.id, false, "already running");
+            }
+        } else if (std::strcmp(c.name, "atlas_cancel") == 0) {
+            atlas::cancel();
+            thor_log("[cmd] atlas_cancel -> flagged");
+            post_ack(c.client, c.id, true, "");
         } else {
             char err[kMaxErrLen];
             std::snprintf(err, sizeof(err), "unknown command: %.20s", c.name);

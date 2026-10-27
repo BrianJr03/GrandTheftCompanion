@@ -14,6 +14,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include "atlas.h"
 #include "bridge.h"
 #include "commands.h"
 #include "log.h"
@@ -60,6 +61,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID /*reserved*
         // both use them and neither may win a race against init.
         snapshot::init();
         commands::init();
+        atlas::init();
 
         // Script Hook V plugins register from DllMain; it queues the
         // script and starts it once the game's script engine is up.
@@ -75,6 +77,7 @@ extern "C" BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID /*reserved*
         CreateThread(NULL, 0, startup, NULL, 0, NULL);
         break;
     case DLL_PROCESS_DETACH:
+        atlas::shutdown();
         shv::script_unregister(hinst);
         thor_log("=== ThorBridgeV unloaded ===");
         break;

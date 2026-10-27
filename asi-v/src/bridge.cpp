@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "atlas.h"
 #include "bridge.h"
 #include "commands.h"
 #include "log.h"
@@ -325,6 +326,33 @@ int format_ack(char* buf, size_t cap, const commands::Ack& a) {
     return o.overflow ? -1 : static_cast<int>(o.len);
 }
 
+// atlas progress frame — identifies the game (`"5"` here on V) so the
+// companion routes to the right CustomMapStore slot. Shape mirrors the
+// IV side so the Android AtlasProgress deserialiser works unchanged.
+int format_atlas(char* buf, size_t cap, const atlas::Progress& p) {
+    const char* st = "idle";
+    switch (p.state) {
+        case atlas::State::Idle:     st = "idle";     break;
+        case atlas::State::Scanning: st = "scanning"; break;
+        case atlas::State::Reading:  st = "reading";  break;
+        case atlas::State::Sending:  st = "sending";  break;
+        case atlas::State::Done:     st = "done";     break;
+        case atlas::State::Error:    st = "error";    break;
+    }
+    Out o{buf, cap, 0, false};
+    o.add("{\"v\":1,\"type\":\"atlas\",\"game\":\"5\",\"state\":\"%s\","
+          "\"pct\":%u,\"tiles\":%u,\"cols\":%u,\"rows\":%u,"
+          "\"tile_w\":%u,\"tile_h\":%u,\"err\":\"",
+          st, static_cast<unsigned>(p.pct),
+          static_cast<unsigned>(p.tiles),
+          static_cast<unsigned>(p.cols), static_cast<unsigned>(p.rows),
+          static_cast<unsigned>(p.tile_w),
+          static_cast<unsigned>(p.tile_h));
+    o.add_escaped(p.err);
+    o.add("\"}\n");
+    return o.overflow ? -1 : static_cast<int>(o.len);
+}
+
 bool send_all(SOCKET sock, const char* buf, int n) {
     int sent = 0;
     while (sent < n) {
@@ -480,7 +508,7 @@ DWORD WINAPI serve_client(LPVOID arg) {
         std::malloc(sizeof(snapshot::Lists)));
     HANDLE reader = nullptr;
     uint32_t sent_weapons_ver = 0, sent_stations_ver = 0, sent_blips_ver = 0;
-    uint32_t sent_mods_ver = 0, sent_armory_ver = 0;
+    uint32_t sent_mods_ver = 0, sent_armory_ver = 0, sent_atlas_ver = 0;
     int n = 0;
 
     if (!buf || !lists) {
@@ -558,6 +586,18 @@ DWORD WINAPI serve_client(LPVOID arg) {
                     goto done;
                 }
                 sent_armory_ver = lists->armory_ver;
+            }
+        }
+
+        // 2b. Atlas progress — only when it moved. The frame is
+        // ~160 bytes so it comfortably shares `buf` with state frames.
+        {
+            atlas::Progress atlas_p{};
+            if (atlas::read_progress(atlas_p, sent_atlas_ver)) {
+                n = format_atlas(buf, kBufCap, atlas_p);
+                if (n > 0 && static_cast<size_t>(n) < kBufCap) {
+                    if (!send_all(sock, buf, n)) goto done;
+                }
             }
         }
 
