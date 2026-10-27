@@ -60,3 +60,7 @@ mkdir -p build
     ../common/test/rsc7_test.cpp ../common/rsc7.cpp ../common/inflate.cpp \
     -o build/rsc7_test
 ./build/rsc7_test
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
+    ../common/test/ytd_test.cpp ../common/ytd.cpp \
+    -o build/ytd_test
+./build/ytd_test
