@@ -34,3 +34,7 @@ docs/*.md
 # only — not part of the public repo.
 CLAUDE.md
 context.md
+
+# Per-task scratch dir (session handoff notes, calibration samples,
+# etc). Local only.
+claude/
