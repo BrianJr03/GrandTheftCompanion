@@ -27,5 +27,16 @@ GTA V NativeDB
   lists in src/natives.h were checked against natives.json and
   natives_gen9.json. No file from that repository is included.
 
+CodeWalker (GTAKeys.cs)
+  https://github.com/dexyfex/CodeWalker (MIT, (c) 2015 Neodymium)
+  The 375 SHA-1 fingerprints shipped in ../common/keys_v.cpp come
+  from CodeWalker's GTAKeys.cs. That file self-attests "contains
+  only SHA1 hashes of all interesting values. There is NO key." We
+  reproduce those hex digests verbatim as string literals so the
+  companion can locate GTA V's AES key, 101 NG keys, 272 NG decrypt
+  tables, and the lookup table inside each user's own GTA5.exe at
+  install time. No key / table bytes are included; only the hashes
+  that locate them.
+
 Unlike asi/ (GTA IV), nothing in this directory is derived from
 GTAIV.EFLC.FusionFix or Zolika1351/iv-sdk.

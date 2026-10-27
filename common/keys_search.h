@@ -28,6 +28,27 @@ std::size_t find_blob(const std::uint8_t* exe, std::size_t exe_bytes,
                       std::size_t blob_bytes,
                       const std::uint8_t digest[sha1::kDigestBytes]);
 
+// Batched blob search. Walks `exe` ONCE at DWORD alignment, SHA-1'ing
+// each `blob_bytes`-sized slice and looking the digest up in the
+// sorted `targets` set. For every target that matches, writes the
+// slice offset into the matching slot of `out_offsets`; unmatched
+// slots are set to SIZE_MAX. Returns the number of distinct targets
+// that matched.
+//
+// Rationale: GTA V's keys_v module scans for 375 blobs across a
+// ~80 MB retail exe. Calling find_blob() 375 times costs 375 full
+// passes through the exe; find_blobs batches by blob size so the
+// exe is walked 4 times total (one pass per distinct size). The
+// targets array is laid out as `targets_count` × 20 bytes contiguously;
+// out_offsets must hold `targets_count` slots. The target digests
+// are consulted by sorted-list binary search inside the hot loop, so
+// adding targets costs log(N) per candidate offset, not N.
+std::size_t find_blobs(const std::uint8_t* exe, std::size_t exe_bytes,
+                       std::size_t blob_bytes,
+                       const std::uint8_t* targets,
+                       std::size_t targets_count,
+                       std::size_t* out_offsets);
+
 // Parse a hex SHA-1 digest in ASCII ("40 hex chars") into the 20-byte
 // binary form. Returns false if the input is not exactly 40 hex chars.
 bool parse_hex(const char* hex, std::uint8_t out[sha1::kDigestBytes]);

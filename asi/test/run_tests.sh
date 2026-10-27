@@ -42,3 +42,8 @@ mkdir -p build
     ../common/test/ng_test.cpp ../common/ng.cpp \
     -o build/ng_test
 ./build/ng_test
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
+    ../common/test/keys_v_test.cpp ../common/keys_v.cpp \
+    ../common/keys_search.cpp ../common/sha1.cpp \
+    -o build/keys_v_test
+./build/keys_v_test

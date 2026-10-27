@@ -1,37 +1,37 @@
 // Host test for common/ng.cpp.
 //
 // We ship decrypt only (we never author encrypted archives) and we
-// don't have access to the retail NG tables inside this repo — the
+// don't have access to the retail NG tables inside this repo. The
 // Rockstar key / table material lives in each user's own GTA5.exe,
 // located at install time by SHA-1 fingerprint. So the test here
 // covers the structural correctness of the decrypt pipeline rather
 // than the specific NG transform:
 //
-//   * Determinism            — same inputs always produce the same output.
-//   * Column independence    — NG is block-diagonal per 32-bit column
-//                              (positions i and i±4 land in different
-//                              output columns). Flipping any bit in
-//                              column c therefore leaves every byte
-//                              outside column c identical. This is the
-//                              non-obvious correctness invariant the
-//                              header documents, so pin it directly.
-//   * Column avalanche       — within the one column a single-bit flip
-//                              touches, random tables scramble several
-//                              bits by round 17. A per-column threshold
-//                              rather than whole-block, matching the
-//                              diagonal design.
-//   * All-zero tables oracle — with zero tables the table_pass is a
-//                              constant zero regardless of input or key,
-//                              so the whole 17-round pipeline collapses
-//                              to a known-zero output. Any wiring error
-//                              that forgets a round or mislabels Round
-//                              A/B lands outside this invariant.
-//   * ECB walk               — multi-block decrypt is byte-identical to
-//                              repeated single-block decrypt, with the
-//                              trailing partial block left untouched.
-//   * load_* parsing         — right size accepted; wrong size refused;
-//                              uint32 entries decoded little-endian so
-//                              the output is portable across hosts.
+//   * Determinism:            same inputs always produce the same output.
+//   * Column independence:    NG is block-diagonal per 32-bit column
+//                             (positions i and i±4 land in different
+//                             output columns). Flipping any bit in
+//                             column c therefore leaves every byte
+//                             outside column c identical. This is the
+//                             non-obvious correctness invariant the
+//                             header documents, so pin it directly.
+//   * Column avalanche:       within the one column a single-bit flip
+//                             touches, random tables scramble several
+//                             bits by round 17. A per-column threshold
+//                             rather than whole-block, matching the
+//                             diagonal design.
+//   * All-zero tables oracle: with zero tables the table_pass is a
+//                             constant zero regardless of input or key,
+//                             so the whole 17-round pipeline collapses
+//                             to a known-zero output. Any wiring error
+//                             that forgets a round or mislabels Round
+//                             A/B lands outside this invariant.
+//   * ECB walk:               multi-block decrypt is byte-identical to
+//                             repeated single-block decrypt, with the
+//                             trailing partial block left untouched.
+//   * load_* parsing:         right size accepted; wrong size refused;
+//                             uint32 entries decoded little-endian so
+//                             the output is portable across hosts.
 //
 // Once the real retail tables are in reach we add a published vector
 // in a follow-up pass. The round-structure smoke tests above catch
@@ -192,7 +192,7 @@ void test_key_sensitivity_within_column() {
 
 void test_tables_sensitivity() {
     // Each round-N position-P table is read by every decrypt that
-    // reaches round N — the input to the lookup is just whichever
+    // reaches round N. The input to the lookup is just whichever
     // byte value the ciphertext mutates into at that step. Mutating
     // one specific entry (round 7 position 5, byte 0x80) only lands
     // for the inputs whose round-7-position-5 byte happens to be
@@ -312,7 +312,7 @@ void test_load_tables_sizes_and_endianness() {
     CHECK(thorbridge::ng::load_tables(raw.data(), raw.size(), t),
           "load_tables accepts exactly 278,528 bytes");
 
-    // Verify one specific entry is decoded little-endian — if we had
+    // Verify one specific entry is decoded little-endian. If we had
     // written it big-endian the three asserts below would catch us.
     std::size_t off = (((3 * thorbridge::ng::kTablesPerRound) + 5) *
                        thorbridge::ng::kEntriesPerTable + 128) *

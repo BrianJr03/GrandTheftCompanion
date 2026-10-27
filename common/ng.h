@@ -18,7 +18,7 @@
 //     ciphertext byte to one 32-bit mask. Positions 0..3 contribute
 //     their masks into output bytes 0..3; positions 4..7 into bytes
 //     4..7; positions 8..11 into 8..11; positions 12..15 into 12..15.
-//     That is, the transform is BLOCK-DIAGONAL per 32-bit column —
+//     That is, the transform is BLOCK-DIAGONAL per 32-bit column:
 //     each column decrypts independently. All diffusion is within a
 //     column, across 17 rounds. (The property makes the cipher very
 //     weak against known-plaintext per column, which matches the
