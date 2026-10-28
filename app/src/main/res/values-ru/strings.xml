@@ -39,6 +39,9 @@
     <string name="atlas_setting_smoothing_tight">плотно</string>
     <string name="atlas_setting_smoothing_normal">обычно</string>
     <string name="atlas_setting_smoothing_loose">свободно</string>
+    <string name="atlas_setting_orientation">ориентация карты</string>
+    <string name="atlas_setting_orientation_north_up">север сверху</string>
+    <string name="atlas_setting_orientation_heading_up">курс сверху</string>
     <string name="map_gesture_hint_zoom">свести для зума</string>
     <string name="map_gesture_hint_pan">перетащить для сдвига</string>
     <string name="map_view_cd">зеркало верхнего экрана; свести пальцы для зума, перетащить для сдвига</string>

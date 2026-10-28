@@ -730,6 +730,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         val atlasFolderV  by atlasVmSettings.folderV.collectAsStateWithLifecycle()
         val atlasFollowSmoothing by atlasVmSettings.followSmoothing.collectAsStateWithLifecycle()
         val atlasSnapZoomToPresets by atlasVmSettings.snapZoomToPresets.collectAsStateWithLifecycle()
+        val atlasOrientationIv by atlasVmSettings.orientationIv.collectAsStateWithLifecycle()
+        val atlasOrientationV  by atlasVmSettings.orientationV.collectAsStateWithLifecycle()
         // Follow-default is persisted per game, no reactive flow. The
         // sheet reads it once per visibility toggle via a derived state
         // so the Switch reflects the saved value without churn.
@@ -790,6 +792,10 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             onAtlasSnapZoomChange = atlasVmSettings::setSnapZoomToPresets,
             atlasFollowSmoothing = atlasFollowSmoothing,
             onAtlasFollowSmoothingChange = atlasVmSettings::setFollowSmoothing,
+            atlasOrientation = atlasOrientationIv,
+            onAtlasOrientationChange = {
+                atlasVmSettings.setOrientation(CustomMapStore.Game.IV, it)
+            },
         )
         val vPanel = SettingsGamePanel(
             label = stringResource(R.string.settings_tab_v),
@@ -824,6 +830,10 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             onAtlasSnapZoomChange = atlasVmSettings::setSnapZoomToPresets,
             atlasFollowSmoothing = atlasFollowSmoothing,
             onAtlasFollowSmoothingChange = atlasVmSettings::setFollowSmoothing,
+            atlasOrientation = atlasOrientationV,
+            onAtlasOrientationChange = {
+                atlasVmSettings.setOrientation(CustomMapStore.Game.V, it)
+            },
         )
         // Setup screen (no plugin frames at all) shows both tabs so
         // the user can pre-configure either game. The moment a frame

@@ -39,6 +39,9 @@
     <string name="atlas_setting_smoothing_tight">straff</string>
     <string name="atlas_setting_smoothing_normal">normal</string>
     <string name="atlas_setting_smoothing_loose">locker</string>
+    <string name="atlas_setting_orientation">kartenausrichtung</string>
+    <string name="atlas_setting_orientation_north_up">norden oben</string>
+    <string name="atlas_setting_orientation_heading_up">richtung oben</string>
     <string name="map_gesture_hint_zoom">zum zoomen zusammenziehen</string>
     <string name="map_gesture_hint_pan">zum verschieben ziehen</string>
     <string name="map_view_cd">Spiegelung des oberen Bildschirms; zusammenziehen zum zoomen, ziehen zum verschieben</string>

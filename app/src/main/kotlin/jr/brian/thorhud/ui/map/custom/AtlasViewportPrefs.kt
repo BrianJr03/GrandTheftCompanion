@@ -106,6 +106,17 @@ class AtlasViewportPrefs @Inject constructor(
 
     fun readSnapZoomToPresets(): Boolean = prefs.getBoolean("snap_zoom", true)
 
+    fun writeOrientation(game: CustomMapStore.Game, orientation: MapOrientation) {
+        prefs.edit().putString(keyPrefix(game) + "orient", orientation.name).apply()
+    }
+
+    fun readOrientation(game: CustomMapStore.Game): MapOrientation {
+        val name = prefs.getString(keyPrefix(game) + "orient", null)
+            ?: return MapOrientation.NorthUp
+        return runCatching { MapOrientation.valueOf(name) }
+            .getOrDefault(MapOrientation.NorthUp)
+    }
+
     private fun keyPrefix(game: CustomMapStore.Game): String = when (game) {
         CustomMapStore.Game.IV -> "iv_"
         CustomMapStore.Game.V  -> "v_"
@@ -119,3 +130,8 @@ class AtlasViewportPrefs @Inject constructor(
         private const val DEFAULT_PRESET_INDEX = 5
     }
 }
+
+/** Atlas map orientation. North-up is the natural orientation of the
+ *  image; heading-up rotates the image so the player's heading is at
+ *  the top of the screen (like the game's own radar). */
+enum class MapOrientation { NorthUp, HeadingUp }

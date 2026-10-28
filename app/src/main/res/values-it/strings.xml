@@ -39,6 +39,9 @@
     <string name="atlas_setting_smoothing_tight">stretto</string>
     <string name="atlas_setting_smoothing_normal">normale</string>
     <string name="atlas_setting_smoothing_loose">largo</string>
+    <string name="atlas_setting_orientation">orientamento mappa</string>
+    <string name="atlas_setting_orientation_north_up">nord in alto</string>
+    <string name="atlas_setting_orientation_heading_up">direzione in alto</string>
     <string name="map_gesture_hint_zoom">pizzica per zoom</string>
     <string name="map_gesture_hint_pan">trascina per spostare</string>
     <string name="map_view_cd">specchio dello schermo superiore; pizzica per zoom, trascina per spostare</string>

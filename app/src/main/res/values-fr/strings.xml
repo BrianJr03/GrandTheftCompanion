@@ -39,6 +39,9 @@
     <string name="atlas_setting_smoothing_tight">serré</string>
     <string name="atlas_setting_smoothing_normal">normal</string>
     <string name="atlas_setting_smoothing_loose">souple</string>
+    <string name="atlas_setting_orientation">orientation de la carte</string>
+    <string name="atlas_setting_orientation_north_up">nord en haut</string>
+    <string name="atlas_setting_orientation_heading_up">direction en haut</string>
     <string name="map_gesture_hint_zoom">pincer pour zoomer</string>
     <string name="map_gesture_hint_pan">glisser pour déplacer</string>
     <string name="map_view_cd">miroir de l\'écran du haut ; pincer pour zoomer, glisser pour déplacer</string>

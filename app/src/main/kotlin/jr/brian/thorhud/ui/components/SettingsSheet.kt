@@ -111,6 +111,9 @@ internal data class SettingsGamePanel(
     val onAtlasSnapZoomChange: (Boolean) -> Unit = {},
     val atlasFollowSmoothing: FollowSmoothing = FollowSmoothing.Normal,
     val onAtlasFollowSmoothingChange: (FollowSmoothing) -> Unit = {},
+    val atlasOrientation: jr.brian.thorhud.ui.map.custom.MapOrientation =
+        jr.brian.thorhud.ui.map.custom.MapOrientation.NorthUp,
+    val onAtlasOrientationChange: (jr.brian.thorhud.ui.map.custom.MapOrientation) -> Unit = {},
 )
 
 /**
@@ -451,6 +454,26 @@ private fun PerGameSettings(
                     stringResource(id)
                 },
                 onSelect = panel.onAtlasFollowSmoothingChange,
+                palette = panel.palette,
+            )
+            Spacer(Modifier.height(14.dp))
+            SegmentedSettingRow(
+                title = stringResource(R.string.atlas_setting_orientation),
+                options = listOf(
+                    jr.brian.thorhud.ui.map.custom.MapOrientation.NorthUp,
+                    jr.brian.thorhud.ui.map.custom.MapOrientation.HeadingUp,
+                ),
+                selected = panel.atlasOrientation,
+                labelFor = { o ->
+                    val id = when (o) {
+                        jr.brian.thorhud.ui.map.custom.MapOrientation.NorthUp ->
+                            R.string.atlas_setting_orientation_north_up
+                        jr.brian.thorhud.ui.map.custom.MapOrientation.HeadingUp ->
+                            R.string.atlas_setting_orientation_heading_up
+                    }
+                    stringResource(id)
+                },
+                onSelect = panel.onAtlasOrientationChange,
                 palette = panel.palette,
             )
         }

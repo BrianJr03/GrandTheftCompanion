@@ -321,6 +321,9 @@
     <string name="atlas_setting_smoothing_tight">tight</string>
     <string name="atlas_setting_smoothing_normal">normal</string>
     <string name="atlas_setting_smoothing_loose">loose</string>
+    <string name="atlas_setting_orientation">map orientation</string>
+    <string name="atlas_setting_orientation_north_up">north-up</string>
+    <string name="atlas_setting_orientation_heading_up">heading-up</string>
     <string name="map_gesture_hint_zoom">pinch to zoom</string>
     <string name="map_gesture_hint_pan">drag to pan</string>
     <string name="map_view_cd">mirror of the top screen; pinch to zoom, drag to pan</string>

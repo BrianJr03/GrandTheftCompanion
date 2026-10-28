@@ -53,8 +53,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -111,6 +113,7 @@ internal fun CustomMapScreen(
     val anchorMode by viewModel.anchorMode.collectAsStateWithLifecycle()
     val smoothing by viewModel.followSmoothing.collectAsStateWithLifecycle()
     val snapZoomToPresets by viewModel.snapZoomToPresets.collectAsStateWithLifecycle()
+    val orientation by viewModel.orientationFor(game).collectAsStateWithLifecycle()
 
     Box(
         modifier = Modifier
@@ -131,6 +134,26 @@ internal fun CustomMapScreen(
             return@Box
         }
         val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
+
+        // Sample a corner pixel on load so rotation can fill the empty
+        // triangles beyond the image bounds with the atlas's own ocean
+        // tone instead of flat black. The four corners usually agree;
+        // top-left is enough for the shipping atlases.
+        val edgeFillColor = remember(bitmap) {
+            runCatching { Color(bitmap.getPixel(0, 0)) }.getOrDefault(Color.Black)
+        }
+
+        // Player triangle, centred at origin, apex at (0, -10). Built
+        // once per bitmap so no path allocation per frame.
+        val trianglePath = remember(bitmap) {
+            Path().apply {
+                moveTo(0f, -10f)
+                lineTo(7f, 8f)
+                lineTo(0f, 4f)
+                lineTo(-7f, 8f)
+                close()
+            }
+        }
 
         var canvasSize by remember { mutableStateOf(IntSize.Zero) }
         val positionTrack = remember(bitmap) { PositionTrack() }
@@ -179,7 +202,7 @@ internal fun CustomMapScreen(
             val p = pos ?: return@LaunchedEffect
             val cal = calibration ?: return@LaunchedEffect
             val img = cal.worldToPixel(p.x, p.y)
-            positionTrack.submit(img.px, img.py, System.nanoTime())
+            positionTrack.submit(img.px, img.py, p.h, System.nanoTime())
             lastPlayerImg.value = img.px to img.py
             if (!playerFirstSeen.value) {
                 playerFirstSeen.value = true
@@ -260,7 +283,48 @@ internal fun CustomMapScreen(
                 } else if (c.target != null) {
                     c = c.copy(target = null)
                 }
-                camera.value = c.step(nowNanos, smoothing.tauMs, AtlasCamera.kDeadZonePx)
+
+                // Rotation target. Priorities:
+                //  * orientation == NorthUp -> target 0 (ease).
+                //  * follow off              -> target 0 (ease back out
+                //    of heading-up for the duration of the pan).
+                //  * low-speed on foot       -> null (freeze, so the
+                //    stick-look flicker doesn't make the map twitch).
+                //  * else                    -> rotate image to put
+                //    heading at the top of the screen.
+                // Tau is slower (400 ms) for the "ease to north" paths
+                // so pan-off and setting toggles feel like a settle,
+                // not a snap.
+                val rotTarget: Float?
+                val rotTau: Int
+                when {
+                    orientation == MapOrientation.NorthUp || !follow -> {
+                        rotTarget = 0f
+                        rotTau = AtlasCamera.kRotationEaseOffMs
+                    }
+                    else -> {
+                        val speedPxPerSec = positionTrack.speedPxPerSec() ?: 0f
+                        val mPerImagePx = cal2?.let { metersPerImagePx(it) } ?: 1f
+                        val speedMps = speedPxPerSec * mPerImagePx
+                        val headingDeg = positionTrack.extrapolate(nowNanos)?.headingDeg
+                        if (speedMps < AtlasCamera.kLowSpeedHoldMps || headingDeg == null) {
+                            rotTarget = null
+                            rotTau = AtlasCamera.kRotationTimeConstantMs
+                        } else {
+                            rotTarget = (360f - headingDeg) % 360f
+                            rotTau = AtlasCamera.kRotationTimeConstantMs
+                        }
+                    }
+                }
+                c = c.withRotationTarget(rotTarget)
+
+                camera.value = c.step(
+                    nowNanos,
+                    timeConstantMs = smoothing.tauMs,
+                    deadZonePx = AtlasCamera.kDeadZonePx,
+                    rotationTimeConstantMs = rotTau,
+                    rotationDeadZoneDeg = AtlasCamera.kRotationDeadZoneDeg,
+                )
                 viewport.value = camera.value.toViewport()
             }
         }
@@ -400,7 +464,7 @@ internal fun CustomMapScreen(
         ) {
             canvasSize = IntSize(size.width.toInt(), size.height.toInt())
             val vp = viewport.value
-            drawMap(imageBitmap, vp)
+            drawMap(imageBitmap, vp, edgeFillColor)
             drawOverlays(
                 viewport = vp,
                 calibration = calibration,
@@ -411,6 +475,7 @@ internal fun CustomMapScreen(
                 triangleColor = if (game == CustomMapStore.Game.IV)
                     Color(0xFFE4A339) else accent,
                 headingOffsetDeg = headingOffsetDeg,
+                trianglePath = trianglePath,
             )
             flow.pixels.forEach { p ->
                 val s = vp.imageToScreen(p.px, p.py)
@@ -558,6 +623,15 @@ private fun ivProtagonistFirstName(episode: Int?): String = when (episode) {
     else -> "Niko"
 }
 
+/** Meters per image pixel from the calibration's affine. The Jacobian
+ *  determinant is `a*e - b*d`; |det| is pixels^2 per metre^2 so its
+ *  square root is pixels per metre, inverted here for metres/pixel. */
+private fun metersPerImagePx(cal: Calibration): Float {
+    val det = kotlin.math.abs(cal.a * cal.e - cal.b * cal.d)
+    if (det < 1e-12f) return 1f
+    return (1.0 / kotlin.math.sqrt(det.toDouble())).toFloat()
+}
+
 private fun nearestBlipWorld(
     blips: List<GameState.Blip>,
     imageX: Float,
@@ -573,12 +647,22 @@ private fun nearestBlipWorld(
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawMap(
     bitmap: ImageBitmap,
     vp: ViewportModel,
+    edgeFill: Color,
 ) {
+    // Fill the whole canvas with the corner-sampled tone first so a
+    // rotated map's uncovered triangles read as ocean/dim-ground, not
+    // the black background behind the atlas page. Overlays and the
+    // image itself paint on top.
+    if (edgeFill != Color.Black) {
+        drawRect(color = edgeFill)
+    }
     val cx = bitmap.width / 2f
     val cy = bitmap.height / 2f
     val topLeftX = (-cx + vp.offsetX) * vp.scale + vp.screenWidth / 2f
     val topLeftY = (-cy + vp.offsetY) * vp.scale + vp.screenHeight / 2f
+    val pivot = Offset(vp.screenWidth / 2f, vp.screenHeight / 2f)
     withTransform({
+        if (vp.rotationDeg != 0f) rotate(vp.rotationDeg, pivot)
         translate(left = topLeftX, top = topLeftY)
         scale(scaleX = vp.scale, scaleY = vp.scale, pivot = Offset.Zero)
     }) {
@@ -595,6 +679,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawOverlays(
     accent: Color,
     triangleColor: Color,
     headingOffsetDeg: Float,
+    trianglePath: Path,
 ) {
     if (calibration == null) return
     blips.forEach { b ->
@@ -607,11 +692,18 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawOverlays(
     }
     if (playerPos != null) {
         val s = viewport.worldToScreen(calibration, playerPos.x, playerPos.y)
-        drawCircle(
-            color = triangleColor,
-            radius = 10f,
-            center = Offset(s[0], s[1]),
-        )
+        // Triangle rotation: on north-up the triangle rotates with
+        // heading (viewport.rotationDeg = 0, so triRot = heading). On
+        // heading-up the image already rotates to put heading at the
+        // top, so the triangle lands pointing up (triRot = heading +
+        // (360 - heading) = 360 = 0). Both cases from one formula.
+        val triRot = (playerPos.h + viewport.rotationDeg + headingOffsetDeg) % 360f
+        withTransform({
+            translate(left = s[0], top = s[1])
+            rotate(triRot, pivot = Offset.Zero)
+        }) {
+            drawPath(path = trianglePath, color = triangleColor)
+        }
     }
 }
 

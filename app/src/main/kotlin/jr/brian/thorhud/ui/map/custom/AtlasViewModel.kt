@@ -87,6 +87,25 @@ class AtlasViewModel @Inject constructor(
     private val _snapZoomToPresets = MutableStateFlow(viewportPrefs.readSnapZoomToPresets())
     val snapZoomToPresets: StateFlow<Boolean> = _snapZoomToPresets.asStateFlow()
 
+    private val _orientIv = MutableStateFlow(viewportPrefs.readOrientation(CustomMapStore.Game.IV))
+    val orientationIv: StateFlow<MapOrientation> = _orientIv.asStateFlow()
+    private val _orientV  = MutableStateFlow(viewportPrefs.readOrientation(CustomMapStore.Game.V))
+    val orientationV:  StateFlow<MapOrientation> = _orientV.asStateFlow()
+
+    fun orientationFor(game: CustomMapStore.Game): StateFlow<MapOrientation> =
+        when (game) {
+            CustomMapStore.Game.IV -> orientationIv
+            CustomMapStore.Game.V  -> orientationV
+        }
+
+    fun setOrientation(game: CustomMapStore.Game, orientation: MapOrientation) {
+        viewportPrefs.writeOrientation(game, orientation)
+        when (game) {
+            CustomMapStore.Game.IV -> _orientIv.value = orientation
+            CustomMapStore.Game.V  -> _orientV.value  = orientation
+        }
+    }
+
     // Session-local lock on the atlas pan/zoom gesture; same pattern as
     // MapViewModel.isLocked, so a horizontal swipe between tabs can't
     // get swallowed by an accidental drag. Taps (calibration + waypoint)
