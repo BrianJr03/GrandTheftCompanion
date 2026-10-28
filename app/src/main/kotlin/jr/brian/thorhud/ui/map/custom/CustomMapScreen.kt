@@ -168,13 +168,25 @@ internal fun CustomMapScreen(
         // 20 Hz position samples -> PositionTrack. We submit on every
         // change of [pos]; the extrapolation inside the frame loop
         // handles the inter-sample interpolation.
+        //
+        // The first time we see the player while follow is on, kick
+        // off a flyTo (handled by the followReEngage listener below)
+        // so the atlas zooms to the saved preset over the player
+        // instead of smoothing from the saved view at the saved scale.
         val calibration = data.calibration
+        val playerFirstSeen = remember(bitmap) { mutableStateOf(false) }
         LaunchedEffect(pos, calibration) {
             val p = pos ?: return@LaunchedEffect
             val cal = calibration ?: return@LaunchedEffect
             val img = cal.worldToPixel(p.x, p.y)
             positionTrack.submit(img.px, img.py, System.nanoTime())
             lastPlayerImg.value = img.px to img.py
+            if (!playerFirstSeen.value) {
+                playerFirstSeen.value = true
+                if (viewModel.followMode.value) {
+                    viewModel.requestFollowReEngage()
+                }
+            }
         }
 
         // Fly-to on follow re-engage. The ViewModel exposes a one-shot

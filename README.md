@@ -310,7 +310,13 @@ Labels are provisional; the plugin reports every blip's raw sprite id, and the c
 
 ### Atlas View
 
-A fourth tab, right of the mirrored minimap, that shows the game's full pause-menu map as a static image with your player triangle rendered on top from live world coordinates. Where **MiniMap View** enlarges the game's own radar, **Atlas** replaces it with the whole map — pinch to zoom, drag to pan, and see where you are even when the game hides the HUD.
+A fourth tab, right of the mirrored minimap, that shows the game's full pause-menu map as a static image with your player dot rendered on top from live world coordinates. Where **MiniMap View** enlarges the game's own radar, **Atlas** replaces it with the whole map so you can see where you are even when the game hides the HUD.
+
+The camera **follows** the player with a smooth, finger-dragging feel: 20 Hz position samples feed a critically-damped exponential filter driven by a 90 Hz display loop, so the dot stays within a few pixels of the center on foot and never more than ~25 pixels behind at highway speed. A one-finger pan turns follow off, with a fling at lift so a flick coasts to a stop inside the image. A pinch zooms about the finger centroid and keeps follow on. Tap the location icon in the header (or double-tap the player dot) to re-engage follow: the camera flies to you in ~450 ms, zooms out at the midpoint on long jumps, and hands off to tracking with no visible seam.
+
+A **+ / -** pill rides the right edge with the current level in the middle (`0.5 m/px`, `1 m/px`, ..., up to `fit`). Button taps ease over 250 ms about the player when following, about the screen center otherwise. Long-press **-** jumps to fit. After a pinch, the camera settles on the nearest preset by default; turn that off in **Settings → atlas & minimap → snap zoom to presets**.
+
+Follow default, preset index, follow smoothing (tight / normal / loose = 60 / 120 / 240 ms) are all per-game or session-persisted — a fresh install opens at the finest preset with follow on, so the atlas finds you as soon as a position arrives from the plugin.
 
 The tab only appears when a PNG for the connected game is on disk at `Android/data/jr.brian.thorhud/files/map/<game>.png` (`v.png` for GTA V, `iv.png` for GTA IV). GTC ships no map imagery.
 
@@ -339,9 +345,9 @@ curl -L -o /tmp/v.png "https://www.bragitoff.com/wp-content/uploads/2015/11/GTAV
 
 **Calibrate on first open.** The companion has no idea how the image's pixels map to world coordinates until you tell it. Tap **recalibrate**, then tap three or more well-spread known positions on the map — each one paired with either **use my position** (while in-game, pairs the tap with where the player is standing) or by picking the nearest blip. The companion solves a 2×3 affine fit and shows the worst-case **residual** in pixels; single-digit residuals on well-spread taps are a good fit, triple-digit residuals mean redo. The fit persists next to the image as `<game>.json`, so this is a one-time step per map.
 
-- **follow** (location icon) recentres the view on the player and tracks them.
+- **follow** (location icon) flies the camera to the player and starts tracking. A one-finger pan turns it off; a pinch keeps it on and zooms about your fingers. Double-tap the player dot to re-engage.
 - **recalibrate** (refresh icon) reopens the tap-pair flow. A fresh `make-atlas.py install` deletes the stale `<game>.json` by default so a new image never inherits old taps.
-- The player triangle rotates with heading and uses the episode / game accent colour.
+- The player draws as a filled dot in the game / episode accent color. Heading is not shown yet; the minimap-mode follow-up handoff adds the rotating triangle on top of this camera.
 - Community pre-stitched maps are not guaranteed to match the game's internal coord system exactly. The affine fit absorbs small aspect / crop differences, but if your best taps give >50 px residuals, that particular image is cropped or rescaled differently and more taps spread wider usually fixes it.
 
 ### Cheats

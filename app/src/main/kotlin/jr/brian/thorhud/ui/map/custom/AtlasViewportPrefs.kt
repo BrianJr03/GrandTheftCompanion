@@ -44,7 +44,11 @@ class AtlasViewportPrefs @Inject constructor(
             scale        = prefs.getFloat(k + "scale",   1f),
             offsetX      = prefs.getFloat(k + "ox",      0f),
             offsetY      = prefs.getFloat(k + "oy",      0f),
-            follow       = prefs.getBoolean(k + "follow", false),
+            // Follow + preset default to on + finest. Fresh installs
+            // open at 0.5 m/px with the camera tracking the player;
+            // anyone who turns follow off persists that explicit
+            // choice via writeFollow.
+            follow       = prefs.getBoolean(k + "follow", true),
             presetIndex  = prefs.getInt(k + "preset", DEFAULT_PRESET_INDEX),
         )
     }
@@ -54,10 +58,16 @@ class AtlasViewportPrefs @Inject constructor(
             scale        = 0.91276604f,
             offsetX      = -76.26889f,
             offsetY      = -83.921234f,
-            follow       = false,
+            follow       = true,
             presetIndex  = DEFAULT_PRESET_INDEX,
         )
-        CustomMapStore.Game.V  -> null
+        CustomMapStore.Game.V  -> Saved(
+            scale        = 1f,
+            offsetX      = 0f,
+            offsetY      = 0f,
+            follow       = true,
+            presetIndex  = DEFAULT_PRESET_INDEX,
+        )
     }
 
     fun writeViewport(game: CustomMapStore.Game,
@@ -103,6 +113,9 @@ class AtlasViewportPrefs @Inject constructor(
 
     companion object {
         private const val FILE = "atlas_viewport_prefs"
-        private const val DEFAULT_PRESET_INDEX = 0 // fit
+        // Finest preset (0.5 m/px) so a fresh install opens close to
+        // the player; combined with follow default on this gives the
+        // "the atlas finds you" feel on first launch.
+        private const val DEFAULT_PRESET_INDEX = 5
     }
 }

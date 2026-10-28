@@ -1,23 +1,25 @@
-## v0.15.0
+## v0.16.0
 
-- **NOTE:** download the latest `ThorBridgeV.asi` from the release assets and drop it next to `GTA5.exe`. The APK update alone won't pick up the new armory natives. (GTA IV's `ThorBridge.asi` is unchanged this release.)
+**Smooth follow camera on the atlas page**
 
-**Ammu-Nation (GTA V)**
+The atlas now follows you with a camera that eases, not a camera that snaps. Position samples arrive 20 times a second from the plugin but the camera glides at the display's refresh rate, so the dot stays near the center at a walk and lags only a touch at highway speed. Stand still, and the atlas holds steady with no shimmer.
 
-Long-press the on-foot weapon card on the HUD to open a full-screen Ammu-Nation sheet. A vertical rail on the left lists every weapon you own, grouped under tap-to-open sections for pistols, SMGs, rifles, snipers, shotguns, heavy, melee and thrown. The right side shows the picked weapon's attachments, tint and ammo.
+**Pan, fling, and pinch do what you'd expect**
 
-Each attachment slot shows its current fit with ◀ ▶ arrows that wrap through stock — clip, scope, muzzle, grip, flashlight, camo, finish. Pick a different scope and the first one comes off on its own. Tint chips sit in a scrolling strip; Fill tops the ammo pool and +1 clip adds whatever your fitted magazine holds, so an extended clip tops up by more than stock.
+A one-finger drag turns follow off and leaves a bit of coast at lift, like a map on your phone. A pinch keeps follow on and zooms about the point between your fingers. When you let go of a pinch, the atlas settles on the nearest preset so the view stays legible. (Turn that settle off from Settings → atlas & minimap if you'd rather land exactly where your fingers left you.)
 
-Edits apply to any owned weapon, not just the one in your hand — tweak a Pistol Mk II in another slot and the change sticks when you draw it. The sheet closes on its own if you get in a car.
+**+ / - pill with zoom presets**
 
-**Weapon rail follows the game**
+A compact pill on the right edge of the atlas has **+**, the current level, and **-**. Taps ease between presets at `fit`, `8`, `4`, `2`, `1`, and `0.5` meters per screen pixel. Long-press **-** jumps to fit.
 
-By default the sheet opens on whichever weapon you're holding and the rail follows along if you switch weapons in-game. Prefer the sheet to stay put on your last manual pick? Settings → Ammu-Nation → **Auto-select equipped weapon** turns the follow behavior off.
+**Center on player**
 
-**Weapon card now shows its edit affordance**
+A new location icon in the atlas header flies the camera to the player with a short arc. Double-tapping the player dot does the same thing.
 
-A dim pencil icon sits in front of the weapon name on the GTA V HUD so the long-press-to-Ammu-Nation hint is visible without needing to discover it. A tap still opens the weapon wheel.
+**Follow smoothing is a setting**
 
-**HUD first-visit tour**
+Settings → atlas & minimap → **follow smoothing** picks tight / normal / loose. Loose feels like the camera's trailing you, tight like it's locked on. Normal is the default.
 
-The HUD onboarding sheet gains one more slide on GTA V pointing at the Ammu-Nation long-press (five slides total; GTA IV stays at three). Re-open every first-visit sheet from Settings → Cheats → **Show tips again**.
+**Fresh installs open on you**
+
+A new install opens the atlas at the finest preset with follow turned on, so the first position frame flies the camera straight to where you are. Change either in Settings and the choice sticks per game.
