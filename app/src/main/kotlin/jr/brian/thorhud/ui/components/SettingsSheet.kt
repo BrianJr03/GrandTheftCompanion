@@ -58,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
+import jr.brian.thorhud.ui.map.custom.FollowSmoothing
 
 /**
  * Per-game slice of the settings sheet. Everything that writes
@@ -102,6 +103,14 @@ internal data class SettingsGamePanel(
     val atlasFolderDisplay: String? = null,
     val onPickAtlasFolder: () -> Unit = {},
     val onClearAtlasFolder: () -> Unit = {},
+    // Atlas follow + zoom (per game for the toggle, session-global
+    // for smoothing / snap-to-presets).
+    val atlasFollowDefault: Boolean = false,
+    val onAtlasFollowDefaultChange: (Boolean) -> Unit = {},
+    val atlasSnapZoomToPresets: Boolean = true,
+    val onAtlasSnapZoomChange: (Boolean) -> Unit = {},
+    val atlasFollowSmoothing: FollowSmoothing = FollowSmoothing.Normal,
+    val onAtlasFollowSmoothingChange: (FollowSmoothing) -> Unit = {},
 )
 
 /**
@@ -412,6 +421,38 @@ private fun PerGameSettings(
                 onClear = panel.onClearAtlasFolder,
                 palette = panel.palette,
             )
+            Spacer(Modifier.height(14.dp))
+            SettingRow(
+                title = stringResource(R.string.atlas_setting_follow),
+                body = stringResource(R.string.atlas_setting_follow_hint),
+                checked = panel.atlasFollowDefault,
+                onCheckedChange = panel.onAtlasFollowDefaultChange,
+                palette = panel.palette,
+            )
+            Spacer(Modifier.height(14.dp))
+            SettingRow(
+                title = stringResource(R.string.atlas_setting_snap_zoom),
+                body = stringResource(R.string.atlas_setting_snap_zoom_hint),
+                checked = panel.atlasSnapZoomToPresets,
+                onCheckedChange = panel.onAtlasSnapZoomChange,
+                palette = panel.palette,
+            )
+            Spacer(Modifier.height(14.dp))
+            SegmentedSettingRow(
+                title = stringResource(R.string.atlas_setting_smoothing),
+                options = FollowSmoothing.values().toList(),
+                selected = panel.atlasFollowSmoothing,
+                labelFor = { s ->
+                    val id = when (s) {
+                        FollowSmoothing.Tight  -> R.string.atlas_setting_smoothing_tight
+                        FollowSmoothing.Normal -> R.string.atlas_setting_smoothing_normal
+                        FollowSmoothing.Loose  -> R.string.atlas_setting_smoothing_loose
+                    }
+                    stringResource(id)
+                },
+                onSelect = panel.onAtlasFollowSmoothingChange,
+                palette = panel.palette,
+            )
         }
 
         if (panel.showAmmuSection) {
@@ -546,6 +587,50 @@ private fun SettingRow(
                 uncheckedTrackColor = Color(0xFF1F2A24),
             ),
         )
+    }
+}
+
+@Composable
+private fun <T> SegmentedSettingRow(
+    title: String,
+    options: List<T>,
+    selected: T,
+    labelFor: @Composable (T) -> String,
+    onSelect: (T) -> Unit,
+    palette: HudPalette,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            title,
+            color = Color(0xFFEDEDED),
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp,
+        )
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            for (opt in options) {
+                val chosen = opt == selected
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(if (chosen) palette.accent else Color(0xFF1F2A24))
+                        .clickable(
+                            role = Role.Button,
+                            onClick = { if (!chosen) onSelect(opt) },
+                        )
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                ) {
+                    Text(
+                        labelFor(opt),
+                        color = if (chosen) Color.Black else Color(0xFFB6CCBC),
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                    )
+                }
+            }
+        }
     }
 }
 

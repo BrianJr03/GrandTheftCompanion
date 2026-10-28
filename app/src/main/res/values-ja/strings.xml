@@ -28,6 +28,17 @@
     <string name="atlas_reanchor_waiting">プラグインの位置情報を待機中…</string>
     <string name="atlas_reanchor_cd">タップで再固定</string>
     <string name="atlas_reanchor_cancel_cd">再固定をキャンセル</string>
+    <string name="atlas_follow_cd">プレイヤーを中央に</string>
+    <string name="atlas_zoom_in_cd">ズームイン</string>
+    <string name="atlas_zoom_out_cd">ズームアウト（長押しで全体表示）</string>
+    <string name="atlas_setting_follow">プレイヤーを追従</string>
+    <string name="atlas_setting_follow_hint">オン: スムーズなカメラでアトラスが追従。オフ: 残した位置のまま。</string>
+    <string name="atlas_setting_snap_zoom">ズームをプリセットに合わせる</string>
+    <string name="atlas_setting_snap_zoom_hint">ピンチ後、最寄りのプリセットに吸着（全体, 8, 4, 2, 1, 0.5 m/px）。</string>
+    <string name="atlas_setting_smoothing">追従の滑らかさ</string>
+    <string name="atlas_setting_smoothing_tight">タイト</string>
+    <string name="atlas_setting_smoothing_normal">標準</string>
+    <string name="atlas_setting_smoothing_loose">ゆるめ</string>
     <string name="map_gesture_hint_zoom">ピンチでズーム</string>
     <string name="map_gesture_hint_pan">ドラッグで移動</string>
     <string name="map_view_cd">上画面のミラー;ピンチでズーム、ドラッグで移動</string>

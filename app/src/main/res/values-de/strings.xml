@@ -28,6 +28,17 @@
     <string name="atlas_reanchor_waiting">warte auf position vom plugin…</string>
     <string name="atlas_reanchor_cd">per tipp neu verankern</string>
     <string name="atlas_reanchor_cancel_cd">neuverankern abbrechen</string>
+    <string name="atlas_follow_cd">auf spieler zentrieren</string>
+    <string name="atlas_zoom_in_cd">heranzoomen</string>
+    <string name="atlas_zoom_out_cd">herauszoomen (lang drücken für anpassen)</string>
+    <string name="atlas_setting_follow">spieler folgen</string>
+    <string name="atlas_setting_follow_hint">an: der atlas folgt dir mit einer sanften kamera. aus: er bleibt dort, wo du ihn verlassen hast.</string>
+    <string name="atlas_setting_snap_zoom">zoom auf voreinstellungen rasten</string>
+    <string name="atlas_setting_snap_zoom_hint">nach dem zoomen auf die nächste voreinstellung rasten (anpassen, 8, 4, 2, 1, 0,5 m/px).</string>
+    <string name="atlas_setting_smoothing">verfolgungs-glättung</string>
+    <string name="atlas_setting_smoothing_tight">straff</string>
+    <string name="atlas_setting_smoothing_normal">normal</string>
+    <string name="atlas_setting_smoothing_loose">locker</string>
     <string name="map_gesture_hint_zoom">zum zoomen zusammenziehen</string>
     <string name="map_gesture_hint_pan">zum verschieben ziehen</string>
     <string name="map_view_cd">Spiegelung des oberen Bildschirms; zusammenziehen zum zoomen, ziehen zum verschieben</string>

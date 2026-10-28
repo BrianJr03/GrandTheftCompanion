@@ -28,6 +28,17 @@
     <string name="atlas_reanchor_waiting">ждём координаты от плагина…</string>
     <string name="atlas_reanchor_cd">перепривязать касанием</string>
     <string name="atlas_reanchor_cancel_cd">отменить перепривязку</string>
+    <string name="atlas_follow_cd">центрировать на игроке</string>
+    <string name="atlas_zoom_in_cd">приблизить</string>
+    <string name="atlas_zoom_out_cd">отдалить (долгое нажатие — вписать)</string>
+    <string name="atlas_setting_follow">следовать за игроком</string>
+    <string name="atlas_setting_follow_hint">включено: атлас плавно следует за вами. выключено: остаётся там, где вы его оставили.</string>
+    <string name="atlas_setting_snap_zoom">привязка зума к пресетам</string>
+    <string name="atlas_setting_snap_zoom_hint">после пинча оседает на ближайшем пресете (вписать, 8, 4, 2, 1, 0,5 м/пкс).</string>
+    <string name="atlas_setting_smoothing">плавность слежения</string>
+    <string name="atlas_setting_smoothing_tight">плотно</string>
+    <string name="atlas_setting_smoothing_normal">обычно</string>
+    <string name="atlas_setting_smoothing_loose">свободно</string>
     <string name="map_gesture_hint_zoom">свести для зума</string>
     <string name="map_gesture_hint_pan">перетащить для сдвига</string>
     <string name="map_view_cd">зеркало верхнего экрана; свести пальцы для зума, перетащить для сдвига</string>

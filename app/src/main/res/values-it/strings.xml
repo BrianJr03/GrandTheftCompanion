@@ -28,6 +28,17 @@
     <string name="atlas_reanchor_waiting">in attesa della posizione dal plugin…</string>
     <string name="atlas_reanchor_cd">riancorare con un tocco</string>
     <string name="atlas_reanchor_cancel_cd">annulla il riancoraggio</string>
+    <string name="atlas_follow_cd">centra sul giocatore</string>
+    <string name="atlas_zoom_in_cd">ingrandisci</string>
+    <string name="atlas_zoom_out_cd">rimpicciolisci (pressione lunga per adatta)</string>
+    <string name="atlas_setting_follow">segui il giocatore</string>
+    <string name="atlas_setting_follow_hint">attivo: l\'atlante ti segue con una camera fluida. disattivo: resta dove l\'hai lasciato.</string>
+    <string name="atlas_setting_snap_zoom">aggancia lo zoom ai preset</string>
+    <string name="atlas_setting_snap_zoom_hint">dopo un pizzico, aggancia al preset più vicino (adatta, 8, 4, 2, 1, 0,5 m/px).</string>
+    <string name="atlas_setting_smoothing">smorzamento del seguito</string>
+    <string name="atlas_setting_smoothing_tight">stretto</string>
+    <string name="atlas_setting_smoothing_normal">normale</string>
+    <string name="atlas_setting_smoothing_loose">largo</string>
     <string name="map_gesture_hint_zoom">pizzica per zoom</string>
     <string name="map_gesture_hint_pan">trascina per spostare</string>
     <string name="map_view_cd">specchio dello schermo superiore; pizzica per zoom, trascina per spostare</string>

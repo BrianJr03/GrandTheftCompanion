@@ -728,6 +728,17 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         val atlasVmSettings: AtlasViewModel = hiltViewModel()
         val atlasFolderIv by atlasVmSettings.folderIv.collectAsStateWithLifecycle()
         val atlasFolderV  by atlasVmSettings.folderV.collectAsStateWithLifecycle()
+        val atlasFollowSmoothing by atlasVmSettings.followSmoothing.collectAsStateWithLifecycle()
+        val atlasSnapZoomToPresets by atlasVmSettings.snapZoomToPresets.collectAsStateWithLifecycle()
+        // Follow-default is persisted per game, no reactive flow. The
+        // sheet reads it once per visibility toggle via a derived state
+        // so the Switch reflects the saved value without churn.
+        val atlasFollowDefaultIv = remember(showSettings) {
+            atlasVmSettings.savedViewport(CustomMapStore.Game.IV)?.follow ?: false
+        }
+        val atlasFollowDefaultV = remember(showSettings) {
+            atlasVmSettings.savedViewport(CustomMapStore.Game.V)?.follow ?: false
+        }
         val atlasPickerContext = androidx.compose.ui.platform.LocalContext.current
         val pickIvFolder = androidx.activity.compose.rememberLauncherForActivityResult(
             androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()
@@ -771,6 +782,14 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             onClearAtlasFolder = {
                 atlasVmSettings.setFolder(CustomMapStore.Game.IV, null)
             },
+            atlasFollowDefault = atlasFollowDefaultIv,
+            onAtlasFollowDefaultChange = {
+                atlasVmSettings.setFollowDefault(CustomMapStore.Game.IV, it)
+            },
+            atlasSnapZoomToPresets = atlasSnapZoomToPresets,
+            onAtlasSnapZoomChange = atlasVmSettings::setSnapZoomToPresets,
+            atlasFollowSmoothing = atlasFollowSmoothing,
+            onAtlasFollowSmoothingChange = atlasVmSettings::setFollowSmoothing,
         )
         val vPanel = SettingsGamePanel(
             label = stringResource(R.string.settings_tab_v),
@@ -797,6 +816,14 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             onClearAtlasFolder = {
                 atlasVmSettings.setFolder(CustomMapStore.Game.V, null)
             },
+            atlasFollowDefault = atlasFollowDefaultV,
+            onAtlasFollowDefaultChange = {
+                atlasVmSettings.setFollowDefault(CustomMapStore.Game.V, it)
+            },
+            atlasSnapZoomToPresets = atlasSnapZoomToPresets,
+            onAtlasSnapZoomChange = atlasVmSettings::setSnapZoomToPresets,
+            atlasFollowSmoothing = atlasFollowSmoothing,
+            onAtlasFollowSmoothingChange = atlasVmSettings::setFollowSmoothing,
         )
         // Setup screen (no plugin frames at all) shows both tabs so
         // the user can pre-configure either game. The moment a frame

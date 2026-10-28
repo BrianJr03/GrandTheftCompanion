@@ -28,6 +28,17 @@
     <string name="atlas_reanchor_waiting">esperando posición del plugin…</string>
     <string name="atlas_reanchor_cd">reanclar con un toque</string>
     <string name="atlas_reanchor_cancel_cd">cancelar reanclaje</string>
+    <string name="atlas_follow_cd">centrar en el jugador</string>
+    <string name="atlas_zoom_in_cd">acercar</string>
+    <string name="atlas_zoom_out_cd">alejar (mantén pulsado para ajustar)</string>
+    <string name="atlas_setting_follow">seguir al jugador</string>
+    <string name="atlas_setting_follow_hint">activado: el atlas te sigue con una cámara suave. desactivado: se queda donde lo dejaste.</string>
+    <string name="atlas_setting_snap_zoom">ajustar zoom a presets</string>
+    <string name="atlas_setting_snap_zoom_hint">tras un pellizco, encaja en el preset más cercano (ajustar, 8, 4, 2, 1, 0,5 m/px).</string>
+    <string name="atlas_setting_smoothing">suavizado del seguimiento</string>
+    <string name="atlas_setting_smoothing_tight">ajustado</string>
+    <string name="atlas_setting_smoothing_normal">normal</string>
+    <string name="atlas_setting_smoothing_loose">suelto</string>
     <string name="map_gesture_hint_zoom">pellizca para zoom</string>
     <string name="map_gesture_hint_pan">arrastra para desplazar</string>
     <string name="map_view_cd">espejo de la pantalla superior; pellizca para hacer zoom, arrastra para desplazar</string>

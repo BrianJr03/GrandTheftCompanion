@@ -28,6 +28,17 @@
     <string name="atlas_reanchor_waiting">en attente d\'une position du plugin…</string>
     <string name="atlas_reanchor_cd">réancrer d\'un geste</string>
     <string name="atlas_reanchor_cancel_cd">annuler le réancrage</string>
+    <string name="atlas_follow_cd">centrer sur le joueur</string>
+    <string name="atlas_zoom_in_cd">zoomer</string>
+    <string name="atlas_zoom_out_cd">dézoomer (appui long pour ajuster)</string>
+    <string name="atlas_setting_follow">suivre le joueur</string>
+    <string name="atlas_setting_follow_hint">activé : l\'atlas vous suit avec une caméra lissée. désactivé : il reste là où vous l\'avez laissé.</string>
+    <string name="atlas_setting_snap_zoom">aligner le zoom sur les paliers</string>
+    <string name="atlas_setting_snap_zoom_hint">après un pincement, aligner sur le palier le plus proche (ajuster, 8, 4, 2, 1, 0,5 m/px).</string>
+    <string name="atlas_setting_smoothing">lissage du suivi</string>
+    <string name="atlas_setting_smoothing_tight">serré</string>
+    <string name="atlas_setting_smoothing_normal">normal</string>
+    <string name="atlas_setting_smoothing_loose">souple</string>
     <string name="map_gesture_hint_zoom">pincer pour zoomer</string>
     <string name="map_gesture_hint_pan">glisser pour déplacer</string>
     <string name="map_view_cd">miroir de l\'écran du haut ; pincer pour zoomer, glisser pour déplacer</string>
