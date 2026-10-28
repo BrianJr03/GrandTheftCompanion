@@ -42,6 +42,14 @@ data class AtlasCamera(
      *  theory, but any pan clears both so in practice they don't
      *  overlap. */
     val fling: Fling? = null,
+    /** Rendered rotation of the image about the viewport center, in
+     *  degrees of clockwise rotation (what Compose's rotate() takes).
+     *  Normalised to [0, 360). */
+    val rotationDeg: Float = 0f,
+    /** Target rotation (0..360). Null means "freeze": step() leaves
+     *  rotationDeg where it is. Used for the on-foot low-speed hold
+     *  so a looking-around ped doesn't make the map twitch. */
+    val rotationTarget: Float? = null,
     val lastStepNanos: Long = 0L,
 ) {
 
@@ -77,12 +85,23 @@ data class AtlasCamera(
             scale = scale,
             offsetX = cx - centerImageX,
             offsetY = cy - centerImageY,
+            rotationDeg = rotationDeg,
             imageWidth = imageWidth,
             imageHeight = imageHeight,
             screenWidth = screenWidth,
             screenHeight = screenHeight,
         )
     }
+
+    /** Set a rotation target. Null freezes rotation smoothing (used
+     *  by the low-speed hold on foot). */
+    fun withRotationTarget(targetDeg: Float?): AtlasCamera =
+        copy(rotationTarget = targetDeg?.let { PositionTrack.normalise360(it) })
+
+    /** Snap the rendered rotation and clear the target. Used by the
+     *  "ease to north-up" shortcut and tests. */
+    fun snapRotation(deg: Float): AtlasCamera =
+        copy(rotationDeg = PositionTrack.normalise360(deg), rotationTarget = null)
 
     /** Snap to a new center and scale, clearing any motion state. */
     fun snapTo(ix: Float, iy: Float, newScale: Float = scale): AtlasCamera {
@@ -217,10 +236,26 @@ data class AtlasCamera(
         nowNanos: Long,
         timeConstantMs: Int = kFollowTimeConstantMs,
         deadZonePx: Float = kDeadZonePx,
+        rotationTimeConstantMs: Int = kRotationTimeConstantMs,
+        rotationDeadZoneDeg: Float = kRotationDeadZoneDeg,
     ): AtlasCamera {
         val dtNanos = if (lastStepNanos == 0L) 0L
                       else (nowNanos - lastStepNanos).coerceAtLeast(0L)
         val dtSec = dtNanos / 1e9f
+
+        // Rotation smoothing runs independently of flyTo/fling/target
+        // because the pivot moves with the camera center, so rotating
+        // mid-flight simply plays alongside without a seam. Dead zone
+        // and the "null target freezes" rule live inside this block.
+        val rotationNew: Float = run {
+            val targetRot = rotationTarget ?: return@run rotationDeg
+            if (dtSec <= 0f) return@run rotationDeg
+            val delta = PositionTrack.shortestArcDeg(rotationDeg, targetRot)
+            if (abs(delta) <= rotationDeadZoneDeg) return@run rotationDeg
+            val tauSec = (rotationTimeConstantMs / 1000f).coerceAtLeast(1e-3f)
+            val alpha = 1f - exp(-dtSec / tauSec)
+            PositionTrack.normalise360(rotationDeg + delta * alpha)
+        }
 
         flyTo?.let { ft ->
             val t = ((nowNanos - ft.startNanos).toFloat() / ft.durationNanos.toFloat())
@@ -229,6 +264,7 @@ data class AtlasCamera(
                 return copy(
                     centerImageX = ft.toX, centerImageY = ft.toY,
                     scale = ft.toScale,
+                    rotationDeg = rotationNew,
                     flyTo = null,
                     lastStepNanos = nowNanos,
                 )
@@ -250,6 +286,7 @@ data class AtlasCamera(
                 centerImageX = clamped.first,
                 centerImageY = clamped.second,
                 scale = sExp,
+                rotationDeg = rotationNew,
                 lastStepNanos = nowNanos,
             )
         }
@@ -273,18 +310,25 @@ data class AtlasCamera(
             return copy(
                 centerImageX = clamped.first,
                 centerImageY = clamped.second,
+                rotationDeg = rotationNew,
                 fling = if (still) null else fl.copy(vxPxPerSec = vx, vyPxPerSec = vy),
                 lastStepNanos = nowNanos,
             )
         }
 
         target?.let { t ->
-            if (dtSec <= 0f) return copy(lastStepNanos = nowNanos)
+            if (dtSec <= 0f) return copy(
+                rotationDeg = rotationNew,
+                lastStepNanos = nowNanos,
+            )
             val dx = t.centerImageX - centerImageX
             val dy = t.centerImageY - centerImageY
             val screenDist = hypot(dx, dy) * scale
             if (screenDist <= deadZonePx) {
-                return copy(lastStepNanos = nowNanos)
+                return copy(
+                    rotationDeg = rotationNew,
+                    lastStepNanos = nowNanos,
+                )
             }
             val tauSec = (timeConstantMs / 1000f).coerceAtLeast(1e-3f)
             val alpha = 1f - exp(-dtSec / tauSec)
@@ -296,11 +340,12 @@ data class AtlasCamera(
                 centerImageX = clamped.first,
                 centerImageY = clamped.second,
                 scale = sNew,
+                rotationDeg = rotationNew,
                 lastStepNanos = nowNanos,
             )
         }
 
-        return copy(lastStepNanos = nowNanos)
+        return copy(rotationDeg = rotationNew, lastStepNanos = nowNanos)
     }
 
     /** Clamp the camera center so the image always *covers* the
@@ -348,6 +393,23 @@ data class AtlasCamera(
          *  slow pan at lift-off shouldn't coast. */
         const val kMinFlingSpeedPxPerSec: Float = 80f
 
+        /** Rotation smoothing time constant: higher = looser. 180 ms
+         *  is softer than the position follow (120 ms) because a map
+         *  that rotates faster than it translates reads as jittery. */
+        const val kRotationTimeConstantMs: Int = 180
+        /** Degree-level dead zone on the rotation smoother so a
+         *  stationary target doesn't produce sub-pixel wobble. */
+        const val kRotationDeadZoneDeg: Float = 1.5f
+        /** Time constant for one-shot "ease rotation back to north"
+         *  transitions (pan-off, setting toggle). Slower than the
+         *  heading-follow so a pan feels like a settle, not a snap. */
+        const val kRotationEaseOffMs: Int = 400
+        /** Image-space speed under which the heading-up target is
+         *  frozen (on foot, the ped's heading flickers while looking
+         *  around with the stick). The caller translates image px/sec
+         *  to m/sec via the calibration before comparing. */
+        const val kLowSpeedHoldMps: Float = 0.6f
+
         fun fromViewport(vp: ViewportModel): AtlasCamera {
             val cx = vp.imageWidth / 2f
             val cy = vp.imageHeight / 2f
@@ -355,6 +417,7 @@ data class AtlasCamera(
                 centerImageX = cx - vp.offsetX,
                 centerImageY = cy - vp.offsetY,
                 scale = vp.scale,
+                rotationDeg = vp.rotationDeg,
                 imageWidth = vp.imageWidth,
                 imageHeight = vp.imageHeight,
                 screenWidth = vp.screenWidth,

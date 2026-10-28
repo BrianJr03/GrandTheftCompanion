@@ -1,7 +1,9 @@
 package jr.brian.thorhud.ui.map.custom
 
+import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sin
 
 /**
  * Pure Kotlin viewport maths for the custom-map (atlas) page.
@@ -10,15 +12,22 @@ import kotlin.math.min
  * 0..imageHeight). The visible viewport in screen pixel space is a
  * window into the image. [scale] = 1.0 means one image pixel per
  * screen pixel; a user pinch-in multiplies the scale, pinch-out
- * divides it. [offsetX]/[offsetY] shift the image centre within the
- * screen, in image pixels.
+ * divides it. [offsetX]/[offsetY] shift the image center within the
+ * screen, in image pixels. [rotationDeg] rotates the image clockwise
+ * about the screen center (what Compose's rotate() takes).
  *
- * The transform is image → screen:
- *   screenX = (imagePx - cx + offsetX) * scale + screenW / 2
- *   screenY = (imagePy - cy + offsetY) * scale + screenH / 2
- * where (cx, cy) is the image's own centre. Clamping keeps the image
+ * The transform is image -> screen:
+ *   // Translate to center-relative image coords, scale to screen px:
+ *   dx = (imagePx - cx + offsetX) * scale
+ *   dy = (imagePy - cy + offsetY) * scale
+ *   // Rotate clockwise by rotationDeg (standard rotation matrix in
+ *   // screen y-down space; see unit tests):
+ *   screenX = cos * dx - sin * dy + screenW / 2
+ *   screenY = sin * dx + cos * dy + screenH / 2
+ *
+ * where (cx, cy) is the image's own center. Clamping keeps the image
  * from being flung off screen entirely: at any scale the image's
- * centre may wander up to half the viewport across the image.
+ * center may wander up to half the viewport across the image.
  *
  * The viewport also composes with a [Calibration] from CalibrationModel
  * so a world coordinate from the state frame can be drawn on screen in
@@ -32,6 +41,9 @@ data class ViewportModel(
     val imageHeight: Int,
     val screenWidth: Int,
     val screenHeight: Int,
+    /** Clockwise rotation about the screen center, in degrees. 0 is
+     *  north-up, which is the atlas's natural orientation. */
+    val rotationDeg: Float = 0f,
 ) {
     companion object {
         /** Minimum zoom; below this the map tiles are smaller than
@@ -69,18 +81,39 @@ data class ViewportModel(
     fun imageToScreen(ix: Float, iy: Float): FloatArray {
         val cx = imageWidth / 2f
         val cy = imageHeight / 2f
-        val sx = (ix - cx + offsetX) * scale + screenWidth / 2f
-        val sy = (iy - cy + offsetY) * scale + screenHeight / 2f
+        val dx = (ix - cx + offsetX) * scale
+        val dy = (iy - cy + offsetY) * scale
+        if (rotationDeg == 0f) {
+            return floatArrayOf(dx + screenWidth / 2f, dy + screenHeight / 2f)
+        }
+        val rad = Math.toRadians(rotationDeg.toDouble())
+        val cosR = cos(rad).toFloat()
+        val sinR = sin(rad).toFloat()
+        val sx = cosR * dx - sinR * dy + screenWidth / 2f
+        val sy = sinR * dx + cosR * dy + screenHeight / 2f
         return floatArrayOf(sx, sy)
     }
 
     /** Inverse of [imageToScreen]: a tap in screen pixels back to the
-     *  image's own pixel space. */
+     *  image's own pixel space. The rotation inverse is the transpose
+     *  of the rotation matrix; derived from the forward transform. */
     fun screenToImage(sx: Float, sy: Float): FloatArray {
         val cx = imageWidth / 2f
         val cy = imageHeight / 2f
-        val ix = (sx - screenWidth / 2f) / scale + cx - offsetX
-        val iy = (sy - screenHeight / 2f) / scale + cy - offsetY
+        val dxs = sx - screenWidth  / 2f
+        val dys = sy - screenHeight / 2f
+        val dx: Float; val dy: Float
+        if (rotationDeg == 0f) {
+            dx = dxs; dy = dys
+        } else {
+            val rad = Math.toRadians(rotationDeg.toDouble())
+            val cosR = cos(rad).toFloat()
+            val sinR = sin(rad).toFloat()
+            dx =  cosR * dxs + sinR * dys
+            dy = -sinR * dxs + cosR * dys
+        }
+        val ix = dx / scale + cx - offsetX
+        val iy = dy / scale + cy - offsetY
         return floatArrayOf(ix, iy)
     }
 

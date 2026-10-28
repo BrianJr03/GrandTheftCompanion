@@ -36,20 +36,36 @@ class RegionPolicyTest {
         assertTrue(RegionPolicy.shouldRedecode(rect, 500f + 301f, 400f, 1f))
     }
 
-    @Test fun buildRectCentresAndClampsToImageBounds() {
+    @Test fun buildRectUsesDiagonalSoRotationHasHeadroom() {
         val r = RegionPolicy.buildRect(
-            centerImageX = 100f, centerImageY = 100f,
+            centerImageX = 1000f, centerImageY = 1000f,
             scale = 1f,
             screenWidth = 500, screenHeight = 400,
-            imageWidth = 2000, imageHeight = 2000,
+            imageWidth = 4000, imageHeight = 4000,
             marginFactor = 1.5f,
         )
-        // margin: 500 * 1.5 = 750 wide, 400 * 1.5 = 600 tall.
-        // half: 375 x, 300 y, so the raw rect goes to -275..475 x
-        // and -200..400 y. Clamped at zero on top-left.
-        assertEquals(0, r.left)
-        assertEquals(0, r.top)
-        assertEquals(475, r.right)
-        assertEquals(400, r.bottom)
+        // sideImg = sqrt(500^2 + 400^2) = 640.31, * 1.5 = 960.47.
+        // Half ~480. Rect centred at (1000,1000): [520, 1480] x [520, 1480].
+        assertEquals(520, r.left)
+        assertEquals(520, r.top)
+        assertEquals(1480, r.right)
+        assertEquals(1480, r.bottom)
+    }
+
+    @Test fun rotationBeyondThresholdTriggers() {
+        val rect = RegionPolicy.RegionRect(0, 0, 1000, 800,
+            forScale = 1f, forRotationDeg = 0f)
+        assertFalse(RegionPolicy.shouldRedecode(rect, 500f, 400f, 1f, rotationDeg = 15f))
+        assertTrue(RegionPolicy.shouldRedecode(rect, 500f, 400f, 1f, rotationDeg = 25f))
+    }
+
+    @Test fun rotationShortArcCountsForTrigger() {
+        // Rect decoded at 350 deg; now at 10 deg: short arc = 20 deg
+        // which is just over the 20 deg threshold boundary. Pick a
+        // large-enough step to make the test unambiguous.
+        val rect = RegionPolicy.RegionRect(0, 0, 1000, 800,
+            forScale = 1f, forRotationDeg = 350f)
+        assertFalse(RegionPolicy.shouldRedecode(rect, 500f, 400f, 1f, rotationDeg = 5f))
+        assertTrue(RegionPolicy.shouldRedecode(rect, 500f, 400f, 1f, rotationDeg = 25f))
     }
 }

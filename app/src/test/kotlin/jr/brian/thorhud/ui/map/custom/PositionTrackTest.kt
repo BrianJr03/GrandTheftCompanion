@@ -2,6 +2,7 @@ package jr.brian.thorhud.ui.map.custom
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class PositionTrackTest {
@@ -62,4 +63,57 @@ class PositionTrackTest {
         val p = t.extrapolate(ms(110))!!
         assertEquals(p.ix, p.ix, 1e-3f)
     }
+
+    @Test fun headingExtrapolatesShortestArcAcrossSeam() {
+        val t = PositionTrack()
+        // 350 -> 10 over 100 ms is a 20 deg CW turn, not a 340 CCW turn.
+        t.submit(0f, 0f, headingDeg = 350f, nanos = ms(0))
+        t.submit(0f, 0f, headingDeg = 10f, nanos = ms(100))
+        // At the midpoint, heading should be 0 (passing through north).
+        val mid = t.extrapolate(ms(150))!!
+        // 50% past the last sample = 50% past heading 10 at +20/100ms,
+        // so 10 + 20 * 0.5 = 20 is OUTSIDE sampleDt. extrapolate uses
+        // "velocity" from the full sample pair. 50ms past last sample at
+        // 20deg/100ms = +10deg = 20 (because last is 10 and we add 10).
+        assertEquals(20f, mid.headingDeg!!, 1e-3f)
+    }
+
+    @Test fun headingShortArcGoesOtherWay() {
+        val t = PositionTrack()
+        // 10 -> 350 is -20 CCW.
+        t.submit(0f, 0f, headingDeg = 10f, nanos = ms(0))
+        t.submit(0f, 0f, headingDeg = 350f, nanos = ms(100))
+        val past = t.extrapolate(ms(150))!!
+        // vPerNs = -20/100ms, +50ms past last = -10. last=350, so 340.
+        assertEquals(340f, past.headingDeg!!, 1e-3f)
+    }
+
+    @Test fun headingExtrapolationNeverLeaves0to360() {
+        val t = PositionTrack()
+        t.submit(0f, 0f, headingDeg = 358f, nanos = ms(0))
+        t.submit(0f, 0f, headingDeg = 2f, nanos = ms(50))
+        val p = t.extrapolate(ms(100))!!
+        assertTrue(p.headingDeg!! in 0f..360f)
+    }
+
+    @Test fun shortestArcHelperReturnsSignedDelta() {
+        assertEquals(20f, PositionTrack.shortestArcDeg(350f, 10f), 1e-3f)
+        assertEquals(-20f, PositionTrack.shortestArcDeg(10f, 350f), 1e-3f)
+        assertEquals(0f, PositionTrack.shortestArcDeg(45f, 45f), 1e-3f)
+        // Edge: 0 -> 180 is a tie; implementation returns -180.
+        // Either sign is correct; smoothing with abs(delta) treats them the same.
+        val tie = PositionTrack.shortestArcDeg(0f, 180f)
+        assertEquals(180f, kotlin.math.abs(tie), 1e-3f)
+    }
+
+    @Test fun speedPxPerSecRequiresTwoSamples() {
+        val t = PositionTrack()
+        assertNull(t.speedPxPerSec())
+        t.submit(0f, 0f, ms(0))
+        assertNull(t.speedPxPerSec())
+        t.submit(10f, 0f, ms(100))
+        // 10 px in 0.1 s = 100 px/s.
+        assertEquals(100f, t.speedPxPerSec()!!, 1e-2f)
+    }
 }
+

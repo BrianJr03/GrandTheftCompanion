@@ -108,4 +108,53 @@ class ViewportModelTest {
         assertFalse(vp.shouldUseRegionDecoder())
         assertTrue(vp.copy(scale = 2.0f).shouldUseRegionDecoder())
     }
+
+    @Test fun rotationRoundTripAtManyAngles() {
+        val base = vp.copy(scale = 2.0f, offsetX = 37f, offsetY = -42f)
+        val img = floatArrayOf(321f, 150f)
+        for (rot in listOf(0f, 37f, 90f, 180f, 270f, 359f, 0.0001f)) {
+            val rotated = base.copy(rotationDeg = rot)
+            val screen = rotated.imageToScreen(img[0], img[1])
+            val back = rotated.screenToImage(screen[0], screen[1])
+            assertEquals("x at $rot deg", img[0], back[0], 1e-2f)
+            assertEquals("y at $rot deg", img[1], back[1], 1e-2f)
+        }
+    }
+
+    @Test fun rotation90SendsEastPointBelowCenter() {
+        // Compose rotate(deg) is clockwise visually in y-down. A point
+        // one px east of the image center at scale 1 / zero offsets,
+        // rotated clockwise 90, lands one px below screen center.
+        val r90 = vp.copy(rotationDeg = 90f)
+        val east = floatArrayOf(vp.imageWidth / 2f + 1f, vp.imageHeight / 2f)
+        val s = r90.imageToScreen(east[0], east[1])
+        assertEquals(vp.screenWidth / 2f, s[0], 1e-2f)
+        assertEquals(vp.screenHeight / 2f + 1f, s[1], 1e-2f)
+    }
+
+    @Test fun worldToScreenGoesThroughRotation() {
+        val cal = Calibration(
+            a = 1f, b = 0f, c = 0f,
+            d = 0f, e = 1f, f = 0f,
+            maxResidualPx = 0f,
+        )
+        val cx = vp.imageWidth / 2f
+        val cy = vp.imageHeight / 2f
+        val s = vp.copy(rotationDeg = 90f).worldToScreen(cal, cx + 1f, cy)
+        assertEquals(vp.screenWidth / 2f, s[0], 1e-2f)
+        assertEquals(vp.screenHeight / 2f + 1f, s[1], 1e-2f)
+    }
+
+    @Test fun screenToWorldInvertsAtNonTrivialAngle() {
+        val cal = Calibration(
+            a = 1.5f, b = 0.2f, c = -20f,
+            d = -0.1f, e = -1.4f, f = 50f,
+            maxResidualPx = 0f,
+        )
+        val panned = vp.copy(scale = 0.75f, offsetX = 42f, offsetY = -13f, rotationDeg = 127f)
+        val s = panned.worldToScreen(cal, 234.5f, -98.0f)
+        val back = panned.screenToWorld(cal, s[0], s[1])
+        assertEquals(234.5f, back.x, 2e-2f)
+        assertEquals(-98.0f, back.y, 2e-2f)
+    }
 }

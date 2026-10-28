@@ -200,4 +200,86 @@ class AtlasCameraTest {
         repeat(10) { t += ms(11); c = c.step(t, 120, deadZonePx = 2f) }
         assertEquals(500f, c.centerImageX, 1e-3f)
     }
+
+    // -- Rotation smoothing ------------------------------------------
+
+    @Test fun rotationTargetNullFreezesRotation() {
+        var c = base().snapRotation(42f)
+        var t = 0L
+        repeat(30) { t += ms(11); c = c.step(t) }
+        assertEquals(42f, c.rotationDeg, 1e-3f)
+    }
+
+    @Test fun rotation90DegStepApproachesMonotonically() {
+        var c = base().snapRotation(0f).withRotationTarget(90f)
+        var t = 0L
+        var last = 0f
+        repeat(80) {
+            t += ms(11)
+            c = c.step(t, rotationDeadZoneDeg = 0f)
+            assertTrue("rotation went backwards at $it: $last -> ${c.rotationDeg}",
+                c.rotationDeg >= last - 1e-3f)
+            last = c.rotationDeg
+        }
+        assertEquals(90f, c.rotationDeg, 1f)
+    }
+
+    @Test fun rotationShortestArcCrossesSeam() {
+        var c = base().snapRotation(350f).withRotationTarget(10f)
+        var t = 0L
+        repeat(60) {
+            t += ms(11)
+            c = c.step(t, rotationDeadZoneDeg = 0f)
+            val inShort = c.rotationDeg >= 350f || c.rotationDeg <= 15f
+            assertTrue("off the short arc at step $it: ${c.rotationDeg}", inShort)
+        }
+        assertEquals(10f, c.rotationDeg, 1f)
+    }
+
+    @Test fun rotationShortestArcTheOtherWay() {
+        var c = base().snapRotation(10f).withRotationTarget(350f)
+        var t = 0L
+        repeat(60) {
+            t += ms(11)
+            c = c.step(t, rotationDeadZoneDeg = 0f)
+            val inShort = c.rotationDeg <= 10f || c.rotationDeg >= 345f
+            assertTrue("off the short arc at step $it: ${c.rotationDeg}", inShort)
+        }
+        assertEquals(350f, c.rotationDeg, 1f)
+    }
+
+    @Test fun constantAngularVelocityLagStaysSmall() {
+        var c = base().snapRotation(0f).withRotationTarget(0f)
+        var t = 0L
+        var targetRot = 0f
+        val dt = ms(11)
+        val vxPerSec = 45f
+        repeat(400) {
+            t += dt
+            targetRot = PositionTrack.normalise360(targetRot + vxPerSec * (dt / 1e9f))
+            c = c.withRotationTarget(targetRot).step(t, rotationDeadZoneDeg = 0f)
+        }
+        val lag = kotlin.math.abs(PositionTrack.shortestArcDeg(c.rotationDeg, targetRot))
+        assertTrue("constant-vel lag too large: $lag deg", lag < 9f)
+    }
+
+    @Test fun rotationDeadZoneHoldsStill() {
+        var c = base().snapRotation(0f).withRotationTarget(1f)
+        var t = 0L
+        repeat(20) { t += ms(11); c = c.step(t, rotationDeadZoneDeg = 1.5f) }
+        assertEquals(0f, c.rotationDeg, 1e-3f)
+    }
+
+    @Test fun fastRotationTauReachesTargetSooner() {
+        var fast = base().snapRotation(0f).withRotationTarget(90f)
+        var slow = base().snapRotation(0f).withRotationTarget(90f)
+        var t = 0L
+        repeat(20) {
+            t += ms(11)
+            fast = fast.step(t, rotationTimeConstantMs = 180)
+            slow = slow.step(t, rotationTimeConstantMs = 400)
+        }
+        assertTrue("fast tau did not get ahead: ${fast.rotationDeg} vs ${slow.rotationDeg}",
+            fast.rotationDeg > slow.rotationDeg)
+    }
 }
