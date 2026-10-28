@@ -10,8 +10,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import jr.brian.thorhud.model.AtlasProgress
 import jr.brian.thorhud.net.GameStateRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -66,13 +69,23 @@ class AtlasViewModel @Inject constructor(
     private val _flow = MutableStateFlow(CalibrationFlow())
     val calibrationFlow: StateFlow<CalibrationFlow> = _flow.asStateFlow()
 
-    // Follow mode (session-local). Default off so the saved viewport
-    // is what the user sees on every app start; a stale follow=true
-    // would clobber the restored pan/zoom with a recentre on the
-    // player's current pos on the first frame. The feature is kept
-    // (set from Compose when needed) but no longer has a header icon.
+    // Follow mode: now smooth, so re-enabling cannot clobber the user's
+    // last view (fly-to animates from the saved viewport to the player
+    // instead of snapping). Session default comes from the saved
+    // per-game flag; set at init below.
     private val _followMode = MutableStateFlow(false)
     val followMode: StateFlow<Boolean> = _followMode.asStateFlow()
+
+    // One-shot event the atlas screen listens for to trigger a fly-to.
+    // Replay 0 so a late subscriber does not fly on open.
+    private val _followReEngage = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val followReEngage: SharedFlow<Unit> = _followReEngage.asSharedFlow()
+
+    private val _followSmoothing = MutableStateFlow(FollowSmoothing.fromTauMs(viewportPrefs.readSmoothingMs()))
+    val followSmoothing: StateFlow<FollowSmoothing> = _followSmoothing.asStateFlow()
+
+    private val _snapZoomToPresets = MutableStateFlow(viewportPrefs.readSnapZoomToPresets())
+    val snapZoomToPresets: StateFlow<Boolean> = _snapZoomToPresets.asStateFlow()
 
     // Session-local lock on the atlas pan/zoom gesture; same pattern as
     // MapViewModel.isLocked, so a horizontal swipe between tabs can't
@@ -248,6 +261,37 @@ class AtlasViewModel @Inject constructor(
 
     // -- Follow mode --------------------------------------------------
     fun setFollowMode(on: Boolean) { _followMode.value = on }
+
+    /** Fire the one-shot "follow re-engage" event so the atlas screen
+     *  triggers a fly-to. No-op if nothing is listening (saved for an
+     *  edge-case debouncer that never materialised). */
+    fun requestFollowReEngage() {
+        _followReEngage.tryEmit(Unit)
+    }
+
+    /** Persist the user's follow default per game and update the
+     *  session flag. */
+    fun setFollowDefault(game: CustomMapStore.Game, on: Boolean) {
+        viewportPrefs.writeFollow(game, on)
+        _followMode.value = on
+    }
+
+    fun setFollowSmoothing(s: FollowSmoothing) {
+        _followSmoothing.value = s
+        viewportPrefs.writeSmoothingMs(s.tauMs)
+    }
+
+    fun setSnapZoomToPresets(b: Boolean) {
+        _snapZoomToPresets.value = b
+        viewportPrefs.writeSnapZoomToPresets(b)
+    }
+
+    fun savedPresetIndex(game: CustomMapStore.Game): Int =
+        viewportPrefs.readPresetIndex(game)
+
+    fun setPresetIndex(game: CustomMapStore.Game, idx: Int) {
+        viewportPrefs.writePresetIndex(game, idx)
+    }
 
     // -- V-only: long-press to waypoint ------------------------------
     fun requestWaypointXy(x: Float, y: Float) {

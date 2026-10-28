@@ -3,8 +3,12 @@ package jr.brian.thorhud.ui.map.custom
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroid
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,25 +21,32 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,8 +57,10 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.input.pointer.util.addPointerInputChange
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
@@ -60,18 +73,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import jr.brian.thorhud.R
 import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.components.HeaderIconButton
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.launch
 import kotlin.math.hypot
 
 /**
- * The custom-map ("atlas") page.
- *
- * When an image is on disk, draws it with pan/zoom and overlays blips
- * + the player triangle + the active waypoint on top. The user can
- * long-press to drop a waypoint (GTA V only). When no image exists
- * for the connected game the page shows a "drop a map image at …"
- * hint; the Settings panel's atlas-path row is where the user reads
- * the exact path.
+ * Atlas page. See [AtlasCamera] / [PositionTrack] / [ZoomPresets] /
+ * [RegionPolicy] for the pure-Kotlin motion math; this file is only
+ * the Compose glue: one frame loop writes [viewport], gestures feed
+ * the camera, and the Canvas reads whatever was last written. There
+ * is exactly one writer of the viewport state.
  */
+@OptIn(FlowPreview::class)
 @Composable
 internal fun CustomMapScreen(
     game: CustomMapStore.Game,
@@ -79,16 +94,7 @@ internal fun CustomMapScreen(
     blips: List<GameState.Blip>,
     pos: GameState.Pos?,
     waypoint: GameState.Waypoint?,
-    // Compose-side triangle rotation offset. Default 0 so a world
-    // heading of 0 (facing north) draws the triangle pointing up on
-    // screen; matches the gold "Player" arrow the game draws on its
-    // own pause-map. Overridable per game if V ever needs a different
-    // convention.
     headingOffsetDeg: Float = 0f,
-    // Episode id from the IV state frame; 0 = GTA IV (Niko),
-    // 1 = The Lost and Damned (Johnny), 2 = TBoGT (Luis). Used by the
-    // re-anchor hint so the copy says "where Niko / Johnny / Luis is".
-    // Null = unknown yet; falls back to "the player".
     episode: Int? = null,
     isGtaV: Boolean,
     atlasPath: String,
@@ -103,6 +109,8 @@ internal fun CustomMapScreen(
     val follow by viewModel.followMode.collectAsStateWithLifecycle()
     val isLocked by viewModel.isLocked.collectAsStateWithLifecycle()
     val anchorMode by viewModel.anchorMode.collectAsStateWithLifecycle()
+    val smoothing by viewModel.followSmoothing.collectAsStateWithLifecycle()
+    val snapZoomToPresets by viewModel.snapZoomToPresets.collectAsStateWithLifecycle()
 
     Box(
         modifier = Modifier
@@ -124,85 +132,213 @@ internal fun CustomMapScreen(
         }
         val imageBitmap = remember(bitmap) { bitmap.asImageBitmap() }
 
-        var viewport by remember(bitmap) {
+        var canvasSize by remember { mutableStateOf(IntSize.Zero) }
+        val positionTrack = remember(bitmap) { PositionTrack() }
+        val camera = remember(bitmap) {
             val saved = viewModel.savedViewport(game)
-            val fit = ViewportModel.fit(
+            val initial = AtlasCamera(
+                centerImageX = bitmap.width / 2f,
+                centerImageY = bitmap.height / 2f,
+                scale = saved?.scale ?: 1f,
                 imageWidth = bitmap.width,
                 imageHeight = bitmap.height,
-                screenWidth = 1,
-                screenHeight = 1,
+                screenWidth = 1, screenHeight = 1,
             )
-            mutableStateOf(
-                if (saved != null) {
-                    fit.copy(
-                        scale = saved.scale,
-                        offsetX = saved.offsetX,
-                        offsetY = saved.offsetY,
-                    )
-                } else fit
-            )
+            // The saved offset is in image-pixel space (center - target),
+            // same convention [ViewportModel.centerOnImage] uses. Invert
+            // it to recover the camera's center.
+            val cx = bitmap.width / 2f - (saved?.offsetX ?: 0f)
+            val cy = bitmap.height / 2f - (saved?.offsetY ?: 0f)
+            mutableStateOf(initial.copy(centerImageX = cx, centerImageY = cy))
         }
-        var canvasSize by remember { mutableStateOf(IntSize.Zero) }
+        val viewport = remember(bitmap) { mutableStateOf(camera.value.toViewport()) }
+        val lastPlayerImg = remember(bitmap) { mutableStateOf<Pair<Float, Float>?>(null) }
 
-        // Follow: when on, player's image-space position recentres the
-        // viewport. The user panning turns it off.
+        // On open, restore the saved follow default. If follow was on
+        // and we have a known player position, fly to it (so the user
+        // sees the arc from their saved view, not a snap).
+        LaunchedEffect(bitmap, game) {
+            val saved = viewModel.savedViewport(game) ?: return@LaunchedEffect
+            if (saved.follow) {
+                viewModel.setFollowMode(true)
+                viewModel.requestFollowReEngage()
+            }
+        }
+
+        // 20 Hz position samples -> PositionTrack. We submit on every
+        // change of [pos]; the extrapolation inside the frame loop
+        // handles the inter-sample interpolation.
         val calibration = data.calibration
-        val playerImagePx = pos?.let { p ->
-            calibration?.worldToPixel(p.x, p.y)
+        LaunchedEffect(pos, calibration) {
+            val p = pos ?: return@LaunchedEffect
+            val cal = calibration ?: return@LaunchedEffect
+            val img = cal.worldToPixel(p.x, p.y)
+            positionTrack.submit(img.px, img.py, System.nanoTime())
+            lastPlayerImg.value = img.px to img.py
         }
-        if (follow && playerImagePx != null && canvasSize != IntSize.Zero) {
-            viewport = viewport
-                .copy(screenWidth = canvasSize.width, screenHeight = canvasSize.height)
-                .centerOnImage(playerImagePx.px, playerImagePx.py)
+
+        // Fly-to on follow re-engage. The ViewModel exposes a one-shot
+        // "re-engage" event the Compose side consumes.
+        LaunchedEffect(bitmap, calibration) {
+            viewModel.followReEngage.collectLatest {
+                val cal = calibration ?: return@collectLatest
+                val img = lastPlayerImg.value
+                    ?: pos?.let { cal.worldToPixel(it.x, it.y) }?.let { it.px to it.py }
+                    ?: return@collectLatest
+                val fitScale = ViewportModel.fit(
+                    imageWidth = bitmap.width, imageHeight = bitmap.height,
+                    screenWidth = canvasSize.width.coerceAtLeast(1),
+                    screenHeight = canvasSize.height.coerceAtLeast(1),
+                ).scale
+                val preset = viewModel.savedPresetIndex(game)
+                val scales = ZoomPresets.scalesFor(fitScale, cal)
+                val targetScale = scales.getOrElse(preset) { camera.value.scale }
+                camera.value = camera.value.startFlyTo(
+                    toX = img.first, toY = img.second,
+                    toScale = targetScale,
+                    nowNanos = System.nanoTime(),
+                )
+            }
         }
+
+        // Debounced write of the viewport to prefs. snapshotFlow turns
+        // the mutableState into a flow we can debounce; one write 500 ms
+        // after the last change, plus a flush on disposal.
+        LaunchedEffect(bitmap) {
+            snapshotFlow { camera.value }
+                .debounce(500)
+                .collect { c ->
+                    val vp = c.toViewport()
+                    viewModel.saveViewport(game, vp.scale, vp.offsetX, vp.offsetY)
+                }
+        }
+        DisposableEffect(bitmap) {
+            onDispose {
+                val vp = camera.value.toViewport()
+                viewModel.saveViewport(game, vp.scale, vp.offsetX, vp.offsetY)
+            }
+        }
+
+        // The one frame loop. Owns the single write to [viewport]; no
+        // other code path writes it.
+        LaunchedEffect(bitmap) {
+            while (true) {
+                val nowNanos = withFrameNanos { it }
+                val cal2 = calibration
+                var c = camera.value
+                if (canvasSize.width > 0 && canvasSize.height > 0) {
+                    c = c.copy(screenWidth = canvasSize.width,
+                               screenHeight = canvasSize.height)
+                }
+                if (follow && cal2 != null) {
+                    val ext = positionTrack.extrapolate(nowNanos)
+                    if (ext != null) {
+                        c = c.withTarget(AtlasCamera.Target(ext.ix, ext.iy, c.scale))
+                        // Guard against a long teleport: if the player
+                        // target jumped more than kFlyToJumpFraction of
+                        // the viewport, fly instead of smoothing.
+                        val dx = (ext.ix - c.centerImageX) * c.scale
+                        val dy = (ext.iy - c.centerImageY) * c.scale
+                        val diag = hypot(c.screenWidth.toFloat(), c.screenHeight.toFloat())
+                        if (hypot(dx, dy) > diag * AtlasCamera.kFlyToJumpFraction &&
+                            c.flyTo == null) {
+                            c = c.startFlyTo(ext.ix, ext.iy, c.scale, nowNanos)
+                        }
+                    }
+                } else if (c.target != null) {
+                    c = c.copy(target = null)
+                }
+                camera.value = c.step(nowNanos, smoothing.tauMs, AtlasCamera.kDeadZonePx)
+                viewport.value = camera.value.toViewport()
+            }
+        }
+
+        val scope = rememberCoroutineScope()
 
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                // Transform gestures. detectTransformGestures consumes
-                // the event, so the pager (which looks for unconsumed
-                // single-finger drags) does not swipe tabs during a
-                // two-finger pinch or a one-finger pan here. A plain
-                // horizontal drag that isn't a transform still reaches
-                // the pager.
-                //
-                // Lock gates ONLY the pan/zoom gesture; tap+long-press
-                // below stay live so calibration taps and GTA V waypoint
-                // drops still work with the atlas locked.
                 .then(
                     if (isLocked) Modifier
                     else Modifier.pointerInput(bitmap, calibration, flow.active) {
-                        detectTransformGestures { _, pan, zoom, _ ->
-                            if (pan != Offset.Zero) viewModel.setFollowMode(false)
-                            viewport = viewport
-                                .copy(
-                                    screenWidth = canvasSize.width,
-                                    screenHeight = canvasSize.height,
-                                )
-                                .transform(
-                                    deltaOffsetX = pan.x,
-                                    deltaOffsetY = pan.y,
-                                    zoom = zoom,
-                                )
-                            viewModel.saveViewport(
-                                game, viewport.scale,
-                                viewport.offsetX, viewport.offsetY,
-                            )
+                        awaitEachGesture {
+                            val vt = VelocityTracker()
+                            val firstDown = awaitFirstDown(requireUnconsumed = false)
+                            vt.addPointerInputChange(firstDown)
+                            var pinching = false
+                            var panned = false
+                            while (true) {
+                                val event = awaitPointerEvent(PointerEventPass.Main)
+                                val activeCount = event.changes.count { it.pressed }
+                                if (activeCount == 0) break
+                                if (activeCount >= 2 && !pinching) pinching = true
+                                if (pinching) {
+                                    val zoom = event.calculateZoom()
+                                    val centroid = event.calculateCentroid(useCurrent = true)
+                                    if (zoom != 1f && centroid != Offset.Unspecified) {
+                                        camera.value = camera.value.zoomAbout(
+                                            zoom, centroid.x, centroid.y,
+                                        )
+                                        viewport.value = camera.value.toViewport()
+                                        event.changes.forEach { it.consume() }
+                                    }
+                                } else {
+                                    val pan = event.calculatePan()
+                                    if (pan != Offset.Zero) {
+                                        panned = true
+                                        camera.value = camera.value.panBy(pan.x, pan.y)
+                                        viewport.value = camera.value.toViewport()
+                                        viewModel.setFollowMode(false)
+                                        event.changes.forEach {
+                                            vt.addPointerInputChange(it)
+                                            it.consume()
+                                        }
+                                    } else {
+                                        event.changes.forEach {
+                                            vt.addPointerInputChange(it)
+                                        }
+                                    }
+                                }
+                            }
+                            if (!pinching && panned) {
+                                val v = vt.calculateVelocity()
+                                camera.value = camera.value.startFling(v.x, v.y)
+                            } else if (pinching && snapZoomToPresets) {
+                                val cal3 = calibration
+                                if (cal3 != null) {
+                                    val fitScale = ViewportModel.fit(
+                                        imageWidth = bitmap.width, imageHeight = bitmap.height,
+                                        screenWidth = canvasSize.width.coerceAtLeast(1),
+                                        screenHeight = canvasSize.height.coerceAtLeast(1),
+                                    ).scale
+                                    val idx = ZoomPresets.nearestIndex(
+                                        camera.value.scale, fitScale, cal3,
+                                    )
+                                    val target = ZoomPresets.scalesFor(fitScale, cal3)[idx]
+                                    viewModel.setPresetIndex(game, idx)
+                                    val cx = canvasSize.width  / 2f
+                                    val cy = canvasSize.height / 2f
+                                    // Fly scale toward the preset. Centre
+                                    // stays where the gesture left it, so
+                                    // the user doesn't jump sideways.
+                                    camera.value = camera.value.startFlyTo(
+                                        toX = camera.value.centerImageX,
+                                        toY = camera.value.centerImageY,
+                                        toScale = target,
+                                        nowNanos = System.nanoTime(),
+                                        durationMs = 250,
+                                    )
+                                }
+                            }
                         }
                     }
                 )
                 .pointerInput(bitmap, calibration, flow.active, anchorMode) {
                     detectTapGestures(
                         onTap = { offset ->
-                            val vp = viewport.copy(
-                                screenWidth = canvasSize.width,
-                                screenHeight = canvasSize.height,
-                            )
+                            val vp = viewport.value
                             val img = vp.screenToImage(offset.x, offset.y)
                             if (anchorMode) {
-                                // One-tap re-anchor: pair tapped pixel with
-                                // Niko's live world pos; nudges translation
-                                // only (keeps scale).
                                 val p = pos ?: return@detectTapGestures
                                 viewModel.reanchor(
                                     game = game,
@@ -221,15 +357,23 @@ internal fun CustomMapScreen(
                                 )
                             }
                         },
+                        onDoubleTap = { offset ->
+                            // Double tap on the player triangle = re-
+                            // engage follow with a fly-to.
+                            val p = pos ?: return@detectTapGestures
+                            val cal = calibration ?: return@detectTapGestures
+                            val playerScreen = viewport.value
+                                .worldToScreen(cal, p.x, p.y)
+                            val dx = offset.x - playerScreen[0]
+                            val dy = offset.y - playerScreen[1]
+                            if (hypot(dx, dy) < 24f) {
+                                viewModel.setFollowMode(true)
+                                viewModel.requestFollowReEngage()
+                            }
+                        },
                         onLongPress = { offset ->
                             if (!isGtaV || calibration == null) return@detectTapGestures
-                            val vp = viewport.copy(
-                                screenWidth = canvasSize.width,
-                                screenHeight = canvasSize.height,
-                            )
-                            val world = vp.screenToWorld(calibration, offset.x, offset.y)
-                            // Snap to nearest blip within ~20 m; falls
-                            // through to a bare xy waypoint otherwise.
+                            val world = viewport.value.screenToWorld(calibration, offset.x, offset.y)
                             val near = blips.minByOrNull { b ->
                                 hypot(b.x - world.x, b.y - world.y)
                             }
@@ -243,10 +387,7 @@ internal fun CustomMapScreen(
                 }
         ) {
             canvasSize = IntSize(size.width.toInt(), size.height.toInt())
-            val vp = viewport.copy(
-                screenWidth = canvasSize.width,
-                screenHeight = canvasSize.height,
-            )
+            val vp = viewport.value
             drawMap(imageBitmap, vp)
             drawOverlays(
                 viewport = vp,
@@ -255,15 +396,10 @@ internal fun CustomMapScreen(
                 playerPos = pos,
                 waypoint = waypoint,
                 accent = accent,
-                // Match the gold "Player" arrow the game draws on its
-                // own pause-map tab (sampled on-device, RGB 228/163/57).
-                // V keeps the per-episode accent until Brian asks.
                 triangleColor = if (game == CustomMapStore.Game.IV)
                     Color(0xFFE4A339) else accent,
                 headingOffsetDeg = headingOffsetDeg,
             )
-            // Calibration taps drawn as yellow circles so the user can
-            // see each pair they committed.
             flow.pixels.forEach { p ->
                 val s = vp.imageToScreen(p.px, p.py)
                 drawCircle(color = Color(0xFFEDE75F),
@@ -272,7 +408,6 @@ internal fun CustomMapScreen(
             }
         }
 
-        // Header: title + nav icons + lock + anchor (IV only).
         AtlasHeader(
             game = game,
             accent = accent,
@@ -284,13 +419,79 @@ internal fun CustomMapScreen(
             onOpenCheats = onOpenCheats,
             onOpenBlips = onOpenBlips,
             onOpenRadio = onOpenRadio,
+            onCenterOnPlayer = {
+                viewModel.setFollowMode(true)
+                viewModel.requestFollowReEngage()
+            },
         )
 
+        if (!flow.active && !anchorMode) {
+            ZoomOverlay(
+                scale = viewport.value.scale,
+                fitScale = ViewportModel.fit(
+                    imageWidth = bitmap.width, imageHeight = bitmap.height,
+                    screenWidth = canvasSize.width.coerceAtLeast(1),
+                    screenHeight = canvasSize.height.coerceAtLeast(1),
+                ).scale,
+                calibration = calibration,
+                accent = accent,
+                onZoomIn = {
+                    val fit = ViewportModel.fit(
+                        imageWidth = bitmap.width, imageHeight = bitmap.height,
+                        screenWidth = canvasSize.width.coerceAtLeast(1),
+                        screenHeight = canvasSize.height.coerceAtLeast(1),
+                    ).scale
+                    val cal = calibration ?: return@ZoomOverlay
+                    val next = ZoomPresets.next(camera.value.scale, fit, cal)
+                    val idx = ZoomPresets.nearestIndex(next, fit, cal)
+                    viewModel.setPresetIndex(game, idx)
+                    val focalX = canvasSize.width  / 2f
+                    val focalY = canvasSize.height / 2f
+                    camera.value = camera.value.startFlyTo(
+                        toX = camera.value.centerImageX,
+                        toY = camera.value.centerImageY,
+                        toScale = next,
+                        nowNanos = System.nanoTime(),
+                        durationMs = 250,
+                    )
+                },
+                onZoomOut = {
+                    val fit = ViewportModel.fit(
+                        imageWidth = bitmap.width, imageHeight = bitmap.height,
+                        screenWidth = canvasSize.width.coerceAtLeast(1),
+                        screenHeight = canvasSize.height.coerceAtLeast(1),
+                    ).scale
+                    val cal = calibration ?: return@ZoomOverlay
+                    val prev = ZoomPresets.prev(camera.value.scale, fit, cal)
+                    val idx = ZoomPresets.nearestIndex(prev, fit, cal)
+                    viewModel.setPresetIndex(game, idx)
+                    camera.value = camera.value.startFlyTo(
+                        toX = camera.value.centerImageX,
+                        toY = camera.value.centerImageY,
+                        toScale = prev,
+                        nowNanos = System.nanoTime(),
+                        durationMs = 250,
+                    )
+                },
+                onFit = {
+                    val fit = ViewportModel.fit(
+                        imageWidth = bitmap.width, imageHeight = bitmap.height,
+                        screenWidth = canvasSize.width.coerceAtLeast(1),
+                        screenHeight = canvasSize.height.coerceAtLeast(1),
+                    ).scale
+                    viewModel.setPresetIndex(game, 0)
+                    camera.value = camera.value.startFlyTo(
+                        toX = bitmap.width / 2f,
+                        toY = bitmap.height / 2f,
+                        toScale = fit,
+                        nowNanos = System.nanoTime(),
+                        durationMs = 300,
+                    )
+                },
+            )
+        }
+
         if (anchorMode && !flow.active) {
-            // Dim hint banner. Same bg + font as the three-tap flow bar
-            // so the two modes read as a family. Takes priority if the
-            // user flips anchor on while the 3-tap flow is also active;
-            // tap handler already returns early in that case.
             val name = ivProtagonistFirstName(episode)
             Column(
                 modifier = Modifier
@@ -339,12 +540,6 @@ internal fun CustomMapScreen(
     }
 }
 
-// Protagonist first name for the IV episode currently reporting.
-// Game-specific proper noun, same spelling in every locale (so no
-// translatable=false quirks: the string is composed at call time via
-// the %1$s slot in `atlas_reanchor_hint`). Any unknown episode falls
-// back to "Niko", which is the base-game protagonist and the right
-// default on a fresh install.
 private fun ivProtagonistFirstName(episode: Int?): String = when (episode) {
     1    -> "Johnny"
     2    -> "Luis"
@@ -367,7 +562,6 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawMap(
     bitmap: ImageBitmap,
     vp: ViewportModel,
 ) {
-    // Image centre at viewport centre, scaled around that.
     val cx = bitmap.width / 2f
     val cy = bitmap.height / 2f
     val topLeftX = (-cx + vp.offsetX) * vp.scale + vp.screenWidth / 2f
@@ -391,7 +585,6 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawOverlays(
     headingOffsetDeg: Float,
 ) {
     if (calibration == null) return
-    // Blip dots.
     blips.forEach { b ->
         val s = viewport.worldToScreen(calibration, b.x, b.y)
         drawCircle(
@@ -400,10 +593,6 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawOverlays(
             center = Offset(s[0], s[1]),
         )
     }
-    // Player dot. No direction — matches the small gold spot the game
-    // draws on its own pause-map once the player stops. 2× the blip
-    // radius so the player still reads as the primary marker without
-    // dominating the zoomed-out view.
     if (playerPos != null) {
         val s = viewport.worldToScreen(calibration, playerPos.x, playerPos.y)
         drawCircle(
@@ -411,12 +600,6 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawOverlays(
             radius = 10f,
             center = Offset(s[0], s[1]),
         )
-    }
-    // Active waypoint (xy, no blip id).
-    if (waypoint?.active == true && waypoint.ours && waypoint.blip == 0) {
-        // We don't carry xy in Waypoint today; the plugin reports it
-        // as a blip at the waypoint sprite. Nothing to draw here
-        // beyond what the blip list already covers.
     }
 }
 
@@ -432,6 +615,7 @@ private fun AtlasHeader(
     onOpenCheats: (() -> Unit)?,
     onOpenBlips: (() -> Unit)?,
     onOpenRadio: (() -> Unit)?,
+    onCenterOnPlayer: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -456,6 +640,12 @@ private fun AtlasHeader(
             )
         }
         HeaderIconButton(
+            icon = Icons.Filled.MyLocation,
+            contentDescription = stringResource(R.string.atlas_follow_cd),
+            tint = accent,
+            onClick = onCenterOnPlayer,
+        )
+        HeaderIconButton(
             icon = if (isLocked) Icons.Filled.Lock else Icons.Filled.LockOpen,
             contentDescription = stringResource(
                 if (isLocked) R.string.map_unlock else R.string.map_lock,
@@ -464,11 +654,6 @@ private fun AtlasHeader(
             onClick = onToggleLock,
         )
         if (game == CustomMapStore.Game.IV) {
-            // IV only. V's scale will shift with new map DLC, so the
-            // scale-preserving one-tap re-anchor would just hide a real
-            // calibration gap. On IV the radar.img extents are stable,
-            // so a translation nudge is almost always the fix the user
-            // actually wants when the triangle drifts.
             HeaderIconButton(
                 icon = Icons.Filled.GpsFixed,
                 contentDescription = stringResource(
@@ -652,9 +837,6 @@ private fun NoImageState(
                 fontSize = 20.sp,
             )
             Spacer(Modifier.width(12.dp))
-            // Refresh icon: re-reads the drop-in folder + decodes the
-            // atlas overview on-screen. Needed after the plugin writes
-            // iv.png into the picked folder (no app process restart).
             Icon(
                 imageVector = Icons.Filled.Refresh,
                 contentDescription = "reload",
@@ -666,10 +848,6 @@ private fun NoImageState(
             )
         }
         Spacer(Modifier.height(10.dp))
-
-        // Primary call to action — build from the game's own archives.
-        // Replaces the pure "drop a file" hint, which stays underneath
-        // as the manual fallback.
         val running = progress?.isRunning == true
         Box(
             modifier = Modifier
@@ -692,7 +870,7 @@ private fun NoImageState(
             Spacer(Modifier.height(8.dp))
             val label = when {
                 progress.isError -> "error: ${progress.err.ifBlank { "unknown" }}"
-                progress.isDone -> "done — reload the atlas tab"
+                progress.isDone -> "done, reload the atlas tab"
                 else -> "${progress.state} · ${progress.pct}%"
             }
             Text(

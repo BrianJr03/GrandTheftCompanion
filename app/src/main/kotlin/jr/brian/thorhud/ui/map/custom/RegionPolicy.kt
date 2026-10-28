@@ -11,7 +11,7 @@ import kotlin.math.roundToInt
  * Decoding every frame hitches the Thor, so the policy here batches:
  *
  *  * Decode a rect sized **marginFactor** times the visible viewport,
- *    centred on the camera.
+ *    centered on the camera.
  *  * Keep using that region until the camera leaves the **inner**
  *    `innerFraction` of it, OR the viewport scale changes by more than
  *    `scaleDeltaFraction`.
@@ -43,7 +43,7 @@ object RegionPolicy {
         val height: Int get() = bottom - top
     }
 
-    /** Build a decode rect centred on [centerImageX, centerImageY] with
+    /** Build a decode rect centered on [centerImageX, centerImageY] with
      *  margin [kMarginFactor]. Clamped to the image bounds. */
     fun buildRect(
         centerImageX: Float, centerImageY: Float,

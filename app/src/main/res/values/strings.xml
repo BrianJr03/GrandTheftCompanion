@@ -310,6 +310,17 @@
     <string name="atlas_reanchor_waiting">waiting for a position from the plugin…</string>
     <string name="atlas_reanchor_cd">re-anchor by tap</string>
     <string name="atlas_reanchor_cancel_cd">cancel re-anchor</string>
+    <string name="atlas_follow_cd">center on player</string>
+    <string name="atlas_zoom_in_cd">zoom in</string>
+    <string name="atlas_zoom_out_cd">zoom out (long-press for fit)</string>
+    <string name="atlas_setting_follow">follow player</string>
+    <string name="atlas_setting_follow_hint">on: the atlas tracks you with a smooth camera. off: it stays where you left it.</string>
+    <string name="atlas_setting_snap_zoom">snap zoom to presets</string>
+    <string name="atlas_setting_snap_zoom_hint">after a pinch, settle on the nearest preset (fit, 8, 4, 2, 1, 0.5 m/px).</string>
+    <string name="atlas_setting_smoothing">follow smoothing</string>
+    <string name="atlas_setting_smoothing_tight">tight</string>
+    <string name="atlas_setting_smoothing_normal">normal</string>
+    <string name="atlas_setting_smoothing_loose">loose</string>
     <string name="map_gesture_hint_zoom">pinch to zoom</string>
     <string name="map_gesture_hint_pan">drag to pan</string>
     <string name="map_view_cd">mirror of the top screen; pinch to zoom, drag to pan</string>

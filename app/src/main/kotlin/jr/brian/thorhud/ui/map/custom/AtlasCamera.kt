@@ -84,10 +84,10 @@ data class AtlasCamera(
         )
     }
 
-    /** Snap to a new centre and scale, clearing any motion state. */
+    /** Snap to a new center and scale, clearing any motion state. */
     fun snapTo(ix: Float, iy: Float, newScale: Float = scale): AtlasCamera {
         val s = newScale.coerceIn(ViewportModel.MIN_SCALE, ViewportModel.MAX_SCALE)
-        val clamped = clampCentre(ix, iy, s)
+        val clamped = clampCenter(ix, iy, s)
         return copy(
             centerImageX = clamped.first,
             centerImageY = clamped.second,
@@ -96,9 +96,10 @@ data class AtlasCamera(
         )
     }
 
-    /** Set a follow target. Smoothing kicks in on the next [step]. */
-    fun withTarget(target: Target?): AtlasCamera =
-        copy(target = target, flyTo = null, fling = null)
+    /** Set a follow target without disturbing any in-flight motion.
+     *  Smoothing kicks in on the next [step] once flyTo and fling (if
+     *  any) have finished; the step priority ladder handles that. */
+    fun withTarget(target: Target?): AtlasCamera = copy(target = target)
 
     /** Direct pan from a gesture. Clears all motion state because the
      *  user is driving. */
@@ -106,7 +107,7 @@ data class AtlasCamera(
         if (scale <= 0f) return this
         val nx = centerImageX - deltaScreenX / scale
         val ny = centerImageY - deltaScreenY / scale
-        val clamped = clampCentre(nx, ny, scale)
+        val clamped = clampCenter(nx, ny, scale)
         return copy(
             centerImageX = clamped.first,
             centerImageY = clamped.second,
@@ -130,10 +131,10 @@ data class AtlasCamera(
         val ix = centerImageX + (focalScreenX - screenWidth / 2f) / scale
         val iy = centerImageY + (focalScreenY - screenHeight / 2f) / scale
         // After zoom we want the same ix under the focal:
-        //   centreNew = ix - (focalScreenX - screenW/2) / newScale
+        //   centerNew = ix - (focalScreenX - screenW/2) / newScale
         val cxNew = ix - (focalScreenX - screenWidth / 2f) / newScale
         val cyNew = iy - (focalScreenY - screenHeight / 2f) / newScale
-        val clamped = clampCentre(cxNew, cyNew, newScale)
+        val clamped = clampCenter(cxNew, cyNew, newScale)
         return copy(
             scale = newScale,
             centerImageX = clamped.first,
@@ -209,7 +210,7 @@ data class AtlasCamera(
      *  Priority ladder:
      *  1. If a [flyTo] is active and not expired, interpolate.
      *  2. Else if [fling] is active, step it and apply remaining
-     *     velocity to the centre.
+     *     velocity to the center.
      *  3. Else if [target] is set, exp-smooth toward it; dead-zone
      *     under [deadZonePx] suppresses sub-pixel drift. */
     fun step(
@@ -244,7 +245,7 @@ data class AtlasCamera(
             } else {
                 lerpLog(ft.midScale, ft.toScale, easeInOut((t - 0.5f) * 2f))
             }
-            val clamped = clampCentre(nx, ny, sExp)
+            val clamped = clampCenter(nx, ny, sExp)
             return copy(
                 centerImageX = clamped.first,
                 centerImageY = clamped.second,
@@ -265,7 +266,7 @@ data class AtlasCamera(
             val dy = fl.vyPxPerSec * tau * (1f - k)
             val nx = centerImageX + dx
             val ny = centerImageY + dy
-            val clamped = clampCentre(nx, ny, scale)
+            val clamped = clampCenter(nx, ny, scale)
             val vx = fl.vxPxPerSec * k
             val vy = fl.vyPxPerSec * k
             val still = hypot(vx, vy) * scale < kMinFlingSpeedPxPerSec * 0.5f
@@ -290,7 +291,7 @@ data class AtlasCamera(
             val nx = centerImageX + dx * alpha
             val ny = centerImageY + dy * alpha
             val sNew = scale + (t.scale - scale) * alpha
-            val clamped = clampCentre(nx, ny, sNew)
+            val clamped = clampCenter(nx, ny, sNew)
             return copy(
                 centerImageX = clamped.first,
                 centerImageY = clamped.second,
@@ -302,12 +303,12 @@ data class AtlasCamera(
         return copy(lastStepNanos = nowNanos)
     }
 
-    /** Clamp the camera centre so the image always *covers* the
-     *  viewport. The player can drift off-centre near a map edge but
+    /** Clamp the camera center so the image always *covers* the
+     *  viewport. The player can drift off-center near a map edge but
      *  the Canvas never shows black on either side. When the viewport
      *  is bigger than the image at the current scale (zoomed out past
-     *  fit), the camera snaps to the image centre on that axis. */
-    private fun clampCentre(ix: Float, iy: Float, s: Float): Pair<Float, Float> {
+     *  fit), the camera snaps to the image center on that axis. */
+    private fun clampCenter(ix: Float, iy: Float, s: Float): Pair<Float, Float> {
         if (s <= 0f) return ix to iy
         val halfViewportImgX = screenWidth  / (2f * s)
         val halfViewportImgY = screenHeight / (2f * s)

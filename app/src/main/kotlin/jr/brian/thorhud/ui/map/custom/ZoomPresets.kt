@@ -4,15 +4,15 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 /**
- * Zoom presets expressed in **metres per screen pixel**, so a given
+ * Zoom presets expressed in **meters per screen pixel**, so a given
  * preset means the same real-world framing on any atlas image. The
- * conversion from "metres per screen pixel" to a [ViewportModel.scale]
+ * conversion from "meters per screen pixel" to a [ViewportModel.scale]
  * goes through the [Calibration] (which encodes "image pixels per
- * metre") and the user's zoom (which encodes "screen pixels per
+ * meter") and the user's zoom (which encodes "screen pixels per
  * image pixel").
  *
  *   screenPxPerMetre  = imagePxPerMetre * scale
- *   metresPerScreenPx = metresPerImagePx / scale
+ *   metersPerScreenPx = metersPerImagePx / scale
  *
  * The preset list runs coarse to fine. [Fit] is a special entry that
  * means "the fit scale for the current image + viewport", computed
@@ -20,7 +20,7 @@ import kotlin.math.sqrt
  */
 object ZoomPresets {
 
-    /** `null` means "fit"; numbers are metres per screen pixel. */
+    /** `null` means "fit"; numbers are meters per screen pixel. */
     val Levels: List<Float?> = listOf(null, 8f, 4f, 2f, 1f, 0.5f)
 
     /** Cap at 1.5x the image's native pixel ratio; beyond that it's
@@ -28,26 +28,26 @@ object ZoomPresets {
      *  resulting scale so this returns `scale`, not a preset index. */
     const val NativeZoomCap: Float = 1.5f
 
-    /** Convert a metres-per-screen-pixel target into a
+    /** Convert a meters-per-screen-pixel target into a
      *  [ViewportModel.scale] under the given calibration. Returns null
      *  if the calibration is degenerate (det ~ 0). */
     fun scaleFor(mPerPx: Float, cal: Calibration): Float? {
-        val mPerImagePx = metresPerImagePixel(cal) ?: return null
+        val mPerImagePx = metersPerImagePixel(cal) ?: return null
         if (mPerPx <= 0f) return null
         return mPerImagePx / mPerPx
     }
 
     /** Reverse of [scaleFor]: given the current [ViewportModel.scale],
-     *  return the metres-per-screen-pixel level it corresponds to.
+     *  return the meters-per-screen-pixel level it corresponds to.
      *  Returns null for degenerate calibrations. */
     fun levelFor(scale: Float, cal: Calibration): Float? {
-        val mPerImagePx = metresPerImagePixel(cal) ?: return null
+        val mPerImagePx = metersPerImagePixel(cal) ?: return null
         if (scale <= 0f) return null
         return mPerImagePx / scale
     }
 
-    /** Image pixels per metre is sqrt(|a*e - b*d|). */
-    private fun metresPerImagePixel(cal: Calibration): Float? {
+    /** Image pixels per meter is sqrt(|a*e - b*d|). */
+    private fun metersPerImagePixel(cal: Calibration): Float? {
         val det = abs(cal.a * cal.e - cal.b * cal.d)
         if (det < 1e-12f) return null
         return (1.0 / sqrt(det.toDouble())).toFloat()
@@ -91,7 +91,7 @@ object ZoomPresets {
      *  list if the calibration cannot be read (degenerate det), so
      *  the overlay stays usable. */
     fun scalesFor(fitScale: Float, cal: Calibration): FloatArray {
-        val mPerImagePx = metresPerImagePixel(cal)
+        val mPerImagePx = metersPerImagePixel(cal)
         if (mPerImagePx == null) return floatArrayOf(fitScale)
         val out = FloatArray(Levels.size)
         for (i in Levels.indices) {
@@ -101,7 +101,7 @@ object ZoomPresets {
         return out
     }
 
-    /** Short display label for the overlay centre. Uses the metres-
+    /** Short display label for the overlay center. Uses the meters-
      *  per-pixel number when it exists (e.g. "2 m/px"), falls back to
      *  "fit" for the fit entry, and a plain `×N` multiplier when
      *  there is no calibration yet. */

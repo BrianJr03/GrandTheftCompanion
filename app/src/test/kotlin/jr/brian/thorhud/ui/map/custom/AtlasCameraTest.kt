@@ -92,7 +92,7 @@ class AtlasCameraTest {
             screenWidth = 500, screenHeight = 400,
         ).withTarget(AtlasCamera.Target(500f, 400f, 1f))
         var t = 0L
-        // 100 image-px/sec — above walking, below the clamp bite at 2 s.
+        // 100 image-px/sec - above walking, below the clamp bite at 2 s.
         val vx = 100f
         var tx = 500f
         val dt = ms(11)
