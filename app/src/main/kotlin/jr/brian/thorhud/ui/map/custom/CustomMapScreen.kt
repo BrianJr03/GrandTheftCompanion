@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -104,6 +105,10 @@ internal fun CustomMapScreen(
     onOpenCheats: (() -> Unit)? = null,
     onOpenBlips: (() -> Unit)? = null,
     onOpenRadio: (() -> Unit)? = null,
+    // Paused only: a gear sits at the far right of the atlas header so
+    // settings is reachable without swiping back to the paused HUD.
+    // Null when the game is unpaused.
+    onOpenSettings: (() -> Unit)? = null,
     viewModel: AtlasViewModel = hiltViewModel(),
 ) {
     val data by viewModel.dataFor(game).collectAsStateWithLifecycle()
@@ -302,16 +307,23 @@ internal fun CustomMapScreen(
                         rotTarget = 0f
                         rotTau = AtlasCamera.kRotationEaseOffMs
                     }
+                    cal2 == null -> {
+                        rotTarget = 0f
+                        rotTau = AtlasCamera.kRotationEaseOffMs
+                    }
                     else -> {
                         val speedPxPerSec = positionTrack.speedPxPerSec() ?: 0f
-                        val mPerImagePx = cal2?.let { metersPerImagePx(it) } ?: 1f
+                        val mPerImagePx = metersPerImagePx(cal2)
                         val speedMps = speedPxPerSec * mPerImagePx
                         val headingDeg = positionTrack.extrapolate(nowNanos)?.headingDeg
                         if (speedMps < AtlasCamera.kLowSpeedHoldMps || headingDeg == null) {
                             rotTarget = null
                             rotTau = AtlasCamera.kRotationTimeConstantMs
                         } else {
-                            rotTarget = (360f - headingDeg) % 360f
+                            // Through the calibration so a Y-flipped atlas
+                            // doesn't make the camera turn the wrong way.
+                            val screenHead = screenHeadingDeg(cal2, headingDeg)
+                            rotTarget = (360f - screenHead) % 360f
                             rotTau = AtlasCamera.kRotationTimeConstantMs
                         }
                     }
@@ -496,6 +508,7 @@ internal fun CustomMapScreen(
             onOpenCheats = onOpenCheats,
             onOpenBlips = onOpenBlips,
             onOpenRadio = onOpenRadio,
+            onOpenSettings = onOpenSettings,
             onCenterOnPlayer = {
                 viewModel.setFollowMode(true)
                 viewModel.requestFollowReEngage()
@@ -632,6 +645,30 @@ private fun metersPerImagePx(cal: Calibration): Float {
     return (1.0 / kotlin.math.sqrt(det.toDouble())).toFloat()
 }
 
+/** Convert a game-world heading (degrees, 0 = north, clockwise) into
+ *  the equivalent **screen** heading (degrees clockwise from screen
+ *  up). Goes through the calibration's linear part so a Y-flipped or
+ *  slightly rotated atlas image produces a triangle that points in
+ *  the direction the player is actually moving on-screen, and an
+ *  image rotation that puts that direction at the top. Without this,
+ *  an atlas whose calibration maps world +Y to image +Y (instead of
+ *  the usual image -Y) scrolls "backwards" when the player walks
+ *  forward. Returns a value in [0, 360). */
+private fun screenHeadingDeg(cal: Calibration, worldHeadingDeg: Float): Float {
+    val rad = Math.toRadians(worldHeadingDeg.toDouble())
+    val wx = kotlin.math.sin(rad).toFloat()            // east component
+    val wy = kotlin.math.cos(rad).toFloat()            // north component
+    // Linear part of the affine: image delta per world delta.
+    val imgDx = cal.a * wx + cal.b * wy
+    val imgDy = cal.d * wx + cal.e * wy
+    // Screen Y is down, so "up on screen" is image -Y. atan2(x, -y)
+    // gives the clockwise angle from screen up.
+    val rad2 = kotlin.math.atan2(imgDx.toDouble(), -imgDy.toDouble()).toFloat()
+    var deg = Math.toDegrees(rad2.toDouble()).toFloat()
+    if (deg < 0f) deg += 360f
+    return deg
+}
+
 private fun nearestBlipWorld(
     blips: List<GameState.Blip>,
     imageX: Float,
@@ -693,11 +730,14 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawOverlays(
     if (playerPos != null) {
         val s = viewport.worldToScreen(calibration, playerPos.x, playerPos.y)
         // Triangle rotation: on north-up the triangle rotates with
-        // heading (viewport.rotationDeg = 0, so triRot = heading). On
-        // heading-up the image already rotates to put heading at the
-        // top, so the triangle lands pointing up (triRot = heading +
-        // (360 - heading) = 360 = 0). Both cases from one formula.
-        val triRot = (playerPos.h + viewport.rotationDeg + headingOffsetDeg) % 360f
+        // heading (viewport.rotationDeg = 0, so triRot = screenHead).
+        // On heading-up the image already rotates to put heading at
+        // the top, so triRot = screenHead + (360 - screenHead) = 0.
+        // Both cases from one formula; the heading goes through the
+        // calibration so a Y-flipped atlas points the triangle in the
+        // direction the player is actually moving on-screen.
+        val screenHead = screenHeadingDeg(calibration, playerPos.h)
+        val triRot = (screenHead + viewport.rotationDeg + headingOffsetDeg) % 360f
         withTransform({
             translate(left = s[0], top = s[1])
             rotate(triRot, pivot = Offset.Zero)
