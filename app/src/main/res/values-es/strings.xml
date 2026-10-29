@@ -77,6 +77,9 @@
     <string name="model_fallback">modelo %1$d</string>
 
     <!-- Setup screen -->
+    <string name="paused_title_home">inicio</string>
+    <string name="paused_title_cheats">trucos</string>
+    <string name="paused_title_map">mapa</string>
     <string name="setup_title">NO CONECTADO</string>
     <string name="setup_subtitle">Compatible con GTA IV y GTA V. El compañero escucha en 127.0.0.1:47801 el plugin que instales.</string>
     <string name="setup_section">configuración gta iv</string>
@@ -223,6 +226,7 @@
     <string name="tab_cheats">trucos</string>
     <string name="cheats_title">trucos</string>
     <string name="cheats_unsupported">no disponible en este plugin</string>
+    <string name="cheats_pick_section">Elige una sección</string>
     <string name="cheats_section_health">salud</string>
     <string name="cheats_section_wanted">búsqueda</string>
     <string name="cheats_section_weapons">armas</string>
@@ -312,6 +316,21 @@
     <string name="map_onboarding_slide_actions_body">La columna de iconos llega al resto de pestañas sin salir del mapa. Casa para el HUD, dado para los trucos, pin para los puntos, radio para las emisoras. Las superposiciones de conducción (velocímetro, distancia al punto de ruta en V, destino rastreado) aparecen por sí solas mientras estás en un coche.</string>
 
     <string name="settings_section_cheats">Trucos</string>
+    <string name="settings_section_app">Navegación</string>
+    <string name="settings_section_atlas">Atlas</string>
+    <string name="settings_rail_group_app">Aplicación</string>
+    <string name="settings_rail_pick">Elige una sección</string>
+    <string name="settings_tab_arrows_title">Flechas de pestañas</string>
+    <string name="settings_tab_arrows_body">Muestra chevrones izquierdo y derecho en la parte inferior de cada pestaña para cambiar de pestaña con un solo toque. El deslizamiento sigue funcionando.</string>
+    <string name="settings_tab_arrows_style_title">Icono del botón</string>
+    <string name="settings_tab_arrows_style_arrows">flechas</string>
+    <string name="settings_tab_arrows_style_stars">estrellas</string>
+    <string name="settings_tab_arrows_style_transparent">transparente</string>
+    <string name="tab_arrows_prompt_title">Flechas de pestañas</string>
+    <string name="tab_arrows_prompt_body">Nuevo: chevrones izquierdo y derecho en la parte inferior de cada pestaña para cambiar de pestaña con un solo toque. Activadas por defecto — desactívalas en Ajustes → Aplicación si prefieres solo deslizar.</string>
+    <string name="tab_arrows_prompt_dismiss">Entendido</string>
+    <string name="tab_arrows_prev_cd">pestaña anterior</string>
+    <string name="tab_arrows_next_cd">pestaña siguiente</string>
     <string name="settings_auto_reapply_cheats_title">Reaplicar interruptores al reconectar</string>
     <string name="settings_auto_reapply_cheats_body">Después de que el compañero se reconecte (nueva sesión, reinicio del juego), reactiva cualquier interruptor que tuvieras activado la última vez, más cualquier truco instantáneo que hubieras armado con pulsación larga. Solo se dispara una vez por conexión y únicamente cuando el juego está en un estado seguro (sin pausa, sin cambio de personaje, sin cinemática).</string>
     <string name="settings_clear_cheats_title">Borrar trucos guardados</string>

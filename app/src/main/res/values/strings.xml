@@ -18,6 +18,7 @@
          button labels are our wording, not Rockstar\'s cheat phrases. -->
     <string name="cheats_title">cheats</string>
     <string name="cheats_unsupported">not in this plugin build</string>
+    <string name="cheats_pick_section">Pick a section</string>
     <string name="cheats_section_health">health</string>
     <string name="cheats_section_wanted">wanted</string>
     <string name="cheats_section_weapons">weapons</string>
@@ -362,6 +363,21 @@
     <string name="settings_ammu_auto_select_body">When the Ammu-Nation sheet opens, start on whichever weapon you\'re currently holding. Off: the sheet opens on the first weapon in the rail instead, so switching weapons in-game doesn\'t move your place.</string>
     <string name="settings_section_plugin">Plugin</string>
     <string name="settings_section_cheats">Cheats</string>
+    <string name="settings_section_app">Navigation</string>
+    <string name="settings_section_atlas">Atlas</string>
+    <string name="settings_rail_group_app">App</string>
+    <string name="settings_rail_pick">Pick a section</string>
+    <string name="settings_tab_arrows_title">Tab arrows</string>
+    <string name="settings_tab_arrows_body">Show left and right chevrons at the bottom of each tab for one-tap moves between tabs. Pager swipe still works.</string>
+    <string name="settings_tab_arrows_style_title">Button icon</string>
+    <string name="settings_tab_arrows_style_arrows">arrows</string>
+    <string name="settings_tab_arrows_style_stars">stars</string>
+    <string name="settings_tab_arrows_style_transparent">transparent</string>
+    <string name="tab_arrows_prompt_title">Tab arrows</string>
+    <string name="tab_arrows_prompt_body">New: left and right chevrons at the bottom of each tab for one-tap moves. On by default — flip them off from Settings → App if you want pure swipe.</string>
+    <string name="tab_arrows_prompt_dismiss">Got it</string>
+    <string name="tab_arrows_prev_cd">previous tab</string>
+    <string name="tab_arrows_next_cd">next tab</string>
     <string name="settings_auto_reapply_cheats_title">Re-apply toggles on reconnect</string>
     <string name="settings_auto_reapply_cheats_body">After the companion reconnects (new session, game relaunch), turn back on any toggle you had enabled last time, plus any one-shot you long-pressed to arm. Only fires once per connection and only when the game is in a safe state (not paused, not switching characters, not in a cutscene).</string>
     <string name="settings_clear_cheats_title">Clear saved cheats</string>
@@ -435,6 +451,12 @@
 
     <!-- Paused view -->
     <string name="paused_version" translatable="false">GTA IV v%1$s</string>
+    <!-- Per-tab subtitle shown above the game title on the paused
+         screen so the player knows which tab they are on while the
+         game is paused. -->
+    <string name="paused_title_home">home</string>
+    <string name="paused_title_cheats">cheats</string>
+    <string name="paused_title_map">map</string>
 
     <!-- Setup screen -->
     <string name="setup_title">NOT CONNECTED</string>

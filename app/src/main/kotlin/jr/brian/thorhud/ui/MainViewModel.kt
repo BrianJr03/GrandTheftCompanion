@@ -78,6 +78,29 @@ class MainViewModel @Inject constructor(
         get() = prefs.hasSeenSwipeHint
         set(value) { prefs.hasSeenSwipeHint = value }
 
+    // Sticky left/right pager arrows (App section in Settings). Opt-in
+    // via a first-launch sheet; after that the flag below gates whether
+    // that sheet re-opens on cold start.
+    val tabArrowsEnabled: StateFlow<Boolean> = settings.tabArrowsEnabled
+
+    fun setTabArrowsEnabled(enabled: Boolean) {
+        settings.setTabArrowsEnabled(enabled)
+    }
+
+    var hasSeenTabArrowsPrompt: Boolean
+        get() = settings.hasSeenTabArrowsPrompt
+        set(value) { settings.hasSeenTabArrowsPrompt = value }
+
+    // Icon style + one-shot first-visit discovery ring for the sticky
+    // tab-nav buttons. Style is persisted; the hint flag flips the
+    // first time the ring plays so it never auto-replays.
+    val tabArrowIconStyle: StateFlow<jr.brian.thorhud.ui.components.TabArrowIconStyle> =
+        settings.tabArrowIconStyle
+
+    fun setTabArrowIconStyle(style: jr.brian.thorhud.ui.components.TabArrowIconStyle) {
+        settings.setTabArrowIconStyle(style)
+    }
+
     // HUD onboarding sheet (first-visit tour of the HUD page cards).
     // One shot per installation, shared across games. Backed by
     // HudPrefs — read once per MainScreen composition, written when

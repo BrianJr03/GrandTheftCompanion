@@ -77,6 +77,9 @@
     <string name="model_fallback">модель %1$d</string>
 
     <!-- Setup screen -->
+    <string name="paused_title_home">главная</string>
+    <string name="paused_title_cheats">читы</string>
+    <string name="paused_title_map">карта</string>
     <string name="setup_title">НЕ ПОДКЛЮЧЕНО</string>
     <string name="setup_subtitle">Работает с GTA IV и GTA V. Компаньон слушает на 127.0.0.1:47801 установленный плагин.</string>
     <string name="setup_section">настройка gta iv</string>
@@ -223,6 +226,7 @@
     <string name="tab_cheats">читы</string>
     <string name="cheats_title">читы</string>
     <string name="cheats_unsupported">недоступно в этой сборке плагина</string>
+    <string name="cheats_pick_section">Выберите раздел</string>
     <string name="cheats_section_health">здоровье</string>
     <string name="cheats_section_wanted">розыск</string>
     <string name="cheats_section_weapons">оружие</string>
@@ -312,6 +316,21 @@
     <string name="map_onboarding_slide_actions_body">Столбец иконок позволяет перейти к другим вкладкам, не покидая карту. Дом для HUD, кубик для читов, булавка для блипов, радио для станций. Накладки вождения (спидометр, расстояние до путевой точки в V, проложенный маршрут) появляются сами, пока вы в машине.</string>
 
     <string name="settings_section_cheats">Читы</string>
+    <string name="settings_section_app">Навигация</string>
+    <string name="settings_section_atlas">Атлас</string>
+    <string name="settings_rail_group_app">Приложение</string>
+    <string name="settings_rail_pick">Выберите раздел</string>
+    <string name="settings_tab_arrows_title">Стрелки вкладок</string>
+    <string name="settings_tab_arrows_body">Показывать стрелки влево и вправо внизу каждой вкладки для перехода между вкладками одним касанием. Свайп также работает.</string>
+    <string name="settings_tab_arrows_style_title">Значок кнопки</string>
+    <string name="settings_tab_arrows_style_arrows">стрелки</string>
+    <string name="settings_tab_arrows_style_stars">звёзды</string>
+    <string name="settings_tab_arrows_style_transparent">прозрачно</string>
+    <string name="tab_arrows_prompt_title">Стрелки вкладок</string>
+    <string name="tab_arrows_prompt_body">Новое: стрелки влево и вправо внизу каждой вкладки для перехода одним касанием. Включены по умолчанию — отключите их в Настройки → Приложение, если предпочитаете только свайп.</string>
+    <string name="tab_arrows_prompt_dismiss">Понятно</string>
+    <string name="tab_arrows_prev_cd">предыдущая вкладка</string>
+    <string name="tab_arrows_next_cd">следующая вкладка</string>
     <string name="settings_auto_reapply_cheats_title">Повторно применять переключатели после переподключения</string>
     <string name="settings_auto_reapply_cheats_body">После переподключения компаньона (новая сессия, перезапуск игры) снова включает каждый переключатель, который был у вас включён в последний раз, плюс каждый одноразовый чит, который вы взвели долгим нажатием. Срабатывает только один раз за соединение и только когда игра в безопасном состоянии (не на паузе, не при смене персонажа, не в катсцене).</string>
     <string name="settings_clear_cheats_title">Очистить сохранённые читы</string>

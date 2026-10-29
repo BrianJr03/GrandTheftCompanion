@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -107,6 +108,11 @@ internal fun MirrorMapScreen(
     // the game is GTA IV (its blips carry a distance too but IV already
     // has no waypoint concept here — only route_blip).
     waypointDistM: Float? = null,
+    // Paused only: gear sits at the far right of the idle header and
+    // bottom of the active-mirror controls column so settings is
+    // reachable without swiping back to the paused HUD. Null when the
+    // game is unpaused.
+    onOpenSettings: (() -> Unit)? = null,
     viewModel: MapViewModel = hiltViewModel(),
 ) {
     val status by viewModel.status.collectAsStateWithLifecycle()
@@ -220,6 +226,7 @@ internal fun MirrorMapScreen(
                     onOpenRadio = onOpenRadio,
                     onOpenCheats = onOpenCheats,
                     onOpenHud = onOpenHud,
+                    onOpenSettings = onOpenSettings,
                     controlsRight = controlsRight,
                     viewModel = viewModel,
                 )
@@ -320,6 +327,14 @@ internal fun MirrorMapScreen(
                         onClick = open,
                     )
                 }
+                onOpenSettings?.let { open ->
+                    HeaderIconButton(
+                        icon = Icons.Filled.Settings,
+                        contentDescription = stringResource(R.string.settings_icon_cd),
+                        tint = accent,
+                        onClick = open,
+                    )
+                }
             }
         }
     }
@@ -371,6 +386,7 @@ private fun MirrorMapLayout(
     onOpenRadio: (() -> Unit)?,
     onOpenCheats: (() -> Unit)?,
     onOpenHud: (() -> Unit)?,
+    onOpenSettings: (() -> Unit)?,
     controlsRight: Boolean,
     viewModel: MapViewModel,
 ) {
@@ -390,6 +406,7 @@ private fun MirrorMapLayout(
                 onOpenRadio = onOpenRadio,
                 onOpenCheats = onOpenCheats,
                 onOpenHud = onOpenHud,
+                onOpenSettings = onOpenSettings,
                 viewModel = viewModel,
             )
         }
@@ -460,6 +477,7 @@ private fun MirrorMapLayout(
                 onOpenRadio = onOpenRadio,
                 onOpenCheats = onOpenCheats,
                 onOpenHud = onOpenHud,
+                onOpenSettings = onOpenSettings,
                 viewModel = viewModel,
             )
         }
@@ -475,6 +493,7 @@ private fun MapControlsColumn(
     onOpenRadio: (() -> Unit)?,
     onOpenCheats: (() -> Unit)?,
     onOpenHud: (() -> Unit)?,
+    onOpenSettings: (() -> Unit)?,
     viewModel: MapViewModel,
 ) {
     Column(
@@ -530,6 +549,14 @@ private fun MapControlsColumn(
             MapIconButton(
                 icon = Icons.Filled.Radio,
                 contentDescription = stringResource(R.string.label_radio),
+                accent = accent,
+                onClick = open,
+            )
+        }
+        onOpenSettings?.let { open ->
+            MapIconButton(
+                icon = Icons.Filled.Settings,
+                contentDescription = stringResource(R.string.settings_icon_cd),
                 accent = accent,
                 onClick = open,
             )

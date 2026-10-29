@@ -1,57 +1,37 @@
 package jr.brian.thorhud.ui.cheats
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInParent
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.DragIndicator
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Radio
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -75,12 +55,14 @@ import jr.brian.thorhud.ui.components.OnboardingSheet
 import jr.brian.thorhud.ui.components.OnboardingSlide
 
 /**
- * The cheats tab. Grouped into collapsible sections (health, wanted,
- * weapons, vehicle, world, toggles) so related cheats stay visually
- * clustered on the Thor's short 540 x 468 dp bottom panel. Toggle
- * button lights come from [cheatsMask] alone — never from the tap —
- * so a toggle the plugin refused never looks on. The last refusal
- * shows as a single line at the bottom; cleared on the next tap.
+ * The cheats tab. Two-column rail layout: a left column of category
+ * chips (health, wanted, weapons, vehicle, world, toggles, paint) and
+ * a right pane that renders the selected category's buttons. Mirrors
+ * `SettingsSheet` and `AmmuNationScreen` so swapping tabs feels
+ * uniform. Toggle button lights come from [cheatsMask] alone — never
+ * from the tap — so a toggle the plugin refused never looks on. The
+ * last refusal shows as a single line at the bottom of the pane;
+ * cleared on the next tap.
  *
  * Long-press on a non-toggle (one-shot) button toggles its
  * auto-apply flag: a lit one-shot fires itself on every reconnect
@@ -93,6 +75,11 @@ import jr.brian.thorhud.ui.components.OnboardingSlide
  *
  * When the connected plugin build does not support the cheat
  * command the screen is just a one-line notice.
+ *
+ * [collapsedSections] and [onToggleSection] + [onReorderSections]
+ * stay in the signature so the ViewModel pref layer keeps working
+ * unchanged — the rail does not use them, but the parent (MainScreen)
+ * passes them unconditionally.
  */
 @Composable
 internal fun CheatsScreen(
@@ -102,11 +89,11 @@ internal fun CheatsScreen(
     vehicle: GameState.Vehicle?,
     accent: Color,
     lastResult: CheatResult?,
-    collapsedSections: Set<String>,
+    @Suppress("UNUSED_PARAMETER") collapsedSections: Set<String>,
     autoApplyCheats: Set<Int>,
     savedSectionOrder: List<String>,
     showOnboarding: Boolean,
-    onToggleSection: (String, Boolean) -> Unit,
+    @Suppress("UNUSED_PARAMETER") onToggleSection: (String, Boolean) -> Unit,
     onRunCheat: (Int) -> Unit,
     onLongPressOneShot: (Int) -> Boolean,
     onPaintRgb: (Long) -> Unit,
@@ -115,14 +102,20 @@ internal fun CheatsScreen(
     // on IV hides the toggle row.
     paintToLightsEnabled: Boolean = false,
     onPaintToLightsChange: ((Boolean) -> Unit)? = null,
-    // Called with the full list of CheatCategory.name values after
-    // the user finishes a drag; the ViewModel persists it as-is.
-    onReorderSections: (List<String>) -> Unit,
+    // Section reorder stays in the API for forward-compat; the rail
+    // does not offer a reorder gesture today (the old drag UI was
+    // dead code, so parity is preserved).
+    @Suppress("UNUSED_PARAMETER") onReorderSections: (List<String>) -> Unit,
     onOnboardingDismissed: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenRadio: (() -> Unit)? = null,
     onOpenMap: (() -> Unit)? = null,
     onOpenHud: (() -> Unit)? = null,
+    // Paused only (both games): a gear sits at the far right of the
+    // header so settings is reachable from this tab without swiping
+    // back to the paused HUD. Caller passes null when the game is
+    // unpaused so the icon stays hidden.
+    onOpenSettings: (() -> Unit)? = null,
 ) {
     val dim = Color(0xFF6A7A6E)
     val context = LocalContext.current
@@ -135,14 +128,12 @@ internal fun CheatsScreen(
     // The pager page's layout scope allowed multiple siblings before,
     // but ordering + Z-index of a slide-up sheet (AnimatedVisibility
     // with fillMaxSize content) depends on the parent being Box-like.
-    // Keep this wrapper even for the single-sheet case to pin behavior.
     Box(modifier = modifier.fillMaxSize()) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .padding(horizontal = 12.dp, vertical = 10.dp)
-            .verticalScroll(rememberScrollState()),
+            .padding(horizontal = 12.dp, vertical = 10.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -177,6 +168,14 @@ internal fun CheatsScreen(
                 HeaderIconButton(
                     icon = Icons.Filled.DirectionsCar,
                     contentDescription = stringResource(R.string.cheats_map_cd),
+                    tint = accent,
+                    onClick = open,
+                )
+            }
+            onOpenSettings?.let { open ->
+                HeaderIconButton(
+                    icon = Icons.Filled.Settings,
+                    contentDescription = stringResource(R.string.settings_icon_cd),
                     tint = accent,
                     onClick = open,
                 )
@@ -218,121 +217,102 @@ internal fun CheatsScreen(
         // reachable from Compose, so the sort happens here, not in
         // the pref layer. New categories added in a later build drop
         // in at their alphabetical slot the first time; after a user
-        // reorders, resolveSectionOrder appends them to the end.
+        // reorders (via a future gesture), resolveSectionOrder
+        // appends them to the end.
         val available = grouped.keys
         val defaultOrder = available.sortedBy { context.getString(it.labelRes).lowercase() }
         val effectiveOrder = resolveSectionOrder(savedSectionOrder, available, defaultOrder)
 
-        // Drag/drop state. Finger Y is tracked in Column-root space;
-        // onGloballyPositioned on each section records its top/bottom
-        // bounds in the same space so the hover check is a plain
-        // range contains(). Dropping outside any header or on the
-        // originating index is a no-op.
-        val sectionBounds = remember { mutableStateMapOf<Int, ClosedFloatingPointRange<Float>>() }
-        var dragFromIdx by remember { mutableStateOf<Int?>(null) }
-        var dragFingerY by remember { mutableFloatStateOf(0f) }
-        val hoverIdx: Int? = run {
-            if (dragFromIdx == null) null
-            else sectionBounds.entries
-                .firstOrNull { (_, range) -> dragFingerY in range }
-                ?.key
+        // Selected rail chip. Saveable so rotation keeps the user on
+        // the category they were reading. Falls back to the first
+        // category in effective order on first open or when the
+        // saved selection no longer exists (e.g. plugin dropped a
+        // category between builds).
+        val defaultSelection = effectiveOrder.firstOrNull()?.name
+        var selectedName by rememberSaveable {
+            mutableStateOf(defaultSelection)
         }
+        val resolvedSelected = effectiveOrder.firstOrNull { it.name == selectedName }
+            ?: effectiveOrder.firstOrNull()
+        val selected = resolvedSelected
 
-        effectiveOrder.forEachIndexed { idx, category ->
-            val items = grouped[category].orEmpty()
-            val expanded = category.name !in collapsedSections
-            Box(
-                modifier = Modifier.onGloballyPositioned { c ->
-                    // c.boundsInParent() returns a Rect in the parent
-                    // Column's coordinate space (y grows downward); its
-                    // top/bottom are Floats, which match dragFingerY.
-                    val rect = c.boundsInParent()
-                    sectionBounds[idx] = rect.top..rect.bottom
-                },
-            ) {
-                CategorySection(
-                    category = category,
-                    items = items,
-                    accent = accent,
-                    pendingId = pendingId,
-                    cheatsMask = cheatsMask,
-                    autoApplyCheats = autoApplyCheats,
-                    expanded = expanded,
-                    onToggleExpanded = { onToggleSection(category.name, expanded) },
-                    onTap = onRunCheat,
-                    onLongPress = onLongPress,
-                    isDropTarget = hoverIdx == idx
-                        && dragFromIdx != null
-                        && dragFromIdx != idx,
-                    isDragging = dragFromIdx == idx,
-                    dragHandleModifier = Modifier.pointerInput(idx, effectiveOrder) {
-                        detectDragGesturesAfterLongPress(
-                            onDragStart = {
-                                dragFromIdx = idx
-                                // Finger starts somewhere inside this
-                                // section's row; parking the Y at the row's
-                                // vertical center is good enough — the
-                                // first onDrag delta puts it on the real
-                                // position within a frame.
-                                val range = sectionBounds[idx]
-                                dragFingerY = if (range != null)
-                                    (range.start + range.endInclusive) * 0.5f
-                                else 0f
-                            },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                dragFingerY += dragAmount.y
-                            },
-                            onDragEnd = {
-                                val from = dragFromIdx
-                                val to = hoverIdx
-                                if (from != null && to != null && from != to) {
-                                    val reordered = reorderList(effectiveOrder, from, to)
-                                    onReorderSections(reordered.map { it.name })
-                                }
-                                dragFromIdx = null
-                                dragFingerY = 0f
-                            },
-                            onDragCancel = {
-                                dragFromIdx = null
-                                dragFingerY = 0f
-                            },
-                        )
-                    },
-                    body = if (category == CheatCategory.Paint) {
-                        { PaintSection(
-                            items = items,
-                            isGtaV = isGtaV,
-                            vehicle = vehicle,
-                            accent = accent,
-                            pendingId = pendingId,
-                            cheatsMask = cheatsMask,
-                            autoApplyCheats = autoApplyCheats,
-                            onTap = onRunCheat,
-                            onLongPress = onLongPress,
-                            onPaintRgb = onPaintRgb,
-                            onOpenWheel = if (isGtaV) {
-                                { showColorWheel = true }
-                            } else null,
-                            paintToLightsEnabled = paintToLightsEnabled,
-                            onPaintToLightsChange = if (isGtaV) onPaintToLightsChange else null,
-                        ) }
-                    } else null,
-                )
-            }
-        }
-
-        // Last refusal, verbatim from the plugin. Blank line when the
-        // last tap was accepted (or nothing has been tapped).
-        val err = lastResult?.error
-        if (!err.isNullOrBlank()) {
-            Text(
-                stringResource(R.string.cheats_error, err),
-                color = Color(0xFFE07070),
-                fontFamily = FontFamily.Monospace,
-                fontSize = 15.sp,
-                modifier = Modifier.padding(top = 4.dp),
+        Row(modifier = Modifier.fillMaxSize()) {
+            CategoryRail(
+                categories = effectiveOrder,
+                selected = selected,
+                accent = accent,
+                onSelect = { selectedName = it.name },
+                modifier = Modifier
+                    .width(RAIL_WIDTH)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .padding(end = 4.dp),
             )
+            Spacer(
+                modifier = Modifier
+                    .width(1.dp)
+                    .fillMaxHeight()
+                    .background(accent.copy(alpha = 0.3f)),
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(start = 6.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                val items = selected?.let { grouped[it].orEmpty() }.orEmpty()
+                if (selected == null) {
+                    Text(
+                        stringResource(R.string.cheats_pick_section),
+                        color = dim,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 14.sp,
+                    )
+                } else if (selected == CheatCategory.Paint) {
+                    PaintSection(
+                        items = items,
+                        isGtaV = isGtaV,
+                        vehicle = vehicle,
+                        accent = accent,
+                        pendingId = pendingId,
+                        cheatsMask = cheatsMask,
+                        autoApplyCheats = autoApplyCheats,
+                        onTap = onRunCheat,
+                        onLongPress = onLongPress,
+                        onPaintRgb = onPaintRgb,
+                        onOpenWheel = if (isGtaV) {
+                            { showColorWheel = true }
+                        } else null,
+                        paintToLightsEnabled = paintToLightsEnabled,
+                        onPaintToLightsChange = if (isGtaV) onPaintToLightsChange else null,
+                    )
+                } else {
+                    CheatGrid(
+                        items = items,
+                        accent = accent,
+                        pendingId = pendingId,
+                        cheatsMask = cheatsMask,
+                        autoApplyCheats = autoApplyCheats,
+                        onTap = onRunCheat,
+                        onLongPress = onLongPress,
+                    )
+                }
+
+                // Last refusal, verbatim from the plugin. Blank when
+                // the last tap was accepted (or nothing has been
+                // tapped). Sits inside the pane column so it only
+                // takes space when there's a message to show.
+                val err = lastResult?.error
+                if (!err.isNullOrBlank()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.cheats_error, err),
+                        color = Color(0xFFE07070),
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 15.sp,
+                    )
+                }
+            }
         }
     }
 
@@ -361,112 +341,64 @@ internal fun CheatsScreen(
     }   // Box
 }
 
+/**
+ * Left-column rail of category chips. One chip per category in
+ * [categories], in that order; the selected chip paints a filled
+ * accent background. Labels alone — the per-chip count was cramping
+ * the 100 dp rail, and the pane header already implies how much is
+ * inside.
+ */
 @Composable
-private fun CategorySection(
-    category: CheatCategory,
-    items: List<CheatDef>,
+private fun CategoryRail(
+    categories: List<CheatCategory>,
+    selected: CheatCategory?,
     accent: Color,
-    pendingId: Int?,
-    cheatsMask: Int?,
-    autoApplyCheats: Set<Int>,
-    expanded: Boolean,
-    onToggleExpanded: () -> Unit,
-    onTap: (Int) -> Unit,
-    onLongPress: (CheatDef) -> Unit,
-    // Drag/drop decoration. The caller attaches a pointerInput to the
-    // handle icon via [dragHandleModifier]; this composable just paints
-    // the handle (leading) and lights the row border on hover.
-    dragHandleModifier: Modifier = Modifier,
-    isDropTarget: Boolean = false,
-    isDragging: Boolean = false,
-    // Alternate body for sections that are not a plain two-wide grid
-    // (today: Paint, which also shows the current pair and a V-only
-    // swatch row). Default null = render the shared CheatGrid.
-    body: (@Composable () -> Unit)? = null,
+    onSelect: (CheatCategory) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val dim = Color(0xFF6A7A6E)
-    // Expand/collapse state is hoisted to the ViewModel and persisted
-    // in HudPrefs so collapsing a section survives app relaunch.
-    Column(
+    Column(modifier = modifier) {
+        for (category in categories) {
+            RailChip(
+                label = stringResource(category.labelRes),
+                selected = selected == category,
+                accent = accent,
+                onClick = { onSelect(category) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun RailChip(
+    label: String,
+    selected: Boolean,
+    accent: Color,
+    onClick: () -> Unit,
+) {
+    val fg = if (selected) Color.Black else Color(0xFFEDEDED)
+    val bg = if (selected) accent else Color.Transparent
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            // Hover highlight: a thin accent border + a touch of fill
-            // on the drop target so the user can see where the section
-            // will land before letting go.
-            .let { if (isDropTarget) it.border(1.dp, accent, RoundedCornerShape(4.dp)) else it },
+            .padding(vertical = 2.dp, horizontal = 4.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(bg)
+            .border(
+                1.dp,
+                accent.copy(alpha = if (selected) 1f else 0.3f),
+                RoundedCornerShape(4.dp),
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 6.dp),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            // Drag handle. Six-dot icon; long-press on this icon starts
-            // the section reorder. The handle has its OWN pointerInput
-            // so the chevron / label can still short-tap to collapse.
-//            Icon(
-//                imageVector = Icons.Filled.DragIndicator,
-//                contentDescription = stringResource(R.string.cheats_section_reorder_cd),
-//                tint = if (isDragging) accent else dim,
-//                modifier = Modifier
-//                    .size(18.dp)
-//                    .then(dragHandleModifier),
-//            )
-//            Spacer(Modifier.size(4.dp))
-            // Chevron + label + count: short-tap collapses. Click lives
-            // on this inner Row so the drag handle to its left is NOT a
-            // tap target for collapse.
-            Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable { onToggleExpanded() },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(
-                    imageVector = if (expanded) Icons.Filled.KeyboardArrowDown
-                                  else Icons.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = accent,
-                    modifier = Modifier.size(18.dp),
-                )
-                Spacer(Modifier.size(4.dp))
-                Text(
-                    text = stringResource(category.labelRes),
-                    color = accent,
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                )
-                Spacer(Modifier.size(6.dp))
-                Text(
-                    text = "(${items.size})",
-                    color = dim,
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 14.sp,
-                )
-            }
-        }
-        AnimatedVisibility(
-            visible = expanded,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut(),
-        ) {
-            Column(modifier = Modifier.padding(bottom = 8.dp)) {
-                if (body != null) {
-                    body()
-                } else {
-                    CheatGrid(
-                        items = items,
-                        accent = accent,
-                        pendingId = pendingId,
-                        cheatsMask = cheatsMask,
-                        autoApplyCheats = autoApplyCheats,
-                        onTap = onTap,
-                        onLongPress = onLongPress,
-                    )
-                }
-            }
-        }
+        Text(
+            label,
+            color = fg,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+        )
     }
 }
 
@@ -554,19 +486,17 @@ private fun PaintSection(
 
         Spacer(Modifier.height(8.dp))
 
-        // 2x2 button grid. Row 1: respray / next color. Row 2: swap
-        // colors / custom color. On IV the custom-color slot is a
-        // spacer because the plugin refuses paint_rgb — same
-        // half-width look either way. Taps on foot are routed to no-op
-        // so the plugin never sees a doomed command. Custom-color is
-        // deliberately NOT gated on inCar: opening the picker is
-        // harmless; the Apply inside the sheet calls paintRgb which
-        // the plugin refuses with "not in a vehicle" on foot.
+        // 2-wide button grid for the catalog paint defs (respray /
+        // next color / swap colors / fix vehicle). Taps on foot are
+        // routed to no-op so the plugin never sees a doomed command.
+        // On V the colour-wheel pill rides on its own trailing row so
+        // the catalog + wheel still fit without re-chunking the grid;
+        // the wheel is deliberately NOT gated on inCar — opening the
+        // picker is harmless and the Apply inside calls paintRgb
+        // which the plugin refuses with "not in a vehicle" on foot.
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             val rows = items.chunked(2)
-            // At most 2 catalog defs per row; the second row will
-            // have ≤1 catalog def because the catalog ships 3.
-            rows.forEachIndexed { rowIdx, rowItems ->
+            rows.forEach { rowItems ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -584,22 +514,22 @@ private fun PaintSection(
                             modifier = Modifier.weight(1f),
                         )
                     }
-                    // Trailing slot. On the last row, if there's room
-                    // for one more button, drop the custom-color pill
-                    // there (V only). Otherwise pad to keep the
-                    // half-width look.
-                    val isLast = rowIdx == rows.lastIndex
                     if (rowItems.size == 1) {
-                        if (isLast && onOpenWheel != null) {
-                            CustomColorButton(
-                                accent = accent,
-                                onClick = onOpenWheel,
-                                modifier = Modifier.weight(1f),
-                            )
-                        } else {
-                            Spacer(Modifier.weight(1f))
-                        }
+                        Spacer(Modifier.weight(1f))
                     }
+                }
+            }
+            if (onOpenWheel != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    CustomColorButton(
+                        accent = accent,
+                        onClick = onOpenWheel,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(Modifier.weight(1f))
                 }
             }
         }
@@ -765,8 +695,9 @@ private fun CheatGrid(
     onLongPress: (CheatDef) -> Unit,
 ) {
     // Two columns of buttons. Pairs the list up and lets any trailing
-    // odd entry take a column of its own. The 540 x 468 dp Thor bottom
-    // panel comfortably fits 2 x ~250 dp buttons at this font size.
+    // odd entry take a column of its own. The pane is narrower than
+    // the full tab was pre-rail, but still comfortably fits 2 x
+    // ~190 dp buttons on the 540 x 468 dp Thor bottom panel.
     val rows = items.chunked(2)
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         rows.forEach { row ->
@@ -829,7 +760,7 @@ private fun CheatButton(
                 onClick = { onTap(def.id) },
                 onLongClick = { onLongPress(def) },
             )
-            .padding(horizontal = 8.dp, vertical = 10.dp),
+            .padding(horizontal = 6.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -857,3 +788,5 @@ private val CHEATS_ONBOARDING_SLIDES = listOf(
         bodyRes = R.string.cheats_onboarding_slide2_body,
     ),
 )
+
+private val RAIL_WIDTH = 100.dp

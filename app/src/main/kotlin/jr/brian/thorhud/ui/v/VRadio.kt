@@ -20,6 +20,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
@@ -162,6 +164,9 @@ internal fun VRadioPicker(
     currentId: String?,
     palette: HudPalette,
     onStationTap: (Int) -> Unit,
+    buttonHeight: Dp = 36.dp,
+    buttonFontSize: TextUnit = 13.sp,
+    rowSpacing: Dp = 4.dp,
 ) {
     // GTA IV shows 16 stations in two rows of eight. GTA V has 20+, so
     // allow a third row before the buttons start shrinking.
@@ -173,7 +178,7 @@ internal fun VRadioPicker(
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(rowSpacing),
     ) {
         Text(
             stringResource(R.string.label_radio_stations),
@@ -186,11 +191,13 @@ internal fun VRadioPicker(
             isCurrent = currentId.isNullOrBlank() || currentId == "OFF",
             palette = palette,
             onTap = { onStationTap(RADIO_OFF_SENTINEL) },
+            buttonHeight = buttonHeight,
+            buttonFontSize = buttonFontSize,
         )
         stations.indices.chunked(perRow).forEach { rowIndices ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(rowSpacing),
             ) {
                 for (index in rowIndices) {
                     val station = stations[index]
@@ -199,7 +206,7 @@ internal fun VRadioPicker(
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .height(36.dp)
+                            .height(buttonHeight)
                             .background(
                                 color = if (isCurrent) palette.accent
                                         else Color(0xFF1F2A24),
@@ -214,7 +221,7 @@ internal fun VRadioPicker(
                                     else Color(0xFFB6CCBC),
                             fontFamily = FontFamily.Monospace,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp,
+                            fontSize = buttonFontSize,
                             maxLines = 1,
                             overflow = TextOverflow.Clip,
                         )

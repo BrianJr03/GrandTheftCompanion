@@ -77,6 +77,9 @@
     <string name="model_fallback">modello %1$d</string>
 
     <!-- Setup screen -->
+    <string name="paused_title_home">home</string>
+    <string name="paused_title_cheats">trucchi</string>
+    <string name="paused_title_map">mappa</string>
     <string name="setup_title">NON CONNESSO</string>
     <string name="setup_subtitle">Compatibile con GTA IV e GTA V. Il compagno ascolta su 127.0.0.1:47801 il plugin che installi.</string>
     <string name="setup_section">configurazione gta iv</string>
@@ -223,6 +226,7 @@
     <string name="tab_cheats">trucchi</string>
     <string name="cheats_title">trucchi</string>
     <string name="cheats_unsupported">non disponibile in questo plugin</string>
+    <string name="cheats_pick_section">Scegli una sezione</string>
     <string name="cheats_section_health">salute</string>
     <string name="cheats_section_wanted">ricercato</string>
     <string name="cheats_section_weapons">armi</string>
@@ -312,6 +316,21 @@
     <string name="map_onboarding_slide_actions_body">La colonna delle icone raggiunge le altre schede senza lasciare la mappa. Casa per l\'HUD, dado per i trucchi, puntina per i blip, radio per le stazioni. Le sovrapposizioni di guida (tachimetro, distanza al waypoint su V, destinazione tracciata) compaiono da sole quando sei in un\'auto.</string>
 
     <string name="settings_section_cheats">Trucchi</string>
+    <string name="settings_section_app">Navigazione</string>
+    <string name="settings_section_atlas">Atlas</string>
+    <string name="settings_rail_group_app">App</string>
+    <string name="settings_rail_pick">Scegli una sezione</string>
+    <string name="settings_tab_arrows_title">Frecce delle schede</string>
+    <string name="settings_tab_arrows_body">Mostra chevron sinistro e destro in fondo a ogni scheda per cambiare scheda con un tocco. Lo scorrimento continua a funzionare.</string>
+    <string name="settings_tab_arrows_style_title">Icona del pulsante</string>
+    <string name="settings_tab_arrows_style_arrows">frecce</string>
+    <string name="settings_tab_arrows_style_stars">stelle</string>
+    <string name="settings_tab_arrows_style_transparent">trasparente</string>
+    <string name="tab_arrows_prompt_title">Frecce delle schede</string>
+    <string name="tab_arrows_prompt_body">Novità: chevron sinistro e destro in fondo a ogni scheda per cambiare scheda con un tocco. Attive per impostazione predefinita — disattivale da Impostazioni → App se preferisci solo lo scorrimento.</string>
+    <string name="tab_arrows_prompt_dismiss">Capito</string>
+    <string name="tab_arrows_prev_cd">scheda precedente</string>
+    <string name="tab_arrows_next_cd">scheda successiva</string>
     <string name="settings_auto_reapply_cheats_title">Riattiva interruttori alla riconnessione</string>
     <string name="settings_auto_reapply_cheats_body">Dopo che il companion si riconnette (nuova sessione, riavvio del gioco), riattiva ogni interruttore che avevi acceso l\'ultima volta, più ogni trucco istantaneo che avevi armato con una pressione lunga. Si attiva una sola volta per connessione e solo quando il gioco è in uno stato sicuro (non in pausa, non durante un cambio di personaggio, non in un filmato).</string>
     <string name="settings_clear_cheats_title">Cancella trucchi salvati</string>

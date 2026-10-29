@@ -84,9 +84,12 @@ internal val CHEATS: List<CheatDef> = listOf(
     CheatDef(17, isToggle = false, games = CHEAT_BOTH, category = CheatCategory.Weapons,
              labelRes = R.string.cheat_17_give_parachute),
 
-    // -- Vehicle (IV spawn pulled; V-only curated models) --------
-    CheatDef(6,  isToggle = false, games = CHEAT_BOTH, category = CheatCategory.Vehicle,
-             labelRes = R.string.cheat_6_fix_vehicle),
+    // -- Vehicle (V-only curated spawn models; the IV spawn range is
+    //    reserved in the plugin but REQUEST_MODEL from the per-frame
+    //    hook crashes IV, so no catalog entries live there yet. Fix
+    //    vehicle (id 6) moved into Paint — both are "car work" so
+    //    pairing them keeps the IV surface tidy, and this makes
+    //    Vehicle naturally drop out on IV.) ----------------------
     CheatDef(10, isToggle = false, games = CHEAT_V,    category = CheatCategory.Vehicle,
              labelRes = R.string.cheat_10_spawn_adder),
     CheatDef(11, isToggle = false, games = CHEAT_V,    category = CheatCategory.Vehicle,
@@ -101,13 +104,17 @@ internal val CHEATS: List<CheatDef> = listOf(
              labelRes = R.string.cheat_15_spawn_bmx),
 
     // -- Paint (both games; id 63 is RGB-only and sent via paint_rgb,
-    //    not through the catalog) ------------------------------------
+    //    not through the catalog). Fix vehicle (id 6) rides in Paint
+    //    because that's the only "car work" surface on IV once spawns
+    //    are gone, and on V it pairs naturally with respray / wheel. ---
     CheatDef(60, isToggle = false, games = CHEAT_BOTH, category = CheatCategory.Paint,
              labelRes = R.string.cheat_60_respray),
     CheatDef(61, isToggle = false, games = CHEAT_BOTH, category = CheatCategory.Paint,
              labelRes = R.string.cheat_61_next_color),
     CheatDef(62, isToggle = false, games = CHEAT_BOTH, category = CheatCategory.Paint,
              labelRes = R.string.cheat_62_swap_colors),
+    CheatDef(6,  isToggle = false, games = CHEAT_BOTH, category = CheatCategory.Paint,
+             labelRes = R.string.cheat_6_fix_vehicle),
 
     // -- World ---------------------------------------------------
     CheatDef(7,  isToggle = false, games = CHEAT_BOTH, category = CheatCategory.World,

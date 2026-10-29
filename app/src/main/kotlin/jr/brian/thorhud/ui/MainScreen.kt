@@ -32,10 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.launch
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import jr.brian.thorhud.BuildConfig
 import jr.brian.thorhud.R
@@ -46,6 +48,7 @@ import jr.brian.thorhud.ui.components.LocalFullScreenSheetCount
 import jr.brian.thorhud.ui.components.CoinPanel
 import jr.brian.thorhud.ui.components.FullWidthStats
 import jr.brian.thorhud.ui.components.FullScreenSheet
+import jr.brian.thorhud.ui.components.SizableScreenSheet
 import jr.brian.thorhud.ui.components.InfoSheet
 import jr.brian.thorhud.ui.components.IvWeaponWheelOverlay
 import jr.brian.thorhud.ui.components.MoneyRadioPanel
@@ -57,6 +60,7 @@ import jr.brian.thorhud.ui.components.SettingsSheet
 import jr.brian.thorhud.ui.components.RadioPicker
 import jr.brian.thorhud.ui.components.SetupScreen
 import jr.brian.thorhud.ui.components.StatusBar
+import jr.brian.thorhud.ui.components.TabArrowFooter
 import jr.brian.thorhud.ui.components.VehiclePanel
 import jr.brian.thorhud.ui.components.WeaponPanel
 import jr.brian.thorhud.ui.components.paletteFor
@@ -288,6 +292,38 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         }
     }
 
+    // Tab arrows: sticky left/right chevrons at the bottom of the
+    // pager, on by default. One-shot first-launch sheet announces
+    // the feature and points at the App section in Settings to flip
+    // them off; it never re-opens after that.
+    val tabArrowsEnabled by viewModel.tabArrowsEnabled.collectAsStateWithLifecycle()
+    val tabArrowIconStyle by viewModel.tabArrowIconStyle.collectAsStateWithLifecycle()
+    // Per-launch discovery ring around the tab-nav buttons. One play
+    // per app launch: initial value defaults to true, flipped to false
+    // when the inner Animatable completes. `remember` (not
+    // rememberSaveable) so the ring replays on every cold start even
+    // if the Activity restored state. Suppressed while the HUD tab is
+    // under PausedScreen so the ring never flashes behind the overlay.
+    var showTabArrowsHint by remember { mutableStateOf(true) }
+    var showTabArrowsPrompt by remember {
+        mutableStateOf(!viewModel.hasSeenTabArrowsPrompt)
+    }
+    val markArrowsPromptSeen: () -> Unit = {
+        viewModel.hasSeenTabArrowsPrompt = true
+        showTabArrowsPrompt = false
+    }
+    InfoSheet(
+        visible = showTabArrowsPrompt,
+        title = stringResource(R.string.tab_arrows_prompt_title),
+        body = stringResource(R.string.tab_arrows_prompt_body),
+        accent = accent,
+        onDismiss = markArrowsPromptSeen,
+    ) {
+        TextButton(onClick = markArrowsPromptSeen) {
+            Text(stringResource(R.string.tab_arrows_prompt_dismiss), color = accent)
+        }
+    }
+
     // Single composition root for the whole screen so BlipsOverlay
     // keeps a stable identity across every state transition
     // (disconnect, pause, V notice, HUD). Earlier the overlay was
@@ -301,7 +337,13 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         // with the companion's extracted atlas side-by-side.
         when {
             isDisconnected -> SetupScreen(lastError, onOpenSettings = openSettings)
-            isGtaV && vIsNoticeState(hello, state) -> VMainScreen(
+            // V paused is handled by the pager (same as IV pause) so
+            // the Cheats / Map / Atlas tabs stay reachable with a gear
+            // in each header. Other V notice states (unsupported,
+            // online, switching, stalled) still take the whole screen —
+            // there's no useful work the player can do on other tabs
+            // when the plugin can't talk to the game.
+            isGtaV && vIsNoticeState(hello, state) && state?.paused != true -> VMainScreen(
                 viewModel = viewModel,
                 hello = hello,
                 state = state,
@@ -330,7 +372,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     val atlasGame = if (isGtaV) CustomMapStore.Game.V
                                     else CustomMapStore.Game.IV
                     atlasPresence.has(atlasGame)   // kept for Flow collection; result unused
-                    val pagerState = rememberHudPagerState(hasAtlas = true)
+                    val pagerState = rememberHudPagerState(hasAtlas = ATLAS_TAB_ENABLED)
                     val scope = rememberCoroutineScope()
                     val scrollToMap: () -> Unit = {
                         scope.launch {
@@ -448,6 +490,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                             liveState?.episode
                                                 ?: state?.episode),
                                         onOpenSettings = openSettings,
+                                        screenTitle = stringResource(
+                                            R.string.paused_title_home),
                                     )
                                 } else if (isGtaV) {
                                     VMainScreen(
@@ -486,92 +530,130 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                 }
                             },
                             map = {
-                                // Drive "driving to <name>" off the user's
-                                // own tap in the blips panel, not the
-                                // plugin's routeBlip echo. Blips come in
-                                // their own frame (mapViewModel.blips);
-                                // the per-frame liveState.blips field is
-                                // empty outside the "blips" frame type.
-                                val selectedRouteId by mapViewModel.selectedRouteId
-                                    .collectAsStateWithLifecycle()
-                                val knownBlips by mapViewModel.blips
-                                    .collectAsStateWithLifecycle()
-                                // titleCase matches how the blips panel
-                                // itself renders the name (first letter
-                                // of each word up, existing uppercase
-                                // preserved), so "APC" and "Ammu-Nation"
-                                // stay as-is.
-                                val routedBlip = selectedRouteId?.let { id ->
-                                    knownBlips.firstOrNull { it.id == id }
+                                // Pause takes over the Map tab the same
+                                // way it does the HUD: the mirror would
+                                // just be a frozen screenshot during pause
+                                // (and on IV the game draws its own map
+                                // over everything anyway). Atlas stays live
+                                // so Brian can compare the pause-map with
+                                // the extracted atlas side-by-side.
+                                if (state?.paused == true) {
+                                    PausedScreen(
+                                        hello = hello,
+                                        palette = if (isGtaV) {
+                                            vCharacterOf(state?.character).palette
+                                        } else {
+                                            paletteFor(liveState?.episode ?: state?.episode)
+                                        },
+                                        onOpenSettings = openSettings,
+                                        screenTitle = stringResource(
+                                            R.string.paused_title_map),
+                                    )
+                                } else {
+                                    // Drive "driving to <name>" off the user's
+                                    // own tap in the blips panel, not the
+                                    // plugin's routeBlip echo. Blips come in
+                                    // their own frame (mapViewModel.blips);
+                                    // the per-frame liveState.blips field is
+                                    // empty outside the "blips" frame type.
+                                    val selectedRouteId by mapViewModel.selectedRouteId
+                                        .collectAsStateWithLifecycle()
+                                    val knownBlips by mapViewModel.blips
+                                        .collectAsStateWithLifecycle()
+                                    val routedBlip = selectedRouteId?.let { id ->
+                                        knownBlips.firstOrNull { it.id == id }
+                                    }
+                                    val routeName = routedBlip?.let {
+                                        blipLabel(isGtaV, it.sprite, it.colour)
+                                            .name.titleCase()
+                                    }
+                                    MirrorMapScreen(
+                                        game = if (isGtaV) MirrorGame.V else MirrorGame.IV,
+                                        accent = accent,
+                                        onRequestConsent = requestMirrorConsent,
+                                        onOpenBlips = toggleBlips,
+                                        onOpenRadio = { showRadioSheet = true },
+                                        onOpenCheats = scrollToCheats,
+                                        onOpenHud = scrollToHud,
+                                        controlsRight = mapControlsRight,
+                                        inVehicle = inVehicleNow,
+                                        routeName = routeName,
+                                        speedMps = liveState?.vehicle?.speedMps ?: 0f,
+                                        waypointDistM = if (isGtaV) routedBlip?.distM
+                                                        else null,
+                                    )
                                 }
-                                val routeName = routedBlip?.let {
-                                    blipLabel(isGtaV, it.sprite, it.colour).name.titleCase()
-                                }
-                                MirrorMapScreen(
-                                    game = if (isGtaV) MirrorGame.V else MirrorGame.IV,
-                                    accent = accent,
-                                    onRequestConsent = requestMirrorConsent,
-                                    onOpenBlips = toggleBlips,
-                                    onOpenRadio = { showRadioSheet = true },
-                                    onOpenCheats = scrollToCheats,
-                                    onOpenHud = scrollToHud,
-                                    controlsRight = mapControlsRight,
-                                    inVehicle = inVehicleNow,
-                                    routeName = routeName,
-                                    speedMps = liveState?.vehicle?.speedMps ?: 0f,
-                                    waypointDistM = if (isGtaV) routedBlip?.distM else null,
-                                )
                             },
                             cheats = {
-                                val cheatsViewModel: CheatsViewModel = hiltViewModel()
-                                val cheatResult by cheatsViewModel.result
-                                    .collectAsStateWithLifecycle()
-                                val collapsed by cheatsViewModel.collapsedSections
-                                    .collectAsStateWithLifecycle()
-                                val autoApply by cheatsViewModel.autoApplyCheats
-                                    .collectAsStateWithLifecycle()
-                                val savedSectionOrder by cheatsViewModel.savedSectionOrder
-                                    .collectAsStateWithLifecycle()
-                                var showOnboarding by rememberSaveable {
-                                    mutableStateOf(!cheatsViewModel.hasSeenOnboarding())
+                                // Pause takes over the Cheats tab the
+                                // same way it does the HUD — tapping a
+                                // cheat the plugin would refuse (paused
+                                // is a no-command state) is not useful.
+                                if (state?.paused == true) {
+                                    PausedScreen(
+                                        hello = hello,
+                                        palette = if (isGtaV) {
+                                            vCharacterOf(state?.character).palette
+                                        } else {
+                                            paletteFor(liveState?.episode ?: state?.episode)
+                                        },
+                                        onOpenSettings = openSettings,
+                                        screenTitle = stringResource(
+                                            R.string.paused_title_cheats),
+                                    )
+                                } else {
+                                    val cheatsViewModel: CheatsViewModel = hiltViewModel()
+                                    val cheatResult by cheatsViewModel.result
+                                        .collectAsStateWithLifecycle()
+                                    val collapsed by cheatsViewModel.collapsedSections
+                                        .collectAsStateWithLifecycle()
+                                    val autoApply by cheatsViewModel.autoApplyCheats
+                                        .collectAsStateWithLifecycle()
+                                    val savedSectionOrder by cheatsViewModel.savedSectionOrder
+                                        .collectAsStateWithLifecycle()
+                                    var showOnboarding by rememberSaveable {
+                                        mutableStateOf(!cheatsViewModel.hasSeenOnboarding())
+                                    }
+                                    CheatsScreen(
+                                        isGtaV = isGtaV,
+                                        cheatsSupported = hello?.cheatsSupported,
+                                        cheatsMask = liveState?.cheatsMask
+                                            ?: state?.cheatsMask,
+                                        // The Paint section reads the colour pair
+                                        // and `custom` flag from here only. Null
+                                        // on foot or when the plugin frame has no
+                                        // vehicle block, which greys the section.
+                                        vehicle = if (liveState?.inVehicle == true)
+                                                      liveState.vehicle
+                                                  else null,
+                                        accent = accent,
+                                        lastResult = cheatResult,
+                                        collapsedSections = collapsed,
+                                        autoApplyCheats = autoApply,
+                                        savedSectionOrder = savedSectionOrder,
+                                        showOnboarding = showOnboarding,
+                                        onToggleSection = { name, wasExpanded ->
+                                            cheatsViewModel.setSectionCollapsed(
+                                                name, collapsed = wasExpanded,
+                                            )
+                                        },
+                                        onRunCheat = cheatsViewModel::runCheat,
+                                        onLongPressOneShot =
+                                            cheatsViewModel::toggleAutoApply,
+                                        onPaintRgb = cheatsViewModel::paintRgb,
+                                        paintToLightsEnabled = paintToLightsEnabled,
+                                        onPaintToLightsChange =
+                                            viewModel::setPaintToLightsEnabled,
+                                        onReorderSections = cheatsViewModel::setSectionOrder,
+                                        onOnboardingDismissed = {
+                                            cheatsViewModel.markOnboardingSeen()
+                                            showOnboarding = false
+                                        },
+                                        onOpenRadio = { showRadioSheet = true },
+                                        onOpenMap = scrollToMap,
+                                        onOpenHud = scrollToHud,
+                                    )
                                 }
-                                CheatsScreen(
-                                    isGtaV = isGtaV,
-                                    cheatsSupported = hello?.cheatsSupported,
-                                    cheatsMask = liveState?.cheatsMask
-                                        ?: state?.cheatsMask,
-                                    // The Paint section reads the colour pair
-                                    // and `custom` flag from here only. Null
-                                    // on foot or when the plugin frame has no
-                                    // vehicle block, which greys the section.
-                                    vehicle = if (liveState?.inVehicle == true)
-                                                  liveState.vehicle
-                                              else null,
-                                    accent = accent,
-                                    lastResult = cheatResult,
-                                    collapsedSections = collapsed,
-                                    autoApplyCheats = autoApply,
-                                    savedSectionOrder = savedSectionOrder,
-                                    showOnboarding = showOnboarding,
-                                    onToggleSection = { name, wasExpanded ->
-                                        cheatsViewModel.setSectionCollapsed(
-                                            name, collapsed = wasExpanded,
-                                        )
-                                    },
-                                    onRunCheat = cheatsViewModel::runCheat,
-                                    onLongPressOneShot = cheatsViewModel::toggleAutoApply,
-                                    onPaintRgb = cheatsViewModel::paintRgb,
-                                    paintToLightsEnabled = paintToLightsEnabled,
-                                    onPaintToLightsChange = viewModel::setPaintToLightsEnabled,
-                                    onReorderSections = cheatsViewModel::setSectionOrder,
-                                    onOnboardingDismissed = {
-                                        cheatsViewModel.markOnboardingSeen()
-                                        showOnboarding = false
-                                    },
-                                    onOpenRadio = { showRadioSheet = true },
-                                    onOpenMap = scrollToMap,
-                                    onOpenHud = scrollToHud,
-                                )
                             },
                             atlas = {
                                 CustomMapScreen(
@@ -589,10 +671,44 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     onOpenCheats = scrollToCheats,
                                     onOpenBlips = toggleBlips,
                                     onOpenRadio = { showRadioSheet = true },
+                                    onOpenSettings = openSettings.takeIf {
+                                        state?.paused == true
+                                    },
                                     viewModel = atlasViewModel,
                                 )
                             },
                         )
+                        // Sticky left/right chevrons at the bottom of
+                        // the pager for one-tap tab moves. Composed
+                        // after HudPager so it overlays the tab
+                        // content, but before the full-screen sheets
+                        // and the weapon wheel so those still cover
+                        // it when they open. Shown on every tab
+                        // including the IV paused HUD; hidden entirely
+                        // when the App setting is off.
+                        if (tabArrowsEnabled) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .fillMaxWidth(),
+                            ) {
+                                TabArrowFooter(
+                                    pagerState = pagerState,
+                                    accent = accent,
+                                    style = tabArrowIconStyle,
+                                    // Suppress the ring while PausedScreen is
+                                    // over the HUD so the animation never
+                                    // flashes behind the overlay. When the
+                                    // user unpauses mid-ring, the Animatable
+                                    // snaps back to 0 and replays from the
+                                    // start — fine, since it still counts as
+                                    // one play per launch.
+                                    showHint = showTabArrowsHint &&
+                                        state?.paused != true,
+                                    onHintShown = { showTabArrowsHint = false },
+                                )
+                            }
+                        }
                         // First-visit HUD onboarding sheet. Shown
                         // once per installation on the first time the
                         // user lands here with a live game — the else
@@ -852,6 +968,11 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             onReconnectPlugin = viewModel::reconnectPlugin,
             isReconnecting = reconnecting,
             reconnectEvents = viewModel.reconnectEvents,
+            tabArrowsEnabled = tabArrowsEnabled,
+            onTabArrowsChange = viewModel::setTabArrowsEnabled,
+            tabArrowIconStyle = tabArrowIconStyle,
+            onTabArrowIconStyleChange = viewModel::setTabArrowIconStyle,
+            atlasEnabled = ATLAS_TAB_ENABLED,
             onDismiss = { showSettings = false },
         )
         val vStations by viewModel.stations.collectAsStateWithLifecycle()
@@ -869,6 +990,12 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         )
     }
 }
+
+// Atlas tab feature flag. When false, the pager drops the Atlas slot
+// entirely and the user only sees Cheats / HUD / Map. Settings still
+// has the atlas folder picker so a user can pre-configure the drop-in
+// folder while the tab is off. Flip to true to bring the tab back.
+private const val ATLAS_TAB_ENABLED = false
 
 /**
  * The blips panel, drawn above everything else when [show] is true.
@@ -1036,11 +1163,16 @@ private fun IvHudScreen(
 }
 
 /**
- * Full-screen slide-up wrapping the same radio picker shown on the
+ * Wrap-content slide-up wrapping the same radio picker shown on the
  * HUD tab. Dispatches to [RadioPicker] (IV) or [VRadioPicker] (V) so
  * a tap on either flavour routes through the same [onStationTap]
  * into `MainViewModel.setRadio`. Compose unconditionally with
  * `visible = showRadioSheet` so the slide-out animation plays.
+ *
+ * The sheet sizes to its content (station list + a little padding),
+ * so the map stays visible above the sheet while the player picks a
+ * station mid-drive, with chunkier buttons than the in-vehicle HUD
+ * picker for one-handed taps.
  */
 @Composable
 private fun RadioSheet(
@@ -1054,15 +1186,19 @@ private fun RadioSheet(
     onStationTap: (Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    FullScreenSheet(
+    SizableScreenSheet(
         visible = visible,
         onDismiss = onDismiss,
         title = stringResource(R.string.label_radio),
         accent = palette.accent,
+        // Wrap content so the sheet is only as tall as the station
+        // buttons need. If the list overflows the screen, the parent
+        // Box's fillMaxSize caps us and verticalScroll handles the rest.
+        heightFraction = null,
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState()),
         ) {
             if (isGtaV) {
@@ -1071,6 +1207,9 @@ private fun RadioSheet(
                     currentId = vCurrentId,
                     palette = palette,
                     onStationTap = onStationTap,
+                    buttonHeight = 52.dp,
+                    buttonFontSize = 16.sp,
+                    rowSpacing = 6.dp,
                 )
             } else {
                 RadioPicker(
@@ -1078,6 +1217,9 @@ private fun RadioSheet(
                     currentLocal = ivCurrentLocal,
                     palette = palette,
                     onStationTap = onStationTap,
+                    buttonHeight = 52.dp,
+                    buttonFontSize = 16.sp,
+                    rowSpacing = 6.dp,
                 )
             }
         }

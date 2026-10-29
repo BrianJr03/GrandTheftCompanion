@@ -3,6 +3,7 @@ package jr.brian.thorhud.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,6 +34,11 @@ internal fun PausedScreen(
     hello: GameState?,
     palette: HudPalette,
     onOpenSettings: (() -> Unit)? = null,
+    // Per-tab subtitle (home / cheats / map). Shown top-left in the
+    // same row as the settings icon so the player sees which tab
+    // they are on while the game is paused. Null hides the row's
+    // leading slot.
+    screenTitle: String? = null,
 ) {
     Scaffold(containerColor = Color.Black) { padding ->
         Box(
@@ -40,50 +46,65 @@ internal fun PausedScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                stringResource(palette.labelRes),
-                color = palette.accent,
-                fontFamily = FontFamily.Monospace,
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp,
-                lineHeight = 28.sp,
-                maxLines = 1,
-                softWrap = false,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
+            // Top row: screen title on the left (with padding), gear
+            // on the right. Composed even when both slots are null so
+            // the center column keeps a consistent vertical center.
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-            )
-            hello?.fileVersion?.let {
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    stringResource(R.string.paused_version, it),
-                    color = Color(0xFF6A7A6E),
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 12.sp,
-                )
-            }
-        }
-        onOpenSettings?.let { open ->
-            IconButton(
-                onClick = open,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 16.dp, end = 16.dp),
+                    .padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Settings,
-                    contentDescription = stringResource(R.string.settings_icon_cd),
-                    tint = Color(0xFF6A7A6E),
-                )
+                if (screenTitle != null) {
+                    Text(
+                        text = screenTitle,
+                        color = Color(0xFF6A7A6E),
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+                onOpenSettings?.let { open ->
+                    IconButton(onClick = open) {
+                        Icon(
+                            imageVector = Icons.Filled.Settings,
+                            contentDescription = stringResource(R.string.settings_icon_cd),
+                            tint = Color(0xFF6A7A6E),
+                        )
+                    }
+                }
             }
-        }
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    stringResource(palette.labelRes),
+                    color = palette.accent,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp,
+                    lineHeight = 28.sp,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                )
+                hello?.fileVersion?.let {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        stringResource(R.string.paused_version, it),
+                        color = Color(0xFF6A7A6E),
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 12.sp,
+                    )
+                }
+            }
         }
     }
 }

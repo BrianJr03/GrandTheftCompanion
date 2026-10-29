@@ -77,6 +77,9 @@
     <string name="model_fallback">modèle %1$d</string>
 
     <!-- Setup screen -->
+    <string name="paused_title_home">accueil</string>
+    <string name="paused_title_cheats">triches</string>
+    <string name="paused_title_map">carte</string>
     <string name="setup_title">NON CONNECTÉ</string>
     <string name="setup_subtitle">Compatible avec GTA IV et GTA V. Le compagnon écoute sur 127.0.0.1:47801 le plugin que vous installez.</string>
     <string name="setup_section">configuration gta iv</string>
@@ -223,6 +226,7 @@
     <string name="tab_cheats">triches</string>
     <string name="cheats_title">triches</string>
     <string name="cheats_unsupported">non disponible dans ce plugin</string>
+    <string name="cheats_pick_section">Choisissez une section</string>
     <string name="cheats_section_health">santé</string>
     <string name="cheats_section_wanted">recherche</string>
     <string name="cheats_section_weapons">armes</string>
@@ -312,6 +316,21 @@
     <string name="map_onboarding_slide_actions_body">La colonne d\'icônes donne accès aux autres onglets sans quitter la carte. Maison pour le HUD, dé pour les triches, épingle pour les points, radio pour les stations. Les surcouches de conduite (compteur, distance au point de passage sur V, destination tracée) apparaissent d\'elles-mêmes lorsque vous êtes dans une voiture.</string>
 
     <string name="settings_section_cheats">Triches</string>
+    <string name="settings_section_app">Navigation</string>
+    <string name="settings_section_atlas">Atlas</string>
+    <string name="settings_rail_group_app">Application</string>
+    <string name="settings_rail_pick">Choisissez une section</string>
+    <string name="settings_tab_arrows_title">Flèches d\'onglets</string>
+    <string name="settings_tab_arrows_body">Affiche des chevrons gauche et droit en bas de chaque onglet pour changer d\'onglet en un seul appui. Le balayage reste disponible.</string>
+    <string name="settings_tab_arrows_style_title">Icône des boutons</string>
+    <string name="settings_tab_arrows_style_arrows">flèches</string>
+    <string name="settings_tab_arrows_style_stars">étoiles</string>
+    <string name="settings_tab_arrows_style_transparent">transparent</string>
+    <string name="tab_arrows_prompt_title">Flèches d\'onglets</string>
+    <string name="tab_arrows_prompt_body">Nouveau : chevrons gauche et droit en bas de chaque onglet pour changer d\'onglet en un seul appui. Activés par défaut — désactivez-les dans Paramètres → Application si vous préférez le balayage seul.</string>
+    <string name="tab_arrows_prompt_dismiss">Compris</string>
+    <string name="tab_arrows_prev_cd">onglet précédent</string>
+    <string name="tab_arrows_next_cd">onglet suivant</string>
     <string name="settings_auto_reapply_cheats_title">Réappliquer les bascules à la reconnexion</string>
     <string name="settings_auto_reapply_cheats_body">Après la reconnexion du compagnon (nouvelle session, relance du jeu), réactive toute bascule que vous aviez activée la dernière fois, plus toute triche instantanée armée par un appui long. Ne se déclenche qu\'une fois par connexion et uniquement quand le jeu est dans un état sûr (pas en pause, pas en changement de personnage, pas en cinématique).</string>
     <string name="settings_clear_cheats_title">Effacer les triches enregistrées</string>

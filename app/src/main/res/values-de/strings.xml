@@ -77,6 +77,9 @@
     <string name="model_fallback">Modell %1$d</string>
 
     <!-- Setup screen -->
+    <string name="paused_title_home">startseite</string>
+    <string name="paused_title_cheats">cheats</string>
+    <string name="paused_title_map">karte</string>
     <string name="setup_title">NICHT VERBUNDEN</string>
     <string name="setup_subtitle">Funktioniert mit GTA IV und GTA V. Der Begleiter hört auf 127.0.0.1:47801 auf das installierte Plugin.</string>
     <string name="setup_section">GTA-IV-Einrichtung</string>
@@ -223,6 +226,7 @@
     <string name="tab_cheats">cheats</string>
     <string name="cheats_title">cheats</string>
     <string name="cheats_unsupported">in diesem Plugin nicht verfügbar</string>
+    <string name="cheats_pick_section">Wähle einen Abschnitt</string>
     <string name="cheats_section_health">gesundheit</string>
     <string name="cheats_section_wanted">fahndung</string>
     <string name="cheats_section_weapons">waffen</string>
@@ -312,6 +316,21 @@
     <string name="map_onboarding_slide_actions_body">Die Symbolspalte erreicht die anderen Tabs, ohne die Karte zu verlassen. Haus für das HUD, Würfel für Cheats, Stecknadel für Blips, Radio für die Sender. Fahrt-Overlays (Tacho, Wegpunkt-Entfernung bei V, geroutetes Ziel) erscheinen von selbst, während du in einem Auto bist.</string>
 
     <string name="settings_section_cheats">Cheats</string>
+    <string name="settings_section_app">Navigation</string>
+    <string name="settings_section_atlas">Atlas</string>
+    <string name="settings_rail_group_app">App</string>
+    <string name="settings_rail_pick">Wähle einen Abschnitt</string>
+    <string name="settings_tab_arrows_title">Tab-Pfeile</string>
+    <string name="settings_tab_arrows_body">Zeigt links und rechts Chevrons am unteren Rand jedes Tabs für Tab-Wechsel mit einem Fingertipp. Wischen funktioniert weiterhin.</string>
+    <string name="settings_tab_arrows_style_title">Button-Symbol</string>
+    <string name="settings_tab_arrows_style_arrows">Pfeile</string>
+    <string name="settings_tab_arrows_style_stars">Sterne</string>
+    <string name="settings_tab_arrows_style_transparent">transparent</string>
+    <string name="tab_arrows_prompt_title">Tab-Pfeile</string>
+    <string name="tab_arrows_prompt_body">Neu: Chevrons links und rechts am unteren Rand jedes Tabs für Tab-Wechsel mit einem Tipp. Standardmäßig aktiviert — in Einstellungen → App ausschalten, wenn du nur wischen möchtest.</string>
+    <string name="tab_arrows_prompt_dismiss">Verstanden</string>
+    <string name="tab_arrows_prev_cd">vorheriger Tab</string>
+    <string name="tab_arrows_next_cd">nächster Tab</string>
     <string name="settings_auto_reapply_cheats_title">Schalter beim erneuten Verbinden wieder aktivieren</string>
     <string name="settings_auto_reapply_cheats_body">Nachdem sich der Begleiter erneut verbindet (neue Sitzung, Spielneustart), aktiviere jeden Schalter wieder, den du zuletzt eingeschaltet hattest, plus jeden Einmal-Cheat, den du lang gedrückt hast, um ihn scharf zu stellen. Wird nur einmal pro Verbindung ausgelöst und nur, wenn sich das Spiel in einem sicheren Zustand befindet (nicht pausiert, nicht beim Charakterwechsel, keine Zwischensequenz).</string>
     <string name="settings_clear_cheats_title">Gespeicherte Cheats löschen</string>

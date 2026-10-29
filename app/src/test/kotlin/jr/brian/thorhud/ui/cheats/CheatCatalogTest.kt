@@ -181,16 +181,32 @@ class CheatCatalogTest {
     }
 
     @Test
-    fun paintSectionHasThreeEntriesOnBothGames() {
-        // Catalog order inside Paint: respray, next colour, swap. One
-        // row of two + one trailing single on the two-wide grid.
-        val expected = listOf(60, 61, 62)
+    fun paintSectionHasFourEntriesOnBothGames() {
+        // Catalog order inside Paint: respray, next colour, swap, fix
+        // vehicle. Two rows of two on the two-wide grid; the V-only
+        // colour wheel rides on its own trailing row in the UI.
+        val expected = listOf(60, 61, 62, 6)
         for (isV in listOf(false, true)) {
             val paint = visibleCheats(isGtaV = isV)[CheatCategory.Paint]
             assertNotNull("paint section missing on game=${if (isV) "V" else "IV"}", paint)
             assertEquals(expected, paint!!.map { it.id })
-            // All three are one-shots, not toggles.
+            // All four are one-shots, not toggles.
             assertTrue(paint.all { !it.isToggle })
         }
+    }
+
+    @Test
+    fun vehicleSectionIsVOnlyAfterFixVehicleMoved() {
+        // IV: Vehicle must be gone entirely — the only catalog entry
+        // there was fix vehicle (id 6), which now rides in Paint. V
+        // still has the curated spawn list, so the section stays.
+        assertFalse("IV should have no Vehicle section",
+                    visibleCheats(isGtaV = false).containsKey(CheatCategory.Vehicle))
+        val vVehicle = visibleCheats(isGtaV = true)[CheatCategory.Vehicle]
+        assertNotNull("V Vehicle section missing", vVehicle)
+        assertEquals(
+            setOf(10, 11, 12, 13, 14, 15),
+            vVehicle!!.map { it.id }.toSet(),
+        )
     }
 }

@@ -19,6 +19,8 @@ import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import jr.brian.thorhud.R
@@ -55,11 +57,16 @@ internal fun RadioPicker(
     currentLocal: Int,
     palette: HudPalette,
     onStationTap: (Int) -> Unit,
+    // Visual knobs for callers that want chunkier buttons (quick-tap
+    // sheet on the map tab) vs. the dense in-vehicle HUD defaults.
+    buttonHeight: Dp = 36.dp,
+    buttonFontSize: TextUnit = 13.sp,
+    rowSpacing: Dp = 4.dp,
 ) {
     val half = (stations.size + 1) / 2
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(rowSpacing),
     ) {
         Text(
             stringResource(R.string.label_radio_stations),
@@ -74,11 +81,17 @@ internal fun RadioPicker(
             start = 0, endExclusive = half,
             stations = stations, currentLocal = currentLocal,
             palette = palette, onStationTap = onStationTap,
+            buttonHeight = buttonHeight,
+            buttonFontSize = buttonFontSize,
+            rowSpacing = rowSpacing,
         )
         RadioPickerRow(
             start = half, endExclusive = stations.size,
             stations = stations, currentLocal = currentLocal,
             palette = palette, onStationTap = onStationTap,
+            buttonHeight = buttonHeight,
+            buttonFontSize = buttonFontSize,
+            rowSpacing = rowSpacing,
         )
     }
 }
@@ -95,11 +108,13 @@ internal fun RadioOffButton(
     isCurrent: Boolean,
     palette: HudPalette,
     onTap: () -> Unit,
+    buttonHeight: Dp = 36.dp,
+    buttonFontSize: TextUnit = 13.sp,
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(36.dp)
+            .height(buttonHeight)
             .background(
                 color = if (isCurrent) palette.accent else Color(0xFF1F2A24),
                 shape = RoundedCornerShape(6.dp),
@@ -112,7 +127,7 @@ internal fun RadioOffButton(
             color = if (isCurrent) Color(0xFF000000) else Color(0xFFB6CCBC),
             fontFamily = FontFamily.Monospace,
             fontWeight = FontWeight.Bold,
-            fontSize = 13.sp,
+            fontSize = buttonFontSize,
         )
     }
 }
@@ -125,13 +140,16 @@ private fun RadioPickerRow(
     currentLocal: Int,
     palette: HudPalette,
     onStationTap: (Int) -> Unit,
+    buttonHeight: Dp = 36.dp,
+    buttonFontSize: TextUnit = 13.sp,
+    rowSpacing: Dp = 4.dp,
 ) {
     // Short labels (freq where known, callsign otherwise) indexed by
     // enum station id. Button i's label = shortLabels[stations[i]].
     val shortLabels = stringArrayResource(R.array.radio_short)
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(rowSpacing),
     ) {
         for (local in start until endExclusive) {
             val isCurrent = local == currentLocal
@@ -140,7 +158,7 @@ private fun RadioPickerRow(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(36.dp)
+                    .height(buttonHeight)
                     .background(
                         color = if (isCurrent) palette.accent else Color(0xFF1F2A24),
                         shape = RoundedCornerShape(6.dp),
@@ -153,7 +171,7 @@ private fun RadioPickerRow(
                     color = if (isCurrent) Color(0xFF000000) else Color(0xFFB6CCBC),
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
+                    fontSize = buttonFontSize,
                 )
             }
         }

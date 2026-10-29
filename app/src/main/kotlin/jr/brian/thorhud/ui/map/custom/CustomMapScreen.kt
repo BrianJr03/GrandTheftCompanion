@@ -759,12 +759,16 @@ private fun AtlasHeader(
     onOpenCheats: (() -> Unit)?,
     onOpenBlips: (() -> Unit)?,
     onOpenRadio: (() -> Unit)?,
+    onOpenSettings: (() -> Unit)?,
     onCenterOnPlayer: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 2.dp, start = 2.dp, end = 2.dp),
+            // Breathing room around the header so the title and icon
+            // row aren't flush against the panel edge; the 2 dp used
+            // before was too tight once the row grew past four icons.
+            .padding(top = 8.dp, start = 12.dp, end = 12.dp, bottom = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -826,6 +830,13 @@ private fun AtlasHeader(
             HeaderIconButton(
                 icon = Icons.Filled.Radio,
                 contentDescription = stringResource(R.string.label_radio),
+                tint = accent, onClick = open,
+            )
+        }
+        onOpenSettings?.let { open ->
+            HeaderIconButton(
+                icon = Icons.Filled.Settings,
+                contentDescription = stringResource(R.string.settings_icon_cd),
                 tint = accent, onClick = open,
             )
         }

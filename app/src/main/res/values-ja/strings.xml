@@ -77,6 +77,9 @@
     <string name="model_fallback">モデル %1$d</string>
 
     <!-- Setup screen -->
+    <string name="paused_title_home">ホーム</string>
+    <string name="paused_title_cheats">チート</string>
+    <string name="paused_title_map">マップ</string>
     <string name="setup_title">未接続</string>
     <string name="setup_subtitle">GTA IV と GTA V に対応。インストールしたプラグインを 127.0.0.1:47801 で待機します。</string>
     <string name="setup_section">gta iv セットアップ</string>
@@ -223,6 +226,7 @@
     <string name="tab_cheats">チート</string>
     <string name="cheats_title">チート</string>
     <string name="cheats_unsupported">このプラグインビルドでは利用不可</string>
+    <string name="cheats_pick_section">セクションを選択</string>
     <string name="cheats_section_health">体力</string>
     <string name="cheats_section_wanted">指名手配</string>
     <string name="cheats_section_weapons">武器</string>
@@ -312,6 +316,21 @@
     <string name="map_onboarding_slide_actions_body">アイコン列からマップを離れずに他のタブへ移動できます。ホームでHUD、サイコロでチート、ピンでブリップ、ラジオで局。運転中のオーバーレイ（スピードメーター、Vのウェイポイント距離、ルート先）は車に乗っている間、自動的に表示されます。</string>
 
     <string name="settings_section_cheats">チート</string>
+    <string name="settings_section_app">ナビゲーション</string>
+    <string name="settings_section_atlas">アトラス</string>
+    <string name="settings_rail_group_app">アプリ</string>
+    <string name="settings_rail_pick">セクションを選択</string>
+    <string name="settings_tab_arrows_title">タブ矢印</string>
+    <string name="settings_tab_arrows_body">各タブの下部に左右の矢印を表示して、ワンタップでタブを切り替えます。スワイプも引き続き使えます。</string>
+    <string name="settings_tab_arrows_style_title">ボタンアイコン</string>
+    <string name="settings_tab_arrows_style_arrows">矢印</string>
+    <string name="settings_tab_arrows_style_stars">星</string>
+    <string name="settings_tab_arrows_style_transparent">透明</string>
+    <string name="tab_arrows_prompt_title">タブ矢印</string>
+    <string name="tab_arrows_prompt_body">新機能：各タブの下部に左右の矢印を表示して、ワンタップでタブを切り替えます。デフォルトで有効です。スワイプのみを使いたい場合は、設定 → アプリで無効にできます。</string>
+    <string name="tab_arrows_prompt_dismiss">了解</string>
+    <string name="tab_arrows_prev_cd">前のタブ</string>
+    <string name="tab_arrows_next_cd">次のタブ</string>
     <string name="settings_auto_reapply_cheats_title">再接続時にトグルを再適用</string>
     <string name="settings_auto_reapply_cheats_body">コンパニオンが再接続（新しいセッション、ゲーム再起動）した後、前回オンにしていたトグルをすべて再び有効にし、長押しで備えておいたワンショットも発動します。接続ごとに1回だけ発動し、ゲームが安全な状態（一時停止でなく、キャラクター切り替え中でなく、ムービー中でもない）のときだけ動きます。</string>
     <string name="settings_clear_cheats_title">保存されたチートを消去</string>
