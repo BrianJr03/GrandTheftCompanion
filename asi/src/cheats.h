@@ -144,6 +144,12 @@ extern const char* const kErrSpawnTimeout;
 // game cheats grant large but finite ammo; 9999 is the common choice.
 constexpr uint32_t kFullAmmo = 9999;
 
+// RPG (weapon id 18 in base IV's eWeaponType). Max-ammo tops this up
+// to a usable-but-finite reserve instead of kFullAmmo — 9999 rockets
+// trivialises every mission that is not about the RPG.
+constexpr uint32_t kWeaponRpg   = 18;
+constexpr uint32_t kRpgMaxAmmo  = 8;
+
 // Reasons run() refuses a request. Short strings so the ack frame
 // does not need to escape anything. All reused by the host tests to
 // pin the exact wording.

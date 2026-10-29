@@ -191,12 +191,17 @@ void give_from_table(uint32_t ped, const uint32_t* ids, uint32_t count) {
 // in builds without level 4 (p.owned_valid is false) — then nothing to
 // do, no fallback: writing SET_CHAR_AMMO against a weapon the ped does
 // not carry is undefined.
+// RPG (weapon id 18) is capped at kRpgMaxAmmo instead of the standard
+// kFullAmmo — stacking 9999 rockets is both lore-breaking and makes the
+// game trivial, so the cheat tops it up to a usable-but-finite reserve.
 void max_ammo(uint32_t ped, const snapshot::Player& p) {
     if (!p.owned_valid) return;
     for (int slot = 0; slot < 13; ++slot) {
         const int32_t w = p.owned_weapons[slot];
         if (w <= 0) continue;
-        game::set_char_ammo(ped, static_cast<uint32_t>(w), kFullAmmo);
+        const uint32_t id = static_cast<uint32_t>(w);
+        const uint32_t ammo = (id == kWeaponRpg) ? kRpgMaxAmmo : kFullAmmo;
+        game::set_char_ammo(ped, id, ammo);
     }
 }
 

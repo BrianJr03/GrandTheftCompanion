@@ -349,6 +349,31 @@ void test_max_ammo_only_owned() {
           "max ammo: every owned weapon written");
 }
 
+void test_max_ammo_rpg_capped() {
+    std::printf("max ammo caps RPG\n");
+    fake_reset();
+    snapshot::Player p = on_foot();
+    p.owned_valid = true;
+    p.owned_weapons[0] = 7;                      // pistol
+    p.owned_weapons[1] = cheats::kWeaponRpg;     // RPG (id 18)
+    const char* err = cheats::run(cheats::kMaxAmmo, kPlayer, kPed, p);
+    check(err == nullptr, "max ammo: ok");
+    check(g.ammo_set.size() == 2, "max ammo: one write per owned slot");
+    bool saw_pistol = false, saw_rpg = false;
+    for (const auto& [w, ammo] : g.ammo_set) {
+        if (w == 7) {
+            saw_pistol = true;
+            check(ammo == cheats::kFullAmmo, "max ammo: pistol gets kFullAmmo");
+        }
+        if (w == cheats::kWeaponRpg) {
+            saw_rpg = true;
+            check(ammo == cheats::kRpgMaxAmmo,
+                  "max ammo: RPG capped at kRpgMaxAmmo");
+        }
+    }
+    check(saw_pistol && saw_rpg, "max ammo: both weapons written");
+}
+
 void test_fix_vehicle() {
     std::printf("fix vehicle\n");
     fake_reset();
@@ -710,6 +735,7 @@ int main() {
     test_all_weapons();
     test_max_ammo_skips_without_scan();
     test_max_ammo_only_owned();
+    test_max_ammo_rpg_capped();
     test_fix_vehicle();
     test_paint_respray();
     test_paint_next_colour_wraps();
