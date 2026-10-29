@@ -42,6 +42,19 @@ internal enum class CheatCategory(@StringRes val labelRes: Int) {
     Toggles(R.string.cheats_section_toggles),
 }
 
+/**
+ * Section header text for this category in the current game.
+ *
+ * On GTA IV the Vehicle category has no cheats (every V-only spawn
+ * drops out), so the Paint section carries all the "work on this car"
+ * moves and reads clearer as "vehicle". On GTA V both sections carry
+ * their own cheats and keep their own names.
+ */
+@StringRes
+internal fun CheatCategory.labelResFor(isGtaV: Boolean): Int =
+    if (this == CheatCategory.Paint && !isGtaV) R.string.cheats_section_vehicle
+    else labelRes
+
 internal const val CHEAT_IV: Int = 0b01
 internal const val CHEAT_V: Int = 0b10
 internal const val CHEAT_BOTH: Int = CHEAT_IV or CHEAT_V

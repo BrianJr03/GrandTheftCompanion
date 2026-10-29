@@ -220,7 +220,9 @@ internal fun CheatsScreen(
         // reorders (via a future gesture), resolveSectionOrder
         // appends them to the end.
         val available = grouped.keys
-        val defaultOrder = available.sortedBy { context.getString(it.labelRes).lowercase() }
+        val defaultOrder = available.sortedBy {
+            context.getString(it.labelResFor(isGtaV)).lowercase()
+        }
         val effectiveOrder = resolveSectionOrder(savedSectionOrder, available, defaultOrder)
 
         // Selected rail chip. Saveable so rotation keeps the user on
@@ -241,6 +243,7 @@ internal fun CheatsScreen(
                 categories = effectiveOrder,
                 selected = selected,
                 accent = accent,
+                isGtaV = isGtaV,
                 onSelect = { selectedName = it.name },
                 modifier = Modifier
                     .width(RAIL_WIDTH)
@@ -353,13 +356,14 @@ private fun CategoryRail(
     categories: List<CheatCategory>,
     selected: CheatCategory?,
     accent: Color,
+    isGtaV: Boolean,
     onSelect: (CheatCategory) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
         for (category in categories) {
             RailChip(
-                label = stringResource(category.labelRes),
+                label = stringResource(category.labelResFor(isGtaV)),
                 selected = selected == category,
                 accent = accent,
                 onClick = { onSelect(category) },

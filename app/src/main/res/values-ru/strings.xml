@@ -231,7 +231,7 @@
     <string name="cheats_section_wanted">розыск</string>
     <string name="cheats_section_weapons">оружие</string>
     <string name="cheats_section_vehicle">транспорт</string>
-    <string name="cheats_section_paint">транспорт</string>
+    <string name="cheats_section_paint">покраска</string>
     <string name="cheats_section_world">мир</string>
     <string name="cheats_section_toggles">переключатели</string>
     <string name="cheats_error">%1$s</string>

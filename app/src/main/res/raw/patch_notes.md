@@ -22,9 +22,9 @@ A small "home", "cheats", or "map" label now sits next to the settings icon on t
 
 GTA V's pause screen no longer takes over the whole app. The pager stays visible so you can swipe to another tab mid-pause, the same way GTA IV always did.
 
-**Vehicle section groups all the car moves**
+**IV paint section is now called "vehicle"**
 
-Fix vehicle sits with respray, next color, and swap colors in a single Vehicle section now. Same buttons, same taps, just grouped together as the "work on this car" moves instead of split across two headers.
+On GTA IV the Paint section reads as "vehicle" since it holds all the car moves (respray, next color, swap colors, fix vehicle) and the old Vehicle section only ever held V-only spawns. GTA V is unchanged: Paint stays Paint, Vehicle stays Vehicle, each with their own cheats.
 
 **Settings panel reshape**
 

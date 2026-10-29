@@ -23,7 +23,7 @@
     <string name="cheats_section_wanted">wanted</string>
     <string name="cheats_section_weapons">weapons</string>
     <string name="cheats_section_vehicle">vehicle</string>
-    <string name="cheats_section_paint">vehicle</string>
+    <string name="cheats_section_paint">paint</string>
     <string name="cheats_section_world">world</string>
     <string name="cheats_section_toggles">toggles</string>
     <string name="cheats_error">%1$s</string>

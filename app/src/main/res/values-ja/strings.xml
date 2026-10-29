@@ -231,7 +231,7 @@
     <string name="cheats_section_wanted">指名手配</string>
     <string name="cheats_section_weapons">武器</string>
     <string name="cheats_section_vehicle">車両</string>
-    <string name="cheats_section_paint">車両</string>
+    <string name="cheats_section_paint">塗装</string>
     <string name="cheats_section_world">ワールド</string>
     <string name="cheats_section_toggles">トグル</string>
     <string name="cheats_error">%1$s</string>

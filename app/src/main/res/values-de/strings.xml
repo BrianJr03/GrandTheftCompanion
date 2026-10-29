@@ -231,7 +231,7 @@
     <string name="cheats_section_wanted">fahndung</string>
     <string name="cheats_section_weapons">waffen</string>
     <string name="cheats_section_vehicle">fahrzeug</string>
-    <string name="cheats_section_paint">fahrzeug</string>
+    <string name="cheats_section_paint">lack</string>
     <string name="cheats_section_world">welt</string>
     <string name="cheats_section_toggles">schalter</string>
     <string name="cheats_error">%1$s</string>
