@@ -231,7 +231,7 @@
     <string name="cheats_section_wanted">ricercato</string>
     <string name="cheats_section_weapons">armi</string>
     <string name="cheats_section_vehicle">veicolo</string>
-    <string name="cheats_section_paint">vernice</string>
+    <string name="cheats_section_paint">veicolo</string>
     <string name="cheats_section_world">mondo</string>
     <string name="cheats_section_toggles">interruttori</string>
     <string name="cheats_error">%1$s</string>

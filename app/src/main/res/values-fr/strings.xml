@@ -231,7 +231,7 @@
     <string name="cheats_section_wanted">recherche</string>
     <string name="cheats_section_weapons">armes</string>
     <string name="cheats_section_vehicle">véhicule</string>
-    <string name="cheats_section_paint">peinture</string>
+    <string name="cheats_section_paint">véhicule</string>
     <string name="cheats_section_world">monde</string>
     <string name="cheats_section_toggles">bascules</string>
     <string name="cheats_error">%1$s</string>
