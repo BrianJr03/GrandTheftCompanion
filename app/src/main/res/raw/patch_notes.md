@@ -1,25 +1,31 @@
 ## v0.16.0
 
-**Smooth follow camera on the atlas page**
+NOTE: download the latest ThorBridge.asi from the release assets and drop it next to GTAIV.exe. The APK update alone doesn't pick up asi changes.
 
-The atlas now follows you with a camera that eases, not a camera that snaps. Position samples arrive 20 times a second from the plugin but the camera glides at the display's refresh rate, so the dot stays near the center at a walk and lags only a touch at highway speed. Stand still, and the atlas holds steady with no shimmer.
+**Nav arrows on every tab**
 
-**Pan, fling, and pinch do what you'd expect**
+A pair of tap targets now sits at the bottom edge of every tab for one-tap moves between pages. Swiping still works the same way it always did. Pick what the targets look like from `Settings → App → Button icon`: `arrows`, `stars`, or `transparent`. On transparent the taps stay invisible, but a short gradient ring in your HUD's accent color flows around them each time you open the app so you can see where they are. The ring sits out while the game is paused.
 
-A one-finger drag turns follow off and leaves a bit of coast at lift, like a map on your phone. A pinch keeps follow on and zooms about the point between your fingers. When you let go of a pinch, the atlas settles on the nearest preset so the view stays legible. (Turn that settle off from Settings → atlas & minimap if you'd rather land exactly where your fingers left you.)
+**Half-screen radio sheet**
 
-**+ / - pill with zoom presets**
+Tapping the radio icon on the map now slides up a half-height sheet with chunkier station buttons, so you can retune one-handed while driving. The map stays visible above the sheet, and a tap anywhere above the sheet closes it.
 
-A compact pill on the right edge of the atlas has **+**, the current level, and **-**. Taps ease between presets at `fit`, `8`, `4`, `2`, `1`, and `0.5` meters per screen pixel. Long-press **-** jumps to fit.
+**IV max ammo caps the RPG**
 
-**Center on player**
+The max ammo cheat on GTA IV now tops the RPG off at 8 rockets instead of 9999. Every other weapon still fills to the usual reserve.
 
-A new location icon in the atlas header flies the camera to the player with a short arc. Double-tapping the player dot does the same thing.
+**Paused screen knows which tab you're on**
 
-**Follow smoothing is a setting**
+A small "home", "cheats", or "map" label now sits next to the settings icon on the paused screen, so you can tell which tab you'll land on when the game unpauses.
 
-Settings → atlas & minimap → **follow smoothing** picks tight / normal / loose. Loose feels like the camera's trailing you, tight like it's locked on. Normal is the default.
+**GTA V pause plays nicer with the companion**
 
-**Fresh installs open on you**
+GTA V's pause screen no longer takes over the whole app. The pager stays visible so you can swipe to another tab mid-pause, the same way GTA IV always did.
 
-A new install opens the atlas at the finest preset with follow turned on, so the first position frame flies the camera straight to where you are. Change either in Settings and the choice sticks per game.
+**Fix vehicle moved to Paint**
+
+The fix-vehicle button lives in the Paint section now instead of Vehicle. Same button, same tap, just paired with the other "work on this car" moves (respray, next color, swap colors).
+
+**Settings panel reshape**
+
+Settings now opens as a two-column rail: category chips on the left, the chosen section's rows on the right. Same toggles, easier to scan.
