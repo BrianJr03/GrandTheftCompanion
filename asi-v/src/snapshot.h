@@ -117,6 +117,11 @@ struct State {
     float    vehicle_body_hp;             // 0..1000
     float    vehicle_altitude_m;          // above ground; aircraft only
     bool     vehicle_has_radio;
+    // IS_VEHICLE_SIREN_ON. Only emergency vehicles with a siren
+    // rig (police, ambulance, fire) can ever report true; civilian
+    // cars always read false. The companion uses this to flash the
+    // thumbsticks red/blue when the siren is wailing.
+    bool     vehicle_siren;
     // Paint. GET_VEHICLE_COLOURS is a pair of palette indices; the two
     // custom flags are true when the matching layer carries an RGB
     // override that would hide the palette index on screen. Read every

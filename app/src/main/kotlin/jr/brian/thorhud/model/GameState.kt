@@ -242,6 +242,11 @@ data class GameState(
         @SerialName("body_hp") val bodyHp: Float? = null,
         @SerialName("altitude_m") val altitudeM: Float? = null,
         @SerialName("has_radio") val hasRadio: Boolean? = null,
+        // IS_CAR_SIREN_ON / IS_VEHICLE_SIREN_ON. True only in an
+        // emergency vehicle (police / ambulance / fire) whose siren
+        // is currently wailing; civilian cars never read true.
+        // Drives the thumbstick flash in [jr.brian.thorhud.led.PoliceLights].
+        @SerialName("siren") val siren: Boolean? = null,
         // Paint. Both games report GET_*_COLOURS as a pair of palette
         // indices; GTA V also exposes a per-layer RGB override, and the
         // `custom` flag is true when either layer carries one.

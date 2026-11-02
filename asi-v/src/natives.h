@@ -50,6 +50,7 @@ enum : uint64_t {
 
     // VEHICLE
     GET_VEHICLE_CLASS                  = 0x29439776AAA00A62,  // int (Vehicle)
+    IS_VEHICLE_SIREN_ON                = 0x4C9BF537BE2634B2,  // BOOL (Vehicle)
     GET_VEHICLE_ENGINE_HEALTH          = 0xC45D23BAF168AAB8,  // float (Vehicle), -4000..1000
     GET_VEHICLE_BODY_HEALTH            = 0xF271147EB7B40F12,  // float (Vehicle), 0..1000
     GET_DISPLAY_NAME_FROM_VEHICLE_MODEL = 0xB215AAC32D25D019, // const char* (Hash model) -> GXT key

@@ -166,10 +166,12 @@ int format_state(char* buf, size_t cap, const snapshot::State& s,
         o.add_escaped(s.vehicle_name);
         o.add("\",\"class\":%d,\"speed_mps\":%.2f,\"engine_hp\":%.1f,"
               "\"body_hp\":%.1f,\"altitude_m\":%.1f,\"has_radio\":%s,"
+              "\"siren\":%s,"
               "\"colour1\":%d,\"colour2\":%d,\"custom\":%s},",
               s.vehicle_class, finite(s.vehicle_speed_mps),
               finite(s.vehicle_engine_hp), finite(s.vehicle_body_hp),
               finite(s.vehicle_altitude_m), b(s.vehicle_has_radio),
+              b(s.vehicle_siren),
               s.vehicle_colour1, s.vehicle_colour2, b(s.vehicle_custom));
     }
 

@@ -135,7 +135,7 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         "\"weapon\":%d,\"ammo_total\":%d,\"ammo_clip\":%d,"
         "\"owned\":%s,"
         "\"vehicle\":{\"model\":%u,\"name\":\"%s\","
-        "\"speed_mps\":%.2f,\"engine_hp\":%.1f%s},"
+        "\"speed_mps\":%.2f,\"engine_hp\":%.1f,\"siren\":%s%s},"
         "\"radio\":%d,\"episode\":%u,"
         "\"mission\":%s,\"route_blip\":%d,"
         "%s"
@@ -157,6 +157,7 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
         p.vehicle_model, veh_name,
         static_cast<double>(p.vehicle_speed_mps),
         static_cast<double>(p.vehicle_engine_hp),
+        p.vehicle_siren ? "true" : "false",
         colours,
         p.radio_station, p.episode,
         p.mission ? "true" : "false", p.route_blip,

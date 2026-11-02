@@ -361,6 +361,14 @@ void on_frame() {
             ctx.reset(); ctx.push(veh);
             natives::invoke(natives::GET_ENGINE_HEALTH, ctx);
             p.vehicle_engine_hp = ctx.get_float();
+
+            // Siren on? IS_CAR_SIREN_ON only ever reads true on
+            // emergency vehicles (police / ambulance / fire); any
+            // civilian car returns false. The companion keys the
+            // thumbstick flasher off this.
+            ctx.reset(); ctx.push(veh);
+            natives::invoke(natives::IS_CAR_SIREN_ON, ctx);
+            p.vehicle_siren = ctx.get_bool();
         }
     }
     // Radio station index — direct uint32_t return. -1 (0xFFFFFFFF) when

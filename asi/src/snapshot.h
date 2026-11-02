@@ -77,6 +77,11 @@ struct Player {
     char vehicle_name[32];     // GET_DISPLAY_NAME_FROM_VEHICLE_MODEL
     float vehicle_speed_mps;   // GET_CAR_SPEED (m/s)
     float vehicle_engine_hp;   // GET_ENGINE_HEALTH
+    // IS_CAR_SIREN_ON. Only emergency vehicles with a siren rig
+    // (police, ambulance, fire) can ever report true; civilian cars
+    // always read false. The companion uses this to flash the
+    // thumbsticks red/blue when the siren is wailing.
+    bool vehicle_siren;
     // Paint (THORBRIDGE_CHEATS only). GET_CAR_COLOURS reads both
     // palette indices through out-pointers. Zero (and the bridge
     // omits both fields) in builds that did not read them this

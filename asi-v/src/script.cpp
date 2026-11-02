@@ -192,6 +192,7 @@ int32_t read_vehicle(snapshot::State& s, int32_t ped) {
             shv::call<float>(natives::GET_ENTITY_HEIGHT_ABOVE_GROUND, veh);
     }
     s.vehicle_has_radio = shv::call_bool(natives::DOES_PLAYER_VEH_HAVE_RADIO);
+    s.vehicle_siren     = shv::call_bool(natives::IS_VEHICLE_SIREN_ON, veh);
 
     // Paint. Three extra natives per in-vehicle tick on top of the
     // existing vehicle reads; the pair is cheap and the Paint section

@@ -39,6 +39,7 @@ enum : uint32_t {
     GET_ENGINE_HEALTH                   = 0x2B0A05E0,
     GET_CAR_MODEL                       = 0x5FF84497,
     GET_DISPLAY_NAME_FROM_VEHICLE_MODEL = 0x404E0056,
+    IS_CAR_SIREN_ON                     = 0x129A1569,
     GET_PLAYER_RADIO_STATION_INDEX      = 0x4E493AAF,
     SET_CURRENT_CHAR_WEAPON             = 0x6CF44DD6,
     RETUNE_RADIO_TO_STATION_INDEX       = 0x48ED6432,

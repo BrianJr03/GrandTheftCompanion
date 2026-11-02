@@ -48,11 +48,20 @@ internal object PoliceLights {
      * actually being played right now (loading, GTA Online, a character
      * switch). Pausing is deliberate and keeps the heat on the player's
      * head, so the lights stay lit through the pause menu.
+     *
+     * Also flashes at one-star tempo while the player is driving an
+     * emergency vehicle with the siren on (any siren rig: police,
+     * ambulance, fire). The native only reports true for vehicles
+     * that actually have a siren, so this never fires on a civilian
+     * car.
      */
     fun wantedLevel(state: GameState?): Int {
         if (state == null || !state.inGame) return 0
         if (state.stalled || state.online || state.switching) return 0
-        return (state.wanted ?: 0).coerceAtLeast(0)
+        val stars = (state.wanted ?: 0).coerceAtLeast(0)
+        if (stars > 0) return stars
+        if (state.inVehicle && state.vehicle?.siren == true) return 1
+        return 0
     }
 
     fun maxStars(state: GameState?): Int =
