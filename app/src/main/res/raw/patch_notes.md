@@ -1,3 +1,11 @@
+## v0.16.1
+
+NOTE: download the latest ThorBridge.asi and ThorBridgeV.asi from the release assets and drop them next to GTAIV.exe and GTA5.exe respectively. The APK update alone doesn't pick up asi changes.
+
+**Lights now flash for the siren too**
+
+If police lights are on in Settings, your thumbsticks already flash red and blue when you have stars. They now also flash while you're driving an emergency vehicle with the siren on, even without a wanted level. Works on police cars, ambulances, and fire trucks across GTA IV and GTA V. Civilian cars stay quiet.
+
 ## v0.16.0
 
 NOTE: download the latest ThorBridge.asi from the release assets and drop it next to GTAIV.exe. The APK update alone doesn't pick up asi changes.
