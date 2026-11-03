@@ -55,8 +55,6 @@ import jr.brian.thorhud.ui.cheats.ColorWheelSheet
 import jr.brian.thorhud.ui.cheats.PAINT_SWATCHES
 import jr.brian.thorhud.ui.cheats.unpackRgb
 import jr.brian.thorhud.ui.components.FullScreenSheet
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * The Los Santos Customs sheet (GTA V only). Opens on a long-press of
@@ -85,17 +83,13 @@ internal fun LSCustomsScreen(
     val title = vehicle?.name?.ifBlank { null }
         ?: stringResource(R.string.customs_title)
 
-    // 3-second grace: a stall that briefly drops the vehicle object
-    // should not slam the sheet shut. If the plugin keeps reporting
-    // on-foot for longer than that, dismiss.
+    // The long-press is always live now, so the sheet no longer
+    // auto-dismisses when the player hops out of the car — the
+    // "get in a car" placeholder below handles that case. Request
+    // a fresh catalogue only when the player is actually driving,
+    // because wardrobe/mods commands refuse on foot anyway.
     LaunchedEffect(visible, state?.inVehicle) {
-        if (visible && state?.inVehicle == false) {
-            delay(3000.milliseconds)
-            onDismiss()
-        }
-    }
-    LaunchedEffect(visible) {
-        if (visible) viewModel.open()
+        if (visible && state?.inVehicle == true) viewModel.open()
     }
 
     val collapsedSections = rememberSaveable(saver = SetSaver) {

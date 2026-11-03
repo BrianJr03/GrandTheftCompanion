@@ -198,13 +198,50 @@
     <string name="wardrobe_section_accessories">Accessories</string>
     <string name="wardrobe_section_props">Props</string>
     <string name="wardrobe_section_other">Other</string>
-    <!-- Generic fallbacks when the game ships no label for a slot. v1
-         ships no names table so every row uses these. -->
+    <!-- Row labels, keyed by (game, prop, slot id). The NativeDB
+         enum names them as English handles; iv-sdk's naming for IV
+         is a loose transliteration of script internals. Confirmed
+         on-device from Gate W1 logs — correct from the on-device
+         slot counts, not just the enum docs. -->
+    <string name="wardrobe_v_comp_1">mask / beard</string>
+    <string name="wardrobe_v_comp_2">hair</string>
+    <string name="wardrobe_v_comp_3">torso</string>
+    <string name="wardrobe_v_comp_4">legs</string>
+    <string name="wardrobe_v_comp_5">bag / parachute</string>
+    <string name="wardrobe_v_comp_6">feet</string>
+    <string name="wardrobe_v_comp_7">accessories</string>
+    <string name="wardrobe_v_comp_8">undershirt</string>
+    <string name="wardrobe_v_comp_9">armour / task</string>
+    <string name="wardrobe_v_comp_11">tops</string>
+    <string name="wardrobe_v_prop_0">hat</string>
+    <string name="wardrobe_v_prop_1">glasses</string>
+    <string name="wardrobe_v_prop_2">ears</string>
+    <string name="wardrobe_v_prop_6">watch</string>
+    <string name="wardrobe_v_prop_7">bracelet</string>
+    <!-- IV component / prop labels. iv-sdk names "suse" and "suse2"
+         are opaque; they usually read as sub-sections of upper
+         clothing / undershirt in practice, so give them friendlier
+         labels and keep the real meaning from the gate log. -->
+    <string name="wardrobe_iv_comp_1">upper</string>
+    <string name="wardrobe_iv_comp_2">lower</string>
+    <string name="wardrobe_iv_comp_3">suse</string>
+    <string name="wardrobe_iv_comp_4">hand</string>
+    <string name="wardrobe_iv_comp_5">feet</string>
+    <string name="wardrobe_iv_comp_6">jacket</string>
+    <string name="wardrobe_iv_comp_7">hair</string>
+    <string name="wardrobe_iv_comp_8">suse2</string>
+    <string name="wardrobe_iv_prop_0">hat</string>
+    <string name="wardrobe_iv_prop_1">glasses</string>
+    <!-- Generic fallbacks when the slot id is outside the known
+         protagonist range (Director Mode ped, mods, skin-swap). The
+         "slot N" / "prop N" wording lets a surprising row still be
+         labelled with something, even without a dictionary entry. -->
     <string name="wardrobe_slot_n">slot %1$d</string>
     <string name="wardrobe_prop_n">prop %1$d</string>
     <string name="wardrobe_style">style %1$d / %2$d</string>
     <string name="wardrobe_colour">colour %1$d / %2$d</string>
     <string name="wardrobe_none">none</string>
+    <string name="wardrobe_get_out">Get out of the car to use Wardrobe.</string>
 
     <!-- Shared action labels. -->
     <string name="action_save">Save</string>

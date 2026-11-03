@@ -113,12 +113,12 @@ internal data class WardrobeRows(
  * header. The screen reads the sections in the order the enum
  * declares; this file never sorts beyond that.
  */
-internal fun wardrobeRows(wardrobe: Wardrobe): WardrobeRows {
+internal fun wardrobeRows(wardrobe: Wardrobe, isGtaV: Boolean): WardrobeRows {
     val bySection = linkedMapOf<WardrobeSection, MutableList<WardrobeRow>>()
     for (section in WardrobeSection.entries) bySection[section] = mutableListOf()
     for (slot in wardrobe.pieces) {
         val section = if (slot.prop) WardrobeSection.Props
-                      else componentSection(slot.slot)
+                      else componentSection(isGtaV, slot.slot)
         bySection.getValue(section).add(WardrobeRow(slot))
     }
     val sections = bySection.entries
@@ -127,18 +127,75 @@ internal fun wardrobeRows(wardrobe: Wardrobe): WardrobeRows {
     return WardrobeRows(sections)
 }
 
-/** Section a component slot belongs to. Numbers follow the NativeDB
- *  component enum; the mapping is deliberately conservative so a
- *  wrong guess parks the slot in [WardrobeSection.Other] rather than
+/** Section a V component slot belongs to. Numbers follow the
+ *  NativeDB enum; the mapping is conservative so a wrong guess
+ *  parks the slot in [WardrobeSection.Other] rather than
  *  mislabelling. */
-internal fun componentSection(slot: Int): WardrobeSection = when (slot) {
-    3, 8, 11 -> WardrobeSection.Tops
-    4        -> WardrobeSection.Legs
-    6        -> WardrobeSection.Feet
-    1, 2     -> WardrobeSection.Hair
-    5, 7, 9  -> WardrobeSection.Accessories
-    else     -> WardrobeSection.Other
-}
+internal fun componentSection(isGtaV: Boolean, slot: Int): WardrobeSection =
+    if (isGtaV) when (slot) {
+        3, 8, 11 -> WardrobeSection.Tops
+        4        -> WardrobeSection.Legs
+        6        -> WardrobeSection.Feet
+        1, 2     -> WardrobeSection.Hair
+        5, 7, 9  -> WardrobeSection.Accessories
+        else     -> WardrobeSection.Other
+    } else when (slot) {
+        // IV ids per iv-sdk / FusionFix: 1 upper, 2 lower, 3 suse,
+        // 4 hand, 5 feet, 6 jacket, 7 hair, 8 suse2.
+        1, 6, 8  -> WardrobeSection.Tops         // upper, jacket, suse2
+        2, 3     -> WardrobeSection.Legs         // lower, suse
+        5        -> WardrobeSection.Feet
+        7        -> WardrobeSection.Hair
+        4        -> WardrobeSection.Accessories  // hand
+        else     -> WardrobeSection.Other
+    }
+
+/**
+ * String resource id for a slot's row label, keyed by (game, prop,
+ * slot). Returns 0 when there is no per-id entry; the UI then falls
+ * back to the generic `wardrobe_slot_<n>` / `wardrobe_prop_<n>`. The
+ * mapping follows the NativeDB enum / iv-sdk names from the task
+ * handoff and gets corrected from the on-device gate logs.
+ */
+internal fun slotLabelRes(isGtaV: Boolean, prop: Boolean, slot: Int): Int =
+    if (isGtaV) {
+        if (prop) when (slot) {
+            0 -> jr.brian.thorhud.R.string.wardrobe_v_prop_0
+            1 -> jr.brian.thorhud.R.string.wardrobe_v_prop_1
+            2 -> jr.brian.thorhud.R.string.wardrobe_v_prop_2
+            6 -> jr.brian.thorhud.R.string.wardrobe_v_prop_6
+            7 -> jr.brian.thorhud.R.string.wardrobe_v_prop_7
+            else -> 0
+        } else when (slot) {
+            1  -> jr.brian.thorhud.R.string.wardrobe_v_comp_1
+            2  -> jr.brian.thorhud.R.string.wardrobe_v_comp_2
+            3  -> jr.brian.thorhud.R.string.wardrobe_v_comp_3
+            4  -> jr.brian.thorhud.R.string.wardrobe_v_comp_4
+            5  -> jr.brian.thorhud.R.string.wardrobe_v_comp_5
+            6  -> jr.brian.thorhud.R.string.wardrobe_v_comp_6
+            7  -> jr.brian.thorhud.R.string.wardrobe_v_comp_7
+            8  -> jr.brian.thorhud.R.string.wardrobe_v_comp_8
+            9  -> jr.brian.thorhud.R.string.wardrobe_v_comp_9
+            11 -> jr.brian.thorhud.R.string.wardrobe_v_comp_11
+            else -> 0
+        }
+    } else {
+        if (prop) when (slot) {
+            0 -> jr.brian.thorhud.R.string.wardrobe_iv_prop_0
+            1 -> jr.brian.thorhud.R.string.wardrobe_iv_prop_1
+            else -> 0
+        } else when (slot) {
+            1 -> jr.brian.thorhud.R.string.wardrobe_iv_comp_1
+            2 -> jr.brian.thorhud.R.string.wardrobe_iv_comp_2
+            3 -> jr.brian.thorhud.R.string.wardrobe_iv_comp_3
+            4 -> jr.brian.thorhud.R.string.wardrobe_iv_comp_4
+            5 -> jr.brian.thorhud.R.string.wardrobe_iv_comp_5
+            6 -> jr.brian.thorhud.R.string.wardrobe_iv_comp_6
+            7 -> jr.brian.thorhud.R.string.wardrobe_iv_comp_7
+            8 -> jr.brian.thorhud.R.string.wardrobe_iv_comp_8
+            else -> 0
+        }
+    }
 
 /**
  * Snapshot the current ped's full look as a list of packed pieces,

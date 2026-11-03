@@ -585,44 +585,36 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     // so sheet-internal drags (color wheel, radio
                     // picker scroll) don't steal to the pager.
                     val sheetCount = remember { mutableStateOf(0) }
-                    // Customs sheet state — declared ahead of the
-                    // HudPager because the VMainScreen lambda captures
-                    // openCustoms before the Customs composable below
-                    // runs. Null when the player is on foot (so the
-                    // long-press hook stays off), when the plugin
-                    // doesn't advertise cheats (same gate the cheats
-                    // tab uses), or on GTA IV (the IV plugin has no
-                    // mods natives).
+                    // Customs sheet state. V only. Always long-
+                    // pressable when the plugin supports cheats —
+                    // the sheet itself shows "get in a car" when
+                    // the player isn't driving. Keeps the gesture
+                    // discoverable from any state rather than
+                    // vanishing silently on foot.
                     var showCustoms by rememberSaveable { mutableStateOf(false) }
                     val openCustoms: (() -> Unit)? =
-                        if (isGtaV && inVehicleNow && hello?.cheatsSupported == true) {
+                        if (isGtaV && hello?.cheatsSupported == true) {
                             { showCustoms = true }
                         } else null
 
-                    // Ammu-Nation sheet state. On foot, V only, same
-                    // cheats-supported gate as Customs (both require
-                    // the plugin's command dispatcher). Live state
-                    // must say inGame so the long-press is inert on
-                    // pause / loading / cutscene.
+                    // Ammu-Nation sheet state. V only, same cheats
+                    // gate as Customs. Always long-pressable; the
+                    // sheet shows "get out of the car" / "equip a
+                    // weapon" when the player isn't on foot armed.
                     var showAmmu by rememberSaveable { mutableStateOf(false) }
                     val openAmmu: (() -> Unit)? =
-                        if (isGtaV && !inVehicleNow &&
-                            hello?.cheatsSupported == true &&
+                        if (isGtaV && hello?.cheatsSupported == true &&
                             liveState?.inGame == true) {
                             { showAmmu = true }
                         } else null
 
-                    // Wardrobe sheet state. On foot, both games.
-                    // Same cheats-supported gate as Customs because
-                    // the plugin routes the first write through
-                    // STAT_SET_CHEAT_IS_ACTIVE (V) / lives behind
-                    // THORBRIDGE_CHEATS (IV). The in-vehicle layout
-                    // keeps openWardrobe null so the long-press is
-                    // inert while driving (plugin refuses too).
+                    // Wardrobe sheet state. Both games. Always long-
+                    // pressable when the plugin supports it — the
+                    // sheet shows "get out of the car to use
+                    // Wardrobe" in-vehicle rather than disappearing.
                     var showWardrobe by rememberSaveable { mutableStateOf(false) }
                     val openWardrobe: (() -> Unit)? =
-                        if (!inVehicleNow &&
-                            hello?.cheatsSupported == true &&
+                        if (hello?.cheatsSupported == true &&
                             hello?.wardrobeSupported == true &&
                             liveState?.inGame == true) {
                             { showWardrobe = true }
@@ -970,6 +962,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             accent = accent,
                             isGtaV = isGtaV,
                             characterLabel = wardrobeCharacter,
+                            isInVehicle = inVehicleNow,
                             onDismiss = { showWardrobe = false },
                         )
 

@@ -53,9 +53,8 @@ import jr.brian.thorhud.model.Armory
 import jr.brian.thorhud.model.ArmoryGroup
 import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.components.FullScreenSheet
+import jr.brian.thorhud.ui.v.vWeaponLabel
 import jr.brian.thorhud.ui.v.vWheelSlotOf
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * The Ammu-Nation sheet (GTA V only). Opens on a long-press of the
@@ -88,15 +87,10 @@ internal fun AmmuNationScreen(
     val result by viewModel.result.collectAsStateWithLifecycle()
     val onFoot = state?.inVehicle == false
 
-    // 3-second grace: a stall that briefly drops on-foot should not
-    // slam the sheet shut. Hop out if the plugin says in-vehicle for
-    // longer — the plugin refuses our commands anyway.
-    LaunchedEffect(visible, state?.inVehicle) {
-        if (visible && state?.inVehicle == true) {
-            delay(3000.milliseconds)
-            onDismiss()
-        }
-    }
+    // The long-press is always live now, so the sheet no longer
+    // auto-dismisses when the player gets in a car — the "get out
+    // of the car" / "equip a weapon" placeholders below handle
+    // those cases instead.
 
     // Target weapon selection:
     //   - autoSelectEquipped on: pin to state.weaponHash, so a weapon
@@ -146,8 +140,16 @@ internal fun AmmuNationScreen(
             else collapsedDetails.value + s
     }
 
-    val title = armory?.name?.ifBlank { null }
-        ?: stringResource(R.string.ammu_title_fallback)
+    // Prefer the WEAPON_LABELS table lookup (vWeaponLabel) so the
+    // header reads "Pistol Mk II" rather than "weapon_pistol_mk2".
+    // armory?.name is the plugin's localised label; empty / blank
+    // falls through to the table, then to a stripped internal
+    // string, then to the fallback title.
+    val title = when {
+        !armory?.name.isNullOrBlank() -> vWeaponLabel(armory?.name, armory?.weaponHash)
+        armory?.weaponHash != null    -> vWeaponLabel(null, armory?.weaponHash)
+        else                          -> stringResource(R.string.ammu_title_fallback)
+    }
 
     FullScreenSheet(
         visible = visible,
@@ -777,14 +779,12 @@ private fun railGroupsFor(weapons: List<GameState.VWeapon>): List<RailSection> {
     }
 }
 
-/** "weapon_pistol_mk2" → "pistol mk2" for the rail chip. The game's
- *  localised label from the armory frame is used for the title of the
- *  details pane; the rail stays on the stable id so weapons without
- *  a shop entry still read sensibly. */
-private fun displayNameOf(w: GameState.VWeapon): String {
-    val raw = w.name.ifBlank { "0x%08X".format(w.hash) }
-    return raw.removePrefix("weapon_").replace('_', ' ')
-}
+/** Rail-chip label for a weapon. Goes through [vWeaponLabel] so the
+ *  WEAPON_LABELS table — the same one the HUD weapon card reads —
+ *  wins over a stripped internal string; weapons without a table
+ *  entry still get the "foo bar" fallback. */
+private fun displayNameOf(w: GameState.VWeapon): String =
+    vWeaponLabel(w.name, w.hash)
 
 private const val SECTION_ATTACHMENTS = "attachments"
 private const val SECTION_TINT = "tint"

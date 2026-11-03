@@ -71,6 +71,10 @@ internal fun WardrobeScreen(
     accent: Color,
     isGtaV: Boolean,
     characterLabel: String?,
+    // The long-press is always live now; the sheet itself tells the
+    // player to get out of the car when they open it in-vehicle,
+    // instead of refusing to appear.
+    isInVehicle: Boolean,
     onDismiss: () -> Unit,
     viewModel: WardrobeViewModel = hiltViewModel(),
 ) {
@@ -80,12 +84,11 @@ internal fun WardrobeScreen(
     val title = characterLabel?.ifBlank { null }
         ?: stringResource(R.string.wardrobe_title)
 
-    // The sheet is reached from the character-name long-press, which
-    // only lights up on foot. If the plugin starts reporting in-vehicle
-    // (quickly enough to notice) close ourselves rather than leaving a
-    // dead sheet open.
-    LaunchedEffect(visible) {
-        if (visible) viewModel.open()
+    // Fire a wardrobe_list on open only when the user is actually on
+    // foot — otherwise the plugin refuses and the sheet shows the
+    // "get out of the car" placeholder.
+    LaunchedEffect(visible, isInVehicle) {
+        if (visible && !isInVehicle) viewModel.open()
     }
 
     val collapsedSections = rememberSaveable(saver = SetSaver) {
@@ -113,61 +116,71 @@ internal fun WardrobeScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 10.dp),
         ) {
-            SavedLooksStrip(
-                presets = presets,
-                canSave = canSavePreset(wardrobe, presets),
-                accent = accent,
-                onApply = viewModel::applyPreset,
-                onLongPress = { presetMenuIndex = it },
-                onSave = { showSaveSheet = true },
-            )
-            Spacer(Modifier.height(14.dp))
-
-            val w = wardrobe
-            if (w == null) {
-                EmptyPlaceholder()
-            } else {
-                val rows = remember(w) { wardrobeRows(w) }
-                for ((section, pieces) in rows.sections) {
-                    SectionHeader(
-                        section = section,
-                        collapsed = section.name in collapsedSections.value,
-                        accent = accent,
-                        onToggle = { toggleSection(section) },
-                    )
-                    if (section.name !in collapsedSections.value) {
-                        for (row in pieces) {
-                            PieceRow(
-                                slot = row.slot,
-                                pending = result?.pendingKey == pendingKey(row.slot),
-                                accent = accent,
-                                onNudgeStyle = { delta ->
-                                    nudgeStyle(viewModel, row.slot, delta)
-                                },
-                                onNudgeColour = { delta ->
-                                    nudgeColour(viewModel, row.slot, delta)
-                                },
-                            )
-                            Spacer(Modifier.height(6.dp))
-                        }
-                    }
-                    Spacer(Modifier.height(10.dp))
-                }
-                Spacer(Modifier.height(4.dp))
-                ResetButton(onClick = { showResetConfirm = true },
-                            accent = accent)
-            }
-
-            val err = result?.error
-            if (!err.isNullOrEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    err,
-                    color = Color(0xFFE57373),
-                    fontSize = 11.sp,
-                    fontFamily = FontFamily.Monospace,
-                    modifier = Modifier.fillMaxWidth(),
+            when {
+                isInVehicle -> Note(
+                    stringResource(R.string.wardrobe_get_out),
                 )
+                else -> {
+                    SavedLooksStrip(
+                        presets = presets,
+                        canSave = canSavePreset(wardrobe, presets),
+                        accent = accent,
+                        onApply = viewModel::applyPreset,
+                        onLongPress = { presetMenuIndex = it },
+                        onSave = { showSaveSheet = true },
+                    )
+                    Spacer(Modifier.height(14.dp))
+
+                    val w = wardrobe
+                    if (w == null) {
+                        EmptyPlaceholder()
+                    } else {
+                        val rows = remember(w, isGtaV) {
+                            wardrobeRows(w, isGtaV)
+                        }
+                        for ((section, pieces) in rows.sections) {
+                            SectionHeader(
+                                section = section,
+                                collapsed = section.name in collapsedSections.value,
+                                accent = accent,
+                                onToggle = { toggleSection(section) },
+                            )
+                            if (section.name !in collapsedSections.value) {
+                                for (row in pieces) {
+                                    PieceRow(
+                                        slot = row.slot,
+                                        isGtaV = isGtaV,
+                                        pending = result?.pendingKey == pendingKey(row.slot),
+                                        accent = accent,
+                                        onNudgeStyle = { delta ->
+                                            nudgeStyle(viewModel, row.slot, delta)
+                                        },
+                                        onNudgeColour = { delta ->
+                                            nudgeColour(viewModel, row.slot, delta)
+                                        },
+                                    )
+                                    Spacer(Modifier.height(10.dp))
+                                }
+                            }
+                            Spacer(Modifier.height(14.dp))
+                        }
+                        Spacer(Modifier.height(4.dp))
+                        ResetButton(onClick = { showResetConfirm = true },
+                                    accent = accent)
+                    }
+
+                    val err = result?.error
+                    if (!err.isNullOrEmpty()) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            err,
+                            color = Color(0xFFE57373),
+                            fontSize = 11.sp,
+                            fontFamily = FontFamily.Monospace,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
             }
             Spacer(Modifier.height(24.dp))
         }
@@ -236,6 +249,22 @@ private fun EmptyPlaceholder() {
         fontFamily = FontFamily.Monospace,
         fontSize = 12.sp,
         modifier = Modifier.padding(vertical = 20.dp),
+    )
+}
+
+/** Full-sheet message used when the state the player's in doesn't
+ *  match what the sheet does (in-vehicle Wardrobe, on-foot Customs,
+ *  etc.). Centred, grey, no interactive content. */
+@Composable
+private fun Note(text: String) {
+    Text(
+        text,
+        color = Color(0xFFCFCFCF),
+        fontFamily = FontFamily.Monospace,
+        fontSize = 14.sp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 40.dp),
     )
 }
 
@@ -341,12 +370,13 @@ private fun SectionHeader(
 @Composable
 private fun PieceRow(
     slot: GameState.WardrobeSlot,
+    isGtaV: Boolean,
     pending: Boolean,
     accent: Color,
     onNudgeStyle: (Int) -> Unit,
     onNudgeColour: (Int) -> Unit,
 ) {
-    val label = slotRowLabel(slot)
+    val label = slotRowLabel(slot, isGtaV)
     val styleText = if (slot.prop && slot.cur < 0) {
         stringResource(R.string.wardrobe_none)
     } else {
@@ -362,7 +392,7 @@ private fun PieceRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
             .background(Color(0xFF0E0E0E))
-            .padding(horizontal = 10.dp, vertical = 8.dp),
+            .padding(horizontal = 10.dp, vertical = 10.dp),
     ) {
         Text(
             label,
@@ -371,7 +401,7 @@ private fun PieceRow(
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
         )
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(8.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -394,7 +424,11 @@ private fun PieceRow(
             )
         }
         if (colourText.isNotEmpty()) {
-            Spacer(Modifier.height(2.dp))
+            // Dedicated colour row: ~12 dp gap under the style
+            // arrows so the two ◀ ▶ pairs don't crowd each other
+            // vertically — the colour arrows are smaller, which
+            // made the compressed layout read as one noisy block.
+            Spacer(Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -591,13 +625,24 @@ private fun sectionLabelRes(section: WardrobeSection): Int = when (section) {
     WardrobeSection.Other       -> R.string.wardrobe_section_other
 }
 
-/** Fallback label for a slot: the generic "slot N" / "prop N" strings
- *  from strings.xml. The plugin stays name-free so the UI picks the
- *  label on its own. */
+/** Row label for a slot. [slotLabelRes] has a per-game, per-id entry
+ *  for every slot the walker publishes on SP protagonists; unknown
+ *  slot ids (Director Mode, mods) fall back to the generic
+ *  "slot N" / "prop N" so a surprising row still reads sensibly. */
 @Composable
-private fun slotRowLabel(slot: GameState.WardrobeSlot): String =
-    if (slot.prop) stringResource(R.string.wardrobe_prop_n, slot.slot)
-    else           stringResource(R.string.wardrobe_slot_n, slot.slot)
+private fun slotRowLabel(
+    slot: GameState.WardrobeSlot,
+    isGtaV: Boolean,
+): String {
+    val res = slotLabelRes(isGtaV, slot.prop, slot.slot)
+    return if (res != 0) {
+        stringResource(res)
+    } else if (slot.prop) {
+        stringResource(R.string.wardrobe_prop_n, slot.slot)
+    } else {
+        stringResource(R.string.wardrobe_slot_n, slot.slot)
+    }
+}
 
 /** rememberSaveable's default saver cannot hold a Set; the Customs
  *  sheet uses the same trick. */

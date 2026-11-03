@@ -77,7 +77,7 @@ class WardrobeModelTest {
                 slot(slot = 1, prop = false),            // Hair
             ),
         )
-        val rows = wardrobeRows(w)
+        val rows = wardrobeRows(w, isGtaV = true)
         val sectionKeys = rows.sections.map { it.first }
         assertTrue(WardrobeSection.Tops in sectionKeys)
         assertTrue(WardrobeSection.Legs in sectionKeys)
