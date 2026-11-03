@@ -24,6 +24,11 @@ constexpr size_t kMaxErrLen  = 64;
 // Only set_plate currently uses it; every other command keeps text
 // empty.
 constexpr size_t kMaxTextLen = 12;
+// Largest `parts` array the wardrobe::apply_outfit command accepts
+// in one line. 24 covers every component slot (12) plus every prop
+// slot (5) with slack for future additions. Any longer input is
+// rejected before the command is enqueued.
+constexpr size_t kMaxParts   = 24;
 
 struct Ack {
     uint32_t id;
@@ -43,6 +48,12 @@ struct Cmd {
     // them (see commands.cpp).
     float    arg_fx;
     float    arg_fy;
+    // Int-array branch. Only apply_outfit uses it today; every other
+    // command leaves n_parts == 0. parse_cmd rejects the line (rather
+    // than silently truncating) if the array holds > kMaxParts entries
+    // or any non-unsigned token, so a bad array never reaches the fiber.
+    uint32_t n_parts;
+    uint32_t parts[kMaxParts];
     uint64_t queued_ms;           // GetTickCount64 at enqueue
 };
 

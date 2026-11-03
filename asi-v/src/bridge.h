@@ -21,6 +21,9 @@
 //             weapon hash rides under "weapon_hash" so the same Long
 //             field on the client model catches both state and armory
 //             frames.
+//   wardrobe  Clothing + prop catalogue for the current ped;
+//             versioned, re-sent on change. One row per non-empty slot;
+//             a row's `prop` field disambiguates component vs prop.
 //   ack       reply to a client command
 //
 // Client -> server:
@@ -63,13 +66,33 @@
 //      action = 0 fills to GET_MAX_AMMO; action = 1 adds one clip
 //      (clamped to the cap).
 //
+//   Wardrobe. Each piece is packed into one u32:
+//      bit 24     1 = prop, 0 = component
+//      bits 20-23 slot id (component 0..11 or prop 0..7)
+//      bits 8-19  drawable (0..4094); 0xFFF on a prop = none (clear)
+//      bits 0-7   texture
+//   {"v":1,"type":"cmd","id":N,"name":"wardrobe_list","args":{"v":0}}
+//      Request a fresh catalogue of the current ped (slots, counts).
+//   {"v":1,"type":"cmd","id":N,"name":"set_piece","args":{"piece":P}}
+//      Apply one packed piece. Validated with
+//      IS_PED_COMPONENT_VARIATION_VALID (components) or the prop
+//      counts; a bad piece is refused with "bad piece".
+//   {"v":1,"type":"cmd","id":N,"name":"apply_outfit",
+//      "args":{"parts":[P, P, ...]}}
+//      Apply a whole outfit atomically. Max 24 entries; every part is
+//      validated before any native is called, so one bad part refuses
+//      the whole outfit with "bad part N" and nothing on the ped
+//      changes.
+//   {"v":1,"type":"cmd","id":N,"name":"reset_outfit","args":{"v":0}}
+//      SET_PED_DEFAULT_COMPONENT_VARIATION + clear every prop.
+//
 // H is the weapon's joaat hash as an UNSIGNED decimal (0..4294967295).
 // About half of all weapon hashes are above 2^31, so a client that
 // formats it from a signed 32-bit int sends garbage.
 
 namespace bridge {
 
-constexpr const char* kPluginVersion = "0.6.0";
+constexpr const char* kPluginVersion = "0.7.0";
 
 // Spawn the listener thread. Returns immediately.
 void start(const VersionInfo& vi);

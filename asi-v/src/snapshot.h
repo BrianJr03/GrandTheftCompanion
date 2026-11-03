@@ -41,6 +41,15 @@ constexpr size_t kPlateLen      = 12;   // 8 chars + wiggle room
 constexpr size_t kMaxArmoryComponents = 32;
 constexpr size_t kMaxArmoryGroups     = 8;
 
+// Wardrobe (per-ped clothing + props catalogue). 20 is comfortably
+// above the SP protagonists' real count: 12 component slots + 5 prop
+// slots = 17 at most, several of which are empty on each protagonist.
+// kMaxStyles caps the per-slot drawable count the walker publishes;
+// base-game SP slots stay well under 128 but the walker logs loudly
+// if a model trips it so Director Mode / mods never crash the UI.
+constexpr size_t kMaxWardrobeSlots  = 20;
+constexpr size_t kMaxWardrobeStyles = 128;
+
 // Which protagonist the player ped currently is.
 enum Character : int8_t {
     kCharOther    = -1,  // Director Mode actor, animal, cutscene ped...
@@ -266,6 +275,36 @@ struct Armory {
     ArmoryOption options[kMaxArmoryComponents];
 };
 
+// One row of the Wardrobe catalogue: either a component slot (prop
+// = false, cur/texture/palette filled, styles = drawable count) or a
+// prop slot (prop = true, cur = drawable index with -1 = none, no
+// palette). `styles` is the per-slot drawable count; `colours[i]` is
+// the texture count for drawable i. Props on GTA V HAVE a texture
+// count per drawable so colours[] applies to them too, but the plugin
+// publishes an empty colours[] when `cur == -1` on a prop (the UI then
+// knows "none" is the only option visible this frame).
+struct WardrobeSlot {
+    uint8_t  slot;                             // component id 0..11 OR prop id 0, 1, 2, 6, 7
+    bool     prop;                             // false = component, true = prop
+    int32_t  cur;                              // current drawable (-1 on a cleared prop)
+    int32_t  tex;                              // current texture
+    int32_t  pal;                              // palette (components only; 0 on props)
+    uint32_t styles;                           // GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS
+    uint16_t colours[kMaxWardrobeStyles];      // per-drawable texture counts
+};
+
+// Full catalogue for the current player ped. The walker reads one
+// slot per tick slice so the game never pauses for a long call; the
+// Lists::wardrobe_ver below bumps once per publish, same discipline
+// as the mods catalogue.
+struct Wardrobe {
+    uint32_t ver;                              // bumped on any change
+    uint32_t ped_model;                        // GET_ENTITY_MODEL at walk start
+    int8_t   character;                        // snapshot::Character
+    uint32_t n_slots;
+    WardrobeSlot slots[kMaxWardrobeSlots];
+};
+
 struct Lists {
     uint32_t weapons_ver;   // bumped whenever weapons[] content changes
     uint32_t n_weapons;
@@ -284,6 +323,9 @@ struct Lists {
 
     uint32_t armory_ver;    // 0 while no armory page has been published
     Armory   armory;
+
+    uint32_t wardrobe_ver;  // 0 while no wardrobe catalogue has been published
+    Wardrobe wardrobe;
 };
 
 // Call once before any other function (startup worker).
@@ -314,6 +356,16 @@ void publish_armory(const Armory& a);
 // drops its sheet rather than acting on a stale page.
 void clear_armory();
 
+// Replace the Wardrobe catalogue. Always bumps `wardrobe_ver`.
+// The walker calls this on first catalogue read, on ped-model change
+// while a client is still subscribed, and after every successful
+// set_piece / apply_outfit / reset_outfit.
+void publish_wardrobe(const Wardrobe& w);
+// Clear the catalogue (session reset, character switch, player went
+// online). Zeroes n_slots and bumps wardrobe_ver so the client drops
+// its sheet rather than acting on a stale frame.
+void clear_wardrobe();
+
 // Reader side. read() returns the ts_ms of the sample (0 = nothing
 // published yet). read_lists() copies both lists out.
 uint64_t read(State& out);
@@ -321,7 +373,7 @@ void read_lists(Lists& out);
 // Cheap version peek so the bridge can skip copying ~20 KB at 20 Hz.
 void list_versions(uint32_t* weapons_ver, uint32_t* stations_ver,
                    uint32_t* blips_ver, uint32_t* mods_ver,
-                   uint32_t* armory_ver);
+                   uint32_t* armory_ver, uint32_t* wardrobe_ver);
 
 // Station id for a published index, copied into `out`. False if out of
 // range. Used by commands:: to turn a client's index into a name.

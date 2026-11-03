@@ -40,6 +40,7 @@
 #include "script.h"
 #include "shv.h"
 #include "snapshot.h"
+#include "wardrobe.h"
 #include "weapons.h"
 
 static_assert(weapons::kCount <= snapshot::kMaxWeapons,
@@ -331,6 +332,7 @@ void tick() {
             g_last_mods_vehicle = 0;
         }
         armory::on_session_reset();
+        wardrobe::on_ped_changed();
         snapshot::publish(s);
         commands::reject_all("blocked: online");
         return;
@@ -351,6 +353,7 @@ void tick() {
             g_last_mods_vehicle = 0;
         }
         armory::on_session_reset();
+        wardrobe::on_ped_changed();
         snapshot::publish(s);   // in_game = false
         commands::reject_all("blocked: not in game");
         return;
@@ -400,6 +403,10 @@ void tick() {
                  static_cast<int>(s.character), s.ped_model);
         g_last_character = s.character;
         g_next_weapon_scan = 0;
+        // The wardrobe catalogue is per-ped: a character switch
+        // invalidates it the same way armory does. The next
+        // wardrobe_list on the new character re-walks.
+        wardrobe::on_ped_changed();
     }
     if (now >= g_next_weapon_scan) {
         scan_weapons(ped);
@@ -431,6 +438,7 @@ void tick() {
     cheats::tick(player, ped);
     mods::tick(veh);
     armory::tick(ped);
+    wardrobe::tick(ped);
 }
 
 }  // namespace

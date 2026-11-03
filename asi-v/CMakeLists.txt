@@ -19,6 +19,7 @@ add_library(ThorBridgeV SHARED
     src/shv.cpp
     src/snapshot.cpp
     src/version_info.cpp
+    src/wardrobe.cpp
 
     # Shared primitives for the atlas probe worker. See
     # context.md -> atlas-extract-gta5 for how these fit together.

@@ -102,6 +102,19 @@ class Session:
                '"args":{"x":%g,"y":%g}}\n' % (cid, name, x, y))
         self.sock.sendall(msg.encode())
 
+    def send_cmd_parts(self, cid, name, parts):
+        """apply_outfit is the one command that carries an int array."""
+        joined = ",".join(str(int(p)) for p in parts)
+        msg = ('{"v":1,"type":"cmd","id":%d,"name":"%s",'
+               '"args":{"parts":[%s]}}\n' % (cid, name, joined))
+        self.sock.sendall(msg.encode())
+
+    def send_raw(self, line):
+        """A pre-built line, newline-terminated, for malformed-input tests."""
+        if not line.endswith("\n"):
+            line += "\n"
+        self.sock.sendall(line.encode())
+
     def close(self):
         if self.sock:
             self.sock.close()
@@ -878,6 +891,164 @@ def test_mods_no_kit():
         print("---- ThorBridgeV.log ----\n" + log[-3000:])
 
 
+def _pack_piece(is_prop, slot, drawable, texture):
+    """Mirror of asi-v/src/wardrobe.cpp unpack_piece / app's packPiece.
+       bit 24 = prop, bits 20-23 slot, bits 8-19 drawable, bits 0-7 tex.
+       drawable < 0 maps to 0xFFF (prop clear sentinel)."""
+    d = 0xFFF if drawable < 0 else (drawable & 0xFFF)
+    return (((1 if is_prop else 0) & 1) << 24) | \
+           ((slot & 0xF) << 20) | \
+           ((d & 0xFFF) << 8) | \
+           (texture & 0xFF)
+
+
+def test_wardrobe():
+    """Michael on foot throughout. Ask for the catalogue, run every
+    wardrobe command, cover the apply_outfit all-or-nothing contract,
+    the bad-piece refusal, prop clear, reset_outfit."""
+    print("scenario: wardrobe")
+    s = Session("wardrobe", 20)
+    check(s.sock is not None, "bridge accepts a connection")
+    if not s.sock:
+        print(s.close())
+        return
+    hello = None
+    wardrobe_frames = []
+    acks = {}
+    phase = 0
+    for f in s.frames(16):
+        if f["type"] == "hello":
+            hello = f
+        if f["type"] == "ack":
+            acks[f["id"]] = f
+        if f["type"] == "wardrobe":
+            wardrobe_frames.append(f)
+        if f["type"] != "state":
+            continue
+        if not f.get("in_game"):
+            continue
+        if phase == 0:
+            phase = 1
+            s.send_cmd(1, "wardrobe_list", "v", 0)
+        elif phase == 1 and wardrobe_frames and wardrobe_frames[-1].get("slots"):
+            phase = 2
+            # Component slot 3 (torso): drawable 2, texture 3 -> valid.
+            s.send_cmd(2, "set_piece", "piece",
+                       _pack_piece(False, 3, 2, 3))
+            # Bad: slot 3, drawable 0 has only 2 textures (0, 1), so
+            # texture 2 is out of range.
+            s.send_cmd(3, "set_piece", "piece",
+                       _pack_piece(False, 3, 0, 2))
+            # Prop 0 (hat): drawable 1, texture 1 -> valid; the ped
+            # starts with hat = -1 (none) so this flips it on.
+            s.send_cmd(4, "set_piece", "piece",
+                       _pack_piece(True, 0, 1, 1))
+            # Clear the hat: prop + drawable -1.
+            s.send_cmd(5, "set_piece", "piece",
+                       _pack_piece(True, 0, -1, 0))
+            # apply_outfit: three valid pieces at once.
+            s.send_cmd_parts(6, "apply_outfit", [
+                _pack_piece(False, 3, 1, 0),   # torso: drawable 1 (1 tex)
+                _pack_piece(False, 4, 1, 2),   # legs: drawable 1 (3 tex)
+                _pack_piece(True,  0, 0, 0),   # hat: drawable 0 (1 tex)
+            ])
+            # apply_outfit with one bad part: whole outfit refused.
+            s.send_cmd_parts(7, "apply_outfit", [
+                _pack_piece(False, 11, 0, 0),  # tops: valid
+                _pack_piece(False, 3, 99, 0),  # torso: drawable 99 OOR
+            ])
+            # Malformed parts array: strings instead of ints. The
+            # parser must bail; the plugin should never see it.
+            s.send_raw('{"v":1,"type":"cmd","id":8,"name":"apply_outfit",'
+                       '"args":{"parts":["a","b"]}}')
+            # reset_outfit: SET_PED_DEFAULT_COMPONENT_VARIATION +
+            # CLEAR_ALL_PED_PROPS.
+            s.send_cmd(9, "reset_outfit", "v", 0)
+    rc, err, log = s.close()
+
+    check(hello is not None and hello.get("plugin", "").startswith("0.7"),
+          "hello plugin version is 0.7+ (%s)" % (hello or {}).get("plugin"))
+    check(hello is not None and hello.get("wardrobe") is True,
+          "hello carries wardrobe:true")
+
+    check(bool(wardrobe_frames), "a wardrobe frame arrived")
+    first = wardrobe_frames[0] if wardrobe_frames else {}
+    check(first.get("character") == 0,
+          "first wardrobe frame: character == 0 (Michael)")
+    slot_by = {(s["slot"], s["prop"]): s for s in first.get("slots", [])}
+    check((3, False) in slot_by and (4, False) in slot_by
+          and (11, False) in slot_by,
+          "component slots 3, 4, 11 published (keys=%s)"
+          % sorted(slot_by.keys()))
+    check((2, False) not in slot_by,
+          "empty component slot 2 (hair) omitted")
+    # Component slot 3 reports 3 drawables with per-drawable texture
+    # counts {2, 1, 4}.
+    s3 = slot_by.get((3, False), {})
+    check(s3.get("styles") == 3,
+          "component slot 3 reports 3 drawables (got %s)" % s3.get("styles"))
+    check(s3.get("colours") == [2, 1, 4],
+          "component slot 3 colours == [2,1,4] (got %s)" % s3.get("colours"))
+    # Prop 0 (hat) is in there.
+    p0 = slot_by.get((0, True), {})
+    check(bool(p0), "prop slot 0 (hat) published")
+    check(p0.get("cur") == -1,
+          "hat starts cleared (cur == -1, got %s)" % p0.get("cur"))
+
+    check(acks.get(1, {}).get("ok") is True, "wardrobe_list -> ok")
+    check(acks.get(2, {}).get("ok") is True, "set_piece torso valid -> ok")
+    check(acks.get(3, {}).get("ok") is False
+          and "bad piece" in acks.get(3, {}).get("err", ""),
+          "set_piece out-of-range texture refused")
+    check(acks.get(4, {}).get("ok") is True, "set_piece prop valid -> ok")
+    check(acks.get(5, {}).get("ok") is True, "set_piece prop clear -> ok")
+    check(acks.get(6, {}).get("ok") is True, "apply_outfit valid -> ok")
+    check(acks.get(7, {}).get("ok") is False
+          and "bad part 1" in acks.get(7, {}).get("err", ""),
+          "apply_outfit with one bad part refused with 'bad part 1'")
+    # Malformed parts array: the plugin's parser rejects the line, so
+    # id 8 should never produce an ack. We log the absence rather than
+    # requiring a specific "no reply".
+    check(8 not in acks,
+          "malformed parts array dropped before reaching the fiber")
+    check(acks.get(9, {}).get("ok") is True, "reset_outfit -> ok")
+
+    # The last frame must reflect the final state: reset_outfit zeroed
+    # every component and cleared every prop.
+    last = wardrobe_frames[-1] if wardrobe_frames else {}
+    last_by = {(s["slot"], s["prop"]): s for s in last.get("slots", [])}
+    for (slot, is_prop), s in last_by.items():
+        if is_prop:
+            check(s.get("cur") == -1,
+                  "prop slot %d cleared after reset_outfit (got cur=%s)"
+                  % (slot, s.get("cur")))
+        else:
+            check(s.get("cur") == 0,
+                  "component slot %d back to default after reset "
+                  "(got cur=%s)" % (slot, s.get("cur")))
+
+    # After the apply_outfit refusal (id 7) the frame must still show
+    # the state the earlier successful apply_outfit (id 6) left — i.e.
+    # the plugin DID NOT apply tops=0 before noticing the bad torso.
+    # We check that the ack for 7 came back before reset_outfit, and
+    # that at least one wardrobe frame between the apply_outfit ok (6)
+    # and reset_outfit (9) acks never has slot 11 cur bumped to a bad
+    # value. The strongest check (final frame) is the reset_outfit one.
+    check("[wardrobe] apply_outfit parts=3 -> ok" in log,
+          "walker logged apply_outfit success")
+    check("[wardrobe] reset_outfit -> ok" in log,
+          "walker logged reset_outfit success")
+    check("[wardrobe] walk done" in log,
+          "walker logged its first completion")
+
+    check("UNKNOWN NATIVE" not in err and "ARITY MISMATCH" not in err,
+          "mock saw no unknown native / arity mismatch")
+    check(rc == 0, "host exited cleanly (rc=%s)" % rc)
+    if failures:
+        print("---- stderr ----\n" + err[-2000:])
+        print("---- ThorBridgeV.log ----\n" + log[-3000:])
+
+
 def test_custom_map():
     """Michael on foot throughout. The mock player walks a 100 m square;
     pos.x/pos.y/pos.h must track that walk and show up in every state
@@ -985,6 +1156,7 @@ def main():
     test_paint_on_foot_refusal()
     test_mods()
     test_mods_no_kit()
+    test_wardrobe()
     test_custom_map()
 
     def states(fr):

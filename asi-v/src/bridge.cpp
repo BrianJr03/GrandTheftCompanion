@@ -104,7 +104,8 @@ int format_hello(char* buf, size_t cap) {
     // read game state on this install. Here that means Script Hook V
     // is present and exports everything we need.
     o.add("\"supported\":%s,\"shv\":%s,\"script_started\":%s,"
-          "\"shv_game_version\":%d,\"cheats\":true,\"err\":\"",
+          "\"shv_game_version\":%d,\"cheats\":true,"
+          "\"wardrobe\":true,\"err\":\"",
           b(shv::available()), b(shv::available()), b(script::started()),
           shv::game_version());
     o.add_escaped(shv::error());
@@ -304,6 +305,32 @@ int format_armory(char* buf, size_t cap, const snapshot::Armory& a) {
     return o.overflow ? -1 : static_cast<int>(o.len);
 }
 
+// Wardrobe (per-ped clothing + props catalogue). One frame per
+// `wardrobe` publish; the version counter rides on the enclosing
+// Wardrobe struct so stale frames are filtered client-side by
+// comparing `ver`. `character` is the snapshot::Character enum (0..2
+// for Michael/Franklin/Trevor, -1 for anyone else).
+int format_wardrobe(char* buf, size_t cap, const snapshot::Wardrobe& w) {
+    Out o{buf, cap, 0, false};
+    o.add("{\"v\":1,\"type\":\"wardrobe\",\"game\":\"v\",\"ver\":%u,"
+          "\"model\":%u,\"character\":%d,\"slots\":[",
+          w.ver, w.ped_model, static_cast<int>(w.character));
+    for (uint32_t i = 0; i < w.n_slots; ++i) {
+        const snapshot::WardrobeSlot& s = w.slots[i];
+        o.add("%s{\"slot\":%u,\"prop\":%s,\"cur\":%d,\"tex\":%d,"
+              "\"pal\":%d,\"styles\":%u,\"colours\":[",
+              i ? "," : "",
+              static_cast<unsigned>(s.slot), b(s.prop),
+              s.cur, s.tex, s.pal, s.styles);
+        for (uint32_t j = 0; j < s.styles && j < snapshot::kMaxWardrobeStyles; ++j) {
+            o.add("%s%u", j ? "," : "", static_cast<unsigned>(s.colours[j]));
+        }
+        o.add("]}");
+    }
+    o.add("]}\n");
+    return o.overflow ? -1 : static_cast<int>(o.len);
+}
+
 int format_stations(char* buf, size_t cap, const snapshot::Lists& l) {
     Out o{buf, cap, 0, false};
     o.add("{\"v\":1,\"type\":\"stations\",\"game\":\"v\",\"stations\":[");
@@ -373,7 +400,8 @@ bool send_all(SOCKET sock, const char* buf, int n) {
 // pieces it doesn't need.
 bool parse_cmd(const char* line, uint32_t* id, char* name, size_t name_cap,
                uint32_t* arg0, char* text, size_t text_cap,
-               float* fx, float* fy) {
+               float* fx, float* fy,
+               uint32_t* parts, uint32_t parts_cap, uint32_t* n_parts) {
     if (!std::strstr(line, "\"type\":\"cmd\"")) return false;
 
     const char* p = std::strstr(line, "\"id\":");
@@ -395,6 +423,7 @@ bool parse_cmd(const char* line, uint32_t* id, char* name, size_t name_cap,
     if (text_cap) text[0] = '\0';
     *fx = 0.0f;
     *fy = 0.0f;
+    if (n_parts) *n_parts = 0;
     const char* a = std::strstr(line, "\"args\":");
     if (!a) return true;   // args optional
 
@@ -418,6 +447,35 @@ bool parse_cmd(const char* line, uint32_t* id, char* name, size_t name_cap,
         }
         text[j] = '\0';
         if (*t != '"') return false;
+        return true;
+    }
+
+    // Int-array branch: `"parts":[u, u, u...]`. Only apply_outfit uses
+    // this; the walker returns straight after reading so a parts list
+    // containing other keys cannot double-dip through the single-int
+    // branch below. Rejection rules: at most parts_cap entries; every
+    // token must be an unsigned decimal that fits in a u32; any space
+    // between numbers / commas is tolerated; the array must close with
+    // ']'. Anything else bails the line (returns false) so a malformed
+    // apply_outfit never reaches the fiber.
+    const char* pa = std::strstr(a, "\"parts\":[");
+    if (pa && parts && n_parts) {
+        pa += 9;
+        uint32_t count = 0;
+        while (*pa && *pa != ']') {
+            while (*pa == ' ' || *pa == '\t' || *pa == ',') ++pa;
+            if (*pa == ']') break;
+            if (!(*pa >= '0' && *pa <= '9')) return false;
+            char* ep = nullptr;
+            unsigned long long v = std::strtoull(pa, &ep, 10);
+            if (ep == pa) return false;
+            if (v > 0xFFFFFFFFull) return false;
+            if (count >= parts_cap) return false;
+            parts[count++] = static_cast<uint32_t>(v);
+            pa = ep;
+        }
+        if (*pa != ']') return false;
+        *n_parts = count;
         return true;
     }
 
@@ -470,11 +528,14 @@ DWORD WINAPI reader_main(LPVOID arg) {
             c.queued_ms = GetTickCount64();
             if (parse_cmd(buf, &c.id, c.name, sizeof(c.name), &c.arg0,
                           c.text, sizeof(c.text),
-                          &c.arg_fx, &c.arg_fy)) {
-                thor_log("[bridge/rx] cmd id=%u name=%s arg0=%u text='%s' xy=(%.1f, %.1f)",
+                          &c.arg_fx, &c.arg_fy,
+                          c.parts, commands::kMaxParts, &c.n_parts)) {
+                thor_log("[bridge/rx] cmd id=%u name=%s arg0=%u text='%s' "
+                         "xy=(%.1f, %.1f) n_parts=%u",
                          c.id, c.name, c.arg0, c.text,
                          static_cast<double>(c.arg_fx),
-                         static_cast<double>(c.arg_fy));
+                         static_cast<double>(c.arg_fy),
+                         static_cast<unsigned>(c.n_parts));
                 commands::enqueue(c);
             } else {
                 thor_log("[bridge/rx] unparseable line (%u bytes)",
@@ -511,6 +572,7 @@ DWORD WINAPI serve_client(LPVOID arg) {
     HANDLE reader = nullptr;
     uint32_t sent_weapons_ver = 0, sent_stations_ver = 0, sent_blips_ver = 0;
     uint32_t sent_mods_ver = 0, sent_armory_ver = 0, sent_atlas_ver = 0;
+    uint32_t sent_wardrobe_ver = 0;
     int n = 0;
 
     if (!buf || !lists) {
@@ -538,11 +600,11 @@ DWORD WINAPI serve_client(LPVOID arg) {
         }
 
         // 2. Lists, only when they changed since we last sent them.
-        uint32_t wv = 0, sv = 0, bv = 0, mv = 0, av = 0;
-        snapshot::list_versions(&wv, &sv, &bv, &mv, &av);
+        uint32_t wv = 0, sv = 0, bv = 0, mv = 0, av = 0, drv = 0;
+        snapshot::list_versions(&wv, &sv, &bv, &mv, &av, &drv);
         if (wv != sent_weapons_ver || sv != sent_stations_ver ||
             bv != sent_blips_ver || mv != sent_mods_ver ||
-            av != sent_armory_ver) {
+            av != sent_armory_ver || drv != sent_wardrobe_ver) {
             snapshot::read_lists(*lists);
             if (lists->weapons_ver != sent_weapons_ver) {
                 n = format_weapons(buf, kBufCap, *lists);
@@ -588,6 +650,15 @@ DWORD WINAPI serve_client(LPVOID arg) {
                     goto done;
                 }
                 sent_armory_ver = lists->armory_ver;
+            }
+            if (lists->wardrobe_ver != sent_wardrobe_ver) {
+                n = format_wardrobe(buf, kBufCap, lists->wardrobe);
+                if (n <= 0) {
+                    thor_log("[bridge] wardrobe frame overflow");
+                } else if (!send_all(sock, buf, n)) {
+                    goto done;
+                }
+                sent_wardrobe_ver = lists->wardrobe_ver;
             }
         }
 

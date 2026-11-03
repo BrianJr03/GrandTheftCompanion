@@ -26,6 +26,13 @@
 //           square (one side per 1.5 s), heading tracks the direction
 //           of travel. Exercises the pos.x/y/h fields in the state
 //           frame and the waypoint_xy command.
+//   wardrobe
+//           Michael on foot throughout; a small wardrobe catalogue
+//           (3 component slots, 1 prop slot) exercises wardrobe_list,
+//           set_piece, apply_outfit (atomic apply), reset_outfit and
+//           the in-vehicle refusal is covered by the shared story
+//           scenario when the plugin accepts the frame after fibre
+//           settle (see test_wardrobe).
 //
 // Every scenario has the same three map blips, so the blip census and
 // the waypoint natives are exercised by all of them.
@@ -46,7 +53,7 @@ namespace {
 
 using ScriptMain = void (*)();
 
-enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips, kCheats, kPaint, kMods, kModsNoKit, kArmory, kCustomMap };
+enum Scenario { kStory, kOnline, kLoading, kOther, kStall, kWheel, kBlips, kCheats, kPaint, kMods, kModsNoKit, kArmory, kWardrobe, kCustomMap };
 Scenario g_scenario = kStory;
 uint64_t g_t0 = 0;
 
@@ -195,6 +202,53 @@ int      g_remove_comp_calls = 0;
 int      g_set_tint_calls_v = 0;
 int      g_set_ammo_calls = 0;
 int      g_add_ammo_calls = 0;
+
+// ---- fake wardrobe catalogue + state -------------------------------
+// A deliberately-small catalogue: three component slots with distinct
+// drawable/texture counts, one prop slot, one empty component slot
+// (walker must skip). The ped is Michael (player_zero), so the plugin
+// publishes character = 0 (kCharMichael) too.
+//   comp slot 3  (torso)   : 3 drawables, textures {2, 1, 4}
+//   comp slot 4  (legs)    : 2 drawables, textures {2, 3}
+//   comp slot 11 (tops)    : 1 drawable,  textures {5}
+//   comp slot 2  (hair)    : 0 drawables (walker skips)
+//   prop slot 0  (hat)     : 2 drawables, textures {1, 2}  (-1 = none)
+// Everything else returns 0 drawables.
+int32_t g_ped_comp_cur[12]  = {0};  // GET_PED_DRAWABLE_VARIATION
+int32_t g_ped_comp_tex[12]  = {0};  // GET_PED_TEXTURE_VARIATION
+int32_t g_ped_comp_pal[12]  = {0};  // GET_PED_PALETTE_VARIATION
+int32_t g_ped_prop_cur[8]   = {-1, -1, -1, -1, -1, -1, -1, -1};
+int32_t g_ped_prop_tex[8]   = {0};
+int      g_set_comp_calls = 0;
+int      g_set_prop_calls = 0;
+int      g_clear_prop_calls = 0;
+int      g_clear_all_props_calls = 0;
+int      g_default_variation_calls = 0;
+int      g_cheat_stat_set_calls = 0;   // STAT_SET_CHEAT_IS_ACTIVE for wardrobe
+
+int wardrobe_comp_drawables(int32_t slot) {
+    switch (slot) {
+        case 3:  return 3;
+        case 4:  return 2;
+        case 11: return 1;
+        default: return 0;
+    }
+}
+int wardrobe_comp_textures(int32_t slot, int32_t drawable) {
+    switch (slot) {
+        case 3:  return (drawable == 0) ? 2 : (drawable == 1) ? 1 : (drawable == 2) ? 4 : 0;
+        case 4:  return (drawable == 0) ? 2 : (drawable == 1) ? 3 : 0;
+        case 11: return (drawable == 0) ? 5 : 0;
+        default: return 0;
+    }
+}
+int wardrobe_prop_drawables(int32_t slot) {
+    return (slot == 0) ? 2 : 0;
+}
+int wardrobe_prop_textures(int32_t slot, int32_t drawable) {
+    if (slot != 0) return 0;
+    return (drawable == 0) ? 1 : (drawable == 1) ? 2 : 0;
+}
 int     g_set_colours_calls = 0;
 int     g_set_custom_prim_calls = 0;
 int     g_set_custom_sec_calls = 0;
@@ -280,6 +334,7 @@ bool in_vehicle()  {
     if (g_scenario == kPaint) return true;
     if (g_scenario == kMods || g_scenario == kModsNoKit) return true;
     if (g_scenario == kArmory) return false;   // on foot throughout
+    if (g_scenario == kWardrobe) return false; // on foot throughout
     return g_scenario == kStory && elapsed_ms() > 2000;
 }
 bool switching()   { uint64_t t = elapsed_ms();
@@ -954,6 +1009,81 @@ void dispatch() {
     case SET_VEHICLE_REDUCE_GRIP: expect_argc(2, "SET_VEHICLE_REDUCE_GRIP"); break;
     case SET_ENTITY_COORDS: expect_argc(8, "SET_ENTITY_COORDS"); break;
 
+    // ---- wardrobe natives (ped components + props) ----------------
+    case SET_PED_COMPONENT_VARIATION: { expect_argc(5, "SET_PED_COMPONENT_VARIATION");
+        const int32_t slot = arg<int>(1);
+        const int32_t d    = arg<int>(2);
+        const int32_t t    = arg<int>(3);
+        const int32_t p    = arg<int>(4);
+        if (slot >= 0 && slot < 12) {
+            g_ped_comp_cur[slot] = d;
+            g_ped_comp_tex[slot] = t;
+            g_ped_comp_pal[slot] = p;
+        }
+        ++g_set_comp_calls; break; }
+    case GET_PED_DRAWABLE_VARIATION: { expect_argc(2, "GET_PED_DRAWABLE_VARIATION");
+        const int32_t slot = arg<int>(1);
+        ret<int>((slot >= 0 && slot < 12) ? g_ped_comp_cur[slot] : 0); break; }
+    case GET_PED_TEXTURE_VARIATION: { expect_argc(2, "GET_PED_TEXTURE_VARIATION");
+        const int32_t slot = arg<int>(1);
+        ret<int>((slot >= 0 && slot < 12) ? g_ped_comp_tex[slot] : 0); break; }
+    case GET_PED_PALETTE_VARIATION: { expect_argc(2, "GET_PED_PALETTE_VARIATION");
+        const int32_t slot = arg<int>(1);
+        ret<int>((slot >= 0 && slot < 12) ? g_ped_comp_pal[slot] : 0); break; }
+    case GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS: {
+        expect_argc(2, "GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS");
+        ret<int>(wardrobe_comp_drawables(arg<int>(1))); break; }
+    case GET_NUMBER_OF_PED_TEXTURE_VARIATIONS: {
+        expect_argc(3, "GET_NUMBER_OF_PED_TEXTURE_VARIATIONS");
+        ret<int>(wardrobe_comp_textures(arg<int>(1), arg<int>(2))); break; }
+    case IS_PED_COMPONENT_VARIATION_VALID: {
+        expect_argc(4, "IS_PED_COMPONENT_VARIATION_VALID");
+        const int32_t slot = arg<int>(1);
+        const int32_t d    = arg<int>(2);
+        const int32_t t    = arg<int>(3);
+        const bool ok = wardrobe_comp_drawables(slot) > d &&
+                        wardrobe_comp_textures(slot, d) > t &&
+                        d >= 0 && t >= 0;
+        ret_bool(ok); break; }
+    case SET_PED_DEFAULT_COMPONENT_VARIATION: {
+        expect_argc(1, "SET_PED_DEFAULT_COMPONENT_VARIATION");
+        for (int i = 0; i < 12; ++i) {
+            g_ped_comp_cur[i] = 0; g_ped_comp_tex[i] = 0;
+        }
+        ++g_default_variation_calls; break; }
+    case SET_PED_PROP_INDEX: { expect_argc(6, "SET_PED_PROP_INDEX");
+        const int32_t slot = arg<int>(1);
+        const int32_t d    = arg<int>(2);
+        const int32_t t    = arg<int>(3);
+        if (slot >= 0 && slot < 8) {
+            g_ped_prop_cur[slot] = d;
+            g_ped_prop_tex[slot] = t;
+        }
+        ++g_set_prop_calls; break; }
+    case GET_PED_PROP_INDEX: { expect_argc(3, "GET_PED_PROP_INDEX");
+        const int32_t slot = arg<int>(1);
+        ret<int>((slot >= 0 && slot < 8) ? g_ped_prop_cur[slot] : -1); break; }
+    case GET_PED_PROP_TEXTURE_INDEX: { expect_argc(2, "GET_PED_PROP_TEXTURE_INDEX");
+        const int32_t slot = arg<int>(1);
+        ret<int>((slot >= 0 && slot < 8) ? g_ped_prop_tex[slot] : 0); break; }
+    case CLEAR_PED_PROP: { expect_argc(3, "CLEAR_PED_PROP");
+        const int32_t slot = arg<int>(1);
+        if (slot >= 0 && slot < 8) {
+            g_ped_prop_cur[slot] = -1; g_ped_prop_tex[slot] = 0;
+        }
+        ++g_clear_prop_calls; break; }
+    case CLEAR_ALL_PED_PROPS: { expect_argc(2, "CLEAR_ALL_PED_PROPS");
+        for (int i = 0; i < 8; ++i) {
+            g_ped_prop_cur[i] = -1; g_ped_prop_tex[i] = 0;
+        }
+        ++g_clear_all_props_calls; break; }
+    case GET_NUMBER_OF_PED_PROP_DRAWABLE_VARIATIONS: {
+        expect_argc(2, "GET_NUMBER_OF_PED_PROP_DRAWABLE_VARIATIONS");
+        ret<int>(wardrobe_prop_drawables(arg<int>(1))); break; }
+    case GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS: {
+        expect_argc(3, "GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS");
+        ret<int>(wardrobe_prop_textures(arg<int>(1), arg<int>(2))); break; }
+
     default:
         // The real Script Hook V treats an unknown native as fatal; so
         // does the mock, so a typo'd hash fails the test loudly.
@@ -993,6 +1123,7 @@ void mock_scriptRegister(HMODULE /*module*/, ScriptMain fn) {
         if (!std::strcmp(buf, "mods"))    g_scenario = kMods;
         if (!std::strcmp(buf, "mods_no_kit")) g_scenario = kModsNoKit;
         if (!std::strcmp(buf, "armory"))  g_scenario = kArmory;
+        if (!std::strcmp(buf, "wardrobe")) g_scenario = kWardrobe;
         if (!std::strcmp(buf, "custom_map")) g_scenario = kCustomMap;
     }
     std::fprintf(stderr, "[mock] scriptRegister, scenario=%d\n", g_scenario);

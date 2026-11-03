@@ -231,6 +231,34 @@ enum : uint64_t {
     GET_DLC_WEAPON_COMPONENT_DATA       = 0x6CF598A2957C2BF8,  // BOOL (int dlcWeaponIndex, int dlcWeapCompIndex, Any* componentDataPtr, 176-byte struct)
     GET_WEAPON_CLIP_SIZE                = 0x583BE370B1EC6EB4,  // int (Hash weaponHash)
     ADD_AMMO_TO_PED                     = 0x78F0424C34306220,  // void (Ped, Hash weaponHash, int ammo)
+
+    // Ped components + props (Wardrobe on the companion). Hashes
+    // verified against alloc8or/gta5-nativedb-data commit
+    // 424fb51b089049a9fbcebcc641500b1d44d255b4 on 2026-11-03, both
+    // natives.json and natives_gen9.json; name, hash and parameter list
+    // identical in both. v1 drives clothing on the current player ped
+    // only — a walker reads the per-slot/drawable counts (gated on
+    // non-zero so a slot the model doesn't use costs no frame budget)
+    // and set_piece writes one component or prop at a time.
+    //
+    // Component slots are 0..11; props are 0, 1, 2, 6, 7 (hat, glasses,
+    // ears, watch, bracelet). SP protagonists hide most props when
+    // nothing is fitted (prop index -1).
+    SET_PED_COMPONENT_VARIATION             = 0x262B14F48D29DE80,  // void (Ped, int componentId, int drawableId, int textureId, int paletteId)
+    GET_PED_DRAWABLE_VARIATION              = 0x67F3780DD425D4FC,  // int (Ped, int componentId)
+    GET_PED_TEXTURE_VARIATION               = 0x04A355E041E004E6,  // int (Ped, int componentId)
+    GET_PED_PALETTE_VARIATION               = 0xE3DD5F2A84B42281,  // int (Ped, int componentId)
+    GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS   = 0x27561561732A7842,  // int (Ped, int componentId)
+    GET_NUMBER_OF_PED_TEXTURE_VARIATIONS    = 0x8F7156A3142A6BAD,  // int (Ped, int componentId, int drawableId)
+    IS_PED_COMPONENT_VARIATION_VALID        = 0xE825F6B6CEA7671D,  // BOOL (Ped, int componentId, int drawableId, int textureId)
+    SET_PED_DEFAULT_COMPONENT_VARIATION     = 0x45EEE61580806D63,  // void (Ped)
+    SET_PED_PROP_INDEX                      = 0x93376B65A266EB5F,  // void (Ped, int componentId, int drawableId, int textureId, BOOL attach, Any p5)
+    GET_PED_PROP_INDEX                      = 0x898CC20EA75BACD8,  // int (Ped, int componentId, Any p2)
+    GET_PED_PROP_TEXTURE_INDEX              = 0xE131A28626F81AB2,  // int (Ped, int componentId)
+    CLEAR_PED_PROP                          = 0x0943E5B8E078E76E,  // void (Ped, int propId, Any p2)
+    CLEAR_ALL_PED_PROPS                     = 0xCD8A7537A9B52F06,  // void (Ped, Any p1)
+    GET_NUMBER_OF_PED_PROP_DRAWABLE_VARIATIONS = 0x5FAF9754E789FB47,  // int (Ped, int propId)
+    GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS  = 0xA6E7F1CEB523E171,  // int (Ped, int propId, int drawableId)
 };
 
 // IS_CONTROL_PRESSED arguments. `control` is the input group, `action`

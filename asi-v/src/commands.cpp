@@ -13,6 +13,7 @@
 #include "mods.h"
 #include "natives.h"
 #include "shv.h"
+#include "wardrobe.h"
 #include "weapons.h"
 
 namespace {
@@ -312,6 +313,16 @@ void drain(int32_t player, int32_t ped, int32_t veh,
             char err[kMaxErrLen] = {0};
             const bool ok = armory::apply(c.name, c.arg0, req_hash, ped,
                                           err, sizeof(err));
+            post_ack(c.client, c.id, ok, err);
+        } else if (std::strcmp(c.name, "wardrobe_list") == 0
+                || std::strcmp(c.name, "set_piece") == 0
+                || std::strcmp(c.name, "apply_outfit") == 0
+                || std::strcmp(c.name, "reset_outfit") == 0) {
+            char err[kMaxErrLen] = {0};
+            const bool ok = wardrobe::apply(c.name, c.arg0,
+                                            c.parts, c.n_parts,
+                                            ped, veh != 0,
+                                            err, sizeof(err));
             post_ack(c.client, c.id, ok, err);
         } else if (std::strcmp(c.name, "atlas_extract") == 0) {
             // Fire-and-forget — this ack only reports the WORKER was
