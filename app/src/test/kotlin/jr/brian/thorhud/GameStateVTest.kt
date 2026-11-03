@@ -299,6 +299,38 @@ class GameStateVTest {
     }
 
     @Test
+    fun ivWardrobeFrameDecodes() {
+        val f = decode(IV_WARDROBE)
+        assertTrue(f.isWardrobe)
+        assertFalse(f.isGtaV)             // game == "iv"
+        assertEquals(7, f.listVersion)
+        assertEquals(0, f.character)      // Niko (episode 0)
+        // IV protagonist model hash — this fixture's model is Niko's
+        // (joaat("player") per the IV convention).
+        assertEquals(1862763509L, f.wardrobePedModel)
+        assertEquals(3, f.wardrobePieces.size)
+        val upper = f.wardrobePieces.first { !it.prop && it.slot == 1 }
+        assertEquals(1, upper.cur)
+        assertEquals(2, upper.tex)
+        assertEquals(2, upper.styles)
+        // IV components fill colours[] from the texture-count native.
+        assertEquals(listOf(2, 3), upper.colours)
+        val hat = f.wardrobePieces.first { it.prop && it.slot == 0 }
+        assertEquals(-1, hat.cur)         // "none" fitted
+        // IV has no per-prop texture-count native, so colours[] stays
+        // zero and the companion probes by writing + reading back.
+        assertEquals(32, hat.styles)
+        assertEquals(0, hat.colours.firstOrNull() ?: 0)
+    }
+
+    @Test
+    fun ivHelloCarriesWardrobeFlagWhenCheatsBuildIsOn() {
+        val f = decode(IV_HELLO_WARDROBE)
+        assertTrue(f.isHello)
+        assertEquals(true, f.wardrobeSupported)
+    }
+
+    @Test
     fun armoryFrameDecodes() {
         val f = decode(V_ARMORY_PISTOL)
         assertTrue(f.isArmory)
@@ -419,5 +451,17 @@ class GameStateVTest {
         // Weapon not in the DLC catalogue: widx=-1, empty options,
         // tint and max_ammo still present (natives work on any hash).
         const val V_ARMORY_KNIFE_NOT_IN_SHOP = """{"v":1,"type":"armory","game":"v","ver":2,"widx":-1,"weapon_hash":2578778090,"name":"weapon_knife","tints":8,"tint":0,"ammo":1,"max_ammo":0,"clip":0,"options":[]}"""
+
+        // IV wardrobe frame. "game":"iv" (vs "v"), character reused
+        // from the state frame slot so no @SerialName collision with
+        // the mods frame's own "slots" field — see WardrobeSlot.
+        // Model hash is Niko's joaat("player"); kept generous (32) on
+        // prop slot styles because IV has no counter native.
+        const val IV_WARDROBE = """{"v":1,"type":"wardrobe","game":"iv","ver":7,"model":1862763509,"character":0,"pieces":[{"slot":1,"prop":false,"cur":1,"tex":2,"pal":0,"styles":2,"colours":[2,3]},{"slot":3,"prop":false,"cur":0,"tex":0,"pal":0,"styles":2,"colours":[2,3]},{"slot":0,"prop":true,"cur":-1,"tex":0,"pal":0,"styles":32,"colours":[]}]}"""
+        // IV hello with the plugin built from THORBRIDGE_CHEATS so the
+        // wardrobe flag is on. Minimal shape — no file_version
+        // overrides — because every IV hello already round-trips in
+        // the existing tests.
+        const val IV_HELLO_WARDROBE = """{"v":1,"type":"hello","crc32":"0x1A2B3C4D","size":15628696,"file_version":"1.2.0.59","supported":true,"cheats":true,"wardrobe":true}"""
     }
 }
