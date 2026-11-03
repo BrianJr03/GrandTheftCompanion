@@ -91,6 +91,11 @@ internal fun VMainScreen(
     // callback is kept null in v1 because the plugin refuses outfit
     // writes while driving.
     onOpenWardrobe: (() -> Unit)? = null,
+    // Shared one-shot discovery-ring progress. Driven by MainScreen's
+    // Animatable; passed through to each card whose long-press is
+    // live right now so the three rings pulse together on cold start.
+    // 0 = no ring draws.
+    labelHintProgress: Float = 0f,
 ) {
     val stations by viewModel.stations.collectAsStateWithLifecycle()
     val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
@@ -227,14 +232,26 @@ internal fun VMainScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    VCashRadioPanel(live, character, characterKnown,
-                                    stations,
-                                    Modifier
-                                        .weight(1f)
-                                        .then(longPressWardrobeModifier(onOpenWardrobe)))
+                    // In-vehicle coin card is inert in v1 (plugin
+                    // refuses outfit writes while driving); ring
+                    // stays off.
+                    VCashRadioPanel(
+                        live, character, characterKnown, stations,
+                        titleRingProgress = if (onOpenWardrobe != null) {
+                            labelHintProgress
+                        } else 0f,
+                        titleRingAccent = character.palette.accent,
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(longPressWardrobeModifier(onOpenWardrobe)),
+                    )
                     VWeaponPanel(live, modifier = Modifier.weight(1f))
                     VVehiclePanel(
                         live, palette,
+                        titleRingProgress = if (onOpenCustoms != null) {
+                            labelHintProgress
+                        } else 0f,
+                        titleRingAccent = palette.accent,
                         modifier = Modifier
                             .weight(1f)
                             .then(longPressCustomsModifier(onOpenCustoms)),
@@ -257,11 +274,17 @@ internal fun VMainScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    VCashPanel(live, character, characterKnown,
-                               align = CardAlign.Start,
-                               modifier = Modifier
-                                   .weight(1f)
-                                   .then(longPressWardrobeModifier(onOpenWardrobe)))
+                    VCashPanel(
+                        live, character, characterKnown,
+                        align = CardAlign.Start,
+                        titleRingProgress = if (onOpenWardrobe != null) {
+                            labelHintProgress
+                        } else 0f,
+                        titleRingAccent = character.palette.accent,
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(longPressWardrobeModifier(onOpenWardrobe)),
+                    )
                     // On foot only: the plugin refuses set_weapon in a
                     // vehicle, so the in-vehicle card above stays inert.
                     val weaponCard = if (onOpenWeaponWheel != null &&
@@ -271,16 +294,29 @@ internal fun VMainScreen(
                     } else {
                         Modifier.weight(1f)
                     }
-                    VWeaponPanel(live, align = CardAlign.End,
-                                 modifier = weaponCard)
+                    VWeaponPanel(
+                        live, align = CardAlign.End,
+                        titleRingProgress = if (onOpenAmmu != null) {
+                            labelHintProgress
+                        } else 0f,
+                        titleRingAccent = palette.accent,
+                        modifier = weaponCard,
+                    )
                 }
                 Spacer(Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    // On foot the vehicle card has nothing to open —
+                    // long-press-to-Customs is in-vehicle only. onOpen
+                    // is null, so the ring stays off here.
                     VVehiclePanel(
                         live, palette, align = CardAlign.Start,
+                        titleRingProgress = if (onOpenCustoms != null) {
+                            labelHintProgress
+                        } else 0f,
+                        titleRingAccent = palette.accent,
                         modifier = Modifier
                             .weight(1f)
                             .then(longPressCustomsModifier(onOpenCustoms)),
