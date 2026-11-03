@@ -347,19 +347,18 @@
     <!-- Mirror color to sticks (V-only) -->
     <string name="cheats_paint_to_lights">Farbe auf Sticks spiegeln</string>
 
-    <!-- GTA V vehicle-card edit glyph -->
-    <string name="v_vehicle_edit_cd">lange drücken, um Customs zu öffnen</string>
 
     <!-- HUD-page first-visit onboarding sheet -->
     <string name="hud_onboarding_title">Über das HUD</string>
     <string name="hud_onboarding_slide_hud_title">Was du siehst</string>
-    <string name="hud_onboarding_slide_hud_body">Karten für Geld, Waffe und Munition, Fahrzeug und Geschwindigkeit, Radiosender, plus Gesundheits- und Panzerleiste unten. Alles folgt dem Spiel von selbst.</string>
+    <string name="hud_onboarding_slide_hud_body">Dein Charakter und dein Geld, deine Waffe und Munition, dein Fahrzeug und das Tempo, und das Radio — plus Gesundheits- und Panzerleiste unten. Alles folgt dem Spiel von selbst.</string>
     <string name="hud_onboarding_slide_tap_title">Antippen zum Handeln</string>
-    <string name="hud_onboarding_slide_tap_body">Tippe auf einen Radiosender, um ihn zu wechseln. Tippe zu Fuß auf die Waffen-Karte (oder halte den Waffenrad-Knopf am Controller gedrückt), um eine Waffe zu wählen.</string>
-    <string name="hud_onboarding_slide_customs_title">Fahrzeug-Karte lange drücken</string>
-    <string name="hud_onboarding_slide_customs_body">Sitzt du im Auto? Ein langer Druck auf die Fahrzeug-Karte öffnet Customs: Lack, Teile, Leistung, Räder, Tönung, Kennzeichen, Neon. Achte auf das kleine Stift-Symbol neben dem Fahrzeugnamen.</string>
+    <string name="hud_onboarding_slide_tap_body">Tippe einen Sender an, um das Radio umzuschalten. Zu Fuß: tippe die Waffen-Karte an (oder halte den Waffenrad-Knopf am Controller), um die Waffe zu wechseln.</string>
+    <string name="hud_onboarding_slide_hold_title">Zum Anpassen halten</string>
+    <string name="hud_onboarding_slide_hold_body_v">Halte eine Karte gedrückt, um ihren Shop zu öffnen: deinen Namen für Wardrobe, die Waffen-Karte für Ammu-Nation (zu Fuß), die Fahrzeug-Karte für LS Customs (im Auto). Ein leuchtender Ring zeigt dir bei jedem App-Start, was du halten kannst.</string>
+    <string name="hud_onboarding_slide_hold_body_iv">Halte deinen Namen gedrückt, um Wardrobe zu öffnen und dein Outfit zu wechseln. Ein leuchtender Ring markiert ihn bei jedem App-Start.</string>
     <string name="hud_onboarding_slide_tabs_title">Weitere Tabs</string>
-    <string name="hud_onboarding_slide_tabs_body">Wische nach links für die Karte (Blips, Routing per Tipp) oder nach rechts für Cheats. Das HUD bleibt in der Mitte, damit du immer weißt, wie du zurückkommst.</string>
+    <string name="hud_onboarding_slide_tabs_body">Wische nach links für die Karte (Blips und Routen mit einem Tipp) oder nach rechts für Cheats. Aktiviere Endloses Wischen in den Einstellungen, um vom letzten Tab zurück zum ersten zu springen.</string>
 
     <!-- Los Santos Customs sheet (GTA V only) -->
     <string name="customs_title">Customs</string>
@@ -479,8 +478,6 @@
     <string name="customs_opt_armor_pct">Panzerung %1$d%%</string>
 
     <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
-    <string name="hud_onboarding_slide_ammu_title">Lange auf die Waffenkarte drücken</string>
-    <string name="hud_onboarding_slide_ammu_body">Zu Fuß? Ein langer Druck auf die Waffenkarte öffnet Ammu-Nation: Aufsätze, Waffenfarbe und Munition auffüllen. Ein kurzer Tipp öffnet weiterhin das Waffenrad. Achte auf das kleine Stiftsymbol neben dem Waffennamen.</string>
 
     <!-- Ammu-Nation sheet (GTA V only). -->
     <string name="ammu_get_on_foot">Steig aus, um Ammu-Nation zu nutzen.</string>
@@ -494,7 +491,6 @@
     <string name="ammu_clip_size">Magazin: %1$d</string>
     <string name="ammu_fill">Auffüllen</string>
     <string name="ammu_add_clip">+1 Magazin</string>
-    <string name="v_weapon_edit_cd">Lange drücken, um Ammu-Nation zu öffnen</string>
 
     <!-- Settings → Ammu-Nation (GTA V only). -->
     <string name="settings_ammu_auto_select_title">Ausgerüstete Waffe auswählen</string>

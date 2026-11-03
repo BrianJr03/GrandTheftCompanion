@@ -272,7 +272,6 @@ internal fun VMainScreen(
                         Modifier.weight(1f)
                     }
                     VWeaponPanel(live, align = CardAlign.End,
-                                 showEditGlyph = onOpenAmmu != null,
                                  modifier = weaponCard)
                 }
                 Spacer(Modifier.height(16.dp))
@@ -305,7 +304,7 @@ internal fun VMainScreen(
 private fun longPressWardrobeModifier(onOpen: (() -> Unit)?): Modifier {
     if (onOpen == null) return Modifier
     val source = remember { MutableInteractionSource() }
-    val cd = stringResource(R.string.v_character_edit_cd)
+    val cd = stringResource(R.string.hud_longpress_cd_wardrobe)
     return Modifier
         .combinedClickable(
             interactionSource = source,
@@ -320,25 +319,33 @@ private fun longPressWardrobeModifier(onOpen: (() -> Unit)?): Modifier {
  *  A null callback leaves the modifier a no-op, so passing null in
  *  notice branches keeps the card inert. combinedClickable is used
  *  rather than pointerInput so a short tap is still swallowed — the
- *  vehicle card has no tap action today and we don't want one. */
+ *  vehicle card has no tap action today and we don't want one. The
+ *  semantics label is picked up by TalkBack so the gesture is still
+ *  announced after the edit glyph was dropped in favour of the
+ *  discovery ring. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun longPressCustomsModifier(onOpen: (() -> Unit)?): Modifier {
     if (onOpen == null) return Modifier
     val source = remember { MutableInteractionSource() }
-    return Modifier.combinedClickable(
-        interactionSource = source,
-        indication = null,
-        onClick = {},
-        onLongClick = onOpen,
-    )
+    val cd = stringResource(R.string.hud_longpress_cd_customs)
+    return Modifier
+        .combinedClickable(
+            interactionSource = source,
+            indication = null,
+            onClick = {},
+            onLongClick = onOpen,
+        )
+        .semantics { contentDescription = cd }
 }
 
 /** Pair of (tap → wheel, long-press → Ammu-Nation) on the on-foot
  *  weapon card. combinedClickable swallows the tap on a long-press,
  *  so a successful hold does not also flash the wheel open. The
  *  tap action is required (opening the wheel) — the on-foot card
- *  is only reached when onOpenWheel is non-null. */
+ *  is only reached when onOpenWheel is non-null. The TalkBack label
+ *  points at the long-press (the main non-obvious gesture);
+ *  "weapon shop" picks up Ammu-Nation without naming it. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun weaponCardGestures(
@@ -346,10 +353,13 @@ private fun weaponCardGestures(
     onOpenAmmu: (() -> Unit)?,
 ): Modifier {
     val source = remember { MutableInteractionSource() }
-    return Modifier.combinedClickable(
-        interactionSource = source,
-        indication = null,
-        onClick = onOpenWheel,
-        onLongClick = onOpenAmmu,
-    )
+    val cd = stringResource(R.string.hud_longpress_cd_ammu)
+    return Modifier
+        .combinedClickable(
+            interactionSource = source,
+            indication = null,
+            onClick = onOpenWheel,
+            onLongClick = onOpenAmmu,
+        )
+        .semantics { contentDescription = cd }
 }

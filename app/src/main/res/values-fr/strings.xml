@@ -347,19 +347,18 @@
     <!-- Mirror color to sticks (V-only) -->
     <string name="cheats_paint_to_lights">refléter couleur sur les sticks</string>
 
-    <!-- GTA V vehicle-card edit glyph -->
-    <string name="v_vehicle_edit_cd">appui long pour ouvrir Customs</string>
 
     <!-- HUD-page first-visit onboarding sheet -->
     <string name="hud_onboarding_title">À propos du HUD</string>
     <string name="hud_onboarding_slide_hud_title">Ce que vous voyez</string>
-    <string name="hud_onboarding_slide_hud_body">Des cartes pour l\'argent, l\'arme et les munitions, le véhicule et la vitesse, la station radio, plus les barres de santé et de blindage en bas. Tout suit le jeu automatiquement.</string>
+    <string name="hud_onboarding_slide_hud_body">Votre personnage et votre argent, votre arme et vos munitions, votre véhicule et votre vitesse, et la radio, avec les barres de santé et de blindage en bas. Tout suit le jeu automatiquement.</string>
     <string name="hud_onboarding_slide_tap_title">Appuyez pour agir</string>
-    <string name="hud_onboarding_slide_tap_body">Appuyez sur une station radio pour la changer. Appuyez sur la carte arme à pied (ou maintenez le bouton de la roue des armes sur la manette) pour choisir une arme.</string>
-    <string name="hud_onboarding_slide_customs_title">Appui long sur la carte véhicule</string>
-    <string name="hud_onboarding_slide_customs_body">Dans une voiture ? Un appui long sur la carte véhicule ouvre Customs : peinture, pièces, performance, roues, teinte, plaque, néon. Repérez la petite icône crayon à côté du nom du véhicule.</string>
+    <string name="hud_onboarding_slide_tap_body">Appuyez sur une station pour changer la radio. À pied, appuyez sur la carte arme (ou maintenez le bouton de la roue des armes sur la manette) pour changer d\'arme.</string>
+    <string name="hud_onboarding_slide_hold_title">Maintenez pour personnaliser</string>
+    <string name="hud_onboarding_slide_hold_body_v">Maintenez une carte pour ouvrir sa boutique : votre nom pour Wardrobe, la carte arme pour Ammu-Nation (à pied), la carte véhicule pour LS Customs (en voiture). Un anneau lumineux indique ce que vous pouvez maintenir à chaque ouverture de l\'app.</string>
+    <string name="hud_onboarding_slide_hold_body_iv">Maintenez votre nom pour ouvrir Wardrobe et changer de tenue. Un anneau lumineux l\'indique à chaque ouverture de l\'app.</string>
     <string name="hud_onboarding_slide_tabs_title">Plus d\'onglets</string>
-    <string name="hud_onboarding_slide_tabs_body">Glissez à gauche pour la carte (icônes, itinéraire en un appui) ou à droite pour les triches. Le HUD reste au milieu pour que vous sachiez toujours comment revenir.</string>
+    <string name="hud_onboarding_slide_tabs_body">Glissez à gauche pour la carte (icônes et itinéraires en un appui) ou à droite pour les triches. Activez le défilement sans fin dans les Paramètres pour revenir du dernier onglet au premier.</string>
 
     <!-- Los Santos Customs sheet (GTA V only) -->
     <string name="customs_title">Customs</string>
@@ -479,8 +478,6 @@
     <string name="customs_opt_armor_pct">Blindage %1$d%%</string>
 
     <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
-    <string name="hud_onboarding_slide_ammu_title">Appui long sur la carte arme</string>
-    <string name="hud_onboarding_slide_ammu_body">À pied ? Un appui long sur la carte arme ouvre Ammu-Nation : accessoires, teinte d\'arme et recharge de munitions. L\'appui court ouvre toujours la roue des armes. Repérez la petite icône crayon à côté du nom de l\'arme.</string>
 
     <!-- Ammu-Nation sheet (GTA V only). -->
     <string name="ammu_get_on_foot">Descendez de la voiture pour utiliser Ammu-Nation.</string>
@@ -494,7 +491,6 @@
     <string name="ammu_clip_size">Chargeur : %1$d</string>
     <string name="ammu_fill">Remplir</string>
     <string name="ammu_add_clip">+1 chargeur</string>
-    <string name="v_weapon_edit_cd">Appui long pour ouvrir Ammu-Nation</string>
 
     <!-- Settings → Ammu-Nation (GTA V only). -->
     <string name="settings_ammu_auto_select_title">Sélectionner l\'arme équipée</string>

@@ -347,19 +347,18 @@
     <!-- Mirror color to sticks (V-only) -->
     <string name="cheats_paint_to_lights">reflejar color en los sticks</string>
 
-    <!-- GTA V vehicle-card edit glyph -->
-    <string name="v_vehicle_edit_cd">mantén pulsado para abrir Customs</string>
 
     <!-- HUD-page first-visit onboarding sheet -->
     <string name="hud_onboarding_title">Acerca del HUD</string>
     <string name="hud_onboarding_slide_hud_title">Lo que estás viendo</string>
-    <string name="hud_onboarding_slide_hud_body">Tarjetas para el dinero, el arma y la munición, el vehículo y la velocidad, la emisora de radio, además de las barras de salud y blindaje abajo. Todo sigue al juego automáticamente.</string>
+    <string name="hud_onboarding_slide_hud_body">Tu personaje y tu dinero, tu arma y tu munición, tu vehículo y tu velocidad, y la radio, con las barras de salud y blindaje abajo. Todo sigue al juego por sí mismo.</string>
     <string name="hud_onboarding_slide_tap_title">Toca para actuar</string>
-    <string name="hud_onboarding_slide_tap_body">Toca una emisora de radio para cambiarla. Toca la tarjeta de arma a pie (o mantén el botón de la rueda de armas en el mando) para elegir un arma.</string>
-    <string name="hud_onboarding_slide_customs_title">Mantén pulsada la tarjeta del vehículo</string>
-    <string name="hud_onboarding_slide_customs_body">¿En un coche? Mantener pulsada la tarjeta del vehículo abre Customs: pintura, piezas, rendimiento, ruedas, tintado, matrícula, neón. Busca el icono del lápiz pequeño junto al nombre del vehículo.</string>
+    <string name="hud_onboarding_slide_tap_body">Toca una emisora para cambiar la radio. A pie, toca la tarjeta de arma (o mantén el botón de la rueda de armas en tu mando) para cambiar de arma.</string>
+    <string name="hud_onboarding_slide_hold_title">Mantén para personalizar</string>
+    <string name="hud_onboarding_slide_hold_body_v">Mantén pulsada una tarjeta para abrir su tienda: tu nombre para Wardrobe, la tarjeta de arma para Ammu-Nation (a pie), la tarjeta de vehículo para LS Customs (en coche). Un anillo brillante indica qué puedes mantener cada vez que abres la app.</string>
+    <string name="hud_onboarding_slide_hold_body_iv">Mantén pulsado tu nombre para abrir Wardrobe y cambiar tu atuendo. Un anillo brillante lo indica cada vez que abres la app.</string>
     <string name="hud_onboarding_slide_tabs_title">Más pestañas</string>
-    <string name="hud_onboarding_slide_tabs_body">Desliza a la izquierda para el mapa (iconos, ruta con un toque) o a la derecha para los trucos. El HUD se queda en el centro para que siempre sepas cómo volver.</string>
+    <string name="hud_onboarding_slide_tabs_body">Desliza a la izquierda para el mapa (iconos y rutas con un toque) o a la derecha para los trucos. Activa el deslizamiento sin fin en Ajustes para pasar de la última pestaña a la primera.</string>
 
     <!-- Los Santos Customs sheet (GTA V only) -->
     <string name="customs_title">Customs</string>
@@ -479,8 +478,6 @@
     <string name="customs_opt_armor_pct">Blindaje %1$d%%</string>
 
     <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
-    <string name="hud_onboarding_slide_ammu_title">Mantén pulsada la tarjeta de arma</string>
-    <string name="hud_onboarding_slide_ammu_body">¿A pie? Mantén pulsada la tarjeta de arma para abrir Ammu-Nation: accesorios, tinte y recarga de munición. Un toque sigue abriendo la rueda de armas. Fíjate en el pequeño lápiz junto al nombre del arma.</string>
 
     <!-- Ammu-Nation sheet (GTA V only). -->
     <string name="ammu_get_on_foot">Sal del coche para usar Ammu-Nation.</string>
@@ -494,7 +491,6 @@
     <string name="ammu_clip_size">Cargador: %1$d</string>
     <string name="ammu_fill">Rellenar</string>
     <string name="ammu_add_clip">+1 cargador</string>
-    <string name="v_weapon_edit_cd">Mantén pulsado para abrir Ammu-Nation</string>
 
     <!-- Settings → Ammu-Nation (GTA V only). -->
     <string name="settings_ammu_auto_select_title">Seleccionar arma equipada</string>

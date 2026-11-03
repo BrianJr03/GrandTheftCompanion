@@ -119,15 +119,14 @@
          are a follow-up. -->
     <string name="hud_onboarding_title">About the HUD</string>
     <string name="hud_onboarding_slide_hud_title">What you\'re looking at</string>
-    <string name="hud_onboarding_slide_hud_body">Cards for coin, weapon and ammo, vehicle and speed, radio station, plus the health and armour bars along the bottom. Everything follows the game on its own.</string>
+    <string name="hud_onboarding_slide_hud_body">Your character and coin, your weapon and ammo, your vehicle and speed, and the radio, with health and armour along the bottom. It all follows the game by itself.</string>
     <string name="hud_onboarding_slide_tap_title">Tap to act</string>
-    <string name="hud_onboarding_slide_tap_body">Tap a radio station to retune it. Tap the weapon card on foot (or hold the weapon-wheel button on the controller) to pick a weapon.</string>
-    <string name="hud_onboarding_slide_customs_title">Long-press the vehicle card</string>
-    <string name="hud_onboarding_slide_customs_body">Sitting in a car? A long press on the vehicle card opens Customs: paint, parts, performance, wheels, tint, plate, neon. Look for the small pencil icon next to the vehicle name.</string>
-    <string name="hud_onboarding_slide_ammu_title">Long-press the weapon card</string>
-    <string name="hud_onboarding_slide_ammu_body">On foot? A long press on the weapon card opens Ammu-Nation: attachments, weapon tint, and refill ammo. Tap the card still opens the weapon wheel. Look for the small pencil icon next to the weapon name.</string>
+    <string name="hud_onboarding_slide_tap_body">Tap a station to retune the radio. On foot, tap the weapon card (or hold the weapon-wheel button on your controller) to switch weapons.</string>
+    <string name="hud_onboarding_slide_hold_title">Hold to customise</string>
+    <string name="hud_onboarding_slide_hold_body_v">Press and hold a card to open its shop: your name for Wardrobe, the weapon card for Ammu-Nation (on foot), the vehicle card for LS Customs (in a car). A glowing ring marks what you can hold each time the app opens.</string>
+    <string name="hud_onboarding_slide_hold_body_iv">Press and hold your name to open Wardrobe and change your outfit. A glowing ring marks it each time the app opens.</string>
     <string name="hud_onboarding_slide_tabs_title">More tabs</string>
-    <string name="hud_onboarding_slide_tabs_body">Swipe left for the map (blips, one-tap routing) or right for cheats. The HUD stays in the middle so you always know how to get back.</string>
+    <string name="hud_onboarding_slide_tabs_body">Swipe left for the map (blips and one-tap routes) or right for cheats. Turn on endless swiping in Settings to wrap from the last tab back to the first.</string>
 
     <!-- Map-tab first-visit onboarding sheet. Three slides covering
          what the screen does, the pan/zoom/lock gestures, and the
@@ -140,11 +139,6 @@
     <string name="map_onboarding_slide_gestures_body">Pinch to zoom and drag to pan the mirror until the framing feels right. The refresh icon snaps back to the default view. Tap the lock icon when you\'re happy so a stray touch doesn\'t throw it off.</string>
     <string name="map_onboarding_slide_actions_title">Icon shortcuts</string>
     <string name="map_onboarding_slide_actions_body">The icon column reaches the other tabs without leaving the map. Home for the HUD, dice for cheats, pin for blips, radio for stations. Driving overlays (speedometer, waypoint distance on V, routed destination) appear by themselves while you\'re in a car.</string>
-
-    <!-- Edit-glyph description on the GTA V vehicle card. The glyph
-         is a visual affordance for the long-press that opens Customs;
-         read aloud by TalkBack, invisible otherwise. -->
-    <string name="v_vehicle_edit_cd">long-press to open Customs</string>
 
     <!-- Los Santos Customs sheet (GTA V only). Opens on long-press
          of the HUD's vehicle card. English only this round;
@@ -177,9 +171,14 @@
     <string name="ammu_tint_n">%1$d</string>
     <!-- Error line under the sheet; mirrors customs_error. -->
     <string name="ammu_error">%1$s</string>
-    <!-- On the V weapon card: content description for the pencil
-         glyph that advertises the long-press. -->
-    <string name="v_weapon_edit_cd">Long-press to open Ammu-Nation</string>
+
+    <!-- TalkBack labels for the three HUD long-press cards. The edit
+         glyphs are gone (the discovery ring is the visual cue); these
+         still fire so a vision-impaired player knows the card is
+         actionable even though no icon shows. -->
+    <string name="hud_longpress_cd_customs">customise vehicle</string>
+    <string name="hud_longpress_cd_ammu">weapon shop</string>
+    <string name="hud_longpress_cd_wardrobe">change outfit</string>
 
     <!-- Wardrobe sheet. Long-press the character-name card on the HUD
          to open. English only in v1; translations are a follow-up. -->
@@ -206,13 +205,23 @@
     <string name="wardrobe_style">style %1$d / %2$d</string>
     <string name="wardrobe_colour">colour %1$d / %2$d</string>
     <string name="wardrobe_none">none</string>
-    <!-- On the V character-name card: a11y label for the long-press
-         gesture. No icon ships; TalkBack reads this. -->
-    <string name="v_character_edit_cd">Long-press to open Wardrobe</string>
 
     <!-- Shared action labels. -->
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
+
+    <!-- One-time "Hold to customise" prompt. Shown once per
+         installation after the tab-arrows prompt has been seen; the
+         ring on the HUD card labels at launch is the recurring cue,
+         this prompt names each gesture once. English only in v1;
+         translations are a follow-up. -->
+    <string name="longpress_prompt_title">Hold to customise</string>
+    <string name="longpress_prompt_wardrobe">hold your character\'s name: Wardrobe</string>
+    <string name="longpress_prompt_ammu">hold your weapon: Ammu-Nation</string>
+    <string name="longpress_prompt_customs">hold your vehicle: LS Customs</string>
+    <string name="longpress_prompt_ring">the glowing ring marks what you can hold each time the app opens.</string>
+    <string name="longpress_prompt_dismiss">Got it</string>
+
 
     <string name="customs_section_paint">Paint</string>
     <string name="customs_section_body">Body</string>

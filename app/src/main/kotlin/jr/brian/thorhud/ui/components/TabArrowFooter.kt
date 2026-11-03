@@ -26,11 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -81,18 +77,21 @@ internal fun TabArrowFooter(
     val canPrev = endless || pagerState.currentPage > 0
     val canNext = endless || pagerState.currentPage < pagerState.pageCount - 1
 
-    // One-shot ring animation. 0 → 1 over 1.5 s with linear easing so
-    // the gradient's rotation feels like a steady flow rather than
-    // easing to a halt. The caller flips [showHint] back to false once
-    // the "seen" flag persists, which lets the Animatable snap back to
-    // 0 for any future replay.
+    // One-shot ring animation. 0 → 1 over DISCOVERY_RING_DURATION_MS
+    // with linear easing so the gradient's rotation feels like a
+    // steady flow rather than easing to a halt. The caller flips
+    // [showHint] back to false once the "seen" flag persists, which
+    // lets the Animatable snap back to 0 for any future replay.
     val hintProgress = remember { Animatable(0f) }
     LaunchedEffect(showHint) {
         if (showHint) {
             hintProgress.snapTo(0f)
             hintProgress.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(durationMillis = HINT_DURATION_MS, easing = LinearEasing),
+                animationSpec = tween(
+                    durationMillis = DISCOVERY_RING_DURATION_MS,
+                    easing = LinearEasing,
+                ),
             )
             onHintShown()
         } else {
@@ -159,15 +158,6 @@ private fun ArrowButton(
     } else {
         Color.Black.copy(alpha = 0.55f)
     }
-    // Fade the ring in over the first 20 % and out over the last 20 %
-    // of the window so it never pops into or out of view.
-    val ringAlpha = when {
-        hintProgress <= 0f -> 0f
-        hintProgress < 0.2f -> hintProgress / 0.2f
-        hintProgress > 0.8f -> (1f - hintProgress) / 0.2f
-        else -> 1f
-    }
-    val ringRotation = hintProgress * HINT_ROTATION_DEG
 
     Box(
         modifier = Modifier
@@ -180,32 +170,11 @@ private fun ArrowButton(
             .alpha(if (enabled) 1f else 0f)
             .clip(CircleShape)
             .background(backdrop)
-            .drawBehind {
-                if (ringAlpha > 0f) {
-                    val strokePx = 3.dp.toPx()
-                    val radius = (size.minDimension - strokePx) / 2f
-                    // Rotate the whole canvas so the gradient brush
-                    // rotates with the stroke — Compose has no built-in
-                    // "rotate a brush" primitive.
-                    rotate(degrees = ringRotation, pivot = center) {
-                        drawCircle(
-                            brush = Brush.sweepGradient(
-                                colorStops = arrayOf(
-                                    0.00f to accent.copy(alpha = 0f),
-                                    0.25f to accent.copy(alpha = ringAlpha),
-                                    0.50f to accent.copy(alpha = ringAlpha * 0.8f),
-                                    0.75f to accent.copy(alpha = ringAlpha),
-                                    1.00f to accent.copy(alpha = 0f),
-                                ),
-                                center = center,
-                            ),
-                            radius = radius,
-                            style = Stroke(width = strokePx),
-                            center = center,
-                        )
-                    }
-                }
-            }
+            // Ring draws over the whole 44 dp circle via the shared
+            // discoveryRing modifier. Same timing + alpha curve the
+            // HUD card labels use, so the two play in sync when
+            // triggered together on cold start.
+            .discoveryRingCircle(hintProgress, accent)
             .clickable(enabled = enabled, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -219,10 +188,3 @@ private fun ArrowButton(
         }
     }
 }
-
-/** How long the first-visit discovery ring glows for. */
-private const val HINT_DURATION_MS = 1500
-
-/** Total degrees the ring sweeps across the hint window. ~1.5 turns
- *  reads as a flowing loop without feeling frantic. */
-private const val HINT_ROTATION_DEG = 540f

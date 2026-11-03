@@ -347,19 +347,18 @@
     <!-- Mirror color to sticks (V-only) -->
     <string name="cheats_paint_to_lights">色をスティックに反映</string>
 
-    <!-- GTA V vehicle-card edit glyph -->
-    <string name="v_vehicle_edit_cd">長押しでカスタムを開く</string>
 
     <!-- HUD-page first-visit onboarding sheet -->
     <string name="hud_onboarding_title">HUDについて</string>
     <string name="hud_onboarding_slide_hud_title">表示されているもの</string>
-    <string name="hud_onboarding_slide_hud_body">現金、武器と弾薬、車両と速度、ラジオ局のカード、下部に体力と防具バー。すべてゲームに自動的に追従します。</string>
+    <string name="hud_onboarding_slide_hud_body">キャラクターと所持金、武器と弾薬、車両と速度、そしてラジオ。下部には体力と防具バー。すべて自動的にゲームに追従します。</string>
     <string name="hud_onboarding_slide_tap_title">タップで操作</string>
-    <string name="hud_onboarding_slide_tap_body">ラジオ局をタップして変更。徒歩で武器カードをタップ(またはコントローラーの武器ホイールボタンを長押し)で武器を選択。</string>
-    <string name="hud_onboarding_slide_customs_title">車両カードを長押し</string>
-    <string name="hud_onboarding_slide_customs_body">車に乗っていますか? 車両カードを長押しするとカスタム(ペイント、パーツ、パフォーマンス、ホイール、ティント、プレート、ネオン)が開きます。車両名の横の小さな鉛筆アイコンを探してください。</string>
+    <string name="hud_onboarding_slide_tap_body">ラジオを変えるにはステーションをタップ。徒歩時は武器カードをタップ（またはコントローラーのウェポンホイールボタンを長押し）で武器を切り替えます。</string>
+    <string name="hud_onboarding_slide_hold_title">長押しでカスタマイズ</string>
+    <string name="hud_onboarding_slide_hold_body_v">カードを長押しすると各ショップが開きます：あなたの名前で Wardrobe、徒歩時に武器カードで Ammu-Nation、車内で車両カードで LS Customs。アプリ起動のたびに光るリングが長押しできる場所を示します。</string>
+    <string name="hud_onboarding_slide_hold_body_iv">名前を長押しすると Wardrobe が開き、服装を変更できます。アプリを開くたびに光るリングが示します。</string>
     <string name="hud_onboarding_slide_tabs_title">他のタブ</string>
-    <string name="hud_onboarding_slide_tabs_body">左にスワイプで地図(ブリップ、ワンタップでルート設定)、右にスワイプでチート。HUDは真ん中にあるので、いつでも戻る方法が分かります。</string>
+    <string name="hud_onboarding_slide_tabs_body">左にスワイプでマップ（ブリップとワンタップ経路）、右にスワイプでチートを表示。設定で無限スワイプをオンにすると、最後のタブから最初に戻れます。</string>
 
     <!-- Los Santos Customs sheet (GTA V only) -->
     <string name="customs_title">カスタム</string>
@@ -479,8 +478,6 @@
     <string name="customs_opt_armor_pct">装甲 %1$d%%</string>
 
     <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
-    <string name="hud_onboarding_slide_ammu_title">武器カードを長押し</string>
-    <string name="hud_onboarding_slide_ammu_body">徒歩中なら、武器カードを長押しで Ammu-Nation を開けます。アタッチメント、カラー、弾薬の補充。タップは引き続き武器ホイールを開きます。武器名の横の小さな鉛筆アイコンが目印です。</string>
 
     <!-- Ammu-Nation sheet (GTA V only). -->
     <string name="ammu_get_on_foot">車を降りて Ammu-Nation を使ってください。</string>
@@ -494,7 +491,6 @@
     <string name="ammu_clip_size">マガジン: %1$d</string>
     <string name="ammu_fill">満タン</string>
     <string name="ammu_add_clip">+1 マガジン</string>
-    <string name="v_weapon_edit_cd">長押しで Ammu-Nation を開く</string>
 
     <!-- Settings → Ammu-Nation (GTA V only). -->
     <string name="settings_ammu_auto_select_title">装備中の武器を自動選択</string>

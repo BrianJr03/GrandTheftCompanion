@@ -347,19 +347,18 @@
     <!-- Mirror color to sticks (V-only) -->
     <string name="cheats_paint_to_lights">отразить цвет на стиках</string>
 
-    <!-- GTA V vehicle-card edit glyph -->
-    <string name="v_vehicle_edit_cd">долгое нажатие, чтобы открыть Customs</string>
 
     <!-- HUD-page first-visit onboarding sheet -->
     <string name="hud_onboarding_title">О HUD</string>
     <string name="hud_onboarding_slide_hud_title">Что вы видите</string>
-    <string name="hud_onboarding_slide_hud_body">Карточки для денег, оружия и патронов, машины и скорости, радиостанции, плюс полоски здоровья и брони внизу. Всё следует за игрой само.</string>
+    <string name="hud_onboarding_slide_hud_body">Ваш персонаж и деньги, оружие и патроны, машина и скорость, и радио, с полосками здоровья и брони внизу. Всё следует за игрой само.</string>
     <string name="hud_onboarding_slide_tap_title">Нажмите для действия</string>
-    <string name="hud_onboarding_slide_tap_body">Нажмите на радиостанцию, чтобы переключить её. Нажмите на карточку оружия пешком (или удерживайте кнопку колеса оружия на геймпаде), чтобы выбрать оружие.</string>
-    <string name="hud_onboarding_slide_customs_title">Долгое нажатие на карточку машины</string>
-    <string name="hud_onboarding_slide_customs_body">Сидите в машине? Долгое нажатие на карточку машины открывает Customs: покраска, детали, производительность, колёса, тонировка, номер, неон. Ищите маленькую иконку карандаша рядом с названием машины.</string>
+    <string name="hud_onboarding_slide_tap_body">Коснитесь станции, чтобы сменить радио. Пешком коснитесь карточки оружия (или удерживайте кнопку колеса оружия на геймпаде), чтобы сменить оружие.</string>
+    <string name="hud_onboarding_slide_hold_title">Удерживайте для настройки</string>
+    <string name="hud_onboarding_slide_hold_body_v">Удерживайте карточку, чтобы открыть её магазин: ваше имя — Wardrobe, карточку оружия — Ammu-Nation (пешком), карточку транспорта — LS Customs (в машине). Светящееся кольцо показывает, что можно удерживать, при каждом запуске приложения.</string>
+    <string name="hud_onboarding_slide_hold_body_iv">Удерживайте своё имя, чтобы открыть Wardrobe и сменить одежду. Светящееся кольцо указывает на него при каждом запуске приложения.</string>
     <string name="hud_onboarding_slide_tabs_title">Другие вкладки</string>
-    <string name="hud_onboarding_slide_tabs_body">Проведите влево для карты (значки, маршрут одним нажатием) или вправо для читов. HUD остаётся в центре, чтобы вы всегда знали, как вернуться.</string>
+    <string name="hud_onboarding_slide_tabs_body">Свайпните влево — карта (отметки и маршруты одним касанием) или вправо — читы. Включите бесконечный свайп в Настройках, чтобы с последней вкладки возвращаться на первую.</string>
 
     <!-- Los Santos Customs sheet (GTA V only) -->
     <string name="customs_title">Customs</string>
@@ -479,8 +478,6 @@
     <string name="customs_opt_armor_pct">Броня %1$d%%</string>
 
     <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
-    <string name="hud_onboarding_slide_ammu_title">Долгое нажатие на карточке оружия</string>
-    <string name="hud_onboarding_slide_ammu_body">Пешком? Долгое нажатие на карточке оружия открывает Ammu-Nation: насадки, окраска оружия и пополнение патронов. Короткое нажатие по-прежнему открывает колесо оружия. Ищите маленький значок карандаша рядом с названием оружия.</string>
 
     <!-- Ammu-Nation sheet (GTA V only). -->
     <string name="ammu_get_on_foot">Выйдите из машины, чтобы использовать Ammu-Nation.</string>
@@ -494,7 +491,6 @@
     <string name="ammu_clip_size">Магазин: %1$d</string>
     <string name="ammu_fill">Пополнить</string>
     <string name="ammu_add_clip">+1 магазин</string>
-    <string name="v_weapon_edit_cd">Долгое нажатие — открыть Ammu-Nation</string>
 
     <!-- Settings → Ammu-Nation (GTA V only). -->
     <string name="settings_ammu_auto_select_title">Выбирать активное оружие</string>

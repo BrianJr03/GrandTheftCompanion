@@ -811,7 +811,10 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             visible = showHudOnboarding,
                             title = stringResource(R.string.hud_onboarding_title),
                             accent = accent,
-                            slides = hudOnboardingSlides(isGtaV),
+                            slides = hudOnboardingSlides(
+                                isGtaV = isGtaV,
+                                hasWardrobe = hello?.wardrobeSupported == true,
+                            ),
                             onDismiss = {
                                 viewModel.markHudOnboardingSeen()
                                 showHudOnboarding = false
@@ -1123,7 +1126,7 @@ private const val ATLAS_TAB_ENABLED = false
 private fun longPressWardrobeModifier(onOpen: (() -> Unit)?): Modifier {
     if (onOpen == null) return Modifier
     val source = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-    val cd = stringResource(R.string.v_character_edit_cd)
+    val cd = stringResource(R.string.hud_longpress_cd_wardrobe)
     return Modifier
         .combinedClickable(
             interactionSource = source,
