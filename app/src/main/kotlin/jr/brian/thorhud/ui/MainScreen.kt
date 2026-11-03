@@ -1217,7 +1217,9 @@ private fun IvHudScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    MoneyRadioPanel(liveState, Modifier.weight(1f))
+                    MoneyRadioPanel(liveState,
+                                    accent = palette.accent,
+                                    modifier = Modifier.weight(1f))
                     WeaponPanel(liveState, modifier = Modifier.weight(1f))
                     VehiclePanel(liveState, palette, modifier = Modifier.weight(1f))
                 }
@@ -1240,6 +1242,7 @@ private fun IvHudScreen(
                 ) {
                     CoinPanel(liveState, align = CardAlign.Start,
                               verticalCenter = true,
+                              accent = palette.accent,
                               modifier = Modifier.weight(1f))
                     val weaponCard = Modifier.weight(1f).let {
                         if (onOpenWeaponWheel != null) {

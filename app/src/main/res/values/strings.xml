@@ -119,7 +119,7 @@
          are a follow-up. -->
     <string name="hud_onboarding_title">About the HUD</string>
     <string name="hud_onboarding_slide_hud_title">What you\'re looking at</string>
-    <string name="hud_onboarding_slide_hud_body">Cards for cash, weapon and ammo, vehicle and speed, radio station, plus the health and armour bars along the bottom. Everything follows the game on its own.</string>
+    <string name="hud_onboarding_slide_hud_body">Cards for coin, weapon and ammo, vehicle and speed, radio station, plus the health and armour bars along the bottom. Everything follows the game on its own.</string>
     <string name="hud_onboarding_slide_tap_title">Tap to act</string>
     <string name="hud_onboarding_slide_tap_body">Tap a radio station to retune it. Tap the weapon card on foot (or hold the weapon-wheel button on the controller) to pick a weapon.</string>
     <string name="hud_onboarding_slide_customs_title">Long-press the vehicle card</string>
@@ -459,6 +459,16 @@
 
     <!-- HUD panel titles -->
     <string name="panel_coin">coin</string>
+    <!-- "michael · coin", "niko · coin", etc. The name slot is a per-
+         game stringResource call; "coin" reuses [panel_coin] so each
+         locale's own word for money shows up without a second table.
+         Format-only, so no locale copies. -->
+    <string name="hud_panel_coin_named" translatable="false">%1$s · %2$s</string>
+    <!-- GTA IV protagonists. Lower-case like strings_v.xml's V names;
+         English only — these are character handles, not labels.  -->
+    <string name="iv_char_niko" translatable="false">niko</string>
+    <string name="iv_char_johnny" translatable="false">johnny</string>
+    <string name="iv_char_luis" translatable="false">luis</string>
     <string name="panel_weapon">weapon</string>
     <string name="panel_vehicle">vehicle</string>
 

@@ -33,6 +33,8 @@ import jr.brian.thorhud.ui.components.BigValue
 import jr.brian.thorhud.ui.components.CardAlign
 import jr.brian.thorhud.ui.components.HudCard
 import jr.brian.thorhud.ui.components.HudPalette
+import jr.brian.thorhud.ui.components.coinTitleAnnotated
+import jr.brian.thorhud.ui.components.coinTitlePlain
 import jr.brian.thorhud.ui.components.textAlignOf
 
 // GTA V counterparts of components/{CoinPanel,WeaponPanel,VehiclePanel,
@@ -56,33 +58,11 @@ private fun cashText(s: GameState?, character: VCharacter): String =
         ?.let { stringResource(R.string.money_value, formatMoney(it)) }
         ?: stringResource(R.string.money_empty)
 
-@Composable
-private fun cashTitle(character: VCharacter, characterKnown: Boolean): String =
-    if (characterKnown) {
-        stringResource(R.string.v_panel_cash, stringResource(character.nameRes))
-    } else {
-        stringResource(R.string.panel_coin)
-    }
-
-/** Only the protagonist name span of the cash title ("michael" of
- *  "michael · cash") picks up the accent; the "· cash" tail stays
- *  grey. For the non-protagonist "coin" fallback we return null and
- *  HudCard uses its default rendering. */
-@Composable
-private fun cashTitleAnnotated(
-    character: VCharacter,
-    characterKnown: Boolean,
-): AnnotatedString? {
-    if (!characterKnown || !character.isProtagonist) return null
-    val name = stringResource(character.nameRes)
-    val full = stringResource(R.string.v_panel_cash, name)
-    val nameIdx = full.indexOf(name).coerceAtLeast(0)
-    return buildAnnotatedString {
-        append(full)
-        addStyle(SpanStyle(color = character.palette.accent),
-                 nameIdx, nameIdx + name.length)
-    }
-}
+/** Resolve the protagonist's string resource for the coin card, or
+ *  null to fall back to the plain [panel_coin] label. Mirrors the IV
+ *  [ivProtagonist] lookup but reads from V's own character table. */
+private fun vCoinNameRes(character: VCharacter, characterKnown: Boolean): Int? =
+    if (characterKnown && character.isProtagonist) character.nameRes else null
 
 @Composable
 internal fun VCashPanel(
@@ -93,9 +73,10 @@ internal fun VCashPanel(
     verticalCenter: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    HudCard(modifier, cashTitle(character, characterKnown),
+    val nameRes = vCoinNameRes(character, characterKnown)
+    HudCard(modifier, coinTitlePlain(nameRes),
             align = align, verticalCenter = verticalCenter,
-            titleAnnotated = cashTitleAnnotated(character, characterKnown)) {
+            titleAnnotated = coinTitleAnnotated(nameRes, character.palette.accent)) {
         BigValue(
             labelRes = null,
             value = cashText(s, character),
@@ -104,7 +85,7 @@ internal fun VCashPanel(
     }
 }
 
-/** In-vehicle variant: cash + current station stacked in one column,
+/** In-vehicle variant: coin + current station stacked in one column,
  *  mirroring GTA IV's MoneyRadioPanel. */
 @Composable
 internal fun VCashRadioPanel(
@@ -114,8 +95,9 @@ internal fun VCashRadioPanel(
     stations: List<GameState.Station>,
     modifier: Modifier = Modifier,
 ) {
-    HudCard(modifier, cashTitle(character, characterKnown),
-            titleAnnotated = cashTitleAnnotated(character, characterKnown)) {
+    val nameRes = vCoinNameRes(character, characterKnown)
+    HudCard(modifier, coinTitlePlain(nameRes),
+            titleAnnotated = coinTitleAnnotated(nameRes, character.palette.accent)) {
         BigValue(labelRes = null, value = cashText(s, character))
         Spacer(Modifier.height(20.dp))
         Text(

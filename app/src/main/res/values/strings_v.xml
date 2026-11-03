@@ -11,9 +11,6 @@
     <string name="v_char_trevor">trevor</string>
     <string name="v_char_other">other</string>
 
-    <!-- Cash card title: cash is per character in GTA V. -->
-    <string name="v_panel_cash">%1$s · cash</string>
-
     <!-- Weapon card: thrown weapons have a count but no clip. -->
     <string name="v_label_ammo">ammo</string>
 
