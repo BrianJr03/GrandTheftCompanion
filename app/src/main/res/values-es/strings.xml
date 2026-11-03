@@ -339,7 +339,7 @@
 
     <!-- Los Santos Customs sheet (GTA V only) -->
     <string name="customs_title">Customs</string>
-    <string name="customs_get_in_car">Súbete a un coche para abrir Customs.</string>
+    <string name="customs_get_in_car">Debes estar en un vehículo para usar Customs.</string>
     <string name="customs_no_kit">Este vehículo no puede personalizarse.</string>
     <string name="customs_section_paint">Pintura</string>
     <string name="customs_section_body">Carrocería</string>
@@ -450,8 +450,8 @@
     <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
 
     <!-- Ammu-Nation sheet (GTA V only). -->
-    <string name="ammu_get_on_foot">Sal del coche para usar Ammu-Nation.</string>
-    <string name="ammu_get_armed">Equipa un arma para abrir Ammu-Nation.</string>
+    <string name="ammu_get_on_foot">Debes estar a pie para usar Ammu-Nation.</string>
+    <string name="ammu_get_armed">Debes tener un arma equipada para usar Ammu-Nation.</string>
     <string name="ammu_section_attachments">Accesorios</string>
     <string name="ammu_section_tint">Tinte</string>
     <string name="ammu_section_ammo">Munición</string>
@@ -517,7 +517,7 @@
     <string name="wardrobe_style">estilo %1$d / %2$d</string>
     <string name="wardrobe_color">color %1$d / %2$d</string>
     <string name="wardrobe_none">ninguno</string>
-    <string name="wardrobe_get_out">Sal del coche para usar el Vestuario.</string>
+    <string name="wardrobe_get_out">Debes estar a pie para usar el Vestuario.</string>
     <string name="action_save">Guardar</string>
     <string name="longpress_prompt_title">Mantén pulsado para personalizar</string>
     <string name="longpress_slide_wardrobe_title">Mantén pulsado tu nombre</string>

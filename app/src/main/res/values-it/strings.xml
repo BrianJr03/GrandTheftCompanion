@@ -339,7 +339,7 @@
 
     <!-- Los Santos Customs sheet (GTA V only) -->
     <string name="customs_title">Customs</string>
-    <string name="customs_get_in_car">Sali in auto per aprire Customs.</string>
+    <string name="customs_get_in_car">Devi essere in un veicolo per usare Customs.</string>
     <string name="customs_no_kit">Questo veicolo non può essere personalizzato.</string>
     <string name="customs_section_paint">Vernice</string>
     <string name="customs_section_body">Carrozzeria</string>
@@ -450,8 +450,8 @@
     <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
 
     <!-- Ammu-Nation sheet (GTA V only). -->
-    <string name="ammu_get_on_foot">Scendi dall\'auto per usare Ammu-Nation.</string>
-    <string name="ammu_get_armed">Equipaggia un\'arma per aprire Ammu-Nation.</string>
+    <string name="ammu_get_on_foot">Devi essere a piedi per usare Ammu-Nation.</string>
+    <string name="ammu_get_armed">Devi avere un\'arma equipaggiata per usare Ammu-Nation.</string>
     <string name="ammu_section_attachments">Accessori</string>
     <string name="ammu_section_tint">Tinta</string>
     <string name="ammu_section_ammo">Munizioni</string>
@@ -517,7 +517,7 @@
     <string name="wardrobe_style">stile %1$d / %2$d</string>
     <string name="wardrobe_color">colore %1$d / %2$d</string>
     <string name="wardrobe_none">nessuno</string>
-    <string name="wardrobe_get_out">Scendi dall\'auto per usare il Guardaroba.</string>
+    <string name="wardrobe_get_out">Devi essere a piedi per usare il Guardaroba.</string>
     <string name="action_save">Salva</string>
     <string name="longpress_prompt_title">Tieni premuto per personalizzare</string>
     <string name="longpress_slide_wardrobe_title">Tieni premuto il tuo nome</string>

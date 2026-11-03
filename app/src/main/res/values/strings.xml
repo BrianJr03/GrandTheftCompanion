@@ -141,7 +141,7 @@
          of the HUD's vehicle card. English only this round;
          translations are a follow-up. -->
     <string name="customs_title">Customs</string>
-    <string name="customs_get_in_car">Get in a car to open Customs.</string>
+    <string name="customs_get_in_car">You must be in a vehicle to use Customs.</string>
     <string name="customs_no_kit">This vehicle can\'t be customised.</string>
 
     <!-- Ammu-Nation sheet (long-press the on-foot weapon card, GTA V
@@ -150,8 +150,8 @@
          ammu_loading / ammu_stock / ammu_error live in
          common_strings.xml (shared with customs + wardrobe). -->
     <string name="ammu_title_fallback">Ammu-Nation</string>
-    <string name="ammu_get_on_foot">Get out of the car to use Ammu-Nation.</string>
-    <string name="ammu_get_armed">Equip a weapon to open Ammu-Nation.</string>
+    <string name="ammu_get_on_foot">You must be on foot to use Ammu-Nation.</string>
+    <string name="ammu_get_armed">You must have a weapon equipped to use Ammu-Nation.</string>
     <string name="ammu_section_attachments">Attachments</string>
     <string name="ammu_section_tint">Tint</string>
     <string name="ammu_section_ammo">Ammo</string>
@@ -232,7 +232,7 @@
     <string name="wardrobe_style">style %1$d / %2$d</string>
     <string name="wardrobe_color">color %1$d / %2$d</string>
     <string name="wardrobe_none">none</string>
-    <string name="wardrobe_get_out">Get out of the car to use Wardrobe.</string>
+    <string name="wardrobe_get_out">You must be on foot to use Wardrobe.</string>
 
     <!-- Shared action labels. action_cancel lives in common_strings.xml. -->
     <string name="action_save">Save</string>

@@ -339,7 +339,7 @@
 
     <!-- Los Santos Customs sheet (GTA V only) -->
     <string name="customs_title">Customs</string>
-    <string name="customs_get_in_car">Сядьте в машину, чтобы открыть Customs.</string>
+    <string name="customs_get_in_car">Нужно быть в транспорте, чтобы использовать Customs.</string>
     <string name="customs_no_kit">Этот автомобиль нельзя кастомизировать.</string>
     <string name="customs_section_paint">Покраска</string>
     <string name="customs_section_body">Кузов</string>
@@ -450,8 +450,8 @@
     <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
 
     <!-- Ammu-Nation sheet (GTA V only). -->
-    <string name="ammu_get_on_foot">Выйдите из машины, чтобы использовать Ammu-Nation.</string>
-    <string name="ammu_get_armed">Возьмите оружие, чтобы открыть Ammu-Nation.</string>
+    <string name="ammu_get_on_foot">Нужно быть пешком, чтобы использовать Ammu-Nation.</string>
+    <string name="ammu_get_armed">Нужно иметь экипированное оружие, чтобы использовать Ammu-Nation.</string>
     <string name="ammu_section_attachments">Насадки</string>
     <string name="ammu_section_tint">Окраска</string>
     <string name="ammu_section_ammo">Патроны</string>
@@ -517,7 +517,7 @@
     <string name="wardrobe_style">стиль %1$d / %2$d</string>
     <string name="wardrobe_color">цвет %1$d / %2$d</string>
     <string name="wardrobe_none">нет</string>
-    <string name="wardrobe_get_out">Выйдите из машины, чтобы открыть Гардероб.</string>
+    <string name="wardrobe_get_out">Нужно быть пешком, чтобы открыть Гардероб.</string>
     <string name="action_save">Сохранить</string>
     <string name="longpress_prompt_title">Удерживай для настройки</string>
     <string name="longpress_slide_wardrobe_title">Удерживай своё имя</string>

@@ -339,7 +339,7 @@
 
     <!-- Los Santos Customs sheet (GTA V only) -->
     <string name="customs_title">カスタム</string>
-    <string name="customs_get_in_car">車に乗ってカスタムを開きます。</string>
+    <string name="customs_get_in_car">カスタムを使うには乗り物に乗っている必要があります。</string>
     <string name="customs_no_kit">この車両はカスタマイズできません。</string>
     <string name="customs_section_paint">ペイント</string>
     <string name="customs_section_body">ボディ</string>
@@ -450,8 +450,8 @@
     <!-- HUD onboarding slide for Ammu-Nation (GTA V only). -->
 
     <!-- Ammu-Nation sheet (GTA V only). -->
-    <string name="ammu_get_on_foot">車を降りて Ammu-Nation を使ってください。</string>
-    <string name="ammu_get_armed">武器を装備して Ammu-Nation を開いてください。</string>
+    <string name="ammu_get_on_foot">Ammu-Nation を使うには徒歩でいる必要があります。</string>
+    <string name="ammu_get_armed">Ammu-Nation を使うには武器を装備している必要があります。</string>
     <string name="ammu_section_attachments">アタッチメント</string>
     <string name="ammu_section_tint">カラー</string>
     <string name="ammu_section_ammo">弾薬</string>
@@ -517,7 +517,7 @@
     <string name="wardrobe_style">スタイル %1$d / %2$d</string>
     <string name="wardrobe_color">カラー %1$d / %2$d</string>
     <string name="wardrobe_none">なし</string>
-    <string name="wardrobe_get_out">ワードローブを開くには車から降りてください。</string>
+    <string name="wardrobe_get_out">ワードローブを使うには徒歩でいる必要があります。</string>
     <string name="action_save">保存</string>
     <string name="longpress_prompt_title">長押しでカスタマイズ</string>
     <string name="longpress_slide_wardrobe_title">名前を長押し</string>
