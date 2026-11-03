@@ -155,4 +155,46 @@ void publish_blips(const Blip* list, uint32_t n);
 void read_blips(Blips& out);
 uint32_t blips_version();
 
+// --- Wardrobe (components + props) --------------------------------
+// Same shape as asi-v/src/snapshot.h's Wardrobe but tuned for IV:
+// no palette (the IV native has no palette slot), no per-prop texture
+// count (IV exposes no native for that — the plugin publishes
+// colours = 0 and the companion probes by trying the next texture
+// and reading back). The walker publishes one row per non-empty
+// component slot plus one per prop slot the ped actually uses.
+
+constexpr uint32_t kMaxWardrobeSlots  = 16;
+constexpr uint32_t kMaxWardrobeStyles = 128;
+
+struct WardrobeSlot {
+    uint8_t  slot;                             // component 0..10 OR prop 0..7
+    bool     prop;                             // false = component, true = prop
+    int32_t  cur;                              // current drawable (-1 on a cleared prop)
+    int32_t  tex;                              // current texture
+    int32_t  pal;                              // 0 on IV (natives have no palette)
+    uint32_t styles;                           // GET_NUMBER_OF_CHAR_DRAWABLE_VARIATIONS
+    // Per-drawable texture count. For a component we fill from
+    // GET_NUMBER_OF_CHAR_TEXTURE_VARIATIONS. For a prop the game
+    // exposes no counter, so this is always 0 — the companion probes
+    // by writing the next texture and reading back whether it stuck.
+    uint16_t colours[kMaxWardrobeStyles];
+};
+
+struct Wardrobe {
+    uint32_t ver;                              // bumped on any change
+    uint32_t ped_model;                        // GET_CHAR_MODEL at walk start
+    int8_t   episode;                          // 0 = Niko, 1 = Johnny, 2 = Luis
+    uint32_t n_slots;
+    WardrobeSlot slots[kMaxWardrobeSlots];
+};
+
+// Writer (game thread): replace the whole catalogue; always bumps ver.
+void publish_wardrobe(const Wardrobe& w);
+// Clear the catalogue (ped-model change, player went online, etc.)
+void clear_wardrobe();
+// Reader: copy the catalogue out.
+void read_wardrobe(Wardrobe& out);
+// Cheap version peek so the bridge can skip copying a few KB at 20 Hz.
+uint32_t wardrobe_version();
+
 }  // namespace snapshot

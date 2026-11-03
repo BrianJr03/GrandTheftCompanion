@@ -116,6 +116,25 @@ enum : uint32_t {
     // section's swatch row stays V-only.
     CHANGE_CAR_COLOUR                   = 0x06441EAF,  // void (Vehicle, uint c1, uint c2)
     GET_CAR_COLOURS                     = 0x6CAC3D62,  // void (Vehicle, uint* c1, uint* c2)
+
+    // Char components + props (Wardrobe on the companion). Hashes
+    // verified against ThirteenAG/GTAIV.EFLC.FusionFix commit
+    // ebf86266 on 2026-11-03 (source/natives.ixx); name, hash and
+    // parameter list copied verbatim. v1 drives clothing on the
+    // current player char only, routed through
+    // asi/src/cheat_natives.h.
+    SET_CHAR_COMPONENT_VARIATION             = 0x71A52973,  // void (Ped, uint component, uint modelVariation, uint textureVariation)
+    GET_CHAR_DRAWABLE_VARIATION              = 0x1A1A6D83,  // uint (Ped, uint component)
+    GET_CHAR_TEXTURE_VARIATION               = 0x3A7B78C5,  // uint (Ped, uint component)
+    GET_NUMBER_OF_CHAR_DRAWABLE_VARIATIONS   = 0x3C293296,  // uint (Ped, uint component)
+    GET_NUMBER_OF_CHAR_TEXTURE_VARIATIONS    = 0x06C4113E,  // uint (Ped, uint component, uint unknown1)
+    SET_CHAR_DEFAULT_COMPONENT_VARIATION     = 0x4FB30DB6,  // void (Ped)
+    SET_CHAR_PROP_INDEX                      = 0x5FE95249,  // void (Ped, uint propType, uint index)
+    SET_CHAR_PROP_INDEX_TEXTURE              = 0x57390041,  // void (Ped, int, int, int)
+    GET_CHAR_PROP_INDEX                      = 0x3AC85DB1,  // void (Ped, bool unknown, uint* pIndex)
+    CLEAR_CHAR_PROP                          = 0x51546112,  // void (Ped, bool unknown)
+    CLEAR_ALL_CHAR_PROPS                     = 0x232A52FA,  // void (Ped)
+    GET_CHAR_MODEL                           = 0x0A3D60CE,  // void (Ped, uint* pModel)
 };
 
 // rage::scrNativeCallContext layout, per FusionFix (source/natives.ixx).

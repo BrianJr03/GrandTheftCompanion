@@ -38,18 +38,20 @@ struct ClientCtx {
 int format_hello(char* buf, size_t cap) {
 #if THORBRIDGE_CHEATS
     constexpr const char* kCheats = "true";
+    constexpr const char* kWardrobe = "true";
 #else
     constexpr const char* kCheats = "false";
+    constexpr const char* kWardrobe = "false";
 #endif
     return std::snprintf(buf, cap,
         "{\"v\":1,\"type\":\"hello\","
         "\"crc32\":\"0x%08X\",\"size\":%u,"
         "\"file_version\":\"%s\",\"supported\":%s,"
-        "\"cheats\":%s}\n",
+        "\"cheats\":%s,\"wardrobe\":%s}\n",
         g_vi.crc32, g_vi.size,
         g_vi.file_version[0] ? g_vi.file_version : "",
         g_vi.supported ? "true" : "false",
-        kCheats);
+        kCheats, kWardrobe);
 }
 
 int format_tick(char* buf, size_t cap, unsigned long t) {
@@ -191,6 +193,46 @@ int format_blips(char* buf, size_t cap, const snapshot::Blips& bl) {
     return static_cast<int>(w + static_cast<size_t>(n));
 }
 
+// Wardrobe (ped-component + prop catalogue). Mirrors asi-v's
+// format_wardrobe byte-for-byte so the companion's single model
+// decodes both plugins. "game":"iv" tags the frame so the Android
+// side can route it to the right store slot. Row list key is
+// "pieces" to avoid colliding with the (future / V-only) mods
+// frame's "slots" key on the shared GameState model.
+int format_wardrobe(char* buf, size_t cap, const snapshot::Wardrobe& w) {
+    size_t wpos = 0;
+    int n = std::snprintf(buf, cap,
+        "{\"v\":1,\"type\":\"wardrobe\",\"game\":\"iv\",\"ver\":%u,"
+        "\"model\":%u,\"character\":%d,\"pieces\":[",
+        w.ver, w.ped_model, static_cast<int>(w.episode));
+    if (n < 0 || static_cast<size_t>(n) >= cap) return -1;
+    wpos = static_cast<size_t>(n);
+    for (uint32_t i = 0; i < w.n_slots; ++i) {
+        const snapshot::WardrobeSlot& s = w.slots[i];
+        n = std::snprintf(buf + wpos, cap - wpos,
+            "%s{\"slot\":%u,\"prop\":%s,\"cur\":%d,\"tex\":%d,"
+            "\"pal\":%d,\"styles\":%u,\"colours\":[",
+            i ? "," : "",
+            static_cast<unsigned>(s.slot), s.prop ? "true" : "false",
+            s.cur, s.tex, s.pal, s.styles);
+        if (n < 0 || wpos + static_cast<size_t>(n) >= cap) return -1;
+        wpos += static_cast<size_t>(n);
+        for (uint32_t j = 0; j < s.styles && j < snapshot::kMaxWardrobeStyles; ++j) {
+            n = std::snprintf(buf + wpos, cap - wpos, "%s%u",
+                              j ? "," : "",
+                              static_cast<unsigned>(s.colours[j]));
+            if (n < 0 || wpos + static_cast<size_t>(n) >= cap) return -1;
+            wpos += static_cast<size_t>(n);
+        }
+        n = std::snprintf(buf + wpos, cap - wpos, "]}");
+        if (n < 0 || wpos + static_cast<size_t>(n) >= cap) return -1;
+        wpos += static_cast<size_t>(n);
+    }
+    n = std::snprintf(buf + wpos, cap - wpos, "]}\n");
+    if (n < 0 || wpos + static_cast<size_t>(n) >= cap) return -1;
+    return static_cast<int>(wpos + static_cast<size_t>(n));
+}
+
 int format_ack(char* buf, size_t cap, const commands::Ack& a) {
     char escaped[128];
     json_escape(escaped, sizeof(escaped), a.err);
@@ -240,7 +282,8 @@ bool send_all(SOCKET sock, const char* buf, int n) {
 // station — both commands take one int). More complex args would want
 // a real parser.
 bool parse_cmd(const char* line, uint32_t* id, char* name, size_t name_cap,
-               uint32_t* arg0) {
+               uint32_t* arg0,
+               uint32_t* parts, uint32_t parts_cap, uint32_t* n_parts) {
     if (!std::strstr(line, "\"type\":\"cmd\"")) return false;
 
     const char* p = std::strstr(line, "\"id\":");
@@ -260,15 +303,43 @@ bool parse_cmd(const char* line, uint32_t* id, char* name, size_t name_cap,
     name[i] = '\0';
     if (*n != '"') return false;
 
-    // Pull the first integer inside args:{...}. Works for {"weapon":N}
-    // and {"station":N} and future single-int commands; richer commands
-    // would get a proper parser.
+    *arg0 = 0;
+    if (n_parts) *n_parts = 0;
     const char* a = std::strstr(line, "\"args\":");
-    if (!a) { *arg0 = 0; return true; }  // args optional
-    // Find first digit after args:
-    while (*a && !(*a >= '0' && *a <= '9') && *a != '-') ++a;
-    if (!*a) { *arg0 = 0; return true; }
-    unsigned long parsed_arg = std::strtoul(a, nullptr, 10);
+    if (!a) return true;  // args optional
+
+    // Int-array branch: `"parts":[u, u, u ...]`. Only apply_outfit
+    // uses it today; the walker returns straight after reading so a
+    // parts list containing other keys cannot double-dip through the
+    // single-int branch below. Rejection: > parts_cap entries, any
+    // non-unsigned token, or no closing bracket.
+    const char* pa = std::strstr(a, "\"parts\":[");
+    if (pa && parts && n_parts) {
+        pa += 9;
+        uint32_t count = 0;
+        while (*pa && *pa != ']') {
+            while (*pa == ' ' || *pa == '\t' || *pa == ',') ++pa;
+            if (*pa == ']') break;
+            if (!(*pa >= '0' && *pa <= '9')) return false;
+            char* ep = nullptr;
+            unsigned long long v = std::strtoull(pa, &ep, 10);
+            if (ep == pa) return false;
+            if (v > 0xFFFFFFFFull) return false;
+            if (count >= parts_cap) return false;
+            parts[count++] = static_cast<uint32_t>(v);
+            pa = ep;
+        }
+        if (*pa != ']') return false;
+        *n_parts = count;
+        return true;
+    }
+
+    // Pull the first integer inside args:{...}. Works for {"weapon":N}
+    // and {"station":N} and future single-int commands.
+    const char* d = a;
+    while (*d && !(*d >= '0' && *d <= '9') && *d != '-') ++d;
+    if (!*d) return true;
+    unsigned long parsed_arg = std::strtoul(d, nullptr, 10);
     *arg0 = static_cast<uint32_t>(parsed_arg);
     return true;
 }
@@ -296,9 +367,11 @@ DWORD WINAPI reader_main(LPVOID arg) {
             commands::Cmd c{};
             c.ack_queue = &cx->ack_queue;
             c.queued_ms = GetTickCount();
-            if (parse_cmd(buf, &c.id, c.name, sizeof(c.name), &c.arg0)) {
-                thor_log("[bridge/rx] cmd id=%u name=%s arg0=%u",
-                         c.id, c.name, c.arg0);
+            if (parse_cmd(buf, &c.id, c.name, sizeof(c.name), &c.arg0,
+                          c.parts, commands::kMaxParts, &c.n_parts)) {
+                thor_log("[bridge/rx] cmd id=%u name=%s arg0=%u n_parts=%u",
+                         c.id, c.name, c.arg0,
+                         static_cast<unsigned>(c.n_parts));
                 commands::enqueue(c);
             } else {
                 thor_log("[bridge/rx] unparseable line (%zu bytes)", line_len);
@@ -346,6 +419,14 @@ DWORD WINAPI serve_client(LPVOID arg) {
     auto* blips = static_cast<snapshot::Blips*>(std::malloc(sizeof(snapshot::Blips)));
     uint32_t sent_blips_ver = 0;
     uint32_t sent_atlas_ver = 0;
+    // Wardrobe catalogue is comparable in size to blips (16 slots x
+    // 128 colours + overhead). Reuse the same heap-backed pattern so
+    // the stack never grows.
+    constexpr size_t kWardrobeBufCap = 12 * 1024;
+    char* wardrobe_buf = static_cast<char*>(std::malloc(kWardrobeBufCap));
+    auto* wardrobe = static_cast<snapshot::Wardrobe*>(
+        std::malloc(sizeof(snapshot::Wardrobe)));
+    uint32_t sent_wardrobe_ver = 0;
 
     for (;;) {
         // 1. Flush any pending acks first — snappier perceived latency
@@ -368,6 +449,19 @@ DWORD WINAPI serve_client(LPVOID arg) {
                 goto done;
             }
             sent_blips_ver = blips->ver;
+        }
+
+        // 2a. Wardrobe catalogue, only when the walker bumped it.
+        if (wardrobe_buf && wardrobe &&
+            snapshot::wardrobe_version() != sent_wardrobe_ver) {
+            snapshot::read_wardrobe(*wardrobe);
+            n = format_wardrobe(wardrobe_buf, kWardrobeBufCap, *wardrobe);
+            if (n <= 0) {
+                thor_log("[bridge] wardrobe frame overflow");
+            } else if (!send_all(sock, wardrobe_buf, n)) {
+                goto done;
+            }
+            sent_wardrobe_ver = wardrobe->ver;
         }
 
         // 2b. Atlas progress — only when it moved. Shares the small
@@ -415,6 +509,8 @@ done:
     CloseHandle(reader);
     std::free(blips);
     std::free(blip_buf);
+    std::free(wardrobe);
+    std::free(wardrobe_buf);
     return 0;
 }
 

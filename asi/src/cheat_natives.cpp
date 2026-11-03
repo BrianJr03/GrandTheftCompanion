@@ -232,4 +232,106 @@ void set_char_heading(uint32_t ped, float heading) {
 // get_char_coordinates: see blip_natives.cpp — the same wrapper is
 // used both for the level-5 blip census and for cheats::advance_spawn.
 
+// --- wardrobe wrappers -------------------------------------------
+
+void set_char_component_variation(uint32_t ped, uint32_t component,
+                                  uint32_t drawable, uint32_t texture) {
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(component);
+    ctx.push(drawable);
+    ctx.push(texture);
+    natives::invoke(natives::SET_CHAR_COMPONENT_VARIATION, ctx);
+}
+
+uint32_t get_char_drawable_variation(uint32_t ped, uint32_t component) {
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(component);
+    if (!natives::invoke(natives::GET_CHAR_DRAWABLE_VARIATION, ctx)) return 0;
+    return ctx.get_u32();
+}
+
+uint32_t get_char_texture_variation(uint32_t ped, uint32_t component) {
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(component);
+    if (!natives::invoke(natives::GET_CHAR_TEXTURE_VARIATION, ctx)) return 0;
+    return ctx.get_u32();
+}
+
+uint32_t get_number_of_char_drawable_variations(uint32_t ped, uint32_t component) {
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(component);
+    if (!natives::invoke(natives::GET_NUMBER_OF_CHAR_DRAWABLE_VARIATIONS, ctx)) return 0;
+    return ctx.get_u32();
+}
+
+uint32_t get_number_of_char_texture_variations(uint32_t ped, uint32_t component,
+                                               uint32_t drawable) {
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(component);
+    ctx.push(drawable);
+    if (!natives::invoke(natives::GET_NUMBER_OF_CHAR_TEXTURE_VARIATIONS, ctx)) return 0;
+    return ctx.get_u32();
+}
+
+void set_char_default_component_variation(uint32_t ped) {
+    natives::Context ctx;
+    ctx.push(ped);
+    natives::invoke(natives::SET_CHAR_DEFAULT_COMPONENT_VARIATION, ctx);
+}
+
+void set_char_prop_index(uint32_t ped, uint32_t prop_type, uint32_t index) {
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(prop_type);
+    ctx.push(index);
+    natives::invoke(natives::SET_CHAR_PROP_INDEX, ctx);
+}
+
+void set_char_prop_index_texture(uint32_t ped, uint32_t prop_type,
+                                 uint32_t index, uint32_t texture) {
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(prop_type);
+    ctx.push(index);
+    ctx.push(texture);
+    natives::invoke(natives::SET_CHAR_PROP_INDEX_TEXTURE, ctx);
+}
+
+uint32_t get_char_prop_index(uint32_t ped, uint32_t prop_type) {
+    uint32_t out = static_cast<uint32_t>(-1);
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(prop_type);
+    ctx.push(&out);
+    natives::invoke(natives::GET_CHAR_PROP_INDEX, ctx);
+    return out;
+}
+
+void clear_char_prop(uint32_t ped, uint32_t prop_type) {
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(prop_type);
+    natives::invoke(natives::CLEAR_CHAR_PROP, ctx);
+}
+
+void clear_all_char_props(uint32_t ped) {
+    natives::Context ctx;
+    ctx.push(ped);
+    natives::invoke(natives::CLEAR_ALL_CHAR_PROPS, ctx);
+}
+
+uint32_t get_char_model(uint32_t ped) {
+    uint32_t out = 0;
+    natives::Context ctx;
+    ctx.push(ped);
+    ctx.push(&out);
+    natives::invoke(natives::GET_CHAR_MODEL, ctx);
+    return out;
+}
+
 }  // namespace game

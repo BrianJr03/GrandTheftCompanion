@@ -36,6 +36,7 @@
 #if THORBRIDGE_CHEATS
 #include "cheat_natives.h"
 #include "cheats.h"
+#include "wardrobe.h"
 #endif
 
 // Round-2 safety: the per-frame hook is only installed if this is set
@@ -444,6 +445,14 @@ void on_frame() {
     // Phase 3: drain any client->server commands on the game thread
     // using the ped we just confirmed is live.
     commands::drain(ped_handle, p);
+
+#if THORBRIDGE_CHEATS
+    // Wardrobe catalogue walker — one slice per frame when a client
+    // has asked for the catalogue; cheap otherwise. Must run after
+    // drain() so a wardrobe_list issued this tick starts walking
+    // next tick.
+    wardrobe::tick(ped_handle, static_cast<int32_t>(p.episode));
+#endif
 }
 
 DWORD WINAPI startup_worker(LPVOID /*unused*/) {

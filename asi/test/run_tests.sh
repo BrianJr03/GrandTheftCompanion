@@ -18,6 +18,10 @@ mkdir -p build
     -o build/cheats_test
 ./build/cheats_test
 "${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
+    test/wardrobe_test.cpp src/wardrobe.cpp \
+    -o build/wardrobe_test
+./build/wardrobe_test
+"${CXX:-c++}" -std=c++17 -Wall -Wextra -Wpedantic -O1 \
     ../common/test/dxt_png_test.cpp ../common/dxt.cpp ../common/png.cpp \
     -o build/dxt_png_test
 ./build/dxt_png_test

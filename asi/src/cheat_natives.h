@@ -94,4 +94,40 @@ void set_char_heading(uint32_t ped, float heading);
 // blip_natives.h (always compiled). cheats::advance_spawn and
 // probes.cpp both share those wrappers.
 
+// --- wardrobe (components + props) --------------------------------
+// Same shape as the paint wrappers: typed `uint32_t` arguments, no
+// native::Context in the signature so wardrobe.cpp stays host-
+// testable. Prop ids ride through SET_CHAR_PROP_INDEX /
+// GET_CHAR_PROP_INDEX / CLEAR_CHAR_PROP's second argument — the real
+// natives type that as a BOOL in FusionFix, but Niko / Johnny / Luis
+// use values 0 (hat) and 1 (glasses) which fit the bool slot the
+// game treats as an index.
+void set_char_component_variation(uint32_t ped, uint32_t component,
+                                  uint32_t drawable, uint32_t texture);
+uint32_t get_char_drawable_variation(uint32_t ped, uint32_t component);
+uint32_t get_char_texture_variation(uint32_t ped, uint32_t component);
+uint32_t get_number_of_char_drawable_variations(uint32_t ped, uint32_t component);
+// GET_NUMBER_OF_CHAR_TEXTURE_VARIATIONS(Ped, uint component, uint
+// unknown1). The second index is the drawable per FusionFix comment.
+uint32_t get_number_of_char_texture_variations(uint32_t ped, uint32_t component,
+                                               uint32_t drawable);
+void set_char_default_component_variation(uint32_t ped);
+void set_char_prop_index(uint32_t ped, uint32_t prop_type, uint32_t index);
+// SET_CHAR_PROP_INDEX_TEXTURE(Ped, int, int, int). FusionFix leaves
+// the three int args unnamed; prediction (prompt): propType, index,
+// texture. The wrapper exposes them in that order.
+void set_char_prop_index_texture(uint32_t ped, uint32_t prop_type,
+                                 uint32_t index, uint32_t texture);
+// GET_CHAR_PROP_INDEX(Ped, bool unknown, uint* pIndex). FusionFix
+// names the bool "unknown"; prediction: it is the prop type.
+uint32_t get_char_prop_index(uint32_t ped, uint32_t prop_type);
+// CLEAR_CHAR_PROP(Ped, bool unknown). "unknown" is the prop type by
+// the same prediction.
+void clear_char_prop(uint32_t ped, uint32_t prop_type);
+void clear_all_char_props(uint32_t ped);
+// GET_CHAR_MODEL(Ped, uint* pModel). Used by wardrobe to key the
+// published catalogue by ped model so a Director Mode / modded ped
+// gets its own counts rather than Niko's.
+uint32_t get_char_model(uint32_t ped);
+
 }  // namespace game

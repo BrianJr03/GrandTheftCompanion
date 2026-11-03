@@ -80,6 +80,7 @@ if(THORBRIDGE_CHEATS)
     target_sources(ThorBridge PRIVATE
         src/cheat_natives.cpp
         src/cheats.cpp
+        src/wardrobe.cpp
     )
 endif()
 target_compile_definitions(ThorBridge PRIVATE

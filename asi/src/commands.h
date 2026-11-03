@@ -14,6 +14,11 @@ namespace commands {
 
 constexpr size_t kMaxNameLen = 24;
 constexpr size_t kMaxErrLen  = 64;
+// Largest int-array arg a single command accepts. Only apply_outfit
+// uses it; the GTA V plugin's commands.h ships the same cap. The
+// parser rejects longer arrays (rather than silently truncating) so
+// a bad outfit never reaches the game thread.
+constexpr size_t kMaxParts   = 24;
 
 struct Ack {
     uint32_t id;
@@ -41,6 +46,11 @@ struct Cmd {
     uint32_t   id;
     char       name[kMaxNameLen];
     uint32_t   arg0;                 // most commands take a single int
+    // Int-array branch. Only apply_outfit uses it; every other
+    // command leaves n_parts == 0. parse_cmd rejects malformed
+    // arrays rather than silently truncating.
+    uint32_t   n_parts;
+    uint32_t   parts[kMaxParts];
     AckQueue*  ack_queue;            // where to post the ack
     uint32_t   queued_ms;            // GetTickCount() when the socket
                                      // reader received the frame; the

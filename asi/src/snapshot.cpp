@@ -13,6 +13,7 @@ bool g_inited = false;
 snapshot::Player g_latest{};
 bool g_ever_in_game = false;
 snapshot::Blips g_blips{};
+snapshot::Wardrobe g_wardrobe{};
 
 }  // namespace
 
@@ -80,6 +81,42 @@ uint32_t blips_version() {
     if (!g_inited) return 0;
     EnterCriticalSection(&g_cs);
     uint32_t v = g_blips.ver;
+    LeaveCriticalSection(&g_cs);
+    return v;
+}
+
+void publish_wardrobe(const Wardrobe& w) {
+    if (!g_inited) return;
+    EnterCriticalSection(&g_cs);
+    const uint32_t next_ver = g_wardrobe.ver + 1;
+    std::memcpy(&g_wardrobe, &w, sizeof(Wardrobe));
+    g_wardrobe.ver = next_ver;
+    LeaveCriticalSection(&g_cs);
+}
+
+void clear_wardrobe() {
+    if (!g_inited) return;
+    EnterCriticalSection(&g_cs);
+    const uint32_t next_ver = g_wardrobe.ver + 1;
+    std::memset(&g_wardrobe, 0, sizeof(Wardrobe));
+    g_wardrobe.ver = next_ver;
+    LeaveCriticalSection(&g_cs);
+}
+
+void read_wardrobe(Wardrobe& out) {
+    if (!g_inited) {
+        std::memset(&out, 0, sizeof(out));
+        return;
+    }
+    EnterCriticalSection(&g_cs);
+    std::memcpy(&out, &g_wardrobe, sizeof(out));
+    LeaveCriticalSection(&g_cs);
+}
+
+uint32_t wardrobe_version() {
+    if (!g_inited) return 0;
+    EnterCriticalSection(&g_cs);
+    uint32_t v = g_wardrobe.ver;
     LeaveCriticalSection(&g_cs);
     return v;
 }

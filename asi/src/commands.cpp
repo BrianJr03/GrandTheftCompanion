@@ -16,6 +16,7 @@
 #if THORBRIDGE_CHEATS
 #include "cheat_natives.h"
 #include "cheats.h"
+#include "wardrobe.h"
 #endif
 
 namespace {
@@ -219,6 +220,26 @@ void drain(uint32_t ped_handle, const snapshot::Player& p) {
             atlas::cancel();
             thor_log("[cmd] atlas_cancel -> flagged");
             post_ok_ack(c.id, c.ack_queue);
+
+        } else if (std::strcmp(c.name, "wardrobe_list") == 0
+                || std::strcmp(c.name, "set_piece") == 0
+                || std::strcmp(c.name, "apply_outfit") == 0
+                || std::strcmp(c.name, "reset_outfit") == 0) {
+#if THORBRIDGE_CHEATS
+            char err[kMaxErrLen] = {0};
+            const bool ok = wardrobe::apply(
+                c.name, c.arg0, c.parts, c.n_parts,
+                ped_handle, p.in_vehicle,
+                static_cast<int32_t>(p.episode),
+                err, sizeof(err));
+            if (ok) {
+                post_ok_ack(c.id, c.ack_queue);
+            } else {
+                post_err_ack(c.id, c.ack_queue, err);
+            }
+#else
+            post_err_ack(c.id, c.ack_queue, "wardrobe: not in this build");
+#endif
 
         } else if (std::strcmp(c.name, "cheat") == 0) {
 #if THORBRIDGE_CHEATS
