@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel">Отмена</string>
+    <string name="common_close">Закрыть</string>
+    <string name="common_got_it">Понятно</string>
+    <string name="common_retry">Повторить</string>
+    <string name="common_stock">Сток</string>
+    <string name="common_other">Другое</string>
+    <string name="common_loading_catalogue">Загрузка каталога…</string>
+    <string name="common_pick_section">Выберите раздел</string>
+    <string name="common_error_line">%1$s</string>
+    <string name="common_tab_cheats">читы</string>
+    <string name="common_tab_map">карта</string>
+    <string name="common_label_health">здоровье</string>
+    <string name="common_label_vehicle">транспорт</string>
+    <string name="common_color_wheel">цветовой круг</string>
+    <string name="common_hydraulics">Гидравлика</string>
+</resources>

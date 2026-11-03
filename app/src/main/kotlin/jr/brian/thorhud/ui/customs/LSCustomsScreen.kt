@@ -157,7 +157,7 @@ internal fun LSCustomsScreen(
                 if (!err.isNullOrBlank()) {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        stringResource(R.string.customs_error, err),
+                        stringResource(R.string.common_error_line, err),
                         color = Color(0xFFE07070),
                         fontFamily = FontFamily.Monospace,
                         fontSize = 13.sp,
@@ -231,7 +231,7 @@ private fun CustomsBody(
     if (m == null) {
         Spacer(Modifier.height(8.dp))
         Text(
-            stringResource(R.string.customs_loading),
+            stringResource(R.string.common_loading_catalogue),
             color = Color(0xFF8EA096),
             fontFamily = FontFamily.Monospace,
             fontSize = 13.sp,
@@ -416,7 +416,7 @@ private fun sectionLabelRes(section: CustomsSection): Int = when (section) {
     CustomsSection.Interior     -> R.string.customs_section_interior
     CustomsSection.LightsExtras -> R.string.customs_section_lights
     CustomsSection.Plate        -> R.string.customs_section_plate
-    CustomsSection.Other        -> R.string.customs_section_other
+    CustomsSection.Other        -> R.string.common_other
 }
 
 @Composable
@@ -458,7 +458,7 @@ private fun nextIndex(cur: Int, n: Int): Int = when {
 
 @Composable
 private fun optionLabel(slot: GameState.ModSlot, idx: Int): String {
-    if (idx == STOCK) return stringResource(R.string.customs_stock)
+    if (idx == STOCK) return stringResource(R.string.common_stock)
     val label = slot.options.getOrNull(idx).orEmpty()
     if (label.isNotBlank()) return label
     // Game returned a GXT key with no entry. Pick a better fallback
@@ -545,7 +545,7 @@ private fun fallbackSlotName(slot: Int): String {
         // 18 (turbo), 20 (tyre smoke), 22 (xenon) are toggles — they
         // reach the renderer through ToggleSwitchRow, not here.
         19 -> R.string.customs_slot_subwoofer
-        21 -> R.string.customs_slot_hydraulics_19
+        21 -> R.string.common_hydraulics
         23 -> R.string.customs_slot_front_wheels
         24 -> R.string.customs_slot_rear_wheels
         25 -> R.string.customs_slot_plate_holder
@@ -561,7 +561,7 @@ private fun fallbackSlotName(slot: Int): String {
         35 -> R.string.customs_slot_plaques
         36 -> R.string.customs_slot_speakers
         37 -> R.string.customs_slot_trunk
-        38 -> R.string.customs_slot_hydraulics_38
+        38 -> R.string.common_hydraulics
         39 -> R.string.customs_slot_engine_block
         40 -> R.string.customs_slot_air_filter
         41 -> R.string.customs_slot_struts
@@ -638,7 +638,7 @@ private fun WheelTypeRow(
         R.string.customs_wheel_type_bike,
         R.string.customs_wheel_type_highend,
     )
-    val labelRes = names.getOrNull(wheelType) ?: R.string.customs_wheel_type_other
+    val labelRes = names.getOrNull(wheelType) ?: R.string.common_other
     ArrowRow(
         label = stringResource(R.string.customs_wheel_type),
         value = stringResource(labelRes),

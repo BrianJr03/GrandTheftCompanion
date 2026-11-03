@@ -294,7 +294,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         onDismiss = dismissHint,
     ) {
         TextButton(onClick = dismissHint) {
-            Text(stringResource(R.string.swipe_hint_dismiss), color = accent)
+            Text(stringResource(R.string.common_got_it), color = accent)
         }
     }
 
@@ -327,7 +327,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         onDismiss = markArrowsPromptSeen,
     ) {
         TextButton(onClick = markArrowsPromptSeen) {
-            Text(stringResource(R.string.tab_arrows_prompt_dismiss), color = accent)
+            Text(stringResource(R.string.common_got_it), color = accent)
         }
     }
 
@@ -656,7 +656,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         },
                                         onOpenSettings = openSettings,
                                         screenTitle = stringResource(
-                                            R.string.paused_title_map),
+                                            R.string.common_tab_map),
                                     )
                                 } else {
                                     // Drive "driving to <name>" off the user's
@@ -708,7 +708,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         },
                                         onOpenSettings = openSettings,
                                         screenTitle = stringResource(
-                                            R.string.paused_title_cheats),
+                                            R.string.common_tab_cheats),
                                     )
                                 } else {
                                     val cheatsViewModel: CheatsViewModel = hiltViewModel()

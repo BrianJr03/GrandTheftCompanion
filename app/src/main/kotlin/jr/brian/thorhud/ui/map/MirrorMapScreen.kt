@@ -288,7 +288,7 @@ internal fun MirrorMapScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    stringResource(R.string.map_header_title),
+                    stringResource(R.string.common_tab_map),
                     color = accent,
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.Bold,

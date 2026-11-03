@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Shared string vocabulary used across more than one feature.
+
+    Any string whose VALUE is identical in two or more places lives
+    here under a common_* id. Callers reference R.string.common_* so
+    translators localise the word once and every call site stays in
+    sync. See CLAUDE.md ("Common strings — dedup checklist") for the
+    rule and the maintenance checklist.
+-->
+<resources>
+    <!-- Generic UI vocabulary (buttons, actions, placeholders). -->
+    <string name="common_cancel">Cancel</string>
+    <string name="common_close">Close</string>
+    <string name="common_got_it">Got it</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_stock">Stock</string>
+    <string name="common_other">Other</string>
+    <string name="common_loading_catalogue">Loading the catalogue…</string>
+    <string name="common_pick_section">Pick a section</string>
+
+    <!-- Generic error line template, used under cheats, customs,
+         ammu and anywhere else the plugin surfaces a refusal
+         message verbatim. -->
+    <string name="common_error_line">%1$s</string>
+
+    <!-- Lower-case HUD vocabulary that lands as tab labels, panel
+         titles, bar labels and section headers across the app. -->
+    <string name="common_tab_cheats">cheats</string>
+    <string name="common_tab_map">map</string>
+    <string name="common_label_health">health</string>
+    <string name="common_label_vehicle">vehicle</string>
+
+    <!-- Paint/customs feature names reused in more than one sheet. -->
+    <string name="common_color_wheel">color wheel</string>
+    <string name="common_hydraulics">Hydraulics</string>
+</resources>

@@ -24,7 +24,7 @@ internal fun VehiclePanel(
     modifier: Modifier = Modifier,
 ) {
     val textAlign = textAlignOf(align)
-    HudCard(modifier, stringResource(R.string.panel_vehicle), align = align) {
+    HudCard(modifier, stringResource(R.string.common_label_vehicle), align = align) {
         val v = s?.vehicle?.takeIf { s.inVehicle }
         if (v == null) {
             Text(stringResource(R.string.on_foot),

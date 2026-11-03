@@ -141,7 +141,7 @@ internal fun CheatsScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                stringResource(R.string.cheats_title),
+                stringResource(R.string.common_tab_cheats),
                 color = accent,
                 fontFamily = FontFamily.Monospace,
                 fontWeight = FontWeight.Bold,
@@ -266,7 +266,7 @@ internal fun CheatsScreen(
                 val items = selected?.let { grouped[it].orEmpty() }.orEmpty()
                 if (selected == null) {
                     Text(
-                        stringResource(R.string.cheats_pick_section),
+                        stringResource(R.string.common_pick_section),
                         color = dim,
                         fontFamily = FontFamily.Monospace,
                         fontSize = 14.sp,
@@ -309,7 +309,7 @@ internal fun CheatsScreen(
                 if (!err.isNullOrBlank()) {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        stringResource(R.string.cheats_error, err),
+                        stringResource(R.string.common_error_line, err),
                         color = Color(0xFFE07070),
                         fontFamily = FontFamily.Monospace,
                         fontSize = 15.sp,
@@ -607,7 +607,7 @@ private fun CustomColorButton(
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            text = stringResource(R.string.cheats_paint_custom_color),
+            text = stringResource(R.string.common_color_wheel),
             color = accent,
             fontFamily = FontFamily.Monospace,
             fontSize = 16.sp,

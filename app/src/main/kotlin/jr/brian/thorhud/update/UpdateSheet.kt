@@ -450,14 +450,14 @@ private fun PermissionPhase(
             horizontalArrangement = Arrangement.End,
         ) {
             TextButton(onClick = onCancel) {
-                Text(stringResource(R.string.update_cancel), color = palette.accent)
+                Text(stringResource(R.string.common_cancel), color = palette.accent)
             }
             TextButton(onClick = onGrant) {
                 Text(stringResource(R.string.update_open_settings), color = palette.accent)
             }
             TextButton(onClick = onRetry) {
                 Text(
-                    stringResource(R.string.update_retry),
+                    stringResource(R.string.common_retry),
                     color = palette.accent,
                     fontWeight = FontWeight.Bold,
                 )
@@ -568,14 +568,14 @@ private fun ErrorPhase(
             horizontalArrangement = Arrangement.End,
         ) {
             TextButton(onClick = onCancel) {
-                Text(stringResource(R.string.update_cancel), color = palette.accent)
+                Text(stringResource(R.string.common_cancel), color = palette.accent)
             }
             TextButton(onClick = onOpenInBrowser) {
                 Text(stringResource(R.string.update_open_release), color = palette.accent)
             }
             TextButton(onClick = onRetry) {
                 Text(
-                    stringResource(R.string.update_retry),
+                    stringResource(R.string.common_retry),
                     color = palette.accent,
                     fontWeight = FontWeight.Bold,
                 )

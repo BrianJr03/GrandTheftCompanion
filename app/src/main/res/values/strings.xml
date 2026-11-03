@@ -7,26 +7,25 @@
     <string name="brand_iv_debug" translatable="false">GTC Debug IV</string>
     <string name="brand_v_debug" translatable="false">GTC Debug V</string>
 
-    <!-- Pager tabs. Lower-case to match the card-title styling. -->
+    <!-- Pager tabs. Lower-case to match the card-title styling.
+         tab_cheats / tab_map live in common_strings.xml because the
+         same lower-case word appears as a tab label, panel title
+         and paused-screen subtitle. -->
     <string name="tab_hud">hud</string>
-    <string name="tab_map">map</string>
-    <string name="tab_cheats">cheats</string>
     <string name="tab_atlas">atlas</string>
 
     <!-- Cheats tab. GTA IV plugin builds without THORBRIDGE_CHEATS
          show the unsupported line; otherwise the two sections. The
-         button labels are our wording, not Rockstar\'s cheat phrases. -->
-    <string name="cheats_title">cheats</string>
+         button labels are our wording, not Rockstar\'s cheat phrases.
+         cheats_title / cheats_pick_section / cheats_error / the
+         "health" and "vehicle" section labels / "color wheel" live
+         in common_strings.xml. -->
     <string name="cheats_unsupported">not in this plugin build</string>
-    <string name="cheats_pick_section">Pick a section</string>
-    <string name="cheats_section_health">health</string>
     <string name="cheats_section_wanted">wanted</string>
     <string name="cheats_section_weapons">weapons</string>
-    <string name="cheats_section_vehicle">vehicle</string>
     <string name="cheats_section_paint">paint</string>
     <string name="cheats_section_world">world</string>
     <string name="cheats_section_toggles">toggles</string>
-    <string name="cheats_error">%1$s</string>
 
     <!-- Paint section: pair readout + swatch labels. The pair comes from
          the state frame, never from the tap, so the labels under the two
@@ -83,9 +82,8 @@
     <string name="cheat_62_swap_colors">swap colors</string>
     <!-- 4th Paint button on GTA V. Toggles the full-screen color
          wheel sheet; the picker's Apply sends paint_rgb — same wire
-         path as a swatch tap, so no new plugin code is involved. -->
-    <string name="cheats_paint_custom_color">color wheel</string>
-    <string name="cheats_paint_wheel_title">color wheel</string>
+         path as a swatch tap, so no new plugin code is involved.
+         The "color wheel" label lives in common_strings.xml. -->
     <string name="cheats_paint_wheel_apply">apply</string>
     <string name="cheats_paint_wheel_apply_both">apply both</string>
     <!-- Mirror the car's last custom color to the Thor's thumbstick
@@ -112,7 +110,6 @@
     <string name="cheats_onboarding_slide2_title">Auto-apply on reconnect</string>
     <string name="cheats_onboarding_slide2_body">Toggles you turn on come back automatically when the companion reconnects (new session, game relaunch). Long-press a one-shot cheat to make it auto-fire too, as soon as the game is in a safe state. Turn the whole thing off in Settings &#8594; Cheats.</string>
     <string name="cheats_onboarding_next">Next</string>
-    <string name="cheats_onboarding_done">Got it</string>
 
     <!-- HUD-page first-visit onboarding sheet. 3 slides on GTA IV
          (no Customs slide), 4 on GTA V. English only; translations
@@ -146,21 +143,19 @@
     <string name="customs_title">Customs</string>
     <string name="customs_get_in_car">Get in a car to open Customs.</string>
     <string name="customs_no_kit">This vehicle can\'t be customised.</string>
-    <string name="customs_loading">Loading the catalogue…</string>
-    <string name="customs_error">%1$s</string>
 
     <!-- Ammu-Nation sheet (long-press the on-foot weapon card, GTA V
          only). English only in v1 per the task spec; locale copies
-         land once the Gate A1 walk settles the group names. -->
+         land once the Gate A1 walk settles the group names.
+         ammu_loading / ammu_stock / ammu_error live in
+         common_strings.xml (shared with customs + wardrobe). -->
     <string name="ammu_title_fallback">Ammu-Nation</string>
     <string name="ammu_get_on_foot">Get out of the car to use Ammu-Nation.</string>
     <string name="ammu_get_armed">Equip a weapon to open Ammu-Nation.</string>
-    <string name="ammu_loading">Loading the catalogue…</string>
     <string name="ammu_section_attachments">Attachments</string>
     <string name="ammu_section_tint">Tint</string>
     <string name="ammu_section_ammo">Ammo</string>
     <string name="ammu_no_components">This weapon has no attachments.</string>
-    <string name="ammu_stock">Stock</string>
     <!-- current / max -->
     <string name="ammu_ammo_counts">%1$d / %2$d</string>
     <string name="ammu_clip_size">Clip: %1$d</string>
@@ -169,8 +164,6 @@
     <!-- Numbered tint chips. The game gives us no names for weapon
          tints; the Gate A2 walk fills in a nicer table. -->
     <string name="ammu_tint_n">%1$d</string>
-    <!-- Error line under the sheet; mirrors customs_error. -->
-    <string name="ammu_error">%1$s</string>
 
     <!-- TalkBack labels for the three HUD long-press cards. The edit
          glyphs are gone (the discovery ring is the visual cue); these
@@ -183,7 +176,6 @@
     <!-- Wardrobe sheet. Long-press the character-name card on the HUD
          to open. English only in v1; translations are a follow-up. -->
     <string name="wardrobe_title">Wardrobe</string>
-    <string name="wardrobe_loading">Loading the catalogue…</string>
     <string name="wardrobe_saved_looks">Saved looks</string>
     <string name="wardrobe_save_look">+ save</string>
     <string name="wardrobe_rename">Rename</string>
@@ -197,7 +189,6 @@
     <string name="wardrobe_section_hair">Hair</string>
     <string name="wardrobe_section_accessories">Accessories</string>
     <string name="wardrobe_section_props">Props</string>
-    <string name="wardrobe_section_other">Other</string>
     <!-- Row labels, keyed by (game, prop, slot id). The NativeDB
          enum names them as English handles; iv-sdk's naming for IV
          is a loose transliteration of script internals. Confirmed
@@ -243,9 +234,8 @@
     <string name="wardrobe_none">none</string>
     <string name="wardrobe_get_out">Get out of the car to use Wardrobe.</string>
 
-    <!-- Shared action labels. -->
+    <!-- Shared action labels. action_cancel lives in common_strings.xml. -->
     <string name="action_save">Save</string>
-    <string name="action_cancel">Cancel</string>
 
     <!-- One-time "Hold to customize" OnboardingSheet. Shown once
          per installation AFTER the tab-arrows prompt has landed —
@@ -269,8 +259,6 @@
     <string name="customs_section_interior">Interior</string>
     <string name="customs_section_lights">Lights &amp; extras</string>
     <string name="customs_section_plate">Plate</string>
-    <string name="customs_section_other">Other</string>
-    <string name="customs_stock">Stock</string>
     <string name="customs_option_n">Option %1$d</string>
     <!-- Fallback label when the game's own GXT lookup for an option
          returns NULL. Variant reads better than "Option N" because
@@ -314,7 +302,6 @@
     <string name="customs_slot_armor">Armor</string>
     <string name="customs_slot_nitrous">Nitrous</string>
     <string name="customs_slot_subwoofer">Subwoofer</string>
-    <string name="customs_slot_hydraulics_19">Hydraulics</string>
     <string name="customs_slot_front_wheels">Front wheels</string>
     <string name="customs_slot_rear_wheels">Rear wheels</string>
     <string name="customs_slot_plate_holder">Plate holder</string>
@@ -330,7 +317,6 @@
     <string name="customs_slot_plaques">Plaques</string>
     <string name="customs_slot_speakers">Speakers</string>
     <string name="customs_slot_trunk">Trunk</string>
-    <string name="customs_slot_hydraulics_38">Hydraulics</string>
     <string name="customs_slot_engine_block">Engine block</string>
     <string name="customs_slot_air_filter">Air filter</string>
     <string name="customs_slot_struts">Struts</string>
@@ -354,7 +340,6 @@
     <string name="customs_wheel_type_tuner">Tuner</string>
     <string name="customs_wheel_type_bike">Bike</string>
     <string name="customs_wheel_type_highend">High end</string>
-    <string name="customs_wheel_type_other">Other</string>
     <string name="customs_tint">Window tint</string>
     <string name="customs_plate">Plate</string>
     <string name="customs_plate_style">Plate style</string>
@@ -372,10 +357,10 @@
     <string name="customs_paint_wheel">Color wheel</string>
     <string name="customs_fix_vehicle">Fix vehicle</string>
 
-    <!-- One-time hint shown on first connect, explaining the pager. -->
+    <!-- One-time hint shown on first connect, explaining the pager.
+         The "Got it" dismiss label is common_got_it. -->
     <string name="swipe_hint_title">Tip</string>
     <string name="swipe_hint_body">Swipe left or right between the hud and the minimap.</string>
-    <string name="swipe_hint_dismiss">Got it</string>
 
     <!-- Map page: mirrors the minimap from the top screen -->
     <string name="map_title">minimap mirror</string>
@@ -417,7 +402,6 @@
     <string name="map_cheats_cd">cheats, tap to open</string>
     <string name="cheats_map_cd">map, tap to open</string>
     <string name="nav_hud_cd">hud, tap to open</string>
-    <string name="map_header_title">map</string>
     <string name="car_chip_cd">in a vehicle, tap to jump to the minimap</string>
     <string name="settings_icon_cd">companion settings</string>
     <string name="settings_title">Settings</string>
@@ -448,7 +432,6 @@
     <string name="settings_section_app">Navigation</string>
     <string name="settings_section_atlas">Atlas</string>
     <string name="settings_rail_group_app">App</string>
-    <string name="settings_rail_pick">Pick a section</string>
     <string name="settings_tab_arrows_title">Tab arrows</string>
     <string name="settings_tab_arrows_body">Show left and right chevrons at the bottom of each tab for one-tap moves between tabs. Pager swipe still works.</string>
     <string name="settings_tab_arrows_style_title">Button icon</string>
@@ -459,7 +442,6 @@
     <string name="settings_endless_pager_body">Swiping past the last tab wraps to the first and back. Tab arrows stay lit at both ends.</string>
     <string name="tab_arrows_prompt_title">Tab arrows</string>
     <string name="tab_arrows_prompt_body">New: left and right chevrons at the bottom of each tab for one-tap moves. On by default — flip them off from Settings → App if you want pure swipe.</string>
-    <string name="tab_arrows_prompt_dismiss">Got it</string>
     <string name="tab_arrows_prev_cd">previous tab</string>
     <string name="tab_arrows_next_cd">next tab</string>
     <string name="settings_auto_reapply_cheats_title">Re-apply toggles on reconnect</string>
@@ -473,10 +455,8 @@
     <string name="settings_show_tips_button">Show</string>
     <string name="settings_reconnect_title">Reconnect to the plugin</string>
     <string name="settings_reconnect_body">Force a fresh connection to ThorBridge. Use if \"not connected\" sticks on a weapon switch and does not clear on its own.</string>
-    <string name="settings_reconnect_button">Retry</string>
     <string name="snackbar_reconnect_success">Connected</string>
     <string name="snackbar_reconnect_failed">Could not reach the plugin</string>
-    <string name="settings_close">Close</string>
     <string name="map_blips_title">map blips</string>
     <string name="map_blips_none">no blips yet — needs the game loaded and ThorBridgeV 0.3.0+ / ThorBridge at natives level 5</string>
     <string name="map_blips_count">%1$d blips, nearest first</string>
@@ -503,7 +483,6 @@
     <string name="info_dialog_title">Connection diagnostics</string>
     <string name="info_dialog_no_error">No errors yet — nothing has tried to connect, or every attempt timed out before producing an error line.</string>
     <string name="info_dialog_last_error">Last error:\n%1$s</string>
-    <string name="info_dialog_dismiss">Close</string>
 
     <!-- HUD panel titles -->
     <string name="panel_coin">coin</string>
@@ -518,7 +497,6 @@
     <string name="iv_char_johnny" translatable="false">johnny</string>
     <string name="iv_char_luis" translatable="false">luis</string>
     <string name="panel_weapon">weapon</string>
-    <string name="panel_vehicle">vehicle</string>
 
     <!-- HUD sublabels under big values -->
     <string name="label_radio">radio</string>
@@ -526,8 +504,7 @@
     <string name="label_clip">clip</string>
     <string name="label_speed">speed</string>
 
-    <!-- HUD bar labels -->
-    <string name="label_health">health</string>
+    <!-- HUD bar labels. label_health is common_label_health. -->
     <string name="label_armor">armor</string>
     <string name="label_engine">engine</string>
 
@@ -549,8 +526,6 @@
          screen so the player knows which tab they are on while the
          game is paused. -->
     <string name="paused_title_home">home</string>
-    <string name="paused_title_cheats">cheats</string>
-    <string name="paused_title_map">map</string>
 
     <!-- Setup screen -->
     <string name="setup_title">NOT CONNECTED</string>
@@ -579,8 +554,6 @@
     <string name="update_download">Download</string>
     <string name="update_open_release">Open release</string>
     <string name="update_later">Later</string>
-    <string name="update_cancel">Cancel</string>
-    <string name="update_retry">Retry</string>
     <string name="update_install">Install</string>
     <string name="update_permission_title">Allow installs?</string>
     <string name="update_permission_body">Android needs GTC\'s permission to install the new APK. Open Settings, allow "Install unknown apps", then come back here.</string>

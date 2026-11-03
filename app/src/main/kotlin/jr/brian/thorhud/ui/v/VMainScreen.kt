@@ -236,7 +236,16 @@ internal fun VMainScreen(
                             .weight(1f)
                             .then(longPressWardrobeModifier(onOpenWardrobe)),
                     )
-                    VWeaponPanel(live, modifier = Modifier.weight(1f))
+                    // In-vehicle weapon card: no tap-to-wheel (the
+                    // plugin refuses set_weapon in a car), but the
+                    // long-press still opens the Ammu-Nation sheet,
+                    // which shows the "get out of the car" note.
+                    VWeaponPanel(
+                        live,
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(longPressAmmuModifier(onOpenAmmu)),
+                    )
                     VVehiclePanel(
                         live, palette,
                         modifier = Modifier
@@ -340,6 +349,28 @@ private fun longPressCustomsModifier(onOpen: (() -> Unit)?): Modifier {
     if (onOpen == null) return Modifier
     val source = remember { MutableInteractionSource() }
     val cd = stringResource(R.string.hud_longpress_cd_customs)
+    return Modifier
+        .combinedClickable(
+            interactionSource = source,
+            indication = null,
+            onClick = {},
+            onLongClick = onOpen,
+        )
+        .semantics { contentDescription = cd }
+}
+
+/** Chains a long-press-to-Ammu-Nation gesture on top of the
+ *  in-vehicle weapon card. In a vehicle the tap-to-wheel gesture is
+ *  gone (the plugin refuses set_weapon while driving), but the
+ *  Ammu-Nation sheet still opens — it shows the "get out of the car
+ *  to use Ammu-Nation" note instead of the catalogue. Same TalkBack
+ *  label as the on-foot weapon-card gesture. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun longPressAmmuModifier(onOpen: (() -> Unit)?): Modifier {
+    if (onOpen == null) return Modifier
+    val source = remember { MutableInteractionSource() }
+    val cd = stringResource(R.string.hud_longpress_cd_ammu)
     return Modifier
         .combinedClickable(
             interactionSource = source,

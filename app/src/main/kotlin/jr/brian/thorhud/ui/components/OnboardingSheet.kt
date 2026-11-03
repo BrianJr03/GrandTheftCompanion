@@ -132,7 +132,7 @@ internal fun OnboardingSheet(
                 TextButton(onClick = onPrimary) {
                     Text(
                         stringResource(
-                            if (isLast) R.string.cheats_onboarding_done
+                            if (isLast) R.string.common_got_it
                             else R.string.cheats_onboarding_next,
                         ),
                         color = accent,

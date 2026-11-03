@@ -202,7 +202,7 @@ internal fun WardrobeScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showResetConfirm = false }) {
-                    Text(stringResource(R.string.action_cancel),
+                    Text(stringResource(R.string.common_cancel),
                          color = Color(0xFF8EA096))
                 }
             },
@@ -244,7 +244,7 @@ internal fun WardrobeScreen(
 @Composable
 private fun EmptyPlaceholder() {
     Text(
-        stringResource(R.string.wardrobe_loading),
+        stringResource(R.string.common_loading_catalogue),
         color = Color(0xFF8EA096),
         fontFamily = FontFamily.Monospace,
         fontSize = 12.sp,
@@ -528,7 +528,7 @@ private fun NameDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.action_cancel),
+                Text(stringResource(R.string.common_cancel),
                      color = Color(0xFF8EA096))
             }
         },
@@ -622,7 +622,7 @@ private fun sectionLabelRes(section: WardrobeSection): Int = when (section) {
     WardrobeSection.Hair        -> R.string.wardrobe_section_hair
     WardrobeSection.Accessories -> R.string.wardrobe_section_accessories
     WardrobeSection.Props       -> R.string.wardrobe_section_props
-    WardrobeSection.Other       -> R.string.wardrobe_section_other
+    WardrobeSection.Other       -> R.string.common_other
 }
 
 /** Row label for a slot. [slotLabelRes] has a per-game, per-id entry

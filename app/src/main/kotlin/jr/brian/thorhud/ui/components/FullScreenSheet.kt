@@ -184,7 +184,7 @@ internal fun ScreenSheet(
                     if (showCloseIcon) {
                         HeaderIconButton(
                             icon = Icons.Filled.Close,
-                            contentDescription = stringResource(R.string.settings_close),
+                            contentDescription = stringResource(R.string.common_close),
                             tint = accent,
                             onClick = onDismiss,
                         )

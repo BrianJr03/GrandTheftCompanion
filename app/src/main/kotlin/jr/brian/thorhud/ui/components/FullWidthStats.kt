@@ -29,7 +29,7 @@ internal fun FullWidthStats(s: GameState?, palette: HudPalette) {
             .fillMaxWidth()
             .padding(start = 14.dp, end = 14.dp, bottom = 14.dp),
     ) {
-        Bar(label = stringResource(R.string.label_health),
+        Bar(label = stringResource(R.string.common_label_health),
             current = s?.health ?: 0f, max = 200f,
             fill = palette.health)
         Spacer(Modifier.height(6.dp))

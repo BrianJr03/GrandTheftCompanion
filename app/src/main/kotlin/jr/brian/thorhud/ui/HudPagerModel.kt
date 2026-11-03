@@ -15,9 +15,9 @@ import jr.brian.thorhud.R
  * touching every "page == something" branch.
  */
 enum class HudPage(@StringRes val labelRes: Int) {
-    Cheats(R.string.tab_cheats),
+    Cheats(R.string.common_tab_cheats),
     Hud(R.string.tab_hud),
-    Map(R.string.tab_map),
+    Map(R.string.common_tab_map),
     Atlas(R.string.tab_atlas),
 }
 

@@ -483,7 +483,7 @@ private fun Pane(
                 isReconnecting = isReconnecting,
             )
         else -> Text(
-            stringResource(R.string.settings_rail_pick),
+            stringResource(R.string.common_pick_section),
             color = Color(0xFF8EA096),
             fontFamily = FontFamily.Monospace,
             fontSize = 13.sp,
@@ -698,7 +698,7 @@ private fun PluginContent(
         ActionRow(
             title = stringResource(R.string.settings_reconnect_title),
             body = stringResource(R.string.settings_reconnect_body),
-            buttonLabel = stringResource(R.string.settings_reconnect_button),
+            buttonLabel = stringResource(R.string.common_retry),
             onClick = onReconnect,
             busy = isReconnecting,
             palette = palette,

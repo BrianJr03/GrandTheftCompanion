@@ -46,7 +46,7 @@ internal fun VStatsBars(
         // and reads 0 at the point the game's own bar is empty.
         val maxHealth = ((s?.maxHealth ?: 200) - 100).coerceAtLeast(1)
         val health = ((s?.health?.toInt() ?: 100) - 100).coerceIn(0, maxHealth)
-        Bar(label = stringResource(R.string.label_health),
+        Bar(label = stringResource(R.string.common_label_health),
             current = health.toFloat(), max = maxHealth.toFloat(),
             fill = palette.health)
         Spacer(Modifier.height(6.dp))

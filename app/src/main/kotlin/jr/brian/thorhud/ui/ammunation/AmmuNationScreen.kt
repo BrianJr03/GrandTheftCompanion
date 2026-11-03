@@ -182,7 +182,7 @@ internal fun AmmuNationScreen(
         if (!err.isNullOrBlank()) {
             Spacer(Modifier.height(8.dp))
             Text(
-                stringResource(R.string.ammu_error, err),
+                stringResource(R.string.common_error_line, err),
                 color = Color(0xFFE07070),
                 fontFamily = FontFamily.Monospace,
                 fontSize = 13.sp,
@@ -416,7 +416,7 @@ private fun DetailsPane(
     onAddClip: (widx: Int) -> Unit,
 ) {
     if (armory == null) {
-        Note(stringResource(R.string.ammu_loading))
+        Note(stringResource(R.string.common_loading_catalogue))
         return
     }
 
@@ -433,7 +433,7 @@ private fun DetailsPane(
             for ((i, group) in armory.groups.withIndex()) {
                 val header = groupHeader(group, i)
                 val cur = currentOption(group)
-                val stockLabel = stringResource(R.string.ammu_stock)
+                val stockLabel = stringResource(R.string.common_stock)
                 val value = cur?.name?.ifBlank { null }
                     ?: if (group.curCidx < 0) stockLabel else "Option ${group.curCidx + 1}"
                 val pending = pendingKey?.startsWith("set_component:") == true

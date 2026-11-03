@@ -153,7 +153,7 @@ internal fun SetupScreen(lastError: String?, onOpenSettings: (() -> Unit)? = nul
     ) {
         TextButton(onClick = { showInfo = false }) {
             Text(
-                stringResource(R.string.info_dialog_dismiss),
+                stringResource(R.string.common_close),
                 color = PaletteIV.accent,
                 fontFamily = FontFamily.Monospace,
             )

@@ -30,10 +30,10 @@ internal data class CheatDef(
  * entries here is the order the headers appear.
  */
 internal enum class CheatCategory(@StringRes val labelRes: Int) {
-    Health(R.string.cheats_section_health),
+    Health(R.string.common_label_health),
     Wanted(R.string.cheats_section_wanted),
     Weapons(R.string.cheats_section_weapons),
-    Vehicle(R.string.cheats_section_vehicle),
+    Vehicle(R.string.common_label_vehicle),
     // The paint section hangs off CheatsScreen with a custom body
     // (current pair readout + swatch row on V); the three ids below
     // still render through the shared button grid.
@@ -52,7 +52,7 @@ internal enum class CheatCategory(@StringRes val labelRes: Int) {
  */
 @StringRes
 internal fun CheatCategory.labelResFor(isGtaV: Boolean): Int =
-    if (this == CheatCategory.Paint && !isGtaV) R.string.cheats_section_vehicle
+    if (this == CheatCategory.Paint && !isGtaV) R.string.common_label_vehicle
     else labelRes
 
 internal const val CHEAT_IV: Int = 0b01

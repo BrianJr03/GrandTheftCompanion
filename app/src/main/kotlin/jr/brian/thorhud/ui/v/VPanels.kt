@@ -215,7 +215,7 @@ internal fun VVehiclePanel(
     val title = if (className != null) {
         stringResource(R.string.v_panel_vehicle_class, className)
     } else {
-        stringResource(R.string.panel_vehicle)
+        stringResource(R.string.common_label_vehicle)
     }
 
     HudCard(modifier, title, align = align) {

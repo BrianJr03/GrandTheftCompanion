@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel">キャンセル</string>
+    <string name="common_close">閉じる</string>
+    <string name="common_got_it">OK</string>
+    <string name="common_retry">再試行</string>
+    <string name="common_stock">標準</string>
+    <string name="common_other">その他</string>
+    <string name="common_loading_catalogue">カタログを読み込み中…</string>
+    <string name="common_pick_section">セクションを選択</string>
+    <string name="common_error_line">%1$s</string>
+    <string name="common_tab_cheats">チート</string>
+    <string name="common_tab_map">マップ</string>
+    <string name="common_label_health">体力</string>
+    <string name="common_label_vehicle">車両</string>
+    <string name="common_color_wheel">カラーホイール</string>
+    <string name="common_hydraulics">ハイドロリクス</string>
+</resources>

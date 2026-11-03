@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_cancel">Annuler</string>
+    <string name="common_close">Fermer</string>
+    <string name="common_got_it">Compris</string>
+    <string name="common_retry">Réessayer</string>
+    <string name="common_stock">Standard</string>
+    <string name="common_other">Autre</string>
+    <string name="common_loading_catalogue">Chargement du catalogue…</string>
+    <string name="common_pick_section">Choisir une section</string>
+    <string name="common_error_line">%1$s</string>
+    <string name="common_tab_cheats">codes</string>
+    <string name="common_tab_map">carte</string>
+    <string name="common_label_health">santé</string>
+    <string name="common_label_vehicle">véhicule</string>
+    <string name="common_color_wheel">roue des couleurs</string>
+    <string name="common_hydraulics">Hydraulique</string>
+</resources>

@@ -7,12 +7,10 @@
 
     <!-- Pager tabs -->
     <string name="tab_hud">худ</string>
-    <string name="tab_map">карта</string>
 
     <!-- One-time swipe hint -->
     <string name="swipe_hint_title">Совет</string>
     <string name="swipe_hint_body">Смахните влево или вправо между худом и миникартой.</string>
-    <string name="swipe_hint_dismiss">Понятно</string>
 
     <!-- Map page: mirrors the minimap from the top screen -->
     <string name="map_title">зеркало миникарты</string>
@@ -54,12 +52,10 @@
     <string name="info_dialog_title">Диагностика подключения</string>
     <string name="info_dialog_no_error">Ошибок пока нет — ничего не пыталось подключиться, либо каждая попытка истекла до появления ошибки.</string>
     <string name="info_dialog_last_error">Последняя ошибка:\n%1$s</string>
-    <string name="info_dialog_dismiss">Закрыть</string>
 
     <!-- HUD panel titles -->
     <string name="panel_coin">деньги</string>
     <string name="panel_weapon">оружие</string>
-    <string name="panel_vehicle">транспорт</string>
 
     <!-- HUD sublabels -->
     <string name="label_radio">радио</string>
@@ -68,7 +64,6 @@
     <string name="label_speed">скорость</string>
 
     <!-- HUD bar labels -->
-    <string name="label_health">здоровье</string>
     <string name="label_armor">броня</string>
     <string name="label_engine">двигатель</string>
 
@@ -78,8 +73,6 @@
 
     <!-- Setup screen -->
     <string name="paused_title_home">главная</string>
-    <string name="paused_title_cheats">читы</string>
-    <string name="paused_title_map">карта</string>
     <string name="setup_title">НЕ ПОДКЛЮЧЕНО</string>
     <string name="setup_subtitle">Работает с GTA IV и GTA V. Компаньон слушает на 127.0.0.1:47801 установленный плагин.</string>
     <string name="setup_section">настройка gta iv</string>
@@ -103,8 +96,6 @@
     <string name="update_download">Скачать</string>
     <string name="update_open_release">Открыть релиз</string>
     <string name="update_later">Позже</string>
-    <string name="update_cancel">Отмена</string>
-    <string name="update_retry">Повторить</string>
     <string name="update_install">Установить</string>
     <string name="update_permission_title">Разрешить установки?</string>
     <string name="update_permission_body">Android требуется разрешение GTC для установки нового APK. Откройте Настройки, разрешите \"Install unknown apps\" и вернитесь сюда.</string>
@@ -182,7 +173,6 @@
     <string name="map_cheats_cd">читы, нажмите, чтобы открыть</string>
     <string name="cheats_map_cd">карта, нажмите, чтобы открыть</string>
     <string name="nav_hud_cd">HUD, нажмите, чтобы открыть</string>
-    <string name="map_header_title">карта</string>
     <string name="map_blips_title">иконки карты</string>
     <string name="map_blips_none">иконок пока нет — требуется загруженная игра и ThorBridgeV 0.3.0+ / ThorBridge на уровне нативов 5</string>
     <string name="map_blips_count">%1$d иконок, сначала ближайшие</string>
@@ -217,24 +207,16 @@
     <string name="settings_section_plugin">Плагин</string>
     <string name="settings_reconnect_title">Переподключиться к плагину</string>
     <string name="settings_reconnect_body">Принудительно устанавливает новое соединение с ThorBridge. Используйте, если \"не подключено\" остаётся после смены оружия и не исчезает само.</string>
-    <string name="settings_reconnect_button">Повторить</string>
     <string name="snackbar_reconnect_success">Подключено</string>
     <string name="snackbar_reconnect_failed">Плагин недоступен</string>
-    <string name="settings_close">Закрыть</string>
 
     <!-- Cheats tab -->
-    <string name="tab_cheats">читы</string>
-    <string name="cheats_title">читы</string>
     <string name="cheats_unsupported">недоступно в этой сборке плагина</string>
-    <string name="cheats_pick_section">Выберите раздел</string>
-    <string name="cheats_section_health">здоровье</string>
     <string name="cheats_section_wanted">розыск</string>
     <string name="cheats_section_weapons">оружие</string>
-    <string name="cheats_section_vehicle">транспорт</string>
     <string name="cheats_section_paint">покраска</string>
     <string name="cheats_section_world">мир</string>
     <string name="cheats_section_toggles">переключатели</string>
-    <string name="cheats_error">%1$s</string>
 
     <string name="cheats_paint_get_in_car">сядьте в машину</string>
     <string name="cheats_paint_custom">свой</string>
@@ -283,8 +265,6 @@
     <string name="cheat_61_next_color">след. цвет</string>
     <string name="cheat_62_swap_colors">поменять цвета</string>
 
-    <string name="cheats_paint_custom_color">цветовой круг</string>
-    <string name="cheats_paint_wheel_title">цветовой круг</string>
     <string name="cheats_paint_wheel_apply">применить</string>
     <string name="cheats_paint_wheel_apply_both">применить оба</string>
 
@@ -305,7 +285,6 @@
     <string name="cheats_onboarding_slide2_title">Автоприменение после переподключения</string>
     <string name="cheats_onboarding_slide2_body">Переключатели, которые вы включаете, возвращаются автоматически, когда компаньон переподключается (новая сессия, перезапуск игры). Удерживайте одноразовый чит долгим нажатием, чтобы он тоже автоматически срабатывал, как только игра окажется в безопасном состоянии. Отключите всё в Настройки &#8594; Читы.</string>
     <string name="cheats_onboarding_next">Далее</string>
-    <string name="cheats_onboarding_done">Понятно</string>
 
     <string name="map_onboarding_title">О вкладке карты</string>
     <string name="map_onboarding_slide_overview_title">Что делает этот экран</string>
@@ -319,7 +298,6 @@
     <string name="settings_section_app">Навигация</string>
     <string name="settings_section_atlas">Атлас</string>
     <string name="settings_rail_group_app">Приложение</string>
-    <string name="settings_rail_pick">Выберите раздел</string>
     <string name="settings_tab_arrows_title">Стрелки вкладок</string>
     <string name="settings_tab_arrows_body">Показывать стрелки влево и вправо внизу каждой вкладки для перехода между вкладками одним касанием. Свайп также работает.</string>
     <string name="settings_tab_arrows_style_title">Значок кнопки</string>
@@ -330,7 +308,6 @@
     <string name="settings_endless_pager_body">Свайп дальше последней вкладки переходит на первую и наоборот. Стрелки вкладок остаются активными с обеих сторон.</string>
     <string name="tab_arrows_prompt_title">Стрелки вкладок</string>
     <string name="tab_arrows_prompt_body">Новое: стрелки влево и вправо внизу каждой вкладки для перехода одним касанием. Включены по умолчанию — отключите их в Настройки → Приложение, если предпочитаете только свайп.</string>
-    <string name="tab_arrows_prompt_dismiss">Понятно</string>
     <string name="tab_arrows_prev_cd">предыдущая вкладка</string>
     <string name="tab_arrows_next_cd">следующая вкладка</string>
     <string name="settings_auto_reapply_cheats_title">Повторно применять переключатели после переподключения</string>
@@ -364,8 +341,6 @@
     <string name="customs_title">Customs</string>
     <string name="customs_get_in_car">Сядьте в машину, чтобы открыть Customs.</string>
     <string name="customs_no_kit">Этот автомобиль нельзя кастомизировать.</string>
-    <string name="customs_loading">Загрузка каталога…</string>
-    <string name="customs_error">%1$s</string>
     <string name="customs_section_paint">Покраска</string>
     <string name="customs_section_body">Кузов</string>
     <string name="customs_section_performance">Производительность</string>
@@ -373,8 +348,6 @@
     <string name="customs_section_interior">Салон</string>
     <string name="customs_section_lights">Фары и доп.</string>
     <string name="customs_section_plate">Номер</string>
-    <string name="customs_section_other">Другое</string>
-    <string name="customs_stock">Сток</string>
     <string name="customs_option_n">Вариант %1$d</string>
     <string name="customs_slot_n">Слот %1$d</string>
     <string name="customs_toggle_turbo">Турбо</string>
@@ -389,7 +362,6 @@
     <string name="customs_wheel_type_tuner">Тюнер</string>
     <string name="customs_wheel_type_bike">Мотоцикл</string>
     <string name="customs_wheel_type_highend">Люкс</string>
-    <string name="customs_wheel_type_other">Другие</string>
     <string name="customs_tint">Тонировка</string>
     <string name="customs_plate">Номер</string>
     <string name="customs_plate_style">Стиль номера</string>
@@ -432,7 +404,6 @@
     <string name="customs_slot_armor">Броня</string>
     <string name="customs_slot_nitrous">Закись азота</string>
     <string name="customs_slot_subwoofer">Сабвуфер</string>
-    <string name="customs_slot_hydraulics_19">Гидравлика</string>
     <string name="customs_slot_front_wheels">Передние колёса</string>
     <string name="customs_slot_rear_wheels">Задние колёса</string>
     <string name="customs_slot_plate_holder">Рамка номера</string>
@@ -448,7 +419,6 @@
     <string name="customs_slot_plaques">Таблички</string>
     <string name="customs_slot_speakers">Динамики</string>
     <string name="customs_slot_trunk">Багажник</string>
-    <string name="customs_slot_hydraulics_38">Гидравлика</string>
     <string name="customs_slot_engine_block">Блок двигателя</string>
     <string name="customs_slot_air_filter">Воздушный фильтр</string>
     <string name="customs_slot_struts">Стойки</string>
@@ -482,12 +452,10 @@
     <!-- Ammu-Nation sheet (GTA V only). -->
     <string name="ammu_get_on_foot">Выйдите из машины, чтобы использовать Ammu-Nation.</string>
     <string name="ammu_get_armed">Возьмите оружие, чтобы открыть Ammu-Nation.</string>
-    <string name="ammu_loading">Загрузка каталога…</string>
     <string name="ammu_section_attachments">Насадки</string>
     <string name="ammu_section_tint">Окраска</string>
     <string name="ammu_section_ammo">Патроны</string>
     <string name="ammu_no_components">У этого оружия нет насадок.</string>
-    <string name="ammu_stock">Стандарт</string>
     <string name="ammu_clip_size">Магазин: %1$d</string>
     <string name="ammu_fill">Пополнить</string>
     <string name="ammu_add_clip">+1 магазин</string>
@@ -495,4 +463,68 @@
     <!-- Settings → Ammu-Nation (GTA V only). -->
     <string name="settings_ammu_auto_select_title">Выбирать активное оружие</string>
     <string name="settings_ammu_auto_select_body">При открытии Ammu-Nation начинать с того оружия, что сейчас в руках. Выкл: экран открывается на первом оружии в ленте, и смена оружия в игре не сдвигает вашу позицию.</string>
+    <!-- Translations added alongside the common_strings
+         extraction. See values/strings.xml for the English
+         originals and context notes. -->
+    <string name="tab_atlas">атлас</string>
+    <string name="ammu_title_fallback">Ammu-Nation</string>
+    <string name="ammu_ammo_counts">%1$d / %2$d</string>
+    <string name="ammu_tint_n">%1$d</string>
+    <string name="hud_longpress_cd_customs">настроить машину</string>
+    <string name="hud_longpress_cd_ammu">оружейный магазин</string>
+    <string name="hud_longpress_cd_wardrobe">сменить одежду</string>
+    <string name="wardrobe_title">Гардероб</string>
+    <string name="wardrobe_saved_looks">Сохранённые образы</string>
+    <string name="wardrobe_save_look">+ сохранить</string>
+    <string name="wardrobe_rename">Переименовать</string>
+    <string name="wardrobe_delete">Удалить</string>
+    <string name="wardrobe_preset_menu_body">Нажмите, чтобы применить, или:</string>
+    <string name="wardrobe_reset">Сбросить</string>
+    <string name="wardrobe_reset_confirm">Вернуть каждый предмет одежды к стартовому виду.</string>
+    <string name="wardrobe_section_tops">Верх</string>
+    <string name="wardrobe_section_legs">Низ</string>
+    <string name="wardrobe_section_feet">Обувь</string>
+    <string name="wardrobe_section_hair">Причёска</string>
+    <string name="wardrobe_section_accessories">Аксессуары</string>
+    <string name="wardrobe_section_props">Предметы</string>
+    <string name="wardrobe_v_comp_1">маска / борода</string>
+    <string name="wardrobe_v_comp_2">волосы</string>
+    <string name="wardrobe_v_comp_3">торс</string>
+    <string name="wardrobe_v_comp_4">штаны</string>
+    <string name="wardrobe_v_comp_5">сумка / парашют</string>
+    <string name="wardrobe_v_comp_6">обувь</string>
+    <string name="wardrobe_v_comp_7">аксессуары</string>
+    <string name="wardrobe_v_comp_8">майка</string>
+    <string name="wardrobe_v_comp_9">броня / задача</string>
+    <string name="wardrobe_v_comp_11">верх</string>
+    <string name="wardrobe_v_prop_0">шляпа</string>
+    <string name="wardrobe_v_prop_1">очки</string>
+    <string name="wardrobe_v_prop_2">уши</string>
+    <string name="wardrobe_v_prop_6">часы</string>
+    <string name="wardrobe_v_prop_7">браслет</string>
+    <string name="wardrobe_iv_comp_1">верх</string>
+    <string name="wardrobe_iv_comp_2">штаны</string>
+    <string name="wardrobe_iv_comp_3">suse</string>
+    <string name="wardrobe_iv_comp_4">рука</string>
+    <string name="wardrobe_iv_comp_5">обувь</string>
+    <string name="wardrobe_iv_comp_6">куртка</string>
+    <string name="wardrobe_iv_comp_7">волосы</string>
+    <string name="wardrobe_iv_comp_8">suse2</string>
+    <string name="wardrobe_iv_prop_0">шляпа</string>
+    <string name="wardrobe_iv_prop_1">очки</string>
+    <string name="wardrobe_slot_n">слот %1$d</string>
+    <string name="wardrobe_prop_n">предмет %1$d</string>
+    <string name="wardrobe_style">стиль %1$d / %2$d</string>
+    <string name="wardrobe_color">цвет %1$d / %2$d</string>
+    <string name="wardrobe_none">нет</string>
+    <string name="wardrobe_get_out">Выйдите из машины, чтобы открыть Гардероб.</string>
+    <string name="action_save">Сохранить</string>
+    <string name="longpress_prompt_title">Удерживай для настройки</string>
+    <string name="longpress_slide_wardrobe_title">Удерживай своё имя</string>
+    <string name="longpress_slide_wardrobe_body">Нажми и удерживай имя персонажа на карточке денег, чтобы открыть Гардероб. Меняй верх, низ, обувь, аксессуары, предметы. Сохраняй понравившиеся образы.</string>
+    <string name="longpress_slide_ammu_title">Удерживай оружие</string>
+    <string name="longpress_slide_ammu_body">На ногах нажми и удерживай карточку оружия, чтобы открыть Ammu-Nation. Ставь обвесы, меняй окраску, пополняй патроны. Короткое касание по-прежнему открывает колесо оружия.</string>
+    <string name="longpress_slide_customs_title">Удерживай машину</string>
+    <string name="longpress_slide_customs_body">В машине нажми и удерживай карточку машины, чтобы открыть LS Customs. Покраска, детали, производительность, колёса, тонировка, номер, неон.</string>
+    <string name="settings_section_ammu">Ammu-Nation</string>
 </resources>

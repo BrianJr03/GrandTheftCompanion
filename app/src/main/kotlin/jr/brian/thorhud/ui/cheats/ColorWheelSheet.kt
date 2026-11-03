@@ -122,7 +122,7 @@ internal fun ColorWheelSheet(
     FullScreenSheet(
         visible = visible,
         onDismiss = onDismiss,
-        title = stringResource(R.string.cheats_paint_wheel_title),
+        title = stringResource(R.string.common_color_wheel),
         accent = accent,
         headerActions = {
             // Apply both: fire paint_rgb twice, once per layer. The

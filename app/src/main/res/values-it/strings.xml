@@ -7,12 +7,10 @@
 
     <!-- Pager tabs -->
     <string name="tab_hud">hud</string>
-    <string name="tab_map">mappa</string>
 
     <!-- One-time swipe hint -->
     <string name="swipe_hint_title">Suggerimento</string>
     <string name="swipe_hint_body">Scorri a sinistra o destra tra l\'hud e la minimappa.</string>
-    <string name="swipe_hint_dismiss">Capito</string>
 
     <!-- Map page: mirrors the minimap from the top screen -->
     <string name="map_title">specchio minimappa</string>
@@ -54,12 +52,10 @@
     <string name="info_dialog_title">Diagnostica di connessione</string>
     <string name="info_dialog_no_error">Nessun errore ancora — nulla ha tentato di connettersi, oppure ogni tentativo è scaduto prima di produrre una riga di errore.</string>
     <string name="info_dialog_last_error">Ultimo errore:\n%1$s</string>
-    <string name="info_dialog_dismiss">Chiudi</string>
 
     <!-- HUD panel titles -->
     <string name="panel_coin">soldi</string>
     <string name="panel_weapon">arma</string>
-    <string name="panel_vehicle">veicolo</string>
 
     <!-- HUD sublabels -->
     <string name="label_radio">radio</string>
@@ -68,7 +64,6 @@
     <string name="label_speed">velocità</string>
 
     <!-- HUD bar labels -->
-    <string name="label_health">salute</string>
     <string name="label_armor">armatura</string>
     <string name="label_engine">motore</string>
 
@@ -78,8 +73,6 @@
 
     <!-- Setup screen -->
     <string name="paused_title_home">home</string>
-    <string name="paused_title_cheats">trucchi</string>
-    <string name="paused_title_map">mappa</string>
     <string name="setup_title">NON CONNESSO</string>
     <string name="setup_subtitle">Compatibile con GTA IV e GTA V. Il compagno ascolta su 127.0.0.1:47801 il plugin che installi.</string>
     <string name="setup_section">configurazione gta iv</string>
@@ -103,8 +96,6 @@
     <string name="update_download">Scarica</string>
     <string name="update_open_release">Apri la release</string>
     <string name="update_later">Più tardi</string>
-    <string name="update_cancel">Annulla</string>
-    <string name="update_retry">Riprova</string>
     <string name="update_install">Installa</string>
     <string name="update_permission_title">Consentire installazioni?</string>
     <string name="update_permission_body">Android ha bisogno del permesso di GTC per installare il nuovo APK. Apri le Impostazioni, consenti \"Install unknown apps\" e torna qui.</string>
@@ -182,7 +173,6 @@
     <string name="map_cheats_cd">trucchi, tocca per aprire</string>
     <string name="cheats_map_cd">mappa, tocca per aprire</string>
     <string name="nav_hud_cd">hud, tocca per aprire</string>
-    <string name="map_header_title">mappa</string>
     <string name="map_blips_title">icone mappa</string>
     <string name="map_blips_none">ancora nessuna icona — serve il gioco caricato e ThorBridgeV 0.3.0+ / ThorBridge a livello nativi 5</string>
     <string name="map_blips_count">%1$d icone, le più vicine prima</string>
@@ -217,24 +207,16 @@
     <string name="settings_section_plugin">Plugin</string>
     <string name="settings_reconnect_title">Riconnetti al plugin</string>
     <string name="settings_reconnect_body">Forza una nuova connessione a ThorBridge. Usalo se \"non connesso\" resta visibile dopo un cambio d\'arma e non sparisce da solo.</string>
-    <string name="settings_reconnect_button">Riprova</string>
     <string name="snackbar_reconnect_success">Connesso</string>
     <string name="snackbar_reconnect_failed">Plugin non raggiungibile</string>
-    <string name="settings_close">Chiudi</string>
 
     <!-- Cheats tab -->
-    <string name="tab_cheats">trucchi</string>
-    <string name="cheats_title">trucchi</string>
     <string name="cheats_unsupported">non disponibile in questo plugin</string>
-    <string name="cheats_pick_section">Scegli una sezione</string>
-    <string name="cheats_section_health">salute</string>
     <string name="cheats_section_wanted">ricercato</string>
     <string name="cheats_section_weapons">armi</string>
-    <string name="cheats_section_vehicle">veicolo</string>
     <string name="cheats_section_paint">vernice</string>
     <string name="cheats_section_world">mondo</string>
     <string name="cheats_section_toggles">interruttori</string>
-    <string name="cheats_error">%1$s</string>
 
     <string name="cheats_paint_get_in_car">sali in auto</string>
     <string name="cheats_paint_custom">personal.</string>
@@ -283,8 +265,6 @@
     <string name="cheat_61_next_color">colore successivo</string>
     <string name="cheat_62_swap_colors">scambia colori</string>
 
-    <string name="cheats_paint_custom_color">ruota dei colori</string>
-    <string name="cheats_paint_wheel_title">ruota dei colori</string>
     <string name="cheats_paint_wheel_apply">applica</string>
     <string name="cheats_paint_wheel_apply_both">applica entrambi</string>
 
@@ -305,7 +285,6 @@
     <string name="cheats_onboarding_slide2_title">Applicazione automatica alla riconnessione</string>
     <string name="cheats_onboarding_slide2_body">Gli interruttori che accendi tornano automaticamente quando il companion si riconnette (nuova sessione, riavvio del gioco). Tieni premuto a lungo un trucco istantaneo per farlo scattare automaticamente anche quello, non appena il gioco è in uno stato sicuro. Disattiva tutto in Impostazioni &#8594; Trucchi.</string>
     <string name="cheats_onboarding_next">Avanti</string>
-    <string name="cheats_onboarding_done">Ho capito</string>
 
     <string name="map_onboarding_title">Informazioni sulla scheda mappa</string>
     <string name="map_onboarding_slide_overview_title">Cosa fa questa schermata</string>
@@ -319,7 +298,6 @@
     <string name="settings_section_app">Navigazione</string>
     <string name="settings_section_atlas">Atlas</string>
     <string name="settings_rail_group_app">App</string>
-    <string name="settings_rail_pick">Scegli una sezione</string>
     <string name="settings_tab_arrows_title">Frecce delle schede</string>
     <string name="settings_tab_arrows_body">Mostra chevron sinistro e destro in fondo a ogni scheda per cambiare scheda con un tocco. Lo scorrimento continua a funzionare.</string>
     <string name="settings_tab_arrows_style_title">Icona del pulsante</string>
@@ -330,7 +308,6 @@
     <string name="settings_endless_pager_body">Scorrendo oltre l\'ultima scheda si torna alla prima e viceversa. Le frecce delle schede restano accese a entrambe le estremità.</string>
     <string name="tab_arrows_prompt_title">Frecce delle schede</string>
     <string name="tab_arrows_prompt_body">Novità: chevron sinistro e destro in fondo a ogni scheda per cambiare scheda con un tocco. Attive per impostazione predefinita — disattivale da Impostazioni → App se preferisci solo lo scorrimento.</string>
-    <string name="tab_arrows_prompt_dismiss">Capito</string>
     <string name="tab_arrows_prev_cd">scheda precedente</string>
     <string name="tab_arrows_next_cd">scheda successiva</string>
     <string name="settings_auto_reapply_cheats_title">Riattiva interruttori alla riconnessione</string>
@@ -364,8 +341,6 @@
     <string name="customs_title">Customs</string>
     <string name="customs_get_in_car">Sali in auto per aprire Customs.</string>
     <string name="customs_no_kit">Questo veicolo non può essere personalizzato.</string>
-    <string name="customs_loading">Caricamento del catalogo…</string>
-    <string name="customs_error">%1$s</string>
     <string name="customs_section_paint">Vernice</string>
     <string name="customs_section_body">Carrozzeria</string>
     <string name="customs_section_performance">Prestazioni</string>
@@ -373,8 +348,6 @@
     <string name="customs_section_interior">Interni</string>
     <string name="customs_section_lights">Luci &amp; extra</string>
     <string name="customs_section_plate">Targa</string>
-    <string name="customs_section_other">Altro</string>
-    <string name="customs_stock">Serie</string>
     <string name="customs_option_n">Opzione %1$d</string>
     <string name="customs_slot_n">Slot %1$d</string>
     <string name="customs_toggle_turbo">Turbo</string>
@@ -389,7 +362,6 @@
     <string name="customs_wheel_type_tuner">Tuner</string>
     <string name="customs_wheel_type_bike">Moto</string>
     <string name="customs_wheel_type_highend">Fascia alta</string>
-    <string name="customs_wheel_type_other">Altro</string>
     <string name="customs_tint">Vetri oscurati</string>
     <string name="customs_plate">Targa</string>
     <string name="customs_plate_style">Stile targa</string>
@@ -432,7 +404,6 @@
     <string name="customs_slot_armor">Blindatura</string>
     <string name="customs_slot_nitrous">Nitro</string>
     <string name="customs_slot_subwoofer">Subwoofer</string>
-    <string name="customs_slot_hydraulics_19">Idraulica</string>
     <string name="customs_slot_front_wheels">Ruote anteriori</string>
     <string name="customs_slot_rear_wheels">Ruote posteriori</string>
     <string name="customs_slot_plate_holder">Porta targa</string>
@@ -448,7 +419,6 @@
     <string name="customs_slot_plaques">Placche</string>
     <string name="customs_slot_speakers">Altoparlanti</string>
     <string name="customs_slot_trunk">Bagagliaio</string>
-    <string name="customs_slot_hydraulics_38">Idraulica</string>
     <string name="customs_slot_engine_block">Blocco motore</string>
     <string name="customs_slot_air_filter">Filtro aria</string>
     <string name="customs_slot_struts">Montanti</string>
@@ -482,12 +452,10 @@
     <!-- Ammu-Nation sheet (GTA V only). -->
     <string name="ammu_get_on_foot">Scendi dall\'auto per usare Ammu-Nation.</string>
     <string name="ammu_get_armed">Equipaggia un\'arma per aprire Ammu-Nation.</string>
-    <string name="ammu_loading">Caricamento del catalogo…</string>
     <string name="ammu_section_attachments">Accessori</string>
     <string name="ammu_section_tint">Tinta</string>
     <string name="ammu_section_ammo">Munizioni</string>
     <string name="ammu_no_components">Quest\'arma non ha accessori.</string>
-    <string name="ammu_stock">Base</string>
     <string name="ammu_clip_size">Caricatore: %1$d</string>
     <string name="ammu_fill">Riempi</string>
     <string name="ammu_add_clip">+1 caricatore</string>
@@ -495,4 +463,68 @@
     <!-- Settings → Ammu-Nation (GTA V only). -->
     <string name="settings_ammu_auto_select_title">Seleziona arma equipaggiata</string>
     <string name="settings_ammu_auto_select_body">All\'apertura di Ammu-Nation, inizia dall\'arma che stai usando. Disattivato: il menu si apre sulla prima arma del binario, così cambiare arma nel gioco non sposta la tua posizione.</string>
+    <!-- Translations added alongside the common_strings
+         extraction. See values/strings.xml for the English
+         originals and context notes. -->
+    <string name="tab_atlas">atlas</string>
+    <string name="ammu_title_fallback">Ammu-Nation</string>
+    <string name="ammu_ammo_counts">%1$d / %2$d</string>
+    <string name="ammu_tint_n">%1$d</string>
+    <string name="hud_longpress_cd_customs">personalizza veicolo</string>
+    <string name="hud_longpress_cd_ammu">armeria</string>
+    <string name="hud_longpress_cd_wardrobe">cambia vestiti</string>
+    <string name="wardrobe_title">Guardaroba</string>
+    <string name="wardrobe_saved_looks">Look salvati</string>
+    <string name="wardrobe_save_look">+ salva</string>
+    <string name="wardrobe_rename">Rinomina</string>
+    <string name="wardrobe_delete">Elimina</string>
+    <string name="wardrobe_preset_menu_body">Tocca per applicare, o:</string>
+    <string name="wardrobe_reset">Ripristina</string>
+    <string name="wardrobe_reset_confirm">Rimette ogni capo come lo ha spedito il gioco.</string>
+    <string name="wardrobe_section_tops">Sopra</string>
+    <string name="wardrobe_section_legs">Gambe</string>
+    <string name="wardrobe_section_feet">Piedi</string>
+    <string name="wardrobe_section_hair">Capelli</string>
+    <string name="wardrobe_section_accessories">Accessori</string>
+    <string name="wardrobe_section_props">Oggetti</string>
+    <string name="wardrobe_v_comp_1">maschera / barba</string>
+    <string name="wardrobe_v_comp_2">capelli</string>
+    <string name="wardrobe_v_comp_3">torso</string>
+    <string name="wardrobe_v_comp_4">pantaloni</string>
+    <string name="wardrobe_v_comp_5">borsa / paracadute</string>
+    <string name="wardrobe_v_comp_6">scarpe</string>
+    <string name="wardrobe_v_comp_7">accessori</string>
+    <string name="wardrobe_v_comp_8">canottiera</string>
+    <string name="wardrobe_v_comp_9">armatura / compito</string>
+    <string name="wardrobe_v_comp_11">sopra</string>
+    <string name="wardrobe_v_prop_0">cappello</string>
+    <string name="wardrobe_v_prop_1">occhiali</string>
+    <string name="wardrobe_v_prop_2">orecchie</string>
+    <string name="wardrobe_v_prop_6">orologio</string>
+    <string name="wardrobe_v_prop_7">bracciale</string>
+    <string name="wardrobe_iv_comp_1">sopra</string>
+    <string name="wardrobe_iv_comp_2">pantaloni</string>
+    <string name="wardrobe_iv_comp_3">suse</string>
+    <string name="wardrobe_iv_comp_4">mano</string>
+    <string name="wardrobe_iv_comp_5">scarpe</string>
+    <string name="wardrobe_iv_comp_6">giacca</string>
+    <string name="wardrobe_iv_comp_7">capelli</string>
+    <string name="wardrobe_iv_comp_8">suse2</string>
+    <string name="wardrobe_iv_prop_0">cappello</string>
+    <string name="wardrobe_iv_prop_1">occhiali</string>
+    <string name="wardrobe_slot_n">slot %1$d</string>
+    <string name="wardrobe_prop_n">oggetto %1$d</string>
+    <string name="wardrobe_style">stile %1$d / %2$d</string>
+    <string name="wardrobe_color">colore %1$d / %2$d</string>
+    <string name="wardrobe_none">nessuno</string>
+    <string name="wardrobe_get_out">Scendi dall\'auto per usare il Guardaroba.</string>
+    <string name="action_save">Salva</string>
+    <string name="longpress_prompt_title">Tieni premuto per personalizzare</string>
+    <string name="longpress_slide_wardrobe_title">Tieni premuto il tuo nome</string>
+    <string name="longpress_slide_wardrobe_body">Tieni premuto il nome del tuo personaggio sulla carta dei soldi per aprire il Guardaroba. Cambia maglie, pantaloni, scarpe, accessori, oggetti. Salva i look che ti piacciono.</string>
+    <string name="longpress_slide_ammu_title">Tieni premuta la tua arma</string>
+    <string name="longpress_slide_ammu_body">A piedi, tieni premuta la carta arma per aprire Ammu-Nation. Monta accessori, cambia tinta, ricarica munizioni. Un tocco breve apre comunque la ruota delle armi.</string>
+    <string name="longpress_slide_customs_title">Tieni premuto il tuo veicolo</string>
+    <string name="longpress_slide_customs_body">In auto, tieni premuta la carta veicolo per aprire LS Customs. Vernice, pezzi, prestazioni, ruote, tinta, targa, neon.</string>
+    <string name="settings_section_ammu">Ammu-Nation</string>
 </resources>

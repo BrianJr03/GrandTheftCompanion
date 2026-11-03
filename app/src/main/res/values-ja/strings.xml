@@ -7,12 +7,10 @@
 
     <!-- Pager tabs -->
     <string name="tab_hud">HUD</string>
-    <string name="tab_map">マップ</string>
 
     <!-- One-time swipe hint -->
     <string name="swipe_hint_title">ヒント</string>
     <string name="swipe_hint_body">左右にスワイプしてHUDとミニマップを切り替えます。</string>
-    <string name="swipe_hint_dismiss">OK</string>
 
     <!-- Map page: mirrors the minimap from the top screen -->
     <string name="map_title">ミニマップミラー</string>
@@ -54,12 +52,10 @@
     <string name="info_dialog_title">接続診断</string>
     <string name="info_dialog_no_error">まだエラーはありません — まだ接続を試みていないか、エラーが出る前にタイムアウトしています。</string>
     <string name="info_dialog_last_error">最新のエラー：\n%1$s</string>
-    <string name="info_dialog_dismiss">閉じる</string>
 
     <!-- HUD panel titles -->
     <string name="panel_coin">所持金</string>
     <string name="panel_weapon">武器</string>
-    <string name="panel_vehicle">車両</string>
 
     <!-- HUD sublabels -->
     <string name="label_radio">ラジオ</string>
@@ -68,7 +64,6 @@
     <string name="label_speed">速度</string>
 
     <!-- HUD bar labels -->
-    <string name="label_health">HP</string>
     <string name="label_armor">アーマー</string>
     <string name="label_engine">エンジン</string>
 
@@ -78,8 +73,6 @@
 
     <!-- Setup screen -->
     <string name="paused_title_home">ホーム</string>
-    <string name="paused_title_cheats">チート</string>
-    <string name="paused_title_map">マップ</string>
     <string name="setup_title">未接続</string>
     <string name="setup_subtitle">GTA IV と GTA V に対応。インストールしたプラグインを 127.0.0.1:47801 で待機します。</string>
     <string name="setup_section">gta iv セットアップ</string>
@@ -103,8 +96,6 @@
     <string name="update_download">ダウンロード</string>
     <string name="update_open_release">リリースを開く</string>
     <string name="update_later">後で</string>
-    <string name="update_cancel">キャンセル</string>
-    <string name="update_retry">再試行</string>
     <string name="update_install">インストール</string>
     <string name="update_permission_title">インストールを許可しますか？</string>
     <string name="update_permission_body">新しい APK をインストールするには Android で GTC を許可する必要があります。設定を開き、\"Install unknown apps\" を許可してからここに戻ってください。</string>
@@ -182,7 +173,6 @@
     <string name="map_cheats_cd">チート、タップで開く</string>
     <string name="cheats_map_cd">マップ、タップで開く</string>
     <string name="nav_hud_cd">HUD、タップで開く</string>
-    <string name="map_header_title">マップ</string>
     <string name="map_blips_title">マップのアイコン</string>
     <string name="map_blips_none">まだアイコンがありません — ゲームの読み込みと ThorBridgeV 0.3.0+ / ThorBridge のネイティブレベル 5 が必要です</string>
     <string name="map_blips_count">%1$d 個のアイコン、近い順</string>
@@ -217,24 +207,16 @@
     <string name="settings_section_plugin">プラグイン</string>
     <string name="settings_reconnect_title">プラグインに再接続</string>
     <string name="settings_reconnect_body">ThorBridge への接続をやり直します。武器を切り替えても「接続されていません」が消えないときに使ってください。</string>
-    <string name="settings_reconnect_button">再試行</string>
     <string name="snackbar_reconnect_success">接続しました</string>
     <string name="snackbar_reconnect_failed">プラグインに接続できません</string>
-    <string name="settings_close">閉じる</string>
 
     <!-- Cheats tab -->
-    <string name="tab_cheats">チート</string>
-    <string name="cheats_title">チート</string>
     <string name="cheats_unsupported">このプラグインビルドでは利用不可</string>
-    <string name="cheats_pick_section">セクションを選択</string>
-    <string name="cheats_section_health">体力</string>
     <string name="cheats_section_wanted">指名手配</string>
     <string name="cheats_section_weapons">武器</string>
-    <string name="cheats_section_vehicle">車両</string>
     <string name="cheats_section_paint">塗装</string>
     <string name="cheats_section_world">ワールド</string>
     <string name="cheats_section_toggles">トグル</string>
-    <string name="cheats_error">%1$s</string>
 
     <string name="cheats_paint_get_in_car">車に乗ってください</string>
     <string name="cheats_paint_custom">カスタム</string>
@@ -283,8 +265,6 @@
     <string name="cheat_61_next_color">次の色</string>
     <string name="cheat_62_swap_colors">色を入れ替え</string>
 
-    <string name="cheats_paint_custom_color">カラーホイール</string>
-    <string name="cheats_paint_wheel_title">カラーホイール</string>
     <string name="cheats_paint_wheel_apply">適用</string>
     <string name="cheats_paint_wheel_apply_both">両方を適用</string>
 
@@ -305,7 +285,6 @@
     <string name="cheats_onboarding_slide2_title">再接続時に自動適用</string>
     <string name="cheats_onboarding_slide2_body">オンにしたトグルは、コンパニオンが再接続（新しいセッション、ゲーム再起動）すると自動で戻ります。ワンショットチートを長押しすると、ゲームが安全な状態になり次第、それも自動で発動します。全体を無効にするには 設定 &#8594; チート へ。</string>
     <string name="cheats_onboarding_next">次へ</string>
-    <string name="cheats_onboarding_done">了解</string>
 
     <string name="map_onboarding_title">マップタブについて</string>
     <string name="map_onboarding_slide_overview_title">この画面でできること</string>
@@ -319,7 +298,6 @@
     <string name="settings_section_app">ナビゲーション</string>
     <string name="settings_section_atlas">アトラス</string>
     <string name="settings_rail_group_app">アプリ</string>
-    <string name="settings_rail_pick">セクションを選択</string>
     <string name="settings_tab_arrows_title">タブ矢印</string>
     <string name="settings_tab_arrows_body">各タブの下部に左右の矢印を表示して、ワンタップでタブを切り替えます。スワイプも引き続き使えます。</string>
     <string name="settings_tab_arrows_style_title">ボタンアイコン</string>
@@ -330,7 +308,6 @@
     <string name="settings_endless_pager_body">最後のタブからさらにスワイプすると最初に戻り、逆方向も同様です。タブ矢印は両端で常に表示されます。</string>
     <string name="tab_arrows_prompt_title">タブ矢印</string>
     <string name="tab_arrows_prompt_body">新機能：各タブの下部に左右の矢印を表示して、ワンタップでタブを切り替えます。デフォルトで有効です。スワイプのみを使いたい場合は、設定 → アプリで無効にできます。</string>
-    <string name="tab_arrows_prompt_dismiss">了解</string>
     <string name="tab_arrows_prev_cd">前のタブ</string>
     <string name="tab_arrows_next_cd">次のタブ</string>
     <string name="settings_auto_reapply_cheats_title">再接続時にトグルを再適用</string>
@@ -364,8 +341,6 @@
     <string name="customs_title">カスタム</string>
     <string name="customs_get_in_car">車に乗ってカスタムを開きます。</string>
     <string name="customs_no_kit">この車両はカスタマイズできません。</string>
-    <string name="customs_loading">カタログを読み込み中…</string>
-    <string name="customs_error">%1$s</string>
     <string name="customs_section_paint">ペイント</string>
     <string name="customs_section_body">ボディ</string>
     <string name="customs_section_performance">パフォーマンス</string>
@@ -373,8 +348,6 @@
     <string name="customs_section_interior">内装</string>
     <string name="customs_section_lights">ライト &amp; 追加</string>
     <string name="customs_section_plate">ナンバープレート</string>
-    <string name="customs_section_other">その他</string>
-    <string name="customs_stock">ストック</string>
     <string name="customs_option_n">オプション %1$d</string>
     <string name="customs_slot_n">スロット %1$d</string>
     <string name="customs_toggle_turbo">ターボ</string>
@@ -389,7 +362,6 @@
     <string name="customs_wheel_type_tuner">チューナー</string>
     <string name="customs_wheel_type_bike">バイク</string>
     <string name="customs_wheel_type_highend">ハイエンド</string>
-    <string name="customs_wheel_type_other">その他</string>
     <string name="customs_tint">ウィンドウティント</string>
     <string name="customs_plate">ナンバープレート</string>
     <string name="customs_plate_style">プレートのスタイル</string>
@@ -432,7 +404,6 @@
     <string name="customs_slot_armor">装甲</string>
     <string name="customs_slot_nitrous">ニトロ</string>
     <string name="customs_slot_subwoofer">サブウーファー</string>
-    <string name="customs_slot_hydraulics_19">ハイドロリクス</string>
     <string name="customs_slot_front_wheels">フロントホイール</string>
     <string name="customs_slot_rear_wheels">リアホイール</string>
     <string name="customs_slot_plate_holder">プレートホルダー</string>
@@ -448,7 +419,6 @@
     <string name="customs_slot_plaques">プラーク</string>
     <string name="customs_slot_speakers">スピーカー</string>
     <string name="customs_slot_trunk">トランク</string>
-    <string name="customs_slot_hydraulics_38">ハイドロリクス</string>
     <string name="customs_slot_engine_block">エンジンブロック</string>
     <string name="customs_slot_air_filter">エアフィルター</string>
     <string name="customs_slot_struts">ストラット</string>
@@ -482,12 +452,10 @@
     <!-- Ammu-Nation sheet (GTA V only). -->
     <string name="ammu_get_on_foot">車を降りて Ammu-Nation を使ってください。</string>
     <string name="ammu_get_armed">武器を装備して Ammu-Nation を開いてください。</string>
-    <string name="ammu_loading">カタログを読み込み中…</string>
     <string name="ammu_section_attachments">アタッチメント</string>
     <string name="ammu_section_tint">カラー</string>
     <string name="ammu_section_ammo">弾薬</string>
     <string name="ammu_no_components">この武器にアタッチメントはありません。</string>
-    <string name="ammu_stock">標準</string>
     <string name="ammu_clip_size">マガジン: %1$d</string>
     <string name="ammu_fill">満タン</string>
     <string name="ammu_add_clip">+1 マガジン</string>
@@ -495,4 +463,68 @@
     <!-- Settings → Ammu-Nation (GTA V only). -->
     <string name="settings_ammu_auto_select_title">装備中の武器を自動選択</string>
     <string name="settings_ammu_auto_select_body">Ammu-Nation を開くとき、今持っている武器から始めます。オフ: パネルはレールの最初の武器で開き、ゲーム内で武器を替えても位置は動きません。</string>
+    <!-- Translations added alongside the common_strings
+         extraction. See values/strings.xml for the English
+         originals and context notes. -->
+    <string name="tab_atlas">アトラス</string>
+    <string name="ammu_title_fallback">Ammu-Nation</string>
+    <string name="ammu_ammo_counts">%1$d / %2$d</string>
+    <string name="ammu_tint_n">%1$d</string>
+    <string name="hud_longpress_cd_customs">車両をカスタマイズ</string>
+    <string name="hud_longpress_cd_ammu">武器ショップ</string>
+    <string name="hud_longpress_cd_wardrobe">着替える</string>
+    <string name="wardrobe_title">ワードローブ</string>
+    <string name="wardrobe_saved_looks">保存した着こなし</string>
+    <string name="wardrobe_save_look">+ 保存</string>
+    <string name="wardrobe_rename">名前を変更</string>
+    <string name="wardrobe_delete">削除</string>
+    <string name="wardrobe_preset_menu_body">タップで適用、または:</string>
+    <string name="wardrobe_reset">リセット</string>
+    <string name="wardrobe_reset_confirm">すべての衣服をゲーム初期状態に戻します。</string>
+    <string name="wardrobe_section_tops">トップス</string>
+    <string name="wardrobe_section_legs">ボトムス</string>
+    <string name="wardrobe_section_feet">足元</string>
+    <string name="wardrobe_section_hair">髪</string>
+    <string name="wardrobe_section_accessories">アクセサリー</string>
+    <string name="wardrobe_section_props">小物</string>
+    <string name="wardrobe_v_comp_1">マスク / ひげ</string>
+    <string name="wardrobe_v_comp_2">髪</string>
+    <string name="wardrobe_v_comp_3">胴体</string>
+    <string name="wardrobe_v_comp_4">パンツ</string>
+    <string name="wardrobe_v_comp_5">バッグ / パラシュート</string>
+    <string name="wardrobe_v_comp_6">靴</string>
+    <string name="wardrobe_v_comp_7">アクセサリー</string>
+    <string name="wardrobe_v_comp_8">インナー</string>
+    <string name="wardrobe_v_comp_9">アーマー / タスク</string>
+    <string name="wardrobe_v_comp_11">トップス</string>
+    <string name="wardrobe_v_prop_0">帽子</string>
+    <string name="wardrobe_v_prop_1">メガネ</string>
+    <string name="wardrobe_v_prop_2">耳</string>
+    <string name="wardrobe_v_prop_6">時計</string>
+    <string name="wardrobe_v_prop_7">ブレスレット</string>
+    <string name="wardrobe_iv_comp_1">上</string>
+    <string name="wardrobe_iv_comp_2">パンツ</string>
+    <string name="wardrobe_iv_comp_3">suse</string>
+    <string name="wardrobe_iv_comp_4">手</string>
+    <string name="wardrobe_iv_comp_5">靴</string>
+    <string name="wardrobe_iv_comp_6">ジャケット</string>
+    <string name="wardrobe_iv_comp_7">髪</string>
+    <string name="wardrobe_iv_comp_8">suse2</string>
+    <string name="wardrobe_iv_prop_0">帽子</string>
+    <string name="wardrobe_iv_prop_1">メガネ</string>
+    <string name="wardrobe_slot_n">スロット %1$d</string>
+    <string name="wardrobe_prop_n">小物 %1$d</string>
+    <string name="wardrobe_style">スタイル %1$d / %2$d</string>
+    <string name="wardrobe_color">カラー %1$d / %2$d</string>
+    <string name="wardrobe_none">なし</string>
+    <string name="wardrobe_get_out">ワードローブを開くには車から降りてください。</string>
+    <string name="action_save">保存</string>
+    <string name="longpress_prompt_title">長押しでカスタマイズ</string>
+    <string name="longpress_slide_wardrobe_title">名前を長押し</string>
+    <string name="longpress_slide_wardrobe_body">コインカードのキャラクター名を長押しするとワードローブが開きます。トップス、ボトムス、靴、アクセサリー、小物を変更できます。気に入った着こなしを保存できます。</string>
+    <string name="longpress_slide_ammu_title">武器を長押し</string>
+    <string name="longpress_slide_ammu_body">徒歩時、武器カードを長押しするとAmmu-Nationが開きます。アタッチメントの装着、ティントの変更、弾薬の補充ができます。短いタップは今まで通り武器ホイールを開きます。</string>
+    <string name="longpress_slide_customs_title">車両を長押し</string>
+    <string name="longpress_slide_customs_body">乗車中に車両カードを長押しするとLS Customsが開きます。塗装、パーツ、性能、ホイール、ティント、ナンバープレート、ネオン。</string>
+    <string name="settings_section_ammu">Ammu-Nation</string>
 </resources>
