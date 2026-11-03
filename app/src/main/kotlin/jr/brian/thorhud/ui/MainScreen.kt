@@ -3,6 +3,9 @@ package jr.brian.thorhud.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +49,7 @@ import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.components.CardAlign
 import jr.brian.thorhud.ui.components.LocalFullScreenSheetCount
 import jr.brian.thorhud.ui.components.CoinPanel
+import jr.brian.thorhud.ui.components.ivProtagonist
 import jr.brian.thorhud.ui.components.FullWidthStats
 import jr.brian.thorhud.ui.components.FullScreenSheet
 import jr.brian.thorhud.ui.components.SizableScreenSheet
@@ -535,16 +539,16 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             { showAmmu = true }
                         } else null
 
-                    // Wardrobe sheet state. On foot, GTA V in this
-                    // part (IV adds the same gate in Part 4). Same
-                    // cheats-supported gate as Customs because the
-                    // plugin routes the first write through
-                    // STAT_SET_CHEAT_IS_ACTIVE. The in-vehicle layout
+                    // Wardrobe sheet state. On foot, both games.
+                    // Same cheats-supported gate as Customs because
+                    // the plugin routes the first write through
+                    // STAT_SET_CHEAT_IS_ACTIVE (V) / lives behind
+                    // THORBRIDGE_CHEATS (IV). The in-vehicle layout
                     // keeps openWardrobe null so the long-press is
                     // inert while driving (plugin refuses too).
                     var showWardrobe by rememberSaveable { mutableStateOf(false) }
                     val openWardrobe: (() -> Unit)? =
-                        if (isGtaV && !inVehicleNow &&
+                        if (!inVehicleNow &&
                             hello?.cheatsSupported == true &&
                             hello?.wardrobeSupported == true &&
                             liveState?.inGame == true) {
@@ -607,6 +611,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         inVehicle = inVehicleNow,
                                         onScrollToMap = scrollToMap,
                                         onOpenCheats = scrollToCheats,
+                                        onOpenWardrobe = openWardrobe,
                                     )
                                 }
                             },
@@ -864,21 +869,26 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             onDismiss = { showAmmu = false },
                         )
 
-                        // Wardrobe sheet. V in this part (IV adds the
-                        // gate in a later part). The sheet title uses
-                        // the character name so a switch mid-session
-                        // updates it next frame; a non-protagonist
-                        // falls back to the generic "Wardrobe" via
-                        // the WardrobeScreen's own default.
-                        val wardrobeCharacter = if (isGtaV) {
-                            vCharacterOf(state?.character).let { c ->
-                                if (state?.character != null) {
-                                    stringResource(c.nameRes)
-                                } else null
+                        // Wardrobe sheet. Both games. The sheet title
+                        // uses the protagonist name so a switch mid-
+                        // session updates it next frame; an unknown
+                        // ped (Director Mode, animal) falls back to
+                        // the generic "Wardrobe" via WardrobeScreen's
+                        // own default. IV reads [ivProtagonist] off
+                        // the episode; V reads VCharacter off the
+                        // state frame's character field.
+                        val wardrobeCharacter: String? =
+                            if (isGtaV) {
+                                vCharacterOf(state?.character).let { c ->
+                                    if (state?.character != null) stringResource(c.nameRes)
+                                    else null
+                                }
+                            } else {
+                                ivProtagonist(liveState?.episode ?: state?.episode)
+                                    ?.nameRes?.let { stringResource(it) }
                             }
-                        } else null
                         WardrobeScreen(
-                            visible = showWardrobe && isGtaV,
+                            visible = showWardrobe,
                             accent = accent,
                             isGtaV = isGtaV,
                             characterLabel = wardrobeCharacter,
@@ -1104,6 +1114,26 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
 // folder while the tab is off. Flip to true to bring the tab back.
 private const val ATLAS_TAB_ENABLED = false
 
+/** Chains a long-press-to-Wardrobe gesture on top of the IV coin
+ *  card. Null callback leaves the modifier a no-op, so passing null
+ *  in notice branches / in-vehicle / without the plugin flag keeps
+ *  the card inert. Mirrors the V-side helper in VMainScreen.kt. */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun longPressWardrobeModifier(onOpen: (() -> Unit)?): Modifier {
+    if (onOpen == null) return Modifier
+    val source = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val cd = stringResource(R.string.v_character_edit_cd)
+    return Modifier
+        .combinedClickable(
+            interactionSource = source,
+            indication = null,
+            onClick = {},
+            onLongClick = onOpen,
+        )
+        .semantics { contentDescription = cd }
+}
+
 /**
  * The blips panel, drawn above everything else when [show] is true.
  * Reads from the same MapViewModel the mirror page uses, so the list
@@ -1152,7 +1182,7 @@ private const val WHEEL_IDLE_CLOSE_MS = 6000L
 private fun IvHudScreen(
     viewModel: MainViewModel,
     state: GameState?,
-    liveState: GameState?, 
+    liveState: GameState?,
     isStale: Boolean,
     lightsOn: Boolean,
     lightsUnavailable: Boolean,
@@ -1166,6 +1196,9 @@ private fun IvHudScreen(
     inVehicle: Boolean = false,
     onScrollToMap: (() -> Unit)? = null,
     onOpenCheats: (() -> Unit)? = null,
+    // Long-press on the coin card opens Wardrobe. Null leaves the
+    // card inert (notice screens, in a vehicle, old plugin, etc.).
+    onOpenWardrobe: (() -> Unit)? = null,
 ) {
     val palette = paletteFor(liveState?.episode ?: state?.episode)
 
@@ -1217,9 +1250,15 @@ private fun IvHudScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    // In-vehicle coin card stays inert — the plugin
+                    // refuses wardrobe writes in a car, so the gate
+                    // upstream passes null here and the modifier is
+                    // a no-op.
                     MoneyRadioPanel(liveState,
                                     accent = palette.accent,
-                                    modifier = Modifier.weight(1f))
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .then(longPressWardrobeModifier(onOpenWardrobe)))
                     WeaponPanel(liveState, modifier = Modifier.weight(1f))
                     VehiclePanel(liveState, palette, modifier = Modifier.weight(1f))
                 }
@@ -1243,7 +1282,9 @@ private fun IvHudScreen(
                     CoinPanel(liveState, align = CardAlign.Start,
                               verticalCenter = true,
                               accent = palette.accent,
-                              modifier = Modifier.weight(1f))
+                              modifier = Modifier
+                                  .weight(1f)
+                                  .then(longPressWardrobeModifier(onOpenWardrobe)))
                     val weaponCard = Modifier.weight(1f).let {
                         if (onOpenWeaponWheel != null) {
                             it.clickable(onClick = onOpenWeaponWheel)
