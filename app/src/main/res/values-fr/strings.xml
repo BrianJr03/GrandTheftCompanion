@@ -326,6 +326,8 @@
     <string name="settings_tab_arrows_style_arrows">flèches</string>
     <string name="settings_tab_arrows_style_stars">étoiles</string>
     <string name="settings_tab_arrows_style_transparent">transparent</string>
+    <string name="settings_endless_pager_title">Défilement sans fin</string>
+    <string name="settings_endless_pager_body">Balayer au-delà du dernier onglet revient au premier et inversement. Les flèches d\'onglets restent allumées aux deux bouts.</string>
     <string name="tab_arrows_prompt_title">Flèches d\'onglets</string>
     <string name="tab_arrows_prompt_body">Nouveau : chevrons gauche et droit en bas de chaque onglet pour changer d\'onglet en un seul appui. Activés par défaut — désactivez-les dans Paramètres → Application si vous préférez le balayage seul.</string>
     <string name="tab_arrows_prompt_dismiss">Compris</string>

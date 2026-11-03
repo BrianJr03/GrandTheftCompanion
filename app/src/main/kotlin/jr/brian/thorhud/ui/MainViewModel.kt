@@ -101,6 +101,15 @@ class MainViewModel @Inject constructor(
         settings.setTabArrowIconStyle(style)
     }
 
+    // Endless swiping: swiping past the last tab wraps to the first.
+    // Off by default; when on, the pager runs on a virtual middle lap
+    // and the tab-nav arrows never grey out.
+    val endlessPager: StateFlow<Boolean> = settings.endlessPager
+
+    fun setEndlessPager(enabled: Boolean) {
+        settings.setEndlessPager(enabled)
+    }
+
     // HUD onboarding sheet (first-visit tour of the HUD page cards).
     // One shot per installation, shared across games. Backed by
     // HudPrefs — read once per MainScreen composition, written when

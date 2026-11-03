@@ -373,6 +373,8 @@
     <string name="settings_tab_arrows_style_arrows">arrows</string>
     <string name="settings_tab_arrows_style_stars">stars</string>
     <string name="settings_tab_arrows_style_transparent">transparent</string>
+    <string name="settings_endless_pager_title">Endless swiping</string>
+    <string name="settings_endless_pager_body">Swiping past the last tab wraps to the first and back. Tab arrows stay lit at both ends.</string>
     <string name="tab_arrows_prompt_title">Tab arrows</string>
     <string name="tab_arrows_prompt_body">New: left and right chevrons at the bottom of each tab for one-tap moves. On by default — flip them off from Settings → App if you want pure swipe.</string>
     <string name="tab_arrows_prompt_dismiss">Got it</string>

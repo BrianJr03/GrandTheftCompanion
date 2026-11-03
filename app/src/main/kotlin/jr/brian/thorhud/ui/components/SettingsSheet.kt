@@ -151,6 +151,8 @@ internal fun SettingsSheet(
     onTabArrowsChange: (Boolean) -> Unit = {},
     tabArrowIconStyle: TabArrowIconStyle = TabArrowIconStyle.Arrows,
     onTabArrowIconStyleChange: (TabArrowIconStyle) -> Unit = {},
+    endlessPager: Boolean = false,
+    onEndlessPagerChange: (Boolean) -> Unit = {},
     // Atlas feature flag. When false the atlas chip disappears from
     // every game group, matching the pager that already drops the
     // Atlas tab elsewhere in the app.
@@ -246,6 +248,8 @@ internal fun SettingsSheet(
                         onTabArrowsChange = onTabArrowsChange,
                         tabArrowIconStyle = tabArrowIconStyle,
                         onTabArrowIconStyleChange = onTabArrowIconStyleChange,
+                        endlessPager = endlessPager,
+                        onEndlessPagerChange = onEndlessPagerChange,
                         onReconnectPlugin = onReconnectPlugin,
                         isReconnecting = isReconnecting,
                         activePalette = activePanel.palette,
@@ -443,6 +447,8 @@ private fun Pane(
     onTabArrowsChange: (Boolean) -> Unit,
     tabArrowIconStyle: TabArrowIconStyle,
     onTabArrowIconStyleChange: (TabArrowIconStyle) -> Unit,
+    endlessPager: Boolean,
+    onEndlessPagerChange: (Boolean) -> Unit,
     onReconnectPlugin: () -> Unit,
     isReconnecting: Boolean,
     activePalette: HudPalette,
@@ -467,6 +473,8 @@ private fun Pane(
                 onTabArrowsChange = onTabArrowsChange,
                 tabArrowIconStyle = tabArrowIconStyle,
                 onTabArrowIconStyleChange = onTabArrowIconStyleChange,
+                endlessPager = endlessPager,
+                onEndlessPagerChange = onEndlessPagerChange,
             )
         groupKey == GROUP_GLOBAL && sectionKey == SEC_PLUGIN ->
             PluginContent(
@@ -639,6 +647,8 @@ private fun AppContent(
     onTabArrowsChange: (Boolean) -> Unit,
     tabArrowIconStyle: TabArrowIconStyle,
     onTabArrowIconStyleChange: (TabArrowIconStyle) -> Unit,
+    endlessPager: Boolean,
+    onEndlessPagerChange: (Boolean) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         SettingRow(
@@ -665,6 +675,14 @@ private fun AppContent(
                 stringResource(id)
             },
             onSelect = onTabArrowIconStyleChange,
+            palette = palette,
+        )
+        Spacer(Modifier.height(14.dp))
+        SettingRow(
+            title = stringResource(R.string.settings_endless_pager_title),
+            body = stringResource(R.string.settings_endless_pager_body),
+            checked = endlessPager,
+            onCheckedChange = onEndlessPagerChange,
             palette = palette,
         )
     }

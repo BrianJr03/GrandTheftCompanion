@@ -326,6 +326,8 @@
     <string name="settings_tab_arrows_style_arrows">flechas</string>
     <string name="settings_tab_arrows_style_stars">estrellas</string>
     <string name="settings_tab_arrows_style_transparent">transparente</string>
+    <string name="settings_endless_pager_title">Deslizar sin fin</string>
+    <string name="settings_endless_pager_body">Al deslizar más allá de la última pestaña vuelves a la primera y viceversa. Las flechas de pestañas se mantienen encendidas en ambos extremos.</string>
     <string name="tab_arrows_prompt_title">Flechas de pestañas</string>
     <string name="tab_arrows_prompt_body">Nuevo: chevrones izquierdo y derecho en la parte inferior de cada pestaña para cambiar de pestaña con un solo toque. Activadas por defecto — desactívalas en Ajustes → Aplicación si prefieres solo deslizar.</string>
     <string name="tab_arrows_prompt_dismiss">Entendido</string>

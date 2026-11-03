@@ -298,6 +298,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
     // them off; it never re-opens after that.
     val tabArrowsEnabled by viewModel.tabArrowsEnabled.collectAsStateWithLifecycle()
     val tabArrowIconStyle by viewModel.tabArrowIconStyle.collectAsStateWithLifecycle()
+    val endlessPager by viewModel.endlessPager.collectAsStateWithLifecycle()
     // Per-launch discovery ring around the tab-nav buttons. One play
     // per app launch: initial value defaults to true, flipped to false
     // when the inner Animatable completes. `remember` (not
@@ -372,23 +373,32 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     val atlasGame = if (isGtaV) CustomMapStore.Game.V
                                     else CustomMapStore.Game.IV
                     atlasPresence.has(atlasGame)   // kept for Flow collection; result unused
-                    val pagerState = rememberHudPagerState(hasAtlas = ATLAS_TAB_ENABLED)
+                    val hudPages = remember(ATLAS_TAB_ENABLED) {
+                        hudPages(hasAtlas = ATLAS_TAB_ENABLED)
+                    }
+                    val pagerState = rememberHudPagerState(
+                        hasAtlas = ATLAS_TAB_ENABLED,
+                        endless = endlessPager,
+                    )
                     val scope = rememberCoroutineScope()
-                    val scrollToMap: () -> Unit = {
+                    // Every tab-nav call goes through scrollTargetFor so a
+                    // jump picks the nearest virtual slot when endless is
+                    // on (otherwise animateScrollToPage would smear through
+                    // every page in between).
+                    val scrollTo: (HudPage) -> Unit = { target ->
                         scope.launch {
-                            pagerState.animateScrollToPage(HudPage.Map.ordinal)
+                            val next = scrollTargetFor(
+                                currentVirtual = pagerState.currentPage,
+                                target = target,
+                                pages = hudPages,
+                                endless = endlessPager,
+                            )
+                            pagerState.animateScrollToPage(next)
                         }
                     }
-                    val scrollToCheats: () -> Unit = {
-                        scope.launch {
-                            pagerState.animateScrollToPage(HudPage.Cheats.ordinal)
-                        }
-                    }
-                    val scrollToHud: () -> Unit = {
-                        scope.launch {
-                            pagerState.animateScrollToPage(HudPage.Hud.ordinal)
-                        }
-                    }
+                    val scrollToMap: () -> Unit = { scrollTo(HudPage.Map) }
+                    val scrollToCheats: () -> Unit = { scrollTo(HudPage.Cheats) }
+                    val scrollToHud: () -> Unit = { scrollTo(HudPage.Hud) }
                     // Auto-swipe behaviour (settings toggle, both
                     // games):
                     //  Enter vehicle: remember the tab the user is on
@@ -399,16 +409,29 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     //    from the map during the drive: leave them
                     //    where they are, don't yank them around.
                     val inVehicleNow = liveState?.inVehicle == true
+                    // Pre-drive tab stored as a HudPage so a toggle of
+                    // endless swiping mid-drive doesn't invalidate the
+                    // saved index.
                     var preDrivePage by rememberSaveable(gameKey) {
-                        mutableStateOf(HudPage.Hud.ordinal)
+                        mutableStateOf(HudPage.Hud.name)
                     }
                     LaunchedEffect(inVehicleNow, autoSwipeOnDrive,
                                    alwaysReturnToHud, gameKey) {
                         if (!autoSwipeOnDrive) return@LaunchedEffect
                         if (inVehicleNow) {
-                            preDrivePage = pagerState.currentPage
-                            if (pagerState.currentPage != HudPage.Map.ordinal) {
-                                pagerState.animateScrollToPage(HudPage.Map.ordinal)
+                            val currentPage = currentHudPage(
+                                pagerState.currentPage, hudPages,
+                            ) ?: HudPage.Hud
+                            preDrivePage = currentPage.name
+                            if (currentPage != HudPage.Map) {
+                                pagerState.animateScrollToPage(
+                                    scrollTargetFor(
+                                        pagerState.currentPage,
+                                        HudPage.Map,
+                                        hudPages,
+                                        endlessPager,
+                                    ),
+                                )
                             }
                         } else {
                             // Exit vehicle. With the override on, go
@@ -416,15 +439,54 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             // user was. Without it, only pull back if
                             // the user is still sitting on the map;
                             // a manual swipe during the drive wins.
-                            val target = if (alwaysReturnToHud) HudPage.Hud.ordinal
-                                         else preDrivePage
-                            val onMap = pagerState.currentPage == HudPage.Map.ordinal
-                            if (target != pagerState.currentPage &&
+                            val saved = HudPage.entries
+                                .firstOrNull { it.name == preDrivePage }
+                                ?: HudPage.Hud
+                            val target = if (alwaysReturnToHud) HudPage.Hud
+                                         else saved
+                            val onMap = isHudPage(
+                                pagerState.currentPage, hudPages, HudPage.Map,
+                            )
+                            val currentPage = currentHudPage(
+                                pagerState.currentPage, hudPages,
+                            )
+                            if (target != currentPage &&
                                 (alwaysReturnToHud || onMap)
                             ) {
-                                pagerState.animateScrollToPage(target)
+                                pagerState.animateScrollToPage(
+                                    scrollTargetFor(
+                                        pagerState.currentPage,
+                                        target,
+                                        hudPages,
+                                        endlessPager,
+                                    ),
+                                )
                             }
                         }
+                    }
+                    // Toggling endless swiping mid-session: keep the
+                    // user on the same real page by snapping to the
+                    // matching virtual index. Also recentre silently if
+                    // the virtual position has drifted close to either
+                    // end of the virtual range after a long session.
+                    LaunchedEffect(endlessPager) {
+                        val target = if (endlessPager) {
+                            recentreOnEnableEndless(
+                                pagerState.currentPage, hudPages,
+                            )
+                        } else {
+                            recentreOnDisableEndless(
+                                pagerState.currentPage, hudPages,
+                            )
+                        }
+                        if (target != pagerState.currentPage) {
+                            pagerState.scrollToPage(target)
+                        }
+                    }
+                    LaunchedEffect(pagerState.currentPage, endlessPager) {
+                        recentreIfDrifting(
+                            pagerState.currentPage, hudPages, endlessPager,
+                        )?.let { pagerState.scrollToPage(it) }
                     }
                     // Auto-launch the mirror consent prompt when the
                     // setting is on, the connection is live, and the
@@ -478,6 +540,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                     Box(Modifier.fillMaxSize()) {
                         HudPager(
                             pagerState = pagerState,
+                            pages = hudPages,
                             hud = {
                                 // IV pause takes over the HUD tab here
                                 // (used to be a MainScreen-wide branch);
@@ -706,6 +769,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                     showHint = showTabArrowsHint &&
                                         state?.paused != true,
                                     onHintShown = { showTabArrowsHint = false },
+                                    endless = endlessPager,
                                 )
                             }
                         }
@@ -742,7 +806,9 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             mutableStateOf(false)
                         }
                         LaunchedEffect(pagerState.currentPage) {
-                            if (pagerState.currentPage == HudPage.Map.ordinal &&
+                            if (isHudPage(
+                                    pagerState.currentPage, hudPages, HudPage.Map,
+                                ) &&
                                 !viewModel.hasSeenMapOnboarding()
                             ) {
                                 showMapOnboarding = true
@@ -972,6 +1038,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
             onTabArrowsChange = viewModel::setTabArrowsEnabled,
             tabArrowIconStyle = tabArrowIconStyle,
             onTabArrowIconStyleChange = viewModel::setTabArrowIconStyle,
+            endlessPager = endlessPager,
+            onEndlessPagerChange = viewModel::setEndlessPager,
             atlasEnabled = ATLAS_TAB_ENABLED,
             onDismiss = { showSettings = false },
         )

@@ -91,6 +91,22 @@ class GtcSettings @Inject constructor(
             ?: TabArrowIconStyle.Arrows
     }
 
+    // Off by default. When on, the pager wraps: swiping past the last
+    // tab lands on the first and vice-versa, both tab-arrow glyphs stay
+    // lit at the ends. The pager uses a middle-lap virtual index so a
+    // flip of this setting mid-session has to snap to the matching
+    // virtual slot — MainScreen owns that bookkeeping.
+    private val _endlessPager =
+        MutableStateFlow(prefs.getBoolean(KEY_ENDLESS_PAGER, false))
+
+    /** Wrap the tab pager past its edges. */
+    val endlessPager: StateFlow<Boolean> = _endlessPager.asStateFlow()
+
+    fun setEndlessPager(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_ENDLESS_PAGER, enabled).apply()
+        _endlessPager.value = enabled
+    }
+
     private companion object {
         const val PREFS_NAME = "gtc_settings"
         const val KEY_POLICE_LIGHTS = "police_lights_enabled"
@@ -98,5 +114,6 @@ class GtcSettings @Inject constructor(
         const val KEY_TAB_ARROWS = "tab_arrows_enabled"
         const val KEY_SEEN_TAB_ARROWS_PROMPT = "seen_tab_arrows_prompt"
         const val KEY_TAB_ARROWS_STYLE = "tab_arrows_icon_style"
+        const val KEY_ENDLESS_PAGER = "endless_pager_enabled"
     }
 }

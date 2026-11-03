@@ -326,6 +326,8 @@
     <string name="settings_tab_arrows_style_arrows">矢印</string>
     <string name="settings_tab_arrows_style_stars">星</string>
     <string name="settings_tab_arrows_style_transparent">透明</string>
+    <string name="settings_endless_pager_title">無限スワイプ</string>
+    <string name="settings_endless_pager_body">最後のタブからさらにスワイプすると最初に戻り、逆方向も同様です。タブ矢印は両端で常に表示されます。</string>
     <string name="tab_arrows_prompt_title">タブ矢印</string>
     <string name="tab_arrows_prompt_body">新機能：各タブの下部に左右の矢印を表示して、ワンタップでタブを切り替えます。デフォルトで有効です。スワイプのみを使いたい場合は、設定 → アプリで無効にできます。</string>
     <string name="tab_arrows_prompt_dismiss">了解</string>

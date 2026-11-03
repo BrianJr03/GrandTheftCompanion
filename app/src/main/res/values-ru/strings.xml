@@ -326,6 +326,8 @@
     <string name="settings_tab_arrows_style_arrows">стрелки</string>
     <string name="settings_tab_arrows_style_stars">звёзды</string>
     <string name="settings_tab_arrows_style_transparent">прозрачно</string>
+    <string name="settings_endless_pager_title">Бесконечный свайп</string>
+    <string name="settings_endless_pager_body">Свайп дальше последней вкладки переходит на первую и наоборот. Стрелки вкладок остаются активными с обеих сторон.</string>
     <string name="tab_arrows_prompt_title">Стрелки вкладок</string>
     <string name="tab_arrows_prompt_body">Новое: стрелки влево и вправо внизу каждой вкладки для перехода одним касанием. Включены по умолчанию — отключите их в Настройки → Приложение, если предпочитаете только свайп.</string>
     <string name="tab_arrows_prompt_dismiss">Понятно</string>

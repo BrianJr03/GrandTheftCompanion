@@ -71,11 +71,15 @@ internal fun TabArrowFooter(
     style: TabArrowIconStyle = TabArrowIconStyle.Arrows,
     showHint: Boolean = false,
     onHintShown: () -> Unit = {},
+    // Endless mode has no "edges" — both arrows stay lit and a tap just
+    // steps virtual index ± 1. Non-endless keeps the greys-out at the
+    // ends so the arrows match the swipe-stop behaviour.
+    endless: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
-    val canPrev = pagerState.currentPage > 0
-    val canNext = pagerState.currentPage < pagerState.pageCount - 1
+    val canPrev = endless || pagerState.currentPage > 0
+    val canNext = endless || pagerState.currentPage < pagerState.pageCount - 1
 
     // One-shot ring animation. 0 → 1 over 1.5 s with linear easing so
     // the gradient's rotation feels like a steady flow rather than

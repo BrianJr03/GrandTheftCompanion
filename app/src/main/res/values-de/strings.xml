@@ -326,6 +326,8 @@
     <string name="settings_tab_arrows_style_arrows">Pfeile</string>
     <string name="settings_tab_arrows_style_stars">Sterne</string>
     <string name="settings_tab_arrows_style_transparent">transparent</string>
+    <string name="settings_endless_pager_title">Endloses Wischen</string>
+    <string name="settings_endless_pager_body">Beim Wischen über den letzten Tab hinaus landet man auf dem ersten und umgekehrt. Die Tab-Pfeile bleiben an beiden Enden sichtbar.</string>
     <string name="tab_arrows_prompt_title">Tab-Pfeile</string>
     <string name="tab_arrows_prompt_body">Neu: Chevrons links und rechts am unteren Rand jedes Tabs für Tab-Wechsel mit einem Tipp. Standardmäßig aktiviert — in Einstellungen → App ausschalten, wenn du nur wischen möchtest.</string>
     <string name="tab_arrows_prompt_dismiss">Verstanden</string>

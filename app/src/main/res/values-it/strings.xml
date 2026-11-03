@@ -326,6 +326,8 @@
     <string name="settings_tab_arrows_style_arrows">frecce</string>
     <string name="settings_tab_arrows_style_stars">stelle</string>
     <string name="settings_tab_arrows_style_transparent">trasparente</string>
+    <string name="settings_endless_pager_title">Scorrimento infinito</string>
+    <string name="settings_endless_pager_body">Scorrendo oltre l\'ultima scheda si torna alla prima e viceversa. Le frecce delle schede restano accese a entrambe le estremità.</string>
     <string name="tab_arrows_prompt_title">Frecce delle schede</string>
     <string name="tab_arrows_prompt_body">Novità: chevron sinistro e destro in fondo a ogni scheda per cambiare scheda con un tocco. Attive per impostazione predefinita — disattivale da Impostazioni → App se preferisci solo lo scorrimento.</string>
     <string name="tab_arrows_prompt_dismiss">Capito</string>
