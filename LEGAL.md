@@ -10,16 +10,23 @@ Copyright © 2026 Brian Jr. (BrianJr03).
 
 ## What this project does NOT ship
 
-GTC contains **no Rockstar Games assets whatsoever** — no
-`GTAIV.exe`, no save files, no textures, no audio, no scripts. You
-need your own legitimately-purchased copy of **Grand Theft Auto IV:
-The Complete Edition 1.2.0.59** to use the project.
+GTC contains **no Rockstar Games binaries or media**. No
+`GTAIV.exe` / `GTA5.exe`, no save files, no textures, models, audio,
+video or game scripts. You need your own legitimately-purchased copy
+of **Grand Theft Auto IV: The Complete Edition 1.2.0.59** (or **Grand
+Theft Auto V**, for the experimental `asi-v/` plugin) to use the
+project.
 
-The HUD will refuse to light up on any other game build.
+GTC **may include short in-game text strings** (for example clothing,
+vehicle-part or menu item names) as data, to label things in the
+companion. Where the game can supply the text at runtime, GTC reads
+it from your own copy instead of storing it. Any table of such
+strings in the repository names its source.
+
+The HUD will refuse to light up on any other GTA IV game build.
 
 The experimental GTA V plugin (`asi-v/`) likewise ships no Rockstar
-assets and needs your own legitimately-purchased copy of **Grand
-Theft Auto V**. It is story-mode only: in GTA Online it publishes
+binaries or media. It is story-mode only: in GTA Online it publishes
 nothing but an "online" flag and reads no game state.
 
 ## Rockstar's modding guidelines
@@ -34,13 +41,15 @@ GTC is designed to live safely inside those guidelines:
   resolves addresses pattern-based and does not touch any multiplayer
   code path, but running it alongside Online would still violate the
   guidelines.
-* **Read-mostly.** The ASI reads game state via published script
-  natives and only *writes* on explicit user-triggered commands
-  (currently radio-station retune; weapon switching is wired but the
-  picker is deferred). No automated gameplay changes.
+* **Writes only when you ask.** The plugins read game state through
+  published script natives and only change something when you press a
+  button in the companion: radio retune, weapon switch, cheats, LS
+  Customs, Ammu-Nation, Wardrobe. Nothing changes gameplay on its own.
 * **No Rockstar asset redistribution.** The project exists as source
-  code only. Any binary artefact built from it is yours; sharing it
-  with the game bundled would violate Rockstar's rights.
+  code plus small data tables of in-game names. No binaries, media or
+  scripts from the game are included; any binary artefact built from
+  GTC is yours, and sharing it with the game bundled would violate
+  Rockstar's rights.
 
 ## Third-party attribution
 
@@ -72,6 +81,13 @@ For the GTA V plugin (`asi-v/`):
   parameter lists.
 * `asi-v/` contains no code derived from FusionFix or iv-sdk; the
   GTA IV attributions above apply to `asi/` only.
+
+Wardrobe (clothing-slot) item names, if any ship with GTC, are
+labelled in `app/src/main/assets/wardrobe/` and sourced from:
+
+* _(placeholder — to be filled in when the Wardrobe names table lands;
+  until then, GTC's Wardrobe shows generic "style N · colour M"
+  labels and no third-party data is bundled.)_
 
 The directly-ported helpers from the GPL-3.0 projects above are why
 this project is also GPL-3.0 — the combined work must be. See
