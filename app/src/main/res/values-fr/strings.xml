@@ -331,9 +331,6 @@
     <string name="hud_onboarding_slide_hud_body">Votre personnage et votre argent, votre arme et vos munitions, votre véhicule et votre vitesse, et la radio, avec les barres de santé et de blindage en bas. Tout suit le jeu automatiquement.</string>
     <string name="hud_onboarding_slide_tap_title">Appuyez pour agir</string>
     <string name="hud_onboarding_slide_tap_body">Appuyez sur une station pour changer la radio. À pied, appuyez sur la carte arme (ou maintenez le bouton de la roue des armes sur la manette) pour changer d\'arme.</string>
-    <string name="hud_onboarding_slide_hold_title">Maintenez pour personnaliser</string>
-    <string name="hud_onboarding_slide_hold_body_v">Maintenez une carte pour ouvrir sa boutique : votre nom pour Wardrobe, la carte arme pour Ammu-Nation (à pied), la carte véhicule pour LS Customs (en voiture). Un anneau lumineux indique ce que vous pouvez maintenir à chaque ouverture de l\'app.</string>
-    <string name="hud_onboarding_slide_hold_body_iv">Maintenez votre nom pour ouvrir Wardrobe et changer de tenue. Un anneau lumineux l\'indique à chaque ouverture de l\'app.</string>
     <string name="hud_onboarding_slide_tabs_title">Plus d\'onglets</string>
     <string name="hud_onboarding_slide_tabs_body">Glissez à gauche pour la carte (icônes et itinéraires en un appui) ou à droite pour les triches. Activez le défilement sans fin dans les Paramètres pour revenir du dernier onglet au premier.</string>
 
@@ -521,7 +518,6 @@
     <string name="wardrobe_none">aucun</string>
     <string name="wardrobe_get_out">Vous devez être à pied pour utiliser la Garde-robe.</string>
     <string name="action_save">Enregistrer</string>
-    <string name="longpress_prompt_title">Appuie longuement pour personnaliser</string>
     <string name="longpress_slide_wardrobe_title">Appuie sur ton nom</string>
     <string name="longpress_slide_wardrobe_body">Appuie longuement sur le nom de ton personnage pour ouvrir la Garde-robe. Change de hauts, bas, chaussures, accessoires, objets. Enregistre tes tenues préférées.</string>
     <string name="longpress_slide_ammu_title">Appuie sur ton arme</string>

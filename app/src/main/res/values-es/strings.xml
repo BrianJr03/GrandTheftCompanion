@@ -331,9 +331,6 @@
     <string name="hud_onboarding_slide_hud_body">Tu personaje y tu dinero, tu arma y tu munición, tu vehículo y tu velocidad, y la radio, con las barras de salud y blindaje abajo. Todo sigue al juego por sí mismo.</string>
     <string name="hud_onboarding_slide_tap_title">Toca para actuar</string>
     <string name="hud_onboarding_slide_tap_body">Toca una emisora para cambiar la radio. A pie, toca la tarjeta de arma (o mantén el botón de la rueda de armas en tu mando) para cambiar de arma.</string>
-    <string name="hud_onboarding_slide_hold_title">Mantén para personalizar</string>
-    <string name="hud_onboarding_slide_hold_body_v">Mantén pulsada una tarjeta para abrir su tienda: tu nombre para Wardrobe, la tarjeta de arma para Ammu-Nation (a pie), la tarjeta de vehículo para LS Customs (en coche). Un anillo brillante indica qué puedes mantener cada vez que abres la app.</string>
-    <string name="hud_onboarding_slide_hold_body_iv">Mantén pulsado tu nombre para abrir Wardrobe y cambiar tu atuendo. Un anillo brillante lo indica cada vez que abres la app.</string>
     <string name="hud_onboarding_slide_tabs_title">Más pestañas</string>
     <string name="hud_onboarding_slide_tabs_body">Desliza a la izquierda para el mapa (iconos y rutas con un toque) o a la derecha para los trucos. Activa el deslizamiento sin fin en Ajustes para pasar de la última pestaña a la primera.</string>
 
@@ -521,7 +518,6 @@
     <string name="wardrobe_none">ninguno</string>
     <string name="wardrobe_get_out">Debes estar a pie para usar el Vestuario.</string>
     <string name="action_save">Guardar</string>
-    <string name="longpress_prompt_title">Mantén pulsado para personalizar</string>
     <string name="longpress_slide_wardrobe_title">Mantén pulsado tu nombre</string>
     <string name="longpress_slide_wardrobe_body">Mantén pulsado el nombre de tu personaje en la tarjeta de dinero para abrir el Vestuario. Cambia tops, pantalones, zapatos, accesorios y objetos. Guarda las combinaciones que te gusten.</string>
     <string name="longpress_slide_ammu_title">Mantén pulsada tu arma</string>

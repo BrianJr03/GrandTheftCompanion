@@ -28,6 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -42,6 +45,35 @@ internal data class OnboardingSlide(
     @StringRes val titleRes: Int,
     @StringRes val bodyRes: Int,
 )
+
+/** Build an [AnnotatedString] that colors every occurrence of each
+ *  keyword in [highlights] with [color]. Case-sensitive substring
+ *  match; overlapping keywords win by the first-matched-first rule.
+ *  Empty [highlights] returns the body unchanged so the common path
+ *  stays allocation-free. */
+internal fun highlightKeywords(
+    body: String,
+    highlights: List<String>,
+    color: Color,
+): AnnotatedString {
+    if (highlights.isEmpty()) return AnnotatedString(body)
+    return buildAnnotatedString {
+        append(body)
+        for (needle in highlights) {
+            if (needle.isEmpty()) continue
+            var from = 0
+            while (true) {
+                val at = body.indexOf(needle, from)
+                if (at < 0) break
+                addStyle(
+                    SpanStyle(color = color, fontWeight = FontWeight.Bold),
+                    at, at + needle.length,
+                )
+                from = at + needle.length
+            }
+        }
+    }
+}
 
 /**
  * Reusable first-visit sheet. One slide at a time, dot indicators
@@ -61,6 +93,11 @@ internal fun OnboardingSheet(
     accent: Color,
     slides: List<OnboardingSlide>,
     onDismiss: () -> Unit,
+    // Substrings in slide bodies that should render in [accent]
+    // (e.g. feature names like "Wardrobe", "Ammu-Nation"). Case-
+    // sensitive, matches every occurrence. Empty by default: the
+    // body text renders as plain grey.
+    highlights: List<String> = emptyList(),
 ) {
     if (!visible) return
     val count = slides.size.coerceAtLeast(1)
@@ -100,8 +137,9 @@ internal fun OnboardingSheet(
                         fontSize = 16.sp,
                     )
                     Spacer(Modifier.height(8.dp))
+                    val bodyText = stringResource(slide.bodyRes)
                     Text(
-                        stringResource(slide.bodyRes),
+                        text = highlightKeywords(bodyText, highlights, accent),
                         color = Color(0xFFCFCFCF),
                         fontFamily = FontFamily.Monospace,
                         fontSize = 14.sp,

@@ -331,9 +331,6 @@
     <string name="hud_onboarding_slide_hud_body">Dein Charakter und dein Geld, deine Waffe und Munition, dein Fahrzeug und das Tempo, und das Radio — plus Gesundheits- und Panzerleiste unten. Alles folgt dem Spiel von selbst.</string>
     <string name="hud_onboarding_slide_tap_title">Antippen zum Handeln</string>
     <string name="hud_onboarding_slide_tap_body">Tippe einen Sender an, um das Radio umzuschalten. Zu Fuß: tippe die Waffen-Karte an (oder halte den Waffenrad-Knopf am Controller), um die Waffe zu wechseln.</string>
-    <string name="hud_onboarding_slide_hold_title">Zum Anpassen halten</string>
-    <string name="hud_onboarding_slide_hold_body_v">Halte eine Karte gedrückt, um ihren Shop zu öffnen: deinen Namen für Wardrobe, die Waffen-Karte für Ammu-Nation (zu Fuß), die Fahrzeug-Karte für LS Customs (im Auto). Ein leuchtender Ring zeigt dir bei jedem App-Start, was du halten kannst.</string>
-    <string name="hud_onboarding_slide_hold_body_iv">Halte deinen Namen gedrückt, um Wardrobe zu öffnen und dein Outfit zu wechseln. Ein leuchtender Ring markiert ihn bei jedem App-Start.</string>
     <string name="hud_onboarding_slide_tabs_title">Weitere Tabs</string>
     <string name="hud_onboarding_slide_tabs_body">Wische nach links für die Karte (Blips und Routen mit einem Tipp) oder nach rechts für Cheats. Aktiviere Endloses Wischen in den Einstellungen, um vom letzten Tab zurück zum ersten zu springen.</string>
 
@@ -521,7 +518,6 @@
     <string name="wardrobe_none">keine</string>
     <string name="wardrobe_get_out">Du musst zu Fuß sein, um die Garderobe zu benutzen.</string>
     <string name="action_save">Speichern</string>
-    <string name="longpress_prompt_title">Zum Anpassen gedrückt halten</string>
     <string name="longpress_slide_wardrobe_title">Deinen Namen halten</string>
     <string name="longpress_slide_wardrobe_body">Halte den Namen deines Charakters auf der Geld-Karte gedrückt, um die Garderobe zu öffnen. Wechsle Oberteile, Hosen, Schuhe, Accessoires, Objekte. Speichere Outfits, die dir gefallen.</string>
     <string name="longpress_slide_ammu_title">Deine Waffe halten</string>

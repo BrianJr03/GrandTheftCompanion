@@ -331,9 +331,6 @@
     <string name="hud_onboarding_slide_hud_body">Ваш персонаж и деньги, оружие и патроны, машина и скорость, и радио, с полосками здоровья и брони внизу. Всё следует за игрой само.</string>
     <string name="hud_onboarding_slide_tap_title">Нажмите для действия</string>
     <string name="hud_onboarding_slide_tap_body">Коснитесь станции, чтобы сменить радио. Пешком коснитесь карточки оружия (или удерживайте кнопку колеса оружия на геймпаде), чтобы сменить оружие.</string>
-    <string name="hud_onboarding_slide_hold_title">Удерживайте для настройки</string>
-    <string name="hud_onboarding_slide_hold_body_v">Удерживайте карточку, чтобы открыть её магазин: ваше имя — Wardrobe, карточку оружия — Ammu-Nation (пешком), карточку транспорта — LS Customs (в машине). Светящееся кольцо показывает, что можно удерживать, при каждом запуске приложения.</string>
-    <string name="hud_onboarding_slide_hold_body_iv">Удерживайте своё имя, чтобы открыть Wardrobe и сменить одежду. Светящееся кольцо указывает на него при каждом запуске приложения.</string>
     <string name="hud_onboarding_slide_tabs_title">Другие вкладки</string>
     <string name="hud_onboarding_slide_tabs_body">Свайпните влево — карта (отметки и маршруты одним касанием) или вправо — читы. Включите бесконечный свайп в Настройках, чтобы с последней вкладки возвращаться на первую.</string>
 
@@ -521,7 +518,6 @@
     <string name="wardrobe_none">нет</string>
     <string name="wardrobe_get_out">Нужно быть пешком, чтобы открыть Гардероб.</string>
     <string name="action_save">Сохранить</string>
-    <string name="longpress_prompt_title">Удерживай для настройки</string>
     <string name="longpress_slide_wardrobe_title">Удерживай своё имя</string>
     <string name="longpress_slide_wardrobe_body">Нажми и удерживай имя персонажа на карточке денег, чтобы открыть Гардероб. Меняй верх, низ, обувь, аксессуары, предметы. Сохраняй понравившиеся образы.</string>
     <string name="longpress_slide_ammu_title">Удерживай оружие</string>

@@ -331,9 +331,6 @@
     <string name="hud_onboarding_slide_hud_body">キャラクターと所持金、武器と弾薬、車両と速度、そしてラジオ。下部には体力と防具バー。すべて自動的にゲームに追従します。</string>
     <string name="hud_onboarding_slide_tap_title">タップで操作</string>
     <string name="hud_onboarding_slide_tap_body">ラジオを変えるにはステーションをタップ。徒歩時は武器カードをタップ（またはコントローラーのウェポンホイールボタンを長押し）で武器を切り替えます。</string>
-    <string name="hud_onboarding_slide_hold_title">長押しでカスタマイズ</string>
-    <string name="hud_onboarding_slide_hold_body_v">カードを長押しすると各ショップが開きます：あなたの名前で Wardrobe、徒歩時に武器カードで Ammu-Nation、車内で車両カードで LS Customs。アプリ起動のたびに光るリングが長押しできる場所を示します。</string>
-    <string name="hud_onboarding_slide_hold_body_iv">名前を長押しすると Wardrobe が開き、服装を変更できます。アプリを開くたびに光るリングが示します。</string>
     <string name="hud_onboarding_slide_tabs_title">他のタブ</string>
     <string name="hud_onboarding_slide_tabs_body">左にスワイプでマップ（ブリップとワンタップ経路）、右にスワイプでチートを表示。設定で無限スワイプをオンにすると、最後のタブから最初に戻れます。</string>
 
@@ -521,7 +518,6 @@
     <string name="wardrobe_none">なし</string>
     <string name="wardrobe_get_out">ワードローブを使うには徒歩でいる必要があります。</string>
     <string name="action_save">保存</string>
-    <string name="longpress_prompt_title">長押しでカスタマイズ</string>
     <string name="longpress_slide_wardrobe_title">名前を長押し</string>
     <string name="longpress_slide_wardrobe_body">コインカードのキャラクター名を長押しするとワードローブが開きます。トップス、ボトムス、靴、アクセサリー、小物を変更できます。気に入った着こなしを保存できます。</string>
     <string name="longpress_slide_ammu_title">武器を長押し</string>

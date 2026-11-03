@@ -70,20 +70,7 @@ class GtcSettings @Inject constructor(
             prefs.edit().putBoolean(KEY_SEEN_TAB_ARROWS_PROMPT, value).apply()
         }
 
-    /** True once the "Hold to customise" prompt has been shown. One
-     *  shot per installation; the sheet never auto-opens after this
-     *  flips. Scheduled strictly AFTER [hasSeenTabArrowsPrompt] has
-     *  flipped so both prompts never land on the same visit, and
-     *  gated upstream on [shouldShowLongPressPrompt] so a build
-     *  without Wardrobe wired keeps the flag unset until there's
-     *  something useful to say. */
-    var hasSeenLongPressPrompt: Boolean
-        get() = prefs.getBoolean(KEY_SEEN_LONGPRESS_PROMPT, false)
-        set(value) {
-            prefs.edit().putBoolean(KEY_SEEN_LONGPRESS_PROMPT, value).apply()
-        }
-
-    // Icon style for the sticky tab-nav buttons. Backed by the enum
+// Icon style for the sticky tab-nav buttons. Backed by the enum
     // name so an older build that doesn't know a style falls back to
     // the Arrows default rather than crashing.
     private val _tabArrowIconStyle = MutableStateFlow(loadTabArrowIconStyle())
@@ -126,7 +113,6 @@ class GtcSettings @Inject constructor(
         const val KEY_PAINT_TO_LIGHTS = "paint_to_lights_enabled"
         const val KEY_TAB_ARROWS = "tab_arrows_enabled"
         const val KEY_SEEN_TAB_ARROWS_PROMPT = "seen_tab_arrows_prompt"
-        const val KEY_SEEN_LONGPRESS_PROMPT = "seen_longpress_prompt"
         const val KEY_TAB_ARROWS_STYLE = "tab_arrows_icon_style"
         const val KEY_ENDLESS_PAGER = "endless_pager_enabled"
     }

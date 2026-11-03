@@ -51,7 +51,6 @@ import jr.brian.thorhud.ui.components.CardAlign
 import jr.brian.thorhud.ui.components.LocalFullScreenSheetCount
 import jr.brian.thorhud.ui.components.CoinPanel
 import jr.brian.thorhud.ui.components.ivProtagonist
-import jr.brian.thorhud.ui.longpress.longPressOnboardingSlides
 import jr.brian.thorhud.ui.components.FullWidthStats
 import jr.brian.thorhud.ui.components.FullScreenSheet
 import jr.brian.thorhud.ui.components.SizableScreenSheet
@@ -332,35 +331,10 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         }
     }
 
-    // One-time "Hold to customize" OnboardingSheet. One slide per
-    // long-press (character / weapon / vehicle), shown AFTER the
-    // arrows prompt is gone and only when there is at least one
-    // slide to show (on IV before Wardrobe the sheet waits — the
-    // flag stays unset until the plugin's new enough). This
-    // replaces the earlier InfoSheet text wall and the HUD-card
-    // discovery rings.
-    val helloWardrobe = hello?.wardrobeSupported == true
-    val longPressSlides = longPressOnboardingSlides(isGtaV, helloWardrobe)
-    var showLongPressPrompt by remember {
-        mutableStateOf(!viewModel.hasSeenLongPressPrompt)
-    }
-    val canShowLongPressPrompt =
-        showLongPressPrompt &&
-        !showTabArrowsPrompt &&       // never two prompts at once
-        viewModel.hasSeenTabArrowsPrompt && // arrows one must land first
-        longPressSlides.isNotEmpty() &&
-        hello != null                 // need a game to decide the slides
-    val markLongPressPromptSeen: () -> Unit = {
-        viewModel.hasSeenLongPressPrompt = true
-        showLongPressPrompt = false
-    }
-    OnboardingSheet(
-        visible = canShowLongPressPrompt,
-        title = stringResource(R.string.longpress_prompt_title),
-        accent = accent,
-        slides = longPressSlides,
-        onDismiss = markLongPressPromptSeen,
-    )
+    // The three long-press gestures (Wardrobe / Ammu-Nation / LS
+    // Customs) now live as slides inside the HUD onboarding sheet
+    // (see hudOnboardingSlides). The old standalone InfoSheet and
+    // Hold-to-customize OnboardingSheet are both gone.
 
     // Single composition root for the whole screen so BlipsOverlay
     // keeps a stable identity across every state transition
@@ -838,6 +812,14 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             slides = hudOnboardingSlides(
                                 isGtaV = isGtaV,
                                 hasWardrobe = hello?.wardrobeSupported == true,
+                            ),
+                            // Feature names rendered in the episode
+                            // accent inside the long-press slides.
+                            // On IV the Ammu + Customs slides don't
+                            // ship, so those keywords never match —
+                            // listing all three is harmless.
+                            highlights = listOf(
+                                "Wardrobe", "Ammu-Nation", "LS Customs",
                             ),
                             onDismiss = {
                                 viewModel.markHudOnboardingSeen()

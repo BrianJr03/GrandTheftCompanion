@@ -4,20 +4,25 @@ import jr.brian.thorhud.R
 import jr.brian.thorhud.ui.components.OnboardingSlide
 
 /**
- * The first-visit tour of the HUD page. Four slides on GTA V, three
- * on GTA IV when Wardrobe is wired (two before — see [hasWardrobe]).
- * The old pencil-icon slides for Customs and Ammu-Nation are gone;
- * one shared "hold to customise" slide names the long-presses with
- * a per-game body.
+ * The first-visit tour of the HUD page. Each long-press gesture
+ * gets its own detailed slide (Wardrobe / Ammu-Nation / LS Customs)
+ * instead of one summary slide — Compose's OnboardingSheet paints
+ * the feature-name keywords in the episode accent so the slide
+ * carries the connection between the card and the shop visually.
  *
- * Pure function, no Compose imports, so it can be unit-tested without
- * instrumentation. The Compose layer hands this list to
- * [jr.brian.thorhud.ui.components.OnboardingSheet] when the sheet
- * opens for the first time.
+ * Shape by game:
+ *   V always:          HUD, tap, Wardrobe, Ammu-Nation, Customs, tabs
+ *   IV + Wardrobe:     HUD, tap, Wardrobe, tabs
+ *   IV without:        HUD, tap, tabs
+ *
+ * Pure function, no Compose imports, so it can be unit-tested
+ * without instrumentation. The Compose layer hands this list to
+ * [jr.brian.thorhud.ui.components.OnboardingSheet] alongside the
+ * highlight keywords.
  *
  * [hasWardrobe] is the hello flag: an old plugin without Wardrobe
- * drops the hold slide on IV (nothing to hold yet) and keeps it on V
- * (Customs and Ammu-Nation still land there).
+ * drops the Wardrobe slide so the sheet doesn't promise a gesture
+ * the plugin can't serve.
  */
 internal fun hudOnboardingSlides(
     isGtaV: Boolean,
@@ -33,21 +38,32 @@ internal fun hudOnboardingSlides(
             bodyRes = R.string.hud_onboarding_slide_tap_body,
         ),
     )
-    // V always has Customs + Ammu-Nation to point at, so the hold
-    // slide ships regardless. IV only has Wardrobe to point at, so
-    // the slide skips when the plugin isn't new enough to serve it.
+    // Wardrobe runs on both games once the plugin reports support.
+    // The slide drops when hasWardrobe is false (old plugin on IV
+    // today) so the sheet doesn't promise a gesture the plugin
+    // can't serve.
+    if (hasWardrobe) {
+        slides.add(
+            OnboardingSlide(
+                titleRes = R.string.longpress_slide_wardrobe_title,
+                bodyRes = R.string.longpress_slide_wardrobe_body,
+            )
+        )
+    }
+    // Ammu-Nation + LS Customs are V-only (no armory / mods natives
+    // on the IV plugin). Order picks the on-foot gesture first,
+    // matching the typical equip-then-drive play loop.
     if (isGtaV) {
         slides.add(
             OnboardingSlide(
-                titleRes = R.string.hud_onboarding_slide_hold_title,
-                bodyRes = R.string.hud_onboarding_slide_hold_body_v,
+                titleRes = R.string.longpress_slide_ammu_title,
+                bodyRes = R.string.longpress_slide_ammu_body,
             )
         )
-    } else if (hasWardrobe) {
         slides.add(
             OnboardingSlide(
-                titleRes = R.string.hud_onboarding_slide_hold_title,
-                bodyRes = R.string.hud_onboarding_slide_hold_body_iv,
+                titleRes = R.string.longpress_slide_customs_title,
+                bodyRes = R.string.longpress_slide_customs_body,
             )
         )
     }

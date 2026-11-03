@@ -116,12 +116,18 @@
          are a follow-up. -->
     <string name="hud_onboarding_title">About the HUD</string>
     <string name="hud_onboarding_slide_hud_title">What you\'re looking at</string>
-    <string name="hud_onboarding_slide_hud_body">Your character and coin, your weapon and ammo, your vehicle and speed, and the radio, with health and armour along the bottom. It all follows the game by itself.</string>
+    <string name="hud_onboarding_slide_hud_body">Your character and cash, your weapon and ammo, your vehicle and speed, and the radio, with health and armour along the bottom. It all follows the game by itself.</string>
     <string name="hud_onboarding_slide_tap_title">Tap to act</string>
     <string name="hud_onboarding_slide_tap_body">Tap a station to retune the radio. On foot, tap the weapon card (or hold the weapon-wheel button on your controller) to switch weapons.</string>
-    <string name="hud_onboarding_slide_hold_title">Hold to customise</string>
-    <string name="hud_onboarding_slide_hold_body_v">Press and hold a card to open its shop: your name for Wardrobe, the weapon card for Ammu-Nation (on foot), the vehicle card for LS Customs (in a car). A glowing ring marks what you can hold each time the app opens.</string>
-    <string name="hud_onboarding_slide_hold_body_iv">Press and hold your name to open Wardrobe and change your outfit. A glowing ring marks it each time the app opens.</string>
+    <!-- Long-press slides folded into the HUD onboarding. Feature
+         names (Wardrobe, Ammu-Nation, LS Customs) render in the
+         episode accent via the OnboardingSheet highlights param. -->
+    <string name="longpress_slide_wardrobe_title">Hold your name</string>
+    <string name="longpress_slide_wardrobe_body">Hold your character name on the money card to open Wardrobe. Swap tops, pants, shoes, accessories, props. Save looks you like.</string>
+    <string name="longpress_slide_ammu_title">Hold your weapon</string>
+    <string name="longpress_slide_ammu_body">On foot, hold the weapon card to open Ammu-Nation. Fit attachments, change tint, top up ammo. A short tap still opens the weapon wheel.</string>
+    <string name="longpress_slide_customs_title">Hold your vehicle</string>
+    <string name="longpress_slide_customs_body">In a car, hold the vehicle card to open LS Customs. Paint, parts, performance, wheels, tint, plate, neon.</string>
     <string name="hud_onboarding_slide_tabs_title">More tabs</string>
     <string name="hud_onboarding_slide_tabs_body">Swipe left for the map (blips and one-tap routes) or right for cheats. Turn on endless swiping in Settings to wrap from the last tab back to the first.</string>
 
@@ -485,9 +491,9 @@
     <string name="info_dialog_last_error">Last error:\n%1$s</string>
 
     <!-- HUD panel titles -->
-    <string name="panel_coin">coin</string>
-    <!-- "michael · coin", "niko · coin", etc. The name slot is a per-
-         game stringResource call; "coin" reuses [panel_coin] so each
+    <string name="panel_coin">cash</string>
+    <!-- "michael · cash", "niko · cash", etc. The name slot is a per-
+         game stringResource call; "cash" reuses [panel_coin] so each
          locale's own word for money shows up without a second table.
          Format-only, so no locale copies. -->
     <string name="hud_panel_coin_named" translatable="false">%1$s · %2$s</string>

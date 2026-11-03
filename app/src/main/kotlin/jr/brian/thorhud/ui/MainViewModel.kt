@@ -91,11 +91,7 @@ class MainViewModel @Inject constructor(
         get() = settings.hasSeenTabArrowsPrompt
         set(value) { settings.hasSeenTabArrowsPrompt = value }
 
-    var hasSeenLongPressPrompt: Boolean
-        get() = settings.hasSeenLongPressPrompt
-        set(value) { settings.hasSeenLongPressPrompt = value }
-
-    // Icon style + one-shot first-visit discovery ring for the sticky
+// Icon style + one-shot first-visit discovery ring for the sticky
     // tab-nav buttons. Style is persisted; the hint flag flips the
     // first time the ring plays so it never auto-replays.
     val tabArrowIconStyle: StateFlow<jr.brian.thorhud.ui.components.TabArrowIconStyle> =

@@ -331,9 +331,6 @@
     <string name="hud_onboarding_slide_hud_body">Il tuo personaggio e i tuoi soldi, l\'arma e le munizioni, il veicolo e la velocità, e la radio, con salute e armatura in basso. Tutto segue il gioco da solo.</string>
     <string name="hud_onboarding_slide_tap_title">Tocca per agire</string>
     <string name="hud_onboarding_slide_tap_body">Tocca una stazione per cambiare la radio. A piedi, tocca il riquadro dell\'arma (o tieni premuto il tasto della ruota delle armi sul tuo controller) per cambiare arma.</string>
-    <string name="hud_onboarding_slide_hold_title">Tieni premuto per personalizzare</string>
-    <string name="hud_onboarding_slide_hold_body_v">Tieni premuto un riquadro per aprire il suo negozio: il tuo nome per Wardrobe, il riquadro arma per Ammu-Nation (a piedi), il riquadro veicolo per LS Customs (in auto). Un anello luminoso indica cosa puoi tenere premuto a ogni apertura dell\'app.</string>
-    <string name="hud_onboarding_slide_hold_body_iv">Tieni premuto il tuo nome per aprire Wardrobe e cambiare outfit. Un anello luminoso lo indica a ogni apertura dell\'app.</string>
     <string name="hud_onboarding_slide_tabs_title">Altre schede</string>
     <string name="hud_onboarding_slide_tabs_body">Scorri a sinistra per la mappa (icone e percorsi con un tocco) o a destra per i trucchi. Attiva lo scorrimento infinito nelle Impostazioni per tornare dall\'ultima scheda alla prima.</string>
 
@@ -521,7 +518,6 @@
     <string name="wardrobe_none">nessuno</string>
     <string name="wardrobe_get_out">Devi essere a piedi per usare il Guardaroba.</string>
     <string name="action_save">Salva</string>
-    <string name="longpress_prompt_title">Tieni premuto per personalizzare</string>
     <string name="longpress_slide_wardrobe_title">Tieni premuto il tuo nome</string>
     <string name="longpress_slide_wardrobe_body">Tieni premuto il nome del tuo personaggio sulla carta dei soldi per aprire il Guardaroba. Cambia maglie, pantaloni, scarpe, accessori, oggetti. Salva i look che ti piacciono.</string>
     <string name="longpress_slide_ammu_title">Tieni premuta la tua arma</string>

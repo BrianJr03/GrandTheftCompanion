@@ -450,7 +450,10 @@ class HudPrefs @Inject constructor(
         const val KEY_AUTO_SELECT_EQUIPPED = "auto_select_equipped_weapon"
         const val KEY_AUTO_APPLY_CHEATS = "auto_apply_cheats"
         const val KEY_SEEN_CHEATS_ONBOARDING = "seen_cheats_onboarding"
-        const val KEY_SEEN_HUD_ONBOARDING = "seen_hud_onboarding"
+        // Suffix bumped for 1.0 so every pre-1.0 user who already
+        // dismissed the tour sees the new slides (Wardrobe, Ammu-
+        // Nation, LS Customs) on first launch of 1.0.
+        const val KEY_SEEN_HUD_ONBOARDING = "seen_hud_onboarding_v1_0"
         const val KEY_SEEN_MAP_ONBOARDING = "seen_map_onboarding"
         const val KEY_CHEAT_SECTION_ORDER = "cheat_section_order"
         const val KEY_WARDROBE_PRESETS = "wardrobe_presets"
