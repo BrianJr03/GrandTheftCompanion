@@ -10,7 +10,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
@@ -54,15 +57,16 @@ internal class WardrobeViewModel @Inject constructor(
 
     /** The saved-looks bag for whichever ped the plugin last reported.
      *  Null wardrobe → empty list; a model change swaps the bag. The
-     *  flow is derived from the live catalogue so no race between a
-     *  character switch and the next time the user opens the sheet. */
+     *  inner prefs flow is the live source so a savePreset / rename /
+     *  delete re-emits immediately — otherwise the sheet would need a
+     *  close/reopen (the wardrobe flow doesn't retick on a pref write). */
+    @OptIn(ExperimentalCoroutinesApi::class)
     val presets: StateFlow<List<WardrobePreset>> =
         repository.wardrobe
-            .map { w ->
-                if (w == null) emptyList()
-                else deserialisePresets(
-                    prefs.wardrobePresets("v", w.pedModel).value,
-                )
+            .flatMapLatest { w ->
+                if (w == null) flowOf(emptyList())
+                else prefs.wardrobePresets("v", w.pedModel)
+                    .map { raw -> deserialisePresets(raw) }
             }
             .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
