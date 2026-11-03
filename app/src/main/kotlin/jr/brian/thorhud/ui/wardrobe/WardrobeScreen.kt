@@ -543,9 +543,12 @@ private fun PresetMenuDialog(
 // --- helpers ---------------------------------------------------------
 
 /** The pending-key used by the ViewModel for a given slot row. Any
- *  write on this slot stamps a matching key so the row greys out. */
-private fun pendingKey(slot: GameState.WardrobeSlot): String =
-    "set_piece:${packPiece(slot.prop, slot.slot, slot.cur, slot.tex)}"
+ *  write on this slot stamps a matching key so the row greys out
+ *  regardless of which style or colour the user is nudging to. */
+private fun pendingKey(slot: GameState.WardrobeSlot): String {
+    val tag = if (slot.prop) "p" else "c"
+    return "piece:$tag:${slot.slot}"
+}
 
 /** ◀ / ▶ on a style row. [delta] is +/- 1; on a prop slot, the
  *  "below zero" case wraps to the clear sentinel. */

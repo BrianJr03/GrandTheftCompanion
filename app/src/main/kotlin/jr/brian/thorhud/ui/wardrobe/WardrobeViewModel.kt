@@ -73,9 +73,21 @@ internal class WardrobeViewModel @Inject constructor(
     }
 
     /** Component or prop write for one slot. The screen packs with
-     *  [packPiece] so this layer stays mostly plumbing. */
-    fun setPiece(packed: Long) = dispatch("set_piece:$packed") {
+     *  [packPiece] so this layer stays mostly plumbing. The pending
+     *  key is `(slot, prop)` so a style-flip and a colour-flip on the
+     *  same row grey the one row rather than fighting each other on
+     *  the exact packed value. */
+    fun setPiece(packed: Long) = dispatch(pieceKeyFor(packed)) {
         repository.setPiece(packed)
+    }
+
+    /** Pending key for a packed piece: a stable `(slot, prop)` id so
+     *  the Compose layer can grey the right row regardless of which
+     *  drawable or texture the user is nudging to. */
+    internal fun pieceKeyFor(packed: Long): String {
+        val up = unpackPiece(packed)
+        val tag = if (up.isProp) "p" else "c"
+        return "piece:$tag:${up.slot}"
     }
 
     /** Atomic apply. The plugin validates every part first so an
