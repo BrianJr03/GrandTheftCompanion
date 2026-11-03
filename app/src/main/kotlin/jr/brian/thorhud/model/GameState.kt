@@ -382,10 +382,10 @@ data class GameState(
      * [prop] is true. [cur] is the current drawable index with -1 on
      * an unfitted prop; [tex] is the current texture; [pal] is the
      * palette (components only; 0 on props). [styles] is the drawable
-     * count the walker observed; [colours] is the per-drawable texture
-     * count in order (so `colours[0]` is the number of textures the
-     * first drawable has). The screen reads [styles] + [colours] to
-     * compute ◀ ▶ bounds; it never counts entries in [colours] itself.
+     * count the walker observed; [colors] is the per-drawable texture
+     * count in order (so `colors[0]` is the number of textures the
+     * first drawable has). The screen reads [styles] + [colors] to
+     * compute ◀ ▶ bounds; it never counts entries in [colors] itself.
      */
     @Serializable
     data class WardrobeSlot(
@@ -395,7 +395,7 @@ data class GameState(
         @SerialName("tex") val tex: Int = 0,
         @SerialName("pal") val pal: Int = 0,
         @SerialName("styles") val styles: Int = 0,
-        @SerialName("colours") val colours: List<Int> = emptyList(),
+        @SerialName("colors") val colors: List<Int> = emptyList(),
     )
 
     /**

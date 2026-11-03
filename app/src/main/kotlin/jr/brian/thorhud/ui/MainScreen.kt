@@ -1,9 +1,6 @@
 package jr.brian.thorhud.ui
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -52,9 +49,8 @@ import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.ui.components.CardAlign
 import jr.brian.thorhud.ui.components.LocalFullScreenSheetCount
 import jr.brian.thorhud.ui.components.CoinPanel
-import jr.brian.thorhud.ui.components.DISCOVERY_RING_DURATION_MS
 import jr.brian.thorhud.ui.components.ivProtagonist
-import jr.brian.thorhud.ui.longpress.longPressPromptLines
+import jr.brian.thorhud.ui.longpress.longPressOnboardingSlides
 import jr.brian.thorhud.ui.components.FullWidthStats
 import jr.brian.thorhud.ui.components.FullScreenSheet
 import jr.brian.thorhud.ui.components.SizableScreenSheet
@@ -335,43 +331,15 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         }
     }
 
-    // Per-launch discovery ring around every HUD card label whose
-    // long-press is live right now. One shared Animatable so the
-    // weapon-card ring and the character-card ring pulse together,
-    // and so a mid-launch gesture-becomes-live (get-in-car) does
-    // NOT replay — the ring only picks up labels that are live when
-    // the HUD first renders. Zero while paused so nothing flashes
-    // behind the PausedScreen overlay. Deferred until the HUD page
-    // is visible AND the plugin reports in-game, so the ring doesn't
-    // play while the user is on Cheats / Map on launch or while
-    // SetupScreen / notice screens are up.
-    var showLabelHints by remember { mutableStateOf(true) }
-    val labelHintProgress = remember { Animatable(0f) }
-    val labelHintReady = showLabelHints &&
-        liveState?.inGame == true &&
-        state?.paused != true
-    LaunchedEffect(labelHintReady) {
-        if (labelHintReady) {
-            labelHintProgress.snapTo(0f)
-            labelHintProgress.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(
-                    durationMillis = DISCOVERY_RING_DURATION_MS,
-                    easing = LinearEasing,
-                ),
-            )
-            showLabelHints = false
-        } else {
-            labelHintProgress.snapTo(0f)
-        }
-    }
-
-    // One-time "Hold to customise" InfoSheet. Shown AFTER the arrows
-    // prompt is gone (never two sheets at once), and only when there
-    // is at least one line to show (on IV before Wardrobe the sheet
-    // waits — the flag stays unset until the plugin's new enough).
+    // One-time "Hold to customize" OnboardingSheet. One slide per
+    // long-press (character / weapon / vehicle), shown AFTER the
+    // arrows prompt is gone and only when there is at least one
+    // slide to show (on IV before Wardrobe the sheet waits — the
+    // flag stays unset until the plugin's new enough). This
+    // replaces the earlier InfoSheet text wall and the HUD-card
+    // discovery rings.
     val helloWardrobe = hello?.wardrobeSupported == true
-    val promptLines = longPressPromptLines(isGtaV, helloWardrobe)
+    val longPressSlides = longPressOnboardingSlides(isGtaV, helloWardrobe)
     var showLongPressPrompt by remember {
         mutableStateOf(!viewModel.hasSeenLongPressPrompt)
     }
@@ -379,29 +347,19 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
         showLongPressPrompt &&
         !showTabArrowsPrompt &&       // never two prompts at once
         viewModel.hasSeenTabArrowsPrompt && // arrows one must land first
-        promptLines.isNotEmpty() &&
-        hello != null                 // need a game to decide the body
+        longPressSlides.isNotEmpty() &&
+        hello != null                 // need a game to decide the slides
     val markLongPressPromptSeen: () -> Unit = {
         viewModel.hasSeenLongPressPrompt = true
         showLongPressPrompt = false
     }
-    val longPressPromptBody = promptLines
-        .map { stringResource(it) }
-        .joinToString("\n\n")
-    InfoSheet(
+    OnboardingSheet(
         visible = canShowLongPressPrompt,
         title = stringResource(R.string.longpress_prompt_title),
-        body = longPressPromptBody,
         accent = accent,
+        slides = longPressSlides,
         onDismiss = markLongPressPromptSeen,
-    ) {
-        TextButton(onClick = markLongPressPromptSeen) {
-            Text(
-                stringResource(R.string.longpress_prompt_dismiss),
-                color = accent,
-            )
-        }
-    }
+    )
 
     // Single composition root for the whole screen so BlipsOverlay
     // keeps a stable identity across every state transition
@@ -659,7 +617,6 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         onOpenCustoms = openCustoms,
                                         onOpenAmmu = openAmmu,
                                         onOpenWardrobe = openWardrobe,
-                                        labelHintProgress = labelHintProgress.value,
                                     )
                                 } else {
                                     IvHudScreen(
@@ -678,7 +635,6 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         onScrollToMap = scrollToMap,
                                         onOpenCheats = scrollToCheats,
                                         onOpenWardrobe = openWardrobe,
-                                        labelHintProgress = labelHintProgress.value,
                                     )
                                 }
                             },
@@ -1268,11 +1224,8 @@ private fun IvHudScreen(
     onScrollToMap: (() -> Unit)? = null,
     onOpenCheats: (() -> Unit)? = null,
     // Long-press on the coin card opens Wardrobe. Null leaves the
-    // card inert (notice screens, in a vehicle, old plugin, etc.).
+    // card inert (notice screens, old plugin, etc.).
     onOpenWardrobe: (() -> Unit)? = null,
-    // Shared one-shot discovery-ring progress. 0 means no ring; see
-    // VMainScreen's own labelHintProgress for the shape of the value.
-    labelHintProgress: Float = 0f,
 ) {
     val palette = paletteFor(liveState?.episode ?: state?.episode)
 
@@ -1324,18 +1277,12 @@ private fun IvHudScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    // In-vehicle coin card stays inert — the plugin
-                    // refuses wardrobe writes in a car, so the gate
-                    // upstream passes null here and the modifier is
-                    // a no-op. The ring also stays off here because
-                    // onOpenWardrobe is null in-vehicle.
+                    // In-vehicle coin card is always long-pressable;
+                    // the sheet shows "get out of the car" when
+                    // opened in-vehicle.
                     MoneyRadioPanel(
                         liveState,
                         accent = palette.accent,
-                        titleRingProgress = if (onOpenWardrobe != null) {
-                            labelHintProgress
-                        } else 0f,
-                        titleRingAccent = palette.accent,
                         modifier = Modifier
                             .weight(1f)
                             .then(longPressWardrobeModifier(onOpenWardrobe)),
@@ -1365,10 +1312,6 @@ private fun IvHudScreen(
                         align = CardAlign.Start,
                         verticalCenter = true,
                         accent = palette.accent,
-                        titleRingProgress = if (onOpenWardrobe != null) {
-                            labelHintProgress
-                        } else 0f,
-                        titleRingAccent = palette.accent,
                         modifier = Modifier
                             .weight(1f)
                             .then(longPressWardrobeModifier(onOpenWardrobe)),

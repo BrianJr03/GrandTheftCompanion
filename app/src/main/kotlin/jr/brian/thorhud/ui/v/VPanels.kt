@@ -59,16 +59,12 @@ internal fun VCashPanel(
     characterKnown: Boolean,
     align: CardAlign = CardAlign.Start,
     verticalCenter: Boolean = false,
-    titleRingProgress: Float = 0f,
-    titleRingAccent: Color = character.palette.accent,
     modifier: Modifier = Modifier,
 ) {
     val nameRes = vCoinNameRes(character, characterKnown)
     HudCard(modifier, coinTitlePlain(nameRes),
             align = align, verticalCenter = verticalCenter,
-            titleAnnotated = coinTitleAnnotated(nameRes, character.palette.accent),
-            titleRingProgress = titleRingProgress,
-            titleRingAccent = titleRingAccent) {
+            titleAnnotated = coinTitleAnnotated(nameRes, character.palette.accent)) {
         BigValue(
             labelRes = null,
             value = cashText(s, character),
@@ -85,15 +81,11 @@ internal fun VCashRadioPanel(
     character: VCharacter,
     characterKnown: Boolean,
     stations: List<GameState.Station>,
-    titleRingProgress: Float = 0f,
-    titleRingAccent: Color = character.palette.accent,
     modifier: Modifier = Modifier,
 ) {
     val nameRes = vCoinNameRes(character, characterKnown)
     HudCard(modifier, coinTitlePlain(nameRes),
-            titleAnnotated = coinTitleAnnotated(nameRes, character.palette.accent),
-            titleRingProgress = titleRingProgress,
-            titleRingAccent = titleRingAccent) {
+            titleAnnotated = coinTitleAnnotated(nameRes, character.palette.accent)) {
         BigValue(labelRes = null, value = cashText(s, character))
         Spacer(Modifier.height(20.dp))
         Text(
@@ -158,15 +150,11 @@ internal fun VWeaponPanel(
     s: GameState?,
     align: CardAlign = CardAlign.Center,
     verticalCenter: Boolean = false,
-    titleRingProgress: Float = 0f,
-    titleRingAccent: Color = Color.Transparent,
     modifier: Modifier = Modifier,
 ) {
     val textAlign = textAlignOf(align)
     HudCard(modifier, stringResource(R.string.panel_weapon),
-            align = align, verticalCenter = verticalCenter,
-            titleRingProgress = titleRingProgress,
-            titleRingAccent = titleRingAccent) {
+            align = align, verticalCenter = verticalCenter) {
         Text(
             vWeaponLabel(s?.weaponName, s?.weaponHash),
             color = Color(0xFFEDEDED),
@@ -216,8 +204,6 @@ internal fun VVehiclePanel(
     s: GameState?,
     palette: HudPalette,
     align: CardAlign = CardAlign.End,
-    titleRingProgress: Float = 0f,
-    titleRingAccent: Color = palette.accent,
     modifier: Modifier = Modifier,
 ) {
     val textAlign = textAlignOf(align)
@@ -232,9 +218,7 @@ internal fun VVehiclePanel(
         stringResource(R.string.panel_vehicle)
     }
 
-    HudCard(modifier, title, align = align,
-            titleRingProgress = titleRingProgress,
-            titleRingAccent = titleRingAccent) {
+    HudCard(modifier, title, align = align) {
         if (v == null) {
             Text(stringResource(R.string.on_foot),
                  color = Color(0xFF6A7A6E), fontSize = 20.sp,

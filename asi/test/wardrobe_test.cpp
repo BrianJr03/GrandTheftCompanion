@@ -207,7 +207,7 @@ void set_char_ammo(uint32_t, uint32_t, uint32_t) {}
 void fix_car(uint32_t) {}
 void wash_vehicle_textures(uint32_t, uint32_t) {}
 void change_car_colour(uint32_t, uint32_t, uint32_t) {}
-void get_car_colours(uint32_t, uint32_t*, uint32_t*) {}
+void get_car_colors(uint32_t, uint32_t*, uint32_t*) {}
 void force_weather_now(uint32_t) {}
 void release_weather() {}
 void get_time_of_day(uint32_t*, uint32_t*) {}
@@ -327,7 +327,7 @@ void test_walker_publishes_non_empty_slots() {
     check(s4 != nullptr, "component slot 4 (hand) published");
     if (s1) {
         check(s1->styles == 3, "slot 1 styles == 3");
-        check(s1->colours[0] == 2 && s1->colours[1] == 1 && s1->colours[2] == 4,
+        check(s1->colors[0] == 2 && s1->colors[1] == 1 && s1->colors[2] == 4,
               "slot 1 per-drawable texture counts");
     }
     const snapshot::WardrobeSlot* hat = find(0, true);
@@ -338,7 +338,7 @@ void test_walker_publishes_non_empty_slots() {
         check(hat->cur == -1, "hat starts cleared (cur == -1)");
         // IV has no prop texture count — walker fills with zeros so
         // the companion probes.
-        check(hat->colours[0] == 0, "prop colours left at zero");
+        check(hat->colors[0] == 0, "prop colors left at zero");
     }
 }
 
@@ -369,7 +369,7 @@ void test_set_piece_prop_and_clear() {
     wardrobe::request();
     drain_walker(0);
 
-    // Prop (hat) draw 0 tex 0 is accepted even though colours[] is 0:
+    // Prop (hat) draw 0 tex 0 is accepted even though colors[] is 0:
     // IV's prop texture count is unknown. We assume the piece writer
     // tries index 0.
     const bool ok1 = wardrobe::apply(

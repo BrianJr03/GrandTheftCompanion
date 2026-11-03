@@ -74,7 +74,7 @@ internal class WardrobeViewModel @Inject constructor(
 
     /** Component or prop write for one slot. The screen packs with
      *  [packPiece] so this layer stays mostly plumbing. The pending
-     *  key is `(slot, prop)` so a style-flip and a colour-flip on the
+     *  key is `(slot, prop)` so a style-flip and a color-flip on the
      *  same row grey the one row rather than fighting each other on
      *  the exact packed value. */
     fun setPiece(packed: Long) = dispatch(pieceKeyFor(packed)) {

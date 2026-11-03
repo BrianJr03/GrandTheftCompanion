@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -41,17 +40,9 @@ internal fun HudCard(
     align: CardAlign = CardAlign.Start,
     verticalCenter: Boolean = false,
     // GTA V's cash card wants only the character-name span in the
-    // protagonist's accent (the "· cash" tail stays grey). Pass a
+    // protagonist's accent (the "· coin" tail stays grey). Pass a
     // pre-styled AnnotatedString here to override the plain title.
     titleAnnotated: AnnotatedString? = null,
-    // Discovery-ring driver for the TITLE label on cards whose
-    // long-press is live right now. Zero = no ring (default); a
-    // caller animates to 1 to play the one-shot. The ring draws
-    // around a pill fitted to the label text (not the whole card)
-    // so the hint reads as "this label is the gesture target", not
-    // "this card is a button".
-    titleRingProgress: Float = 0f,
-    titleRingAccent: Color = Color.Transparent,
     content: @Composable () -> Unit,
 ) {
     val textAlign = when (align) {
@@ -80,18 +71,6 @@ internal fun HudCard(
             verticalArrangement = if (verticalCenter) Arrangement.Center
                                   else Arrangement.Top,
         ) {
-            // Pill shape fitted to the label text. The ring draws
-            // around this; wrapContentWidth so the pill hugs the
-            // actual title string, not the full card width.
-            val pillShape = RoundedCornerShape(50)
-            val labelModifier = Modifier
-                .wrapContentWidth()
-                .padding(horizontal = 6.dp, vertical = 2.dp)
-                .discoveryRing(
-                    progress = titleRingProgress,
-                    accent = titleRingAccent,
-                    shape = pillShape,
-                )
             if (titleAnnotated != null) {
                 Text(
                     titleAnnotated,
@@ -100,7 +79,7 @@ internal fun HudCard(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = textAlign,
-                    modifier = labelModifier,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             } else {
                 Text(
@@ -110,7 +89,7 @@ internal fun HudCard(
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     textAlign = textAlign,
-                    modifier = labelModifier,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
             Spacer(Modifier.height(6.dp))

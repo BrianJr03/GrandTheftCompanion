@@ -1,32 +1,42 @@
 package jr.brian.thorhud.ui.longpress
 
 import jr.brian.thorhud.R
+import jr.brian.thorhud.ui.components.OnboardingSlide
 
 /**
- * The one-time "Hold to customise" pop-up's body is three short lines
- * built from these entries. GTA V with Wardrobe gets all four; GTA IV
- * with Wardrobe gets Wardrobe + the ring line; GTA IV before Wardrobe
- * is on (`hasWardrobe = false`) gets an empty list, and the caller
- * suppresses the sheet entirely so a dead prompt never shows.
+ * Slides for the one-time "Hold to customize" OnboardingSheet. One
+ * slide per long-press (character / weapon / vehicle); V gets all
+ * three, IV gets just the character slide (Ammu-Nation and LS
+ * Customs are V-only). An IV plugin without Wardrobe wired yet
+ * returns an empty list, and the caller suppresses the sheet so a
+ * dead prompt never shows.
  *
- * No Compose or Android imports here — [LongPressPromptLinesTest]
- * pins behaviour on a plain JVM.
+ * Pure Kotlin — [LongPressPromptTest] pins behaviour on a plain JVM.
  */
-fun longPressPromptLines(
+internal fun longPressOnboardingSlides(
     isGtaV: Boolean,
     hasWardrobe: Boolean,
-): List<Int> {
-    val out = mutableListOf<Int>()
+): List<OnboardingSlide> {
+    val out = mutableListOf<OnboardingSlide>()
     if (hasWardrobe) {
-        out += R.string.longpress_prompt_wardrobe
+        out += OnboardingSlide(
+            titleRes = R.string.longpress_slide_wardrobe_title,
+            bodyRes = R.string.longpress_slide_wardrobe_body,
+        )
     }
     if (isGtaV) {
-        // Ammu-Nation and LS Customs are V-only in v1.
-        out += R.string.longpress_prompt_ammu
-        out += R.string.longpress_prompt_customs
-    }
-    if (out.isNotEmpty()) {
-        out += R.string.longpress_prompt_ring
+        // V-only shops. Order (ammu → customs) is deliberate: the
+        // on-foot card (weapon) comes before the in-vehicle card
+        // (vehicle), matching the typical play loop of equip-first,
+        // drive-later.
+        out += OnboardingSlide(
+            titleRes = R.string.longpress_slide_ammu_title,
+            bodyRes = R.string.longpress_slide_ammu_body,
+        )
+        out += OnboardingSlide(
+            titleRes = R.string.longpress_slide_customs_title,
+            bodyRes = R.string.longpress_slide_customs_body,
+        )
     }
     return out
 }
@@ -37,7 +47,7 @@ fun longPressPromptLines(
  * keeps `hasSeenLongPressPrompt` unset — the next launch (likely with
  * Wardrobe wired) will show it exactly once.
  */
-fun shouldShowLongPressPrompt(
+internal fun shouldShowLongPressPrompt(
     isGtaV: Boolean,
     hasWardrobe: Boolean,
-): Boolean = longPressPromptLines(isGtaV, hasWardrobe).isNotEmpty()
+): Boolean = longPressOnboardingSlides(isGtaV, hasWardrobe).isNotEmpty()

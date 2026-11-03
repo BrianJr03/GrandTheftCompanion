@@ -155,8 +155,8 @@ internal fun WardrobeScreen(
                                         onNudgeStyle = { delta ->
                                             nudgeStyle(viewModel, row.slot, delta)
                                         },
-                                        onNudgeColour = { delta ->
-                                            nudgeColour(viewModel, row.slot, delta)
+                                        onNudgeColor = { delta ->
+                                            nudgeColor(viewModel, row.slot, delta)
                                         },
                                     )
                                     Spacer(Modifier.height(10.dp))
@@ -374,7 +374,7 @@ private fun PieceRow(
     pending: Boolean,
     accent: Color,
     onNudgeStyle: (Int) -> Unit,
-    onNudgeColour: (Int) -> Unit,
+    onNudgeColor: (Int) -> Unit,
 ) {
     val label = slotRowLabel(slot, isGtaV)
     val styleText = if (slot.prop && slot.cur < 0) {
@@ -382,11 +382,11 @@ private fun PieceRow(
     } else {
         stringResource(R.string.wardrobe_style, slot.cur + 1, slot.styles)
     }
-    val coloursForCur = slot.colours.getOrNull(slot.cur.coerceAtLeast(0)) ?: 0
-    val canNudgeColour = !pending && coloursForCur > 1 && !(slot.prop && slot.cur < 0)
-    val colourText = if (slot.prop && slot.cur < 0) ""
-                     else stringResource(R.string.wardrobe_colour,
-                                         slot.tex + 1, coloursForCur)
+    val colorsForCur = slot.colors.getOrNull(slot.cur.coerceAtLeast(0)) ?: 0
+    val canNudgeColor = !pending && colorsForCur > 1 && !(slot.prop && slot.cur < 0)
+    val colorText = if (slot.prop && slot.cur < 0) ""
+                     else stringResource(R.string.wardrobe_color,
+                                         slot.tex + 1, colorsForCur)
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -423,10 +423,10 @@ private fun PieceRow(
                 accent = accent, onClick = { onNudgeStyle(1) },
             )
         }
-        if (colourText.isNotEmpty()) {
-            // Dedicated colour row: ~12 dp gap under the style
+        if (colorText.isNotEmpty()) {
+            // Dedicated color row: ~12 dp gap under the style
             // arrows so the two ◀ ▶ pairs don't crowd each other
-            // vertically — the colour arrows are smaller, which
+            // vertically — the color arrows are smaller, which
             // made the compressed layout read as one noisy block.
             Spacer(Modifier.height(12.dp))
             Row(
@@ -435,19 +435,19 @@ private fun PieceRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 NudgeArrow(
-                    left = true, enabled = canNudgeColour, small = true,
-                    accent = accent, onClick = { onNudgeColour(-1) },
+                    left = true, enabled = canNudgeColor, small = true,
+                    accent = accent, onClick = { onNudgeColor(-1) },
                 )
                 Text(
-                    colourText,
+                    colorText,
                     color = Color(0xFF8EA096),
                     fontFamily = FontFamily.Monospace,
                     fontSize = 10.sp,
                     modifier = Modifier.weight(1f),
                 )
                 NudgeArrow(
-                    left = false, enabled = canNudgeColour, small = true,
-                    accent = accent, onClick = { onNudgeColour(1) },
+                    left = false, enabled = canNudgeColor, small = true,
+                    accent = accent, onClick = { onNudgeColor(1) },
                 )
             }
         }
@@ -578,7 +578,7 @@ private fun PresetMenuDialog(
 
 /** The pending-key used by the ViewModel for a given slot row. Any
  *  write on this slot stamps a matching key so the row greys out
- *  regardless of which style or colour the user is nudging to. */
+ *  regardless of which style or color the user is nudging to. */
 private fun pendingKey(slot: GameState.WardrobeSlot): String {
     val tag = if (slot.prop) "p" else "c"
     return "piece:$tag:${slot.slot}"
@@ -604,14 +604,14 @@ private fun nudgeStyle(vm: WardrobeViewModel, slot: GameState.WardrobeSlot, delt
     vm.setPiece(packPiece(slot.prop, slot.slot, next, tex))
 }
 
-/** ◀ / ▶ on a colour row. Only reachable when the current drawable
+/** ◀ / ▶ on a color row. Only reachable when the current drawable
  *  actually has more than one texture — [PieceRow] disables the
  *  arrows otherwise. */
-private fun nudgeColour(vm: WardrobeViewModel, slot: GameState.WardrobeSlot, delta: Int) {
+private fun nudgeColor(vm: WardrobeViewModel, slot: GameState.WardrobeSlot, delta: Int) {
     val cur = slot.cur.coerceAtLeast(0)
-    val colourCount = slot.colours.getOrNull(cur) ?: 0
-    if (colourCount <= 1) return
-    val next = ((slot.tex + delta) % colourCount + colourCount) % colourCount
+    val colorCount = slot.colors.getOrNull(cur) ?: 0
+    if (colorCount <= 1) return
+    val next = ((slot.tex + delta) % colorCount + colorCount) % colorCount
     vm.setPiece(packPiece(slot.prop, slot.slot, slot.cur, next))
 }
 

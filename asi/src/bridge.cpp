@@ -85,7 +85,10 @@ int format_state(char* buf, size_t cap, const snapshot::Player& p) {
     // Paint section: colour pair for the Paint UI (THORBRIDGE_CHEATS
     // only). Rendered as two extra fields inside the vehicle block
     // when the probes read fired this frame; omitted otherwise. ~28
-    // bytes against the 1 KB stack buffer.
+    // bytes against the 1 KB stack buffer. Local buffer name kept
+    // as `colours` because the wire keys ("colour1", "colour2") and
+    // Player struct fields (vehicle_colour1 / 2) are pre-existing
+    // British; renaming them is out of scope for this change.
     char colours[64] = {0};
     if (p.vehicle_colours_valid) {
         std::snprintf(colours, sizeof(colours),
@@ -220,7 +223,7 @@ int format_wardrobe(char* buf, size_t cap, const snapshot::Wardrobe& w) {
         for (uint32_t j = 0; j < s.styles && j < snapshot::kMaxWardrobeStyles; ++j) {
             n = std::snprintf(buf + wpos, cap - wpos, "%s%u",
                               j ? "," : "",
-                              static_cast<unsigned>(s.colours[j]));
+                              static_cast<unsigned>(s.colors[j]));
             if (n < 0 || wpos + static_cast<size_t>(n) >= cap) return -1;
             wpos += static_cast<size_t>(n);
         }

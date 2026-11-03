@@ -276,7 +276,7 @@ class GameStateVTest {
         assertEquals(2, torso.cur)
         assertEquals(3, torso.tex)
         assertEquals(3, torso.styles)
-        assertEquals(listOf(2, 1, 4), torso.colours)
+        assertEquals(listOf(2, 1, 4), torso.colors)
         val hat = f.wardrobePieces.first { it.prop && it.slot == 0 }
         assertEquals(-1, hat.cur)   // "none" fitted
         // Mods / state fields do not bleed in.
@@ -314,13 +314,13 @@ class GameStateVTest {
         assertEquals(2, upper.tex)
         assertEquals(2, upper.styles)
         // IV components fill colours[] from the texture-count native.
-        assertEquals(listOf(2, 3), upper.colours)
+        assertEquals(listOf(2, 3), upper.colors)
         val hat = f.wardrobePieces.first { it.prop && it.slot == 0 }
         assertEquals(-1, hat.cur)         // "none" fitted
         // IV has no per-prop texture-count native, so colours[] stays
         // zero and the companion probes by writing + reading back.
         assertEquals(32, hat.styles)
-        assertEquals(0, hat.colours.firstOrNull() ?: 0)
+        assertEquals(0, hat.colors.firstOrNull() ?: 0)
     }
 
     @Test
@@ -439,7 +439,7 @@ class GameStateVTest {
         // Shape mirrors what asi-v/src/bridge.cpp::format_wardrobe
         // emits for Michael with a tiny mock catalogue (3 component
         // slots, 1 prop slot). Model hash is joaat("player_zero").
-        const val V_WARDROBE = """{"v":1,"type":"wardrobe","game":"v","ver":5,"model":225514697,"character":0,"pieces":[{"slot":3,"prop":false,"cur":2,"tex":3,"pal":0,"styles":3,"colours":[2,1,4]},{"slot":4,"prop":false,"cur":0,"tex":0,"pal":0,"styles":2,"colours":[2,3]},{"slot":11,"prop":false,"cur":0,"tex":0,"pal":0,"styles":1,"colours":[5]},{"slot":0,"prop":true,"cur":-1,"tex":0,"pal":0,"styles":2,"colours":[1,2]}]}"""
+        const val V_WARDROBE = """{"v":1,"type":"wardrobe","game":"v","ver":5,"model":225514697,"character":0,"pieces":[{"slot":3,"prop":false,"cur":2,"tex":3,"pal":0,"styles":3,"colors":[2,1,4]},{"slot":4,"prop":false,"cur":0,"tex":0,"pal":0,"styles":2,"colors":[2,3]},{"slot":11,"prop":false,"cur":0,"tex":0,"pal":0,"styles":1,"colors":[5]},{"slot":0,"prop":true,"cur":-1,"tex":0,"pal":0,"styles":2,"colors":[1,2]}]}"""
         // Same as V_HELLO but with the plugin 0.7.0+ wardrobe flag.
         const val V_HELLO_WARDROBE = """{"v":1,"type":"hello","game":"v","plugin":"0.7.0","exe":"mock_host.exe","file_version":"","size":250342,"supported":true,"shv":true,"script_started":false,"shv_game_version":9999,"cheats":true,"wardrobe":true,"err":""}"""
 
@@ -457,7 +457,7 @@ class GameStateVTest {
         // the mods frame's own "slots" field — see WardrobeSlot.
         // Model hash is Niko's joaat("player"); kept generous (32) on
         // prop slot styles because IV has no counter native.
-        const val IV_WARDROBE = """{"v":1,"type":"wardrobe","game":"iv","ver":7,"model":1862763509,"character":0,"pieces":[{"slot":1,"prop":false,"cur":1,"tex":2,"pal":0,"styles":2,"colours":[2,3]},{"slot":3,"prop":false,"cur":0,"tex":0,"pal":0,"styles":2,"colours":[2,3]},{"slot":0,"prop":true,"cur":-1,"tex":0,"pal":0,"styles":32,"colours":[]}]}"""
+        const val IV_WARDROBE = """{"v":1,"type":"wardrobe","game":"iv","ver":7,"model":1862763509,"character":0,"pieces":[{"slot":1,"prop":false,"cur":1,"tex":2,"pal":0,"styles":2,"colors":[2,3]},{"slot":3,"prop":false,"cur":0,"tex":0,"pal":0,"styles":2,"colors":[2,3]},{"slot":0,"prop":true,"cur":-1,"tex":0,"pal":0,"styles":32,"colors":[]}]}"""
         // IV hello with the plugin built from THORBRIDGE_CHEATS so the
         // wardrobe flag is on. Minimal shape — no file_version
         // overrides — because every IV hello already round-trips in

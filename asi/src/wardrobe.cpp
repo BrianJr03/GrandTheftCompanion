@@ -135,7 +135,7 @@ void read_component_slot(uint32_t ped, uint8_t slot) {
     for (uint32_t d = 0; d < cap; ++d) {
         const uint32_t tex =
             game::get_number_of_char_texture_variations(ped, slot, d);
-        out.colours[d] = static_cast<uint16_t>(
+        out.colors[d] = static_cast<uint16_t>(
             tex > 0xFFFFu ? 0xFFFFu : tex);
     }
 }
@@ -165,7 +165,7 @@ void read_prop_slot(uint32_t ped, uint8_t slot) {
     out.tex = 0;   // no getter for prop texture on IV; starts at 0
     out.pal = 0;
     out.styles = kDefaultPropStyles;
-    // colours[] stays zero — see comment above kDefaultPropStyles.
+    // colors[] stays zero — see comment above kDefaultPropStyles.
 }
 
 bool advance() {
@@ -247,7 +247,7 @@ bool validate_piece(uint32_t ped, const Piece& p) {
     for (uint32_t i = 0; i < g_last.n_slots; ++i) {
         const snapshot::WardrobeSlot& s = g_last.slots[i];
         if (s.slot != p.slot || s.prop) continue;
-        const uint16_t texs = s.colours[p.drawable];
+        const uint16_t texs = s.colors[p.drawable];
         return p.texture >= 0 && static_cast<uint32_t>(p.texture) < texs;
     }
     return false;

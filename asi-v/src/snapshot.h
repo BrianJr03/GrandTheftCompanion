@@ -278,10 +278,10 @@ struct Armory {
 // One row of the Wardrobe catalogue: either a component slot (prop
 // = false, cur/texture/palette filled, styles = drawable count) or a
 // prop slot (prop = true, cur = drawable index with -1 = none, no
-// palette). `styles` is the per-slot drawable count; `colours[i]` is
+// palette). `styles` is the per-slot drawable count; `colors[i]` is
 // the texture count for drawable i. Props on GTA V HAVE a texture
-// count per drawable so colours[] applies to them too, but the plugin
-// publishes an empty colours[] when `cur == -1` on a prop (the UI then
+// count per drawable so colors[] applies to them too, but the plugin
+// publishes an empty colors[] when `cur == -1` on a prop (the UI then
 // knows "none" is the only option visible this frame).
 struct WardrobeSlot {
     uint8_t  slot;                             // component id 0..11 OR prop id 0, 1, 2, 6, 7
@@ -290,7 +290,7 @@ struct WardrobeSlot {
     int32_t  tex;                              // current texture
     int32_t  pal;                              // palette (components only; 0 on props)
     uint32_t styles;                           // GET_NUMBER_OF_PED_DRAWABLE_VARIATIONS
-    uint16_t colours[kMaxWardrobeStyles];      // per-drawable texture counts
+    uint16_t colors[kMaxWardrobeStyles];      // per-drawable texture counts
 };
 
 // Full catalogue for the current player ped. The walker reads one

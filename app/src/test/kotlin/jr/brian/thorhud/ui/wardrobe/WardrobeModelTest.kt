@@ -162,9 +162,9 @@ class WardrobeModelTest {
         tex: Int = 0,
         pal: Int = 0,
         styles: Int = 1,
-        colours: List<Int> = listOf(1),
+        colors: List<Int> = listOf(1),
     ) = GameState.WardrobeSlot(
         slot = slot, prop = prop, cur = cur, tex = tex, pal = pal,
-        styles = styles, colours = colours,
+        styles = styles, colors = colors,
     )
 }

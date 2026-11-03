@@ -7,60 +7,45 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Pins which lines show in the one-time "Hold to customise" prompt
- * for each (game, hasWardrobe) combo. The ring line is only present
- * when there is at least one gesture line to pair it with — a prompt
- * that said only "a glowing ring marks what you can hold" with
- * nothing to hold would be nonsense.
+ * Pins which slides show in the one-time "Hold to customize"
+ * OnboardingSheet for each (game, hasWardrobe) combo. The sheet
+ * replaces the earlier text-wall InfoSheet and the discovery-ring
+ * animation on the HUD-card labels; one slide per gesture lets the
+ * sheet carry a screenshot or longer body copy per card.
  */
 class LongPressPromptTest {
 
     @Test
-    fun vWithWardrobeGetsAllFourLines() {
-        val lines = longPressPromptLines(isGtaV = true, hasWardrobe = true)
-        assertEquals(
-            listOf(
-                R.string.longpress_prompt_wardrobe,
-                R.string.longpress_prompt_ammu,
-                R.string.longpress_prompt_customs,
-                R.string.longpress_prompt_ring,
-            ),
-            lines,
-        )
+    fun vWithWardrobeGetsAllThreeSlides() {
+        val slides = longPressOnboardingSlides(isGtaV = true, hasWardrobe = true)
+        assertEquals(3, slides.size)
+        assertEquals(R.string.longpress_slide_wardrobe_title, slides[0].titleRes)
+        assertEquals(R.string.longpress_slide_ammu_title,     slides[1].titleRes)
+        assertEquals(R.string.longpress_slide_customs_title,  slides[2].titleRes)
     }
 
     @Test
-    fun vWithoutWardrobeDropsOnlyTheWardrobeLine() {
+    fun vWithoutWardrobeDropsOnlyTheWardrobeSlide() {
         // Not a real state today — V ships with Wardrobe in Part 3 —
-        // but the function still has to pick the right rows for a
-        // future build that flips it off.
-        val lines = longPressPromptLines(isGtaV = true, hasWardrobe = false)
-        assertEquals(
-            listOf(
-                R.string.longpress_prompt_ammu,
-                R.string.longpress_prompt_customs,
-                R.string.longpress_prompt_ring,
-            ),
-            lines,
-        )
+        // but the function still picks the right subset for a future
+        // build that flips it off.
+        val slides = longPressOnboardingSlides(isGtaV = true, hasWardrobe = false)
+        assertEquals(2, slides.size)
+        assertEquals(R.string.longpress_slide_ammu_title,    slides[0].titleRes)
+        assertEquals(R.string.longpress_slide_customs_title, slides[1].titleRes)
     }
 
     @Test
-    fun ivWithWardrobeShowsWardrobeAndRingOnly() {
-        val lines = longPressPromptLines(isGtaV = false, hasWardrobe = true)
-        assertEquals(
-            listOf(
-                R.string.longpress_prompt_wardrobe,
-                R.string.longpress_prompt_ring,
-            ),
-            lines,
-        )
+    fun ivWithWardrobeShowsOnlyTheWardrobeSlide() {
+        val slides = longPressOnboardingSlides(isGtaV = false, hasWardrobe = true)
+        assertEquals(1, slides.size)
+        assertEquals(R.string.longpress_slide_wardrobe_title, slides[0].titleRes)
     }
 
     @Test
     fun ivBeforeWardrobeIsEmptyAndSuppresses() {
-        val lines = longPressPromptLines(isGtaV = false, hasWardrobe = false)
-        assertTrue("No lines on IV before Wardrobe", lines.isEmpty())
+        val slides = longPressOnboardingSlides(isGtaV = false, hasWardrobe = false)
+        assertTrue("No slides on IV before Wardrobe", slides.isEmpty())
         assertFalse(
             "Prompt is suppressed on IV before Wardrobe",
             shouldShowLongPressPrompt(isGtaV = false, hasWardrobe = false),
@@ -68,7 +53,7 @@ class LongPressPromptTest {
     }
 
     @Test
-    fun shouldShowPromptTracksLineCount() {
+    fun shouldShowPromptTracksSlideCount() {
         assertTrue(shouldShowLongPressPrompt(isGtaV = true, hasWardrobe = true))
         assertTrue(shouldShowLongPressPrompt(isGtaV = true, hasWardrobe = false))
         assertTrue(shouldShowLongPressPrompt(isGtaV = false, hasWardrobe = true))

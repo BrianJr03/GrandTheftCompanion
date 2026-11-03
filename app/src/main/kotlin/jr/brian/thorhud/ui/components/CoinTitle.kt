@@ -38,7 +38,7 @@ fun ivProtagonist(episode: Int?): IvProtagonist? = when (episode) {
 /**
  * The coin card's title text + optional accent-highlighted name span.
  * Pass [nameRes] = null for the plain "coin" fallback (unknown
- * protagonist, non-protagonist V ped). [accent] colours only the name
+ * protagonist, non-protagonist V ped). [accent] colors only the name
  * span; the "· coin" tail stays grey via [HudCard]'s default.
  *
  * The format is the single [R.string.hud_panel_coin_named]

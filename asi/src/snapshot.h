@@ -177,7 +177,7 @@ struct WardrobeSlot {
     // GET_NUMBER_OF_CHAR_TEXTURE_VARIATIONS. For a prop the game
     // exposes no counter, so this is always 0 — the companion probes
     // by writing the next texture and reading back whether it stuck.
-    uint16_t colours[kMaxWardrobeStyles];
+    uint16_t colors[kMaxWardrobeStyles];
 };
 
 struct Wardrobe {

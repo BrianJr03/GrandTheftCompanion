@@ -327,7 +327,7 @@ int format_wardrobe(char* buf, size_t cap, const snapshot::Wardrobe& w) {
               static_cast<unsigned>(s.slot), b(s.prop),
               s.cur, s.tex, s.pal, s.styles);
         for (uint32_t j = 0; j < s.styles && j < snapshot::kMaxWardrobeStyles; ++j) {
-            o.add("%s%u", j ? "," : "", static_cast<unsigned>(s.colours[j]));
+            o.add("%s%u", j ? "," : "", static_cast<unsigned>(s.colors[j]));
         }
         o.add("]}");
     }

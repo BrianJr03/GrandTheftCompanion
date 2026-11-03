@@ -16,11 +16,6 @@ internal fun CoinPanel(
     align: CardAlign = CardAlign.Start,
     verticalCenter: Boolean = false,
     accent: Color = Color(0xFFEDEDED),
-    // Discovery-ring driver for the title label on cold start when
-    // the long-press-to-Wardrobe is live. Caller supplies the
-    // Animatable value; 0 = no ring.
-    titleRingProgress: Float = 0f,
-    titleRingAccent: Color = accent,
     modifier: Modifier = Modifier,
 ) {
     // The IV coin card titles itself "<name> · coin" when the plugin
@@ -36,8 +31,6 @@ internal fun CoinPanel(
         align = align,
         verticalCenter = verticalCenter,
         titleAnnotated = coinTitleAnnotated(proto?.nameRes, accent),
-        titleRingProgress = titleRingProgress,
-        titleRingAccent = titleRingAccent,
     ) {
         BigValue(
             labelRes = null,
@@ -57,8 +50,6 @@ internal fun CoinPanel(
 internal fun MoneyRadioPanel(
     s: GameState?,
     accent: Color = Color(0xFFEDEDED),
-    titleRingProgress: Float = 0f,
-    titleRingAccent: Color = accent,
     modifier: Modifier = Modifier,
 ) {
     val proto = ivProtagonist(s?.episode)
@@ -66,8 +57,6 @@ internal fun MoneyRadioPanel(
         modifier,
         coinTitlePlain(proto?.nameRes),
         titleAnnotated = coinTitleAnnotated(proto?.nameRes, accent),
-        titleRingProgress = titleRingProgress,
-        titleRingAccent = titleRingAccent,
     ) {
         BigValue(
             labelRes = null,

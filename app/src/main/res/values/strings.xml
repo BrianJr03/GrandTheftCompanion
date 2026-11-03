@@ -206,9 +206,9 @@
     <string name="wardrobe_v_comp_1">mask / beard</string>
     <string name="wardrobe_v_comp_2">hair</string>
     <string name="wardrobe_v_comp_3">torso</string>
-    <string name="wardrobe_v_comp_4">legs</string>
+    <string name="wardrobe_v_comp_4">pants</string>
     <string name="wardrobe_v_comp_5">bag / parachute</string>
-    <string name="wardrobe_v_comp_6">feet</string>
+    <string name="wardrobe_v_comp_6">shoes</string>
     <string name="wardrobe_v_comp_7">accessories</string>
     <string name="wardrobe_v_comp_8">undershirt</string>
     <string name="wardrobe_v_comp_9">armour / task</string>
@@ -223,10 +223,10 @@
          clothing / undershirt in practice, so give them friendlier
          labels and keep the real meaning from the gate log. -->
     <string name="wardrobe_iv_comp_1">upper</string>
-    <string name="wardrobe_iv_comp_2">lower</string>
+    <string name="wardrobe_iv_comp_2">pants</string>
     <string name="wardrobe_iv_comp_3">suse</string>
     <string name="wardrobe_iv_comp_4">hand</string>
-    <string name="wardrobe_iv_comp_5">feet</string>
+    <string name="wardrobe_iv_comp_5">shoes</string>
     <string name="wardrobe_iv_comp_6">jacket</string>
     <string name="wardrobe_iv_comp_7">hair</string>
     <string name="wardrobe_iv_comp_8">suse2</string>
@@ -239,7 +239,7 @@
     <string name="wardrobe_slot_n">slot %1$d</string>
     <string name="wardrobe_prop_n">prop %1$d</string>
     <string name="wardrobe_style">style %1$d / %2$d</string>
-    <string name="wardrobe_colour">colour %1$d / %2$d</string>
+    <string name="wardrobe_color">color %1$d / %2$d</string>
     <string name="wardrobe_none">none</string>
     <string name="wardrobe_get_out">Get out of the car to use Wardrobe.</string>
 
@@ -247,17 +247,19 @@
     <string name="action_save">Save</string>
     <string name="action_cancel">Cancel</string>
 
-    <!-- One-time "Hold to customise" prompt. Shown once per
-         installation after the tab-arrows prompt has been seen; the
-         ring on the HUD card labels at launch is the recurring cue,
-         this prompt names each gesture once. English only in v1;
+    <!-- One-time "Hold to customize" OnboardingSheet. Shown once
+         per installation AFTER the tab-arrows prompt has landed —
+         never both at once. One slide per long-pressable card. The
+         old discovery-ring animation on the HUD-card labels is
+         gone; this sheet replaces it. English only in v1;
          translations are a follow-up. -->
-    <string name="longpress_prompt_title">Hold to customise</string>
-    <string name="longpress_prompt_wardrobe">hold your character\'s name: Wardrobe</string>
-    <string name="longpress_prompt_ammu">hold your weapon: Ammu-Nation</string>
-    <string name="longpress_prompt_customs">hold your vehicle: LS Customs</string>
-    <string name="longpress_prompt_ring">the glowing ring marks what you can hold each time the app opens.</string>
-    <string name="longpress_prompt_dismiss">Got it</string>
+    <string name="longpress_prompt_title">Hold to customize</string>
+    <string name="longpress_slide_wardrobe_title">Hold your name</string>
+    <string name="longpress_slide_wardrobe_body">Press and hold your character\'s name on the coin card to open Wardrobe. Change tops, legs, shoes, accessories, props. Save looks you like.</string>
+    <string name="longpress_slide_ammu_title">Hold your weapon</string>
+    <string name="longpress_slide_ammu_body">On foot, press and hold the weapon card to open Ammu-Nation. Fit attachments, change tint, refill ammo. A short tap still opens the weapon wheel.</string>
+    <string name="longpress_slide_customs_title">Hold your vehicle</string>
+    <string name="longpress_slide_customs_body">In a car, press and hold the vehicle card to open LS Customs. Paint, parts, performance, wheels, tint, plate, neon.</string>
 
 
     <string name="customs_section_paint">Paint</string>

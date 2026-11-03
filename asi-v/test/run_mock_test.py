@@ -637,7 +637,7 @@ def test_paint():
           "respray log line present")
     check("[cheat] next colour (61) -> ok" in log,
           "next colour log line present")
-    check("[cheat] swap colours (62) -> ok" in log,
+    check("[cheat] swap colors (62) -> ok" in log,
           "swap log line present")
     check("[cheat] custom colour (63) rgb=#B21E1E -> ok" in log,
           "custom colour log carries the hex RGB")
@@ -987,8 +987,8 @@ def test_wardrobe():
     s3 = slot_by.get((3, False), {})
     check(s3.get("styles") == 3,
           "component slot 3 reports 3 drawables (got %s)" % s3.get("styles"))
-    check(s3.get("colours") == [2, 1, 4],
-          "component slot 3 colours == [2,1,4] (got %s)" % s3.get("colours"))
+    check(s3.get("colors") == [2, 1, 4],
+          "component slot 3 colors == [2,1,4] (got %s)" % s3.get("colors"))
     # Prop 0 (hat) is in there.
     p0 = slot_by.get((0, True), {})
     check(bool(p0), "prop slot 0 (hat) published")

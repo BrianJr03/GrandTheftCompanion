@@ -181,12 +181,12 @@ void read_component_slot(int32_t ped, uint8_t slot) {
             shv::call<int32_t>(natives::GET_NUMBER_OF_PED_TEXTURE_VARIATIONS,
                                ped, static_cast<int32_t>(slot),
                                static_cast<int32_t>(d));
-        out.colours[d] = static_cast<uint16_t>(tex < 0 ? 0 : tex);
+        out.colors[d] = static_cast<uint16_t>(tex < 0 ? 0 : tex);
     }
 }
 
 // Read one prop slot. GTA V DOES expose a texture count per drawable,
-// so we fill colours[] like a component slot. Empty prop ("none")
+// so we fill colors[] like a component slot. Empty prop ("none")
 // shows up as cur = -1 (GET_PED_PROP_INDEX returns -1 on an unfitted
 // slot).
 void read_prop_slot(int32_t ped, uint8_t slot) {
@@ -216,7 +216,7 @@ void read_prop_slot(int32_t ped, uint8_t slot) {
             shv::call<int32_t>(natives::GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS,
                                ped, static_cast<int32_t>(slot),
                                static_cast<int32_t>(d));
-        out.colours[d] = static_cast<uint16_t>(tex < 0 ? 0 : tex);
+        out.colors[d] = static_cast<uint16_t>(tex < 0 ? 0 : tex);
     }
 }
 
@@ -299,7 +299,7 @@ bool validate_piece(int32_t ped, const Piece& p) {
     if (p.is_prop) {
         if (p.drawable < 0) return true;   // clear
         if (static_cast<uint32_t>(p.drawable) >= styles) return false;
-        const uint16_t texs = g_last.slots[idx].colours[p.drawable];
+        const uint16_t texs = g_last.slots[idx].colors[p.drawable];
         return p.texture >= 0 && static_cast<uint16_t>(p.texture) < texs;
     }
     if (p.drawable < 0) return false;
