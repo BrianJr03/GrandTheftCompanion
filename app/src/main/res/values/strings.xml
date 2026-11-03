@@ -173,6 +173,13 @@
     <string name="hud_longpress_cd_ammu">weapon shop</string>
     <string name="hud_longpress_cd_wardrobe">change outfit</string>
 
+    <!-- Toasts fired when the user long-presses an IV weapon or
+         vehicle card. Ammu-Nation and LS Customs are V-only
+         features; the toast tells the player so nothing seems
+         broken. Wardrobe has no toast — it runs on both games. -->
+    <string name="toast_customs_unsupported_iv">Customs not supported in GTA IV</string>
+    <string name="toast_ammu_unsupported_iv">Ammu-Nation not supported in GTA IV</string>
+
     <!-- Wardrobe sheet. Long-press the character-name card on the HUD
          to open. English only in v1; translations are a follow-up. -->
     <string name="wardrobe_title">Wardrobe</string>
@@ -243,13 +250,6 @@
          old discovery-ring animation on the HUD-card labels is
          gone; this sheet replaces it. English only in v1;
          translations are a follow-up. -->
-    <string name="longpress_prompt_title">Hold to customize</string>
-    <string name="longpress_slide_wardrobe_title">Hold your name</string>
-    <string name="longpress_slide_wardrobe_body">Press and hold your character\'s name on the coin card to open Wardrobe. Change tops, legs, shoes, accessories, props. Save looks you like.</string>
-    <string name="longpress_slide_ammu_title">Hold your weapon</string>
-    <string name="longpress_slide_ammu_body">On foot, press and hold the weapon card to open Ammu-Nation. Fit attachments, change tint, refill ammo. A short tap still opens the weapon wheel.</string>
-    <string name="longpress_slide_customs_title">Hold your vehicle</string>
-    <string name="longpress_slide_customs_body">In a car, press and hold the vehicle card to open LS Customs. Paint, parts, performance, wheels, tint, plate, neon.</string>
 
 
     <string name="customs_section_paint">Paint</string>

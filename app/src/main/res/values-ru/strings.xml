@@ -473,6 +473,8 @@
     <string name="hud_longpress_cd_customs">настроить машину</string>
     <string name="hud_longpress_cd_ammu">оружейный магазин</string>
     <string name="hud_longpress_cd_wardrobe">сменить одежду</string>
+    <string name="toast_customs_unsupported_iv">Customs не поддерживается в GTA IV</string>
+    <string name="toast_ammu_unsupported_iv">Ammu-Nation не поддерживается в GTA IV</string>
     <string name="wardrobe_title">Гардероб</string>
     <string name="wardrobe_saved_looks">Сохранённые образы</string>
     <string name="wardrobe_save_look">+ сохранить</string>

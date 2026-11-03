@@ -473,6 +473,8 @@
     <string name="hud_longpress_cd_customs">Fahrzeug anpassen</string>
     <string name="hud_longpress_cd_ammu">Waffenladen</string>
     <string name="hud_longpress_cd_wardrobe">Outfit wechseln</string>
+    <string name="toast_customs_unsupported_iv">Customs wird in GTA IV nicht unterstützt</string>
+    <string name="toast_ammu_unsupported_iv">Ammu-Nation wird in GTA IV nicht unterstützt</string>
     <string name="wardrobe_title">Garderobe</string>
     <string name="wardrobe_saved_looks">Gespeicherte Outfits</string>
     <string name="wardrobe_save_look">+ speichern</string>

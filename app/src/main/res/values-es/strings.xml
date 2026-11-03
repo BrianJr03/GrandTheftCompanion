@@ -473,6 +473,8 @@
     <string name="hud_longpress_cd_customs">personalizar vehículo</string>
     <string name="hud_longpress_cd_ammu">armería</string>
     <string name="hud_longpress_cd_wardrobe">cambiar ropa</string>
+    <string name="toast_customs_unsupported_iv">Customs no está disponible en GTA IV</string>
+    <string name="toast_ammu_unsupported_iv">Ammu-Nation no está disponible en GTA IV</string>
     <string name="wardrobe_title">Vestuario</string>
     <string name="wardrobe_saved_looks">Conjuntos guardados</string>
     <string name="wardrobe_save_look">+ guardar</string>

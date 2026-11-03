@@ -473,6 +473,8 @@
     <string name="hud_longpress_cd_customs">personnaliser le véhicule</string>
     <string name="hud_longpress_cd_ammu">armurerie</string>
     <string name="hud_longpress_cd_wardrobe">changer de tenue</string>
+    <string name="toast_customs_unsupported_iv">Customs n\'est pas pris en charge dans GTA IV</string>
+    <string name="toast_ammu_unsupported_iv">Ammu-Nation n\'est pas pris en charge dans GTA IV</string>
     <string name="wardrobe_title">Garde-robe</string>
     <string name="wardrobe_saved_looks">Tenues enregistrées</string>
     <string name="wardrobe_save_look">+ enregistrer</string>

@@ -473,6 +473,8 @@
     <string name="hud_longpress_cd_customs">車両をカスタマイズ</string>
     <string name="hud_longpress_cd_ammu">武器ショップ</string>
     <string name="hud_longpress_cd_wardrobe">着替える</string>
+    <string name="toast_customs_unsupported_iv">Customs は GTA IV では利用できません</string>
+    <string name="toast_ammu_unsupported_iv">Ammu-Nation は GTA IV では利用できません</string>
     <string name="wardrobe_title">ワードローブ</string>
     <string name="wardrobe_saved_looks">保存した着こなし</string>
     <string name="wardrobe_save_look">+ 保存</string>

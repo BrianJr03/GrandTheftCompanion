@@ -1,5 +1,6 @@
 package jr.brian.thorhud.ui
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -1161,6 +1162,51 @@ private fun longPressWardrobeModifier(onOpen: (() -> Unit)?): Modifier {
         .semantics { contentDescription = cd }
 }
 
+/** Generic long-press-fires-a-toast modifier for the IV weapon /
+ *  vehicle cards. Ammu-Nation and LS Customs are V-only, but the
+ *  gesture is still attached so the user gets confirmation their
+ *  long-press landed on something. The TalkBack label matches what
+ *  the gesture WOULD open on V, so screen readers stay consistent. */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun longPressToastModifier(
+    onLongPress: () -> Unit,
+    @androidx.annotation.StringRes cdRes: Int,
+): Modifier {
+    val source = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val cd = stringResource(cdRes)
+    return Modifier
+        .combinedClickable(
+            interactionSource = source,
+            indication = null,
+            onClick = {},
+            onLongClick = onLongPress,
+        )
+        .semantics { contentDescription = cd }
+}
+
+/** On-foot IV weapon card: tap opens the wheel (when available),
+ *  long-press shows the Ammu-Nation-not-supported toast. The two
+ *  gestures live on one combinedClickable so Compose swallows the
+ *  tap on a successful hold, keeping the wheel from also opening. */
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@Composable
+private fun ivWeaponCardGestures(
+    onOpenWheel: (() -> Unit)?,
+    onLongPress: () -> Unit,
+): Modifier {
+    val source = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val cd = stringResource(R.string.hud_longpress_cd_ammu)
+    return Modifier
+        .combinedClickable(
+            interactionSource = source,
+            indication = null,
+            onClick = { onOpenWheel?.invoke() },
+            onLongClick = onLongPress,
+        )
+        .semantics { contentDescription = cd }
+}
+
 /**
  * The blips panel, drawn above everything else when [show] is true.
  * Reads from the same MapViewModel the mirror page uses, so the list
@@ -1229,6 +1275,27 @@ private fun IvHudScreen(
 ) {
     val palette = paletteFor(liveState?.episode ?: state?.episode)
 
+    // IV weapon + vehicle long-presses fire a toast instead of a
+    // sheet, because Ammu-Nation and LS Customs are V-only (no
+    // armory natives + no mods natives on IV). The toast lets the
+    // player know the gesture landed on something, even if the
+    // target feature isn't available in this game.
+    val toastContext = androidx.compose.ui.platform.LocalContext.current
+    val onLongPressAmmuIv: () -> Unit = {
+        Toast.makeText(
+            toastContext,
+            toastContext.getString(R.string.toast_ammu_unsupported_iv),
+            Toast.LENGTH_SHORT,
+        ).show()
+    }
+    val onLongPressCustomsIv: () -> Unit = {
+        Toast.makeText(
+            toastContext,
+            toastContext.getString(R.string.toast_customs_unsupported_iv),
+            Toast.LENGTH_SHORT,
+        ).show()
+    }
+
     Scaffold(containerColor = Color.Black) { padding ->
         // Scrollable so overflow (longer translations, future tag rows)
         // reaches the stat bars instead of clipping. Mirrors VMainScreen:
@@ -1287,8 +1354,24 @@ private fun IvHudScreen(
                             .weight(1f)
                             .then(longPressWardrobeModifier(onOpenWardrobe)),
                     )
-                    WeaponPanel(liveState, modifier = Modifier.weight(1f))
-                    VehiclePanel(liveState, palette, modifier = Modifier.weight(1f))
+                    WeaponPanel(
+                        liveState,
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(longPressToastModifier(
+                                onLongPress = onLongPressAmmuIv,
+                                cdRes = R.string.hud_longpress_cd_ammu,
+                            )),
+                    )
+                    VehiclePanel(
+                        liveState, palette,
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(longPressToastModifier(
+                                onLongPress = onLongPressCustomsIv,
+                                cdRes = R.string.hud_longpress_cd_customs,
+                            )),
+                    )
                 }
                 Spacer(Modifier.height(16.dp))
                 RadioPicker(
@@ -1316,13 +1399,16 @@ private fun IvHudScreen(
                             .weight(1f)
                             .then(longPressWardrobeModifier(onOpenWardrobe)),
                     )
-                    val weaponCard = Modifier.weight(1f).let {
-                        if (onOpenWeaponWheel != null) {
-                            it.clickable(onClick = onOpenWeaponWheel)
-                        } else {
-                            it
-                        }
-                    }
+                    // On-foot weapon card: tap opens the wheel, long-
+                    // press shows the IV-unsupported toast. The two
+                    // gestures live on one combinedClickable so a
+                    // held press never also flashes the wheel open.
+                    val weaponCard = Modifier
+                        .weight(1f)
+                        .then(ivWeaponCardGestures(
+                            onOpenWheel = onOpenWeaponWheel,
+                            onLongPress = onLongPressAmmuIv,
+                        ))
                     WeaponPanel(liveState, align = CardAlign.End,
                                 verticalCenter = true,
                                 modifier = weaponCard)
@@ -1332,8 +1418,15 @@ private fun IvHudScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    VehiclePanel(liveState, palette, align = CardAlign.Start,
-                                 modifier = Modifier.weight(1f))
+                    VehiclePanel(
+                        liveState, palette, align = CardAlign.Start,
+                        modifier = Modifier
+                            .weight(1f)
+                            .then(longPressToastModifier(
+                                onLongPress = onLongPressCustomsIv,
+                                cdRes = R.string.hud_longpress_cd_customs,
+                            )),
+                    )
                     RadioPanel(liveState, align = CardAlign.End,
                                modifier = Modifier.weight(1f))
                 }
