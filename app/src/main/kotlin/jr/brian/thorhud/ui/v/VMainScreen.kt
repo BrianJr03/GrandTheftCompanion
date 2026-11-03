@@ -21,6 +21,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import jr.brian.thorhud.BuildConfig
@@ -83,6 +85,12 @@ internal fun VMainScreen(
     // leaves the card wheel-tap only (notice screens, in a vehicle,
     // the plugin refusing commands, etc.).
     onOpenAmmu: (() -> Unit)? = null,
+    // Long-press on the character-name card opens Wardrobe. Null
+    // leaves the card inert (notice screens, in a vehicle, plugin
+    // without wardrobe support, etc.). On the in-vehicle layout the
+    // callback is kept null in v1 because the plugin refuses outfit
+    // writes while driving.
+    onOpenWardrobe: (() -> Unit)? = null,
 ) {
     val stations by viewModel.stations.collectAsStateWithLifecycle()
     val lightsOn by viewModel.policeLightsEnabled.collectAsStateWithLifecycle()
@@ -220,7 +228,10 @@ internal fun VMainScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     VCashRadioPanel(live, character, characterKnown,
-                                    stations, Modifier.weight(1f))
+                                    stations,
+                                    Modifier
+                                        .weight(1f)
+                                        .then(longPressWardrobeModifier(onOpenWardrobe)))
                     VWeaponPanel(live, modifier = Modifier.weight(1f))
                     VVehiclePanel(
                         live, palette,
@@ -248,7 +259,9 @@ internal fun VMainScreen(
                 ) {
                     VCashPanel(live, character, characterKnown,
                                align = CardAlign.Start,
-                               modifier = Modifier.weight(1f))
+                               modifier = Modifier
+                                   .weight(1f)
+                                   .then(longPressWardrobeModifier(onOpenWardrobe)))
                     // On foot only: the plugin refuses set_weapon in a
                     // vehicle, so the in-vehicle card above stays inert.
                     val weaponCard = if (onOpenWeaponWheel != null &&
@@ -281,6 +294,26 @@ internal fun VMainScreen(
             VStatsBars(live, character, palette)
         }
     }
+}
+
+/** Chains a long-press-to-Wardrobe gesture on top of the character
+ *  card. Same shape as [longPressCustomsModifier]; null leaves the
+ *  card inert. The semantics label is picked up by TalkBack so the
+ *  gesture is announced even though there's no icon on the card. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun longPressWardrobeModifier(onOpen: (() -> Unit)?): Modifier {
+    if (onOpen == null) return Modifier
+    val source = remember { MutableInteractionSource() }
+    val cd = stringResource(R.string.v_character_edit_cd)
+    return Modifier
+        .combinedClickable(
+            interactionSource = source,
+            indication = null,
+            onClick = {},
+            onLongClick = onOpen,
+        )
+        .semantics { contentDescription = cd }
 }
 
 /** Chains a long-press-to-Customs gesture on top of the vehicle card.

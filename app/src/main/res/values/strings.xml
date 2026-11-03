@@ -180,6 +180,40 @@
     <!-- On the V weapon card: content description for the pencil
          glyph that advertises the long-press. -->
     <string name="v_weapon_edit_cd">Long-press to open Ammu-Nation</string>
+
+    <!-- Wardrobe sheet. Long-press the character-name card on the HUD
+         to open. English only in v1; translations are a follow-up. -->
+    <string name="wardrobe_title">Wardrobe</string>
+    <string name="wardrobe_loading">Loading the catalogue…</string>
+    <string name="wardrobe_saved_looks">Saved looks</string>
+    <string name="wardrobe_save_look">+ save</string>
+    <string name="wardrobe_rename">Rename</string>
+    <string name="wardrobe_delete">Delete</string>
+    <string name="wardrobe_preset_menu_body">Tap to apply, or:</string>
+    <string name="wardrobe_reset">Reset to default</string>
+    <string name="wardrobe_reset_confirm">Put every piece of clothing back the way the game shipped it.</string>
+    <string name="wardrobe_section_tops">Tops</string>
+    <string name="wardrobe_section_legs">Legs</string>
+    <string name="wardrobe_section_feet">Feet</string>
+    <string name="wardrobe_section_hair">Hair</string>
+    <string name="wardrobe_section_accessories">Accessories</string>
+    <string name="wardrobe_section_props">Props</string>
+    <string name="wardrobe_section_other">Other</string>
+    <!-- Generic fallbacks when the game ships no label for a slot. v1
+         ships no names table so every row uses these. -->
+    <string name="wardrobe_slot_n">slot %1$d</string>
+    <string name="wardrobe_prop_n">prop %1$d</string>
+    <string name="wardrobe_style">style %1$d / %2$d</string>
+    <string name="wardrobe_colour">colour %1$d / %2$d</string>
+    <string name="wardrobe_none">none</string>
+    <!-- On the V character-name card: a11y label for the long-press
+         gesture. No icon ships; TalkBack reads this. -->
+    <string name="v_character_edit_cd">Long-press to open Wardrobe</string>
+
+    <!-- Shared action labels. -->
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+
     <string name="customs_section_paint">Paint</string>
     <string name="customs_section_body">Body</string>
     <string name="customs_section_performance">Performance</string>

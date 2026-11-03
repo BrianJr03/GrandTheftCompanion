@@ -262,6 +262,44 @@ class HudPrefs @Inject constructor(
             .apply()
     }
 
+    // Wardrobe presets per `(gameKey, ped-model hash)`. One flow per
+    // key is created lazily on first read; a game-change (hello) does
+    // not wipe them, because a user who saved Michael's outfit still
+    // wants it next session. The screen caps the list at
+    // MAX_PRESETS; this layer stores the raw JSON string the pure
+    // WardrobeModel wrote with serialisePresets().
+    private val wardrobePresetFlows =
+        mutableMapOf<String, MutableStateFlow<String>>()
+
+    /** Opaque JSON blob of saved looks for the current `(game, model)`.
+     *  The pure WardrobeModel reads it with deserialisePresets() so
+     *  this layer never has to know the shape of a preset. */
+    fun wardrobePresets(gameKey: String, pedModel: Long): StateFlow<String> {
+        val key = wardrobePresetKey(gameKey, pedModel)
+        return wardrobePresetFlows.getOrPut(key) {
+            MutableStateFlow(prefs.getString(key, "").orEmpty())
+        }.asStateFlow()
+    }
+
+    /** Persist the opaque JSON blob for the current `(game, model)`.
+     *  Empty string clears the entry. */
+    fun setWardrobePresets(gameKey: String, pedModel: Long, raw: String) {
+        val key = wardrobePresetKey(gameKey, pedModel)
+        val flow = wardrobePresetFlows.getOrPut(key) {
+            MutableStateFlow(prefs.getString(key, "").orEmpty())
+        }
+        if (flow.value == raw) return
+        flow.value = raw
+        if (raw.isEmpty()) {
+            prefs.edit().remove(key).apply()
+        } else {
+            prefs.edit().putString(key, raw).apply()
+        }
+    }
+
+    private fun wardrobePresetKey(gameKey: String, pedModel: Long): String =
+        "${KEY_WARDROBE_PRESETS}_${gameKey}_${pedModel.toULong()}"
+
     /** Wipe both persisted cheat sets (toggles the user had on, and
      *  one-shots long-pressed for auto-apply) for one game. Leaves
      *  the master auto-reapply switch and the onboarding-seen flag
@@ -415,6 +453,7 @@ class HudPrefs @Inject constructor(
         const val KEY_SEEN_HUD_ONBOARDING = "seen_hud_onboarding"
         const val KEY_SEEN_MAP_ONBOARDING = "seen_map_onboarding"
         const val KEY_CHEAT_SECTION_ORDER = "cheat_section_order"
+        const val KEY_WARDROBE_PRESETS = "wardrobe_presets"
         val DEFAULT_WHEEL_ORDER: List<Int> = (0..7).toList()
         val GAME_KEYS = listOf("iv", "v")
         // Mirrors CheatCategory.entries by name. Kept here (instead of

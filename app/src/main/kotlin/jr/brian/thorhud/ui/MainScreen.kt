@@ -80,6 +80,7 @@ import jr.brian.thorhud.ui.cheats.CheatsViewModel
 import jr.brian.thorhud.ui.components.HudPalette
 import jr.brian.thorhud.ui.ammunation.AmmuNationScreen
 import jr.brian.thorhud.ui.customs.LSCustomsScreen
+import jr.brian.thorhud.ui.wardrobe.WardrobeScreen
 import jr.brian.thorhud.ui.v.VMainScreen
 import jr.brian.thorhud.ui.v.VRadioPicker
 import jr.brian.thorhud.ui.v.VWeaponWheelOverlay
@@ -534,6 +535,22 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             { showAmmu = true }
                         } else null
 
+                    // Wardrobe sheet state. On foot, GTA V in this
+                    // part (IV adds the same gate in Part 4). Same
+                    // cheats-supported gate as Customs because the
+                    // plugin routes the first write through
+                    // STAT_SET_CHEAT_IS_ACTIVE. The in-vehicle layout
+                    // keeps openWardrobe null so the long-press is
+                    // inert while driving (plugin refuses too).
+                    var showWardrobe by rememberSaveable { mutableStateOf(false) }
+                    val openWardrobe: (() -> Unit)? =
+                        if (isGtaV && !inVehicleNow &&
+                            hello?.cheatsSupported == true &&
+                            hello?.wardrobeSupported == true &&
+                            liveState?.inGame == true) {
+                            { showWardrobe = true }
+                        } else null
+
                     CompositionLocalProvider(
                         LocalFullScreenSheetCount provides sheetCount,
                     ) {
@@ -572,6 +589,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         onOpenCheats = scrollToCheats,
                                         onOpenCustoms = openCustoms,
                                         onOpenAmmu = openAmmu,
+                                        onOpenWardrobe = openWardrobe,
                                     )
                                 } else {
                                     IvHudScreen(
@@ -844,6 +862,27 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                             accent = accent,
                             autoSelectEquipped = vAutoSelectEquipped,
                             onDismiss = { showAmmu = false },
+                        )
+
+                        // Wardrobe sheet. V in this part (IV adds the
+                        // gate in a later part). The sheet title uses
+                        // the character name so a switch mid-session
+                        // updates it next frame; a non-protagonist
+                        // falls back to the generic "Wardrobe" via
+                        // the WardrobeScreen's own default.
+                        val wardrobeCharacter = if (isGtaV) {
+                            vCharacterOf(state?.character).let { c ->
+                                if (state?.character != null) {
+                                    stringResource(c.nameRes)
+                                } else null
+                            }
+                        } else null
+                        WardrobeScreen(
+                            visible = showWardrobe && isGtaV,
+                            accent = accent,
+                            isGtaV = isGtaV,
+                            characterLabel = wardrobeCharacter,
+                            onDismiss = { showWardrobe = false },
                         )
 
                         // Drawn over the pager so it covers both pages

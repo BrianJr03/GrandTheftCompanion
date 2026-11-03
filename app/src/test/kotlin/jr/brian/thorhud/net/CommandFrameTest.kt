@@ -247,4 +247,61 @@ class CommandFrameTest {
             commandFrame(1, "route_clear", 0L),
         )
     }
+
+    @Test
+    fun applyOutfitParts() {
+        // Wardrobe's int-array branch. Must match asi-v's parse_cmd
+        // which reads "parts":[<u>, <u>, ...] with no non-int tokens.
+        val line = commandFrameInts(
+            9, "apply_outfit",
+            listOf(0x300203L, 0x400102L, 0x1000101L),
+        )
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":9,\"name\":\"apply_outfit\"," +
+                "\"args\":{\"parts\":[3146243,4194562,16777473]}}\n",
+            line,
+        )
+    }
+
+    @Test
+    fun applyOutfitEmptyIsRejected() {
+        assertNull(commandFrameInts(1, "apply_outfit", emptyList()))
+    }
+
+    @Test
+    fun applyOutfitTooManyPartsIsRejected() {
+        val many = List(25) { 0L }
+        assertNull(commandFrameInts(1, "apply_outfit", many))
+    }
+
+    @Test
+    fun applyOutfitU32OverflowIsRejected() {
+        assertNull(
+            commandFrameInts(1, "apply_outfit",
+                             listOf(0L, 0xFFFFFFFFL + 1L)),
+        )
+    }
+
+    @Test
+    fun wardrobeListAndResetUseVKey() {
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":1,\"name\":\"wardrobe_list\"," +
+                "\"args\":{\"v\":0}}\n",
+            commandFrame(1, "wardrobe_list", 0L),
+        )
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":2,\"name\":\"reset_outfit\"," +
+                "\"args\":{\"v\":0}}\n",
+            commandFrame(2, "reset_outfit", 0L),
+        )
+    }
+
+    @Test
+    fun setPieceCarriesTheOnePackedU32() {
+        assertEquals(
+            "{\"v\":1,\"type\":\"cmd\",\"id\":3,\"name\":\"set_piece\"," +
+                "\"args\":{\"piece\":3146243}}\n",
+            commandFrame(3, "set_piece", 0x300203L),
+        )
+    }
 }

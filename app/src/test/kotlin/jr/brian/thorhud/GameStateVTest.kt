@@ -264,6 +264,41 @@ class GameStateVTest {
     }
 
     @Test
+    fun wardrobeFrameDecodes() {
+        val f = decode(V_WARDROBE)
+        assertTrue(f.isWardrobe)
+        assertTrue(f.isGtaV)
+        assertEquals(5, f.listVersion)
+        assertEquals(0, f.character)  // Michael, reused state-frame field
+        assertEquals(225514697L, f.wardrobePedModel)
+        assertEquals(4, f.wardrobePieces.size)
+        val torso = f.wardrobePieces.first { !it.prop && it.slot == 3 }
+        assertEquals(2, torso.cur)
+        assertEquals(3, torso.tex)
+        assertEquals(3, torso.styles)
+        assertEquals(listOf(2, 1, 4), torso.colours)
+        val hat = f.wardrobePieces.first { it.prop && it.slot == 0 }
+        assertEquals(-1, hat.cur)   // "none" fitted
+        // Mods / state fields do not bleed in.
+        assertFalse(f.inGame)
+        assertEquals(0, f.modsSlots.size)
+    }
+
+    @Test
+    fun helloCarriesWardrobeFlagWhenPluginSupportsIt() {
+        val f = decode(V_HELLO_WARDROBE)
+        assertTrue(f.isHello)
+        assertEquals(true, f.wardrobeSupported)
+    }
+
+    @Test
+    fun oldHelloHasNullWardrobeFlag() {
+        val f = decode(V_HELLO)
+        assertTrue(f.isHello)
+        assertNull(f.wardrobeSupported)
+    }
+
+    @Test
     fun armoryFrameDecodes() {
         val f = decode(V_ARMORY_PISTOL)
         assertTrue(f.isArmory)
@@ -369,6 +404,12 @@ class GameStateVTest {
         // / engine), one toggle (turbo), non-stock current values.
         const val V_MODS = """{"v":1,"type":"mods","game":"v","ver":3,"vehicle_model":3078201489,"kit":true,"wheel_type":1,"tints":6,"tint":3,"plate_style":2,"plate":"GTC 123","neon":true,"bulletproof":false,"slots":[{"slot":0,"cur":1,"name":"slot 0","options":["option 0_0","option 0_1"]},{"slot":11,"cur":2,"name":"slot 11","options":["option 11_0","option 11_1","option 11_2","option 11_3"]}],"toggles":[{"slot":18,"on":true,"name":"turbo"}]}"""
         const val V_MODS_NO_KIT = """{"v":1,"type":"mods","game":"v","ver":1,"vehicle_model":2167295885,"kit":false,"wheel_type":0,"tints":6,"tint":0,"plate_style":0,"plate":"","neon":false,"bulletproof":false,"slots":[],"toggles":[]}"""
+        // Shape mirrors what asi-v/src/bridge.cpp::format_wardrobe
+        // emits for Michael with a tiny mock catalogue (3 component
+        // slots, 1 prop slot). Model hash is joaat("player_zero").
+        const val V_WARDROBE = """{"v":1,"type":"wardrobe","game":"v","ver":5,"model":225514697,"character":0,"pieces":[{"slot":3,"prop":false,"cur":2,"tex":3,"pal":0,"styles":3,"colours":[2,1,4]},{"slot":4,"prop":false,"cur":0,"tex":0,"pal":0,"styles":2,"colours":[2,3]},{"slot":11,"prop":false,"cur":0,"tex":0,"pal":0,"styles":1,"colours":[5]},{"slot":0,"prop":true,"cur":-1,"tex":0,"pal":0,"styles":2,"colours":[1,2]}]}"""
+        // Same as V_HELLO but with the plugin 0.7.0+ wardrobe flag.
+        const val V_HELLO_WARDROBE = """{"v":1,"type":"hello","game":"v","plugin":"0.7.0","exe":"mock_host.exe","file_version":"","size":250342,"supported":true,"shv":true,"script_started":false,"shv_game_version":9999,"cheats":true,"wardrobe":true,"err":""}"""
 
         // Armory frame mirrors Gate A0 shape: three options (Default
         // Clip, Extended Clip, Flashlight) spanning two bone groups
