@@ -49,6 +49,11 @@ data class GameState(
     // Whether this plugin build can run the `cheat` command. GTA IV
     // plugins ship with this off unless built with THORBRIDGE_CHEATS.
     @SerialName("cheats") val cheatsSupported: Boolean? = null,
+    // Whether this plugin build understands the wardrobe commands.
+    // A plugin older than 0.7.0 (V) / the IV equivalent leaves this
+    // null, and the companion keeps the long-press gesture off so a
+    // dead screen never opens.
+    @SerialName("wardrobe") val wardrobeSupported: Boolean? = null,
     // hello — GTA V only: host exe name, plugin version, and whether
     // Script Hook V was found. When `supported` is false, [err]
     // carries the reason.
@@ -175,6 +180,16 @@ data class GameState(
     @SerialName("tile_w") val atlasTileW: Int? = null,
     @SerialName("tile_h") val atlasTileH: Int? = null,
 
+    // "wardrobe" frame (GTA V only — IV lands in a later part). All
+    // optional on non-wardrobe frames. See WardrobeSlot for the row
+    // shape. `model` is the game's ped model hash at walk start.
+    // The frame-level "character" field reuses the state frame's
+    // [character] above (same values 0..2 / -1); row list key is
+    // "pieces", not "slots", so the mods frame's own "slots" field
+    // doesn't collide at the kotlinx-serialization layer.
+    @SerialName("model") val wardrobePedModel: Long? = null,
+    @SerialName("pieces") val wardrobePieces: List<WardrobeSlot> = emptyList(),
+
     // "armory" frame (GTA V only). All optional on non-armory frames.
     // widx = -1 means the weapon has no DLC-catalogue entry; its
     // Ammu-Nation page shows "no attachments" and hides Tint / Ammo.
@@ -200,6 +215,7 @@ data class GameState(
     val isBlips: Boolean get() = type == "blips"
     val isMods: Boolean get() = type == "mods"
     val isArmory: Boolean get() = type == "armory"
+    val isWardrobe: Boolean get() = type == "wardrobe"
     val isAtlas: Boolean get() = type == "atlas"
     val isGtaV: Boolean get() = game == GAME_V
 
@@ -360,6 +376,29 @@ data class GameState(
     )
 
     /**
+     * One clothing-slot row in the Wardrobe catalogue. [slot] is the
+     * game's component id 0..11 when [prop] is false; it is one of
+     * {0, 1, 2, 6, 7} (hat / glasses / ears / watch / bracelet) when
+     * [prop] is true. [cur] is the current drawable index with -1 on
+     * an unfitted prop; [tex] is the current texture; [pal] is the
+     * palette (components only; 0 on props). [styles] is the drawable
+     * count the walker observed; [colours] is the per-drawable texture
+     * count in order (so `colours[0]` is the number of textures the
+     * first drawable has). The screen reads [styles] + [colours] to
+     * compute ◀ ▶ bounds; it never counts entries in [colours] itself.
+     */
+    @Serializable
+    data class WardrobeSlot(
+        @SerialName("slot") val slot: Int = 0,
+        @SerialName("prop") val prop: Boolean = false,
+        @SerialName("cur") val cur: Int = 0,
+        @SerialName("tex") val tex: Int = 0,
+        @SerialName("pal") val pal: Int = 0,
+        @SerialName("styles") val styles: Int = 0,
+        @SerialName("colours") val colours: List<Int> = emptyList(),
+    )
+
+    /**
      * One attachment option on the Ammu-Nation page. `bone` is the
      * game's own attachBone id — the UI groups options with the same
      * bone into one slot (clip / scope / muzzle / grip / finish).
@@ -470,6 +509,32 @@ data class ArmoryGroup(
  * on "error" (e.g. "archives not found", "wtd decode pending: see
  * ThorBridge.log"). [game] is "4" for GTA IV and "5" for GTA V.
  */
+/**
+ * The latest Wardrobe catalogue the plugin published for the current
+ * ped. The repository decodes a `wardrobe` frame into one of these
+ * for the Wardrobe screen to read.
+ *
+ * [ver] bumps on every change (catalogue refresh, piece write, outfit
+ * apply, reset, ped-model change). The screen keyes its highlight off
+ * the frame only — never off the tap — so a refusal never leaves the
+ * UI in a state the game is not actually in.
+ *
+ * [pedModel] is the game's model hash for the ped at walk start;
+ * presets stored on the phone are keyed by `(game, model)` so a
+ * loadout saved as Michael never shows up on Franklin.
+ *
+ * [character] is 0..2 for Michael/Franklin/Trevor, -1 for anyone else
+ * (director mode, skin mods, cutscene peds). The screen uses this
+ * only for the title bar — the pieces, counts and current indices
+ * come from [pieces] regardless.
+ */
+data class Wardrobe(
+    val ver: Int,
+    val pedModel: Long,
+    val character: Int,
+    val pieces: List<GameState.WardrobeSlot>,
+)
+
 data class AtlasProgress(
     val game: String,
     val state: String,

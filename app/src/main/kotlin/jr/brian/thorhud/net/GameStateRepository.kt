@@ -5,6 +5,7 @@ import jr.brian.thorhud.model.ArmoryGroup
 import jr.brian.thorhud.model.AtlasProgress
 import jr.brian.thorhud.model.GameState
 import jr.brian.thorhud.model.Mods
+import jr.brian.thorhud.model.Wardrobe
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -67,6 +68,14 @@ class GameStateRepository @Inject constructor(
     private val _armory = MutableStateFlow<Armory?>(null)
     val armory: StateFlow<Armory?> = _armory.asStateFlow()
 
+    // Latest Wardrobe catalogue from the plugin. Null until the user
+    // long-presses the character-name card and the plugin sends the
+    // first wardrobe frame; cleared on hello (new game) or when the
+    // player enters a vehicle (set_piece / apply_outfit refuse in a
+    // car in v1, so the sheet must close too).
+    private val _wardrobe = MutableStateFlow<Wardrobe?>(null)
+    val wardrobe: StateFlow<Wardrobe?> = _wardrobe.asStateFlow()
+
     // Atlas extractor progress: null while the plugin has sent no
     // atlas frame this session. Updated on every "atlas" frame; the
     // UI watches `state` for scanning / reading / sending / done /
@@ -104,6 +113,7 @@ class GameStateRepository @Inject constructor(
             _blips.value = emptyList()
             _mods.value = null
             _armory.value = null
+            _wardrobe.value = null
             _ack.value = null
             _last.value = GameState.WAITING
             _lastUpdateMs.value = 0L
@@ -123,7 +133,12 @@ class GameStateRepository @Inject constructor(
             // page the plugin walked for them on foot. The plugin's
             // own apply refuses in-vehicle too, so dropping ours is
             // belt-and-braces.
-            if (frame.inVehicle) _armory.value = null
+            if (frame.inVehicle) {
+                _armory.value = null
+                // Wardrobe writes also refuse in-vehicle in v1, so
+                // the sheet is closed the same way the plugin would.
+                _wardrobe.value = null
+            }
         }
         if (frame.isAck) _ack.value = frame
         if (frame.isStations) _stations.value = frame.stations
@@ -168,6 +183,19 @@ class GameStateRepository @Inject constructor(
             }
         }
         if (frame.isArmory) _armory.value = frame.toArmory()
+        if (frame.isWardrobe) {
+            // Zero-piece frame means the plugin dropped its catalogue
+            // (ped-model change / on-vehicle). The screen uses null to
+            // mean "ask for a fresh list" so the one-tap flow still works.
+            _wardrobe.value = if (frame.wardrobePieces.isNotEmpty()) {
+                Wardrobe(
+                    ver = frame.listVersion ?: 0,
+                    pedModel = frame.wardrobePedModel ?: 0L,
+                    character = frame.character ?: -1,
+                    pieces = frame.wardrobePieces,
+                )
+            } else null
+        }
         if (frame.isAtlas) {
             _atlas.value = AtlasProgress(
                 game = frame.game.orEmpty(),
@@ -301,6 +329,18 @@ class GameStateRepository @Inject constructor(
         val packed = ((widx and 0xFFFF).toLong() shl 16) or (action and 0xFFFF).toLong()
         return client.send("set_ammo", packed)
     }
+
+    /** GTA V (and later IV) Wardrobe. See
+     *  [jr.brian.thorhud.net.commandFrame] for the arg-key mapping and
+     *  asi-v/src/wardrobe.cpp for the plugin side. The sheet calls
+     *  [requestWardrobe] on open; the plugin walks + publishes a frame
+     *  with a bumped ver. [setPiece] + [applyOutfit] + [resetOutfit]
+     *  each refresh the catalogue after the write. */
+    suspend fun requestWardrobe(): Int? = client.send("wardrobe_list", 0L)
+    suspend fun setPiece(piece: Long): Int? = client.send("set_piece", piece)
+    suspend fun applyOutfit(parts: List<Long>): Int? =
+        client.sendInts("apply_outfit", parts)
+    suspend fun resetOutfit(): Int? = client.send("reset_outfit", 0L)
 
     /** Force a reconnect to the plugin; see [GameStateClient.reconnect]. */
     fun reconnect() = client.reconnect()

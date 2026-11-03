@@ -176,6 +176,31 @@ class GameStateClient @Inject constructor() {
         }
     }
 
+    /** Int-array variant for commands that carry an unsigned-int
+     *  list (apply_outfit today). Returns the assigned id, or null on
+     *  disconnect / malformed input (see [commandFrameInts]). */
+    suspend fun sendInts(name: String, args: List<Long>): Int? =
+        withContext(Dispatchers.IO) {
+            val out = currentOut ?: return@withContext null
+            val id = cmdId.incrementAndGet()
+            val line = commandFrameInts(id, name, args)
+            if (line == null) {
+                Log.w(TAG, "cmd $name not sent: args list rejected")
+                return@withContext null
+            }
+            writeMutex.withLock {
+                try {
+                    out.write(line.toByteArray(Charsets.UTF_8))
+                    out.flush()
+                    Log.i(TAG, "sent cmd id=$id name=$name args=${args.size} ints")
+                    id
+                } catch (t: Throwable) {
+                    Log.w(TAG, "send failed: ${t.message}")
+                    null
+                }
+            }
+        }
+
     /** Send a command whose args are two world coordinates ("x" + "y"),
      *  used by waypoint_xy. Returns the assigned id or null when
      *  disconnected. */

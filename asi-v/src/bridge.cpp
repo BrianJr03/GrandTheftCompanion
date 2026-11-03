@@ -312,8 +312,12 @@ int format_armory(char* buf, size_t cap, const snapshot::Armory& a) {
 // for Michael/Franklin/Trevor, -1 for anyone else).
 int format_wardrobe(char* buf, size_t cap, const snapshot::Wardrobe& w) {
     Out o{buf, cap, 0, false};
+    // Key is "pieces" rather than "slots" because the mods frame
+    // already uses "slots" for its own row list and the app's single
+    // GameState model would see them as colliding @SerialName fields
+    // if both frames used the same key.
     o.add("{\"v\":1,\"type\":\"wardrobe\",\"game\":\"v\",\"ver\":%u,"
-          "\"model\":%u,\"character\":%d,\"slots\":[",
+          "\"model\":%u,\"character\":%d,\"pieces\":[",
           w.ver, w.ped_model, static_cast<int>(w.character));
     for (uint32_t i = 0; i < w.n_slots; ++i) {
         const snapshot::WardrobeSlot& s = w.slots[i];

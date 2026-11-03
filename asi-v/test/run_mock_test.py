@@ -930,7 +930,7 @@ def test_wardrobe():
         if phase == 0:
             phase = 1
             s.send_cmd(1, "wardrobe_list", "v", 0)
-        elif phase == 1 and wardrobe_frames and wardrobe_frames[-1].get("slots"):
+        elif phase == 1 and wardrobe_frames and wardrobe_frames[-1].get("pieces"):
             phase = 2
             # Component slot 3 (torso): drawable 2, texture 3 -> valid.
             s.send_cmd(2, "set_piece", "piece",
@@ -975,7 +975,7 @@ def test_wardrobe():
     first = wardrobe_frames[0] if wardrobe_frames else {}
     check(first.get("character") == 0,
           "first wardrobe frame: character == 0 (Michael)")
-    slot_by = {(s["slot"], s["prop"]): s for s in first.get("slots", [])}
+    slot_by = {(s["slot"], s["prop"]): s for s in first.get("pieces", [])}
     check((3, False) in slot_by and (4, False) in slot_by
           and (11, False) in slot_by,
           "component slots 3, 4, 11 published (keys=%s)"
@@ -1016,7 +1016,7 @@ def test_wardrobe():
     # The last frame must reflect the final state: reset_outfit zeroed
     # every component and cleared every prop.
     last = wardrobe_frames[-1] if wardrobe_frames else {}
-    last_by = {(s["slot"], s["prop"]): s for s in last.get("slots", [])}
+    last_by = {(s["slot"], s["prop"]): s for s in last.get("pieces", [])}
     for (slot, is_prop), s in last_by.items():
         if is_prop:
             check(s.get("cur") == -1,

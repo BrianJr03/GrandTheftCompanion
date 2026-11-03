@@ -4,6 +4,13 @@ package jr.brian.thorhud.net
 private const val MAX_U32 = 0xFFFFFFFFL
 
 /**
+ * Largest `parts` array either plugin accepts for an int-array command
+ * (apply_outfit today). Must match asi-v/src/commands.h kMaxParts;
+ * both sides reject bigger arrays as malformed.
+ */
+internal const val MAX_PARTS = 24
+
+/**
  * One client->server command line, newline included, in the wire format
  * both plugins parse (asi/src/bridge.cpp, asi-v/src/bridge.cpp):
  *
@@ -63,6 +70,11 @@ private fun argKey(name: String): String = when (name) {
     "set_xenon_colour"      -> "index"         // 0xFFFFFFFF = default blue
     "set_bulletproof_tyres" -> "on"            // 0 / 1
     "mods_list"             -> "v"             // numeric placeholder, ignored
+    // Wardrobe (GTA V, later IV). Keys match asi-v/src/wardrobe.cpp's
+    // parser; wardrobe_list and reset_outfit carry a placeholder int.
+    "wardrobe_list"         -> "v"
+    "set_piece"             -> "piece"
+    "reset_outfit"          -> "v"
     // Ammu-Nation (GTA V only). armory_list carries the weapon hash;
     // the set_* commands pack (widx<<16)|payload into one u32 slot.
     "armory_list"           -> "weapon"
@@ -70,6 +82,30 @@ private fun argKey(name: String): String = when (name) {
     "set_weapon_tint"       -> "arg"
     "set_ammo"              -> "arg"
     else                    -> "value"         // route_clear / blip_census ignore it
+}
+
+/**
+ * Int-array variant for commands that carry an unsigned-int list
+ * rather than one number. Used by `apply_outfit`; the plugin parses
+ * `"parts":[u, u, u ...]` with the same rules both sides enforce
+ * (ints only, length <= [MAX_PARTS], all values fit u32).
+ *
+ * Returns null on any violation so the client never ships a line the
+ * plugin would reject anyway: empty list, too many parts, or a value
+ * that overflows u32.
+ */
+internal fun commandFrameInts(id: Int, name: String, args: List<Long>): String? {
+    if (args.isEmpty() || args.size > MAX_PARTS) return null
+    if (args.any { it !in 0..MAX_U32 }) return null
+    val joined = args.joinToString(",")
+    return "{\"v\":1,\"type\":\"cmd\",\"id\":$id,\"name\":\"$name\"," +
+            "\"args\":{\"${intArrayKey(name)}\":[$joined]}}\n"
+}
+
+/** JSON key the plugin's int-array parser expects for a given command. */
+private fun intArrayKey(name: String): String = when (name) {
+    "apply_outfit" -> "parts"
+    else            -> "parts"
 }
 
 /**
