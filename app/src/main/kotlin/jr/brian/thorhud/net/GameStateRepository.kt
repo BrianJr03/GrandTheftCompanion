@@ -287,6 +287,13 @@ class GameStateRepository @Inject constructor(
     suspend fun spawnVehicle(modelHash: Long): Int? =
         client.send("spawn_vehicle", modelHash)
 
+    /** GTA V trainer teleport library. [presetIndex] is the index
+     *  into app TeleportLocations.ALL; the plugin keeps a mirror
+     *  table and reads coords from its own copy (so coords never
+     *  travel over the wire). */
+    suspend fun teleportPreset(presetIndex: Int): Int? =
+        client.send("teleport_preset", presetIndex.toLong() and 0xFFFFFFFFL)
+
     /** GTA V only: paint the current vehicle's two custom-colour layers
      *  to the exact RGB packed in [packed] as 0x00RRGGBB. GTA IV refuses
      *  the command with "not in this game"; the paint section in the UI

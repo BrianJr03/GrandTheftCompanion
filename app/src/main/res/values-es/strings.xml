@@ -272,6 +272,7 @@
     <string name="cheat_73_random_plane">aparecer avión</string>
     <string name="cheat_74_random_heli">aparecer heli</string>
     <string name="cheat_75_portal">portal</string>
+    <string name="cheat_76_teleport_waypoint">teletransportar al punto</string>
 
     <string name="trainer_open_time">ajustar hora</string>
     <string name="trainer_open_weather">ajustar clima</string>
@@ -285,6 +286,10 @@
     <string name="trainer_vehicles_search_hint">busca modelo o etiqueta…</string>
     <string name="trainer_vehicles_all">todos</string>
     <string name="trainer_vehicles_empty">ningún vehículo coincide</string>
+    <string name="trainer_open_teleports">teletransportar</string>
+    <string name="trainer_teleports_title">lugares de teletransporte</string>
+    <string name="trainer_teleports_subtitle">elige un destino</string>
+    <string name="trainer_teleports_all">todos</string>
 
     <string name="cheat_60_respray">repintar</string>
     <string name="cheat_61_next_color">siguiente color</string>

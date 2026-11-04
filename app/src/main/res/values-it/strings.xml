@@ -272,6 +272,7 @@
     <string name="cheat_73_random_plane">spawn aereo</string>
     <string name="cheat_74_random_heli">spawn elicottero</string>
     <string name="cheat_75_portal">portale</string>
+    <string name="cheat_76_teleport_waypoint">teletrasporto al waypoint</string>
 
     <string name="trainer_open_time">imposta ora</string>
     <string name="trainer_open_weather">imposta meteo</string>
@@ -285,6 +286,10 @@
     <string name="trainer_vehicles_search_hint">cerca modello o etichetta…</string>
     <string name="trainer_vehicles_all">tutti</string>
     <string name="trainer_vehicles_empty">nessun veicolo corrisponde</string>
+    <string name="trainer_open_teleports">teletrasporto</string>
+    <string name="trainer_teleports_title">luoghi di teletrasporto</string>
+    <string name="trainer_teleports_subtitle">scegli una destinazione</string>
+    <string name="trainer_teleports_all">tutti</string>
 
     <string name="cheat_60_respray">riverniciare</string>
     <string name="cheat_61_next_color">colore successivo</string>

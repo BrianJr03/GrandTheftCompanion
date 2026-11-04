@@ -272,6 +272,7 @@
     <string name="cheat_73_random_plane">заспавнить самолёт</string>
     <string name="cheat_74_random_heli">заспавнить вертолёт</string>
     <string name="cheat_75_portal">портал</string>
+    <string name="cheat_76_teleport_waypoint">телепорт к метке</string>
 
     <string name="trainer_open_time">настроить время</string>
     <string name="trainer_open_weather">настроить погоду</string>
@@ -285,6 +286,10 @@
     <string name="trainer_vehicles_search_hint">найти модель или метку…</string>
     <string name="trainer_vehicles_all">все</string>
     <string name="trainer_vehicles_empty">нет транспорта по фильтру</string>
+    <string name="trainer_open_teleports">телепорт</string>
+    <string name="trainer_teleports_title">места телепорта</string>
+    <string name="trainer_teleports_subtitle">выберите точку</string>
+    <string name="trainer_teleports_all">все</string>
 
     <string name="cheat_60_respray">перекрасить</string>
     <string name="cheat_61_next_color">след. цвет</string>

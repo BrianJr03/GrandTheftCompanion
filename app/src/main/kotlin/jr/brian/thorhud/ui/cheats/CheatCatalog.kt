@@ -213,6 +213,8 @@ internal val CHEATS: List<CheatDef> = listOf(
              labelRes = R.string.cheat_74_random_heli),
     CheatDef(75, isToggle = false, games = CHEAT_V,    category = CheatCategory.Trainer,
              labelRes = R.string.cheat_75_portal),
+    CheatDef(76, isToggle = false, games = CHEAT_V,    category = CheatCategory.Trainer,
+             labelRes = R.string.cheat_76_teleport_waypoint),
 )
 
 /** Cheats the current game supports, grouped by category and

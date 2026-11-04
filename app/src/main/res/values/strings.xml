@@ -91,6 +91,7 @@
     <string name="cheat_73_random_plane">spawn plane</string>
     <string name="cheat_74_random_heli">spawn heli</string>
     <string name="cheat_75_portal">portal</string>
+    <string name="cheat_76_teleport_waypoint">teleport waypoint</string>
 
     <!-- Trainer pickers (V-only). The two sheets open from the Trainer
          section of the cheats tab; their labels + strings live here
@@ -109,6 +110,10 @@
     <string name="trainer_vehicles_search_hint">search model or label…</string>
     <string name="trainer_vehicles_all">all</string>
     <string name="trainer_vehicles_empty">no vehicles match that filter</string>
+    <string name="trainer_open_teleports">teleport</string>
+    <string name="trainer_teleports_title">teleport locations</string>
+    <string name="trainer_teleports_subtitle">pick a destination</string>
+    <string name="trainer_teleports_all">all</string>
 
     <!-- Paint one-shots (both games). Palette-index moves. -->
     <string name="cheat_60_respray">respray</string>

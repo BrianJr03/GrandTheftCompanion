@@ -313,6 +313,20 @@ internal class CheatsViewModel @Inject constructor(
         }
     }
 
+    /** GTA V trainer teleport library. [presetIndex] is the index
+     *  into TeleportLocations.ALL; the plugin reads coords from its
+     *  mirror table. Shares the picker pending slot. */
+    fun teleportPreset(presetIndex: Int) {
+        pending?.cancel()
+        _result.value = CheatResult(TRAINER_PICKER_PENDING_ID)
+        pending = viewModelScope.launch {
+            val id = repository.teleportPreset(presetIndex)
+            val error = awaitAckOrError(id)
+            _result.value = if (error == null) null
+                            else CheatResult(TRAINER_PICKER_PENDING_ID, error)
+        }
+    }
+
     private suspend fun awaitAckOrError(cmdId: Int?): String? {
         val ack = if (cmdId == null) null
                   else withTimeoutOrNull(ACK_TIMEOUT_MS.milliseconds) {

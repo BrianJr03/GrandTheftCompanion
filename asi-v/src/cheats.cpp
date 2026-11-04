@@ -79,6 +79,42 @@ const char* const kTrainerWeatherNames[kTrainerWeatherCount] = {
     "SNOWLIGHT",  "XMAS",
 };
 
+// 30 Trainer teleport locations. Wire index == array index. Kept
+// in sync with app TeleportLocations.ALL; see the Kotlin file for
+// what each index names.
+const TeleportPreset kTeleportPresets[kTeleportPresetCount] = {
+    { -816.0f,  177.0f,   72.0f },   // 0  Michael's House
+    { -17.0f,   -1444.0f, 31.0f },   // 1  Franklin's Aunt
+    { 7.0f,     536.0f,   175.0f },  // 2  Franklin's Mansion
+    { -1850.0f, -1248.0f, 8.0f },    // 3  Del Perro Pier
+    { -1600.0f, -1050.0f, 13.0f },   // 4  Vespucci Beach
+    { 193.0f,   -934.0f,  30.0f },   // 5  Legion Square
+    { 215.0f,   219.0f,   106.0f },  // 6  Downtown LS
+    { -75.0f,   -818.0f,  326.0f },  // 7  Maze Bank Rooftop
+    { 7.0f,     -680.0f,  32.0f },   // 8  Union Depository
+    { 240.0f,   220.0f,   106.0f },  // 9  Pacific Standard
+    { -1086.0f, -2708.0f, 13.0f },   // 10 LS Airport
+    { -1281.0f, -706.0f,  24.0f },   // 11 Del Perro Plaza
+    { -716.0f,  -158.0f,  36.0f },   // 12 Rockford Plaza
+    { 426.0f,   -980.0f,  30.0f },   // 13 Mission Row PD
+    { 1972.0f,  3817.0f,  33.0f },   // 14 Trevor's Trailer
+    { 1961.0f,  3740.0f,  32.0f },   // 15 Sandy Shores
+    { 1748.0f,  3273.0f,  41.0f },   // 16 Sandy Shores Airstrip
+    { 1700.0f,  4647.0f,  42.0f },   // 17 Grapeseed
+    { -275.0f,  6227.0f,  31.0f },   // 18 Paleto Bay
+    { -443.0f,  6013.0f,  31.0f },   // 19 Paleto Sheriff
+    { 920.0f,   3600.0f,  30.0f },   // 20 Alamo Sea Pier
+    { 3444.0f,  5172.0f,  20.0f },   // 21 Mt Gordo Lighthouse
+    { 1984.0f,  3053.0f,  47.0f },   // 22 Yellow Jack Inn
+    { 712.0f,   1197.0f,  353.0f },  // 23 Vinewood Sign
+    { 501.0f,   5604.0f,  797.0f },  // 24 Mt Chiliad Peak
+    { -438.0f,  1081.0f,  352.0f },  // 25 Galileo Observatory
+    { -1587.0f, 2751.0f,  17.0f },   // 26 Fort Zancudo Gate
+    { 3611.0f,  3733.0f,  28.0f },   // 27 Humane Labs
+    { 972.0f,   44.0f,    81.0f },   // 28 Diamond Casino
+    { 3023.0f,  -4650.0f, 15.0f },   // 29 Carrier (SP)
+};
+
 const char* const kErrUnknown        = "unknown cheat";
 const char* const kErrNotInBuild     = "cheat not in this build";
 const char* const kErrNoPed          = "no player ped";
@@ -180,7 +216,7 @@ bool v_knows_one_shot(uint32_t id) {
     case kGiveParachute: case kSkyfall:
     case kRespray: case kNextColour: case kSwapColours:
     case kCustomColour:
-    case kClearArea: case kPortal:
+    case kClearArea: case kPortal: case kTeleportWaypoint:
         return true;
     default:
         return (id >= kSpawnCarFirst && id <= kSpawnCarLast)
@@ -542,6 +578,34 @@ void run_clear_area(int32_t ped) {
                     kClearAreaRadiusM, 1, 0, 0, 0);
 }
 
+// Teleport the player to the current map waypoint, if any. The game
+// writes the waypoint as a blip with the sprite returned by
+// GET_WAYPOINT_BLIP_ENUM_ID. We fetch its coord via
+// GET_BLIP_INFO_ID_COORD; z comes back as 0 for normal map blips, so
+// we lift the target to current ped z + a small headroom so the game
+// resolves ground on the next frame.
+const char* run_teleport_waypoint(int32_t ped) {
+    if (!shv::call_bool(natives::IS_WAYPOINT_ACTIVE)) {
+        return "no waypoint set";
+    }
+    const int32_t sprite = shv::call<int32_t>(
+        natives::GET_WAYPOINT_BLIP_ENUM_ID);
+    int32_t blip = shv::call<int32_t>(
+        natives::GET_FIRST_BLIP_INFO_ID, sprite);
+    if (!shv::call_bool(natives::DOES_BLIP_EXIST, blip)) {
+        return "no waypoint set";
+    }
+    const shv::Vec3 wp = shv::call_vec3(
+        natives::GET_BLIP_INFO_ID_COORD, blip);
+    const shv::Vec3 me = shv::call_vec3(
+        natives::GET_ENTITY_COORDS, ped, 1);
+    // Use the player's current z plus a small lift; the game snaps
+    // the entity onto the ground on the next frame.
+    shv::call<void>(natives::SET_ENTITY_COORDS, ped,
+                    wp.x, wp.y, me.z + 1.0f, 0, 0, 0, 1);
+    return nullptr;
+}
+
 // Teleport the player a few metres along the gameplay camera's
 // forward yaw. Lets them clip through locked doors and short walls.
 // Uses yaw only; pitch tilt is intentional ignored so the destination
@@ -699,7 +763,7 @@ void run(uint32_t id, int32_t player, int32_t ped,
     // whitelisted directly so they go through the one-shot path
     // below. Every other id past kMaxToggle is still unknown.
     const bool is_paint_id   = (id >= kRespray && id <= kCustomColour);
-    const bool is_trainer_id = (id >= kClearArea && id <= kPortal);
+    const bool is_trainer_id = (id >= kClearArea && id <= kTeleportWaypoint);
     if (id > kMaxToggle && !is_paint_id && !is_trainer_id) {
         commands::post_ack(client, cmd_id, false, kErrUnknown);
         return;
@@ -783,6 +847,7 @@ void run(uint32_t id, int32_t player, int32_t ped,
     case kCustomColour:  err = run_custom_colour(ped, s, arg); break;
     case kClearArea:     run_clear_area(ped); break;
     case kPortal:        run_portal(ped); break;
+    case kTeleportWaypoint: err = run_teleport_waypoint(ped); break;
     default:             err = kErrUnknown; break;
     }
 
@@ -862,6 +927,34 @@ const char* begin_spawn_vehicle_hash(uint32_t hash,
     // would not find it because anon-ns members live in an unnamed
     // nested namespace, not in cheats:: directly.
     return begin_spawn_vehicle_hash_internal(hash, client, cmd_id);
+}
+
+bool teleport_preset(uint32_t preset_index, int32_t ped,
+                     char* err, size_t err_size) {
+    if (ped == 0) {
+        if (err && err_size) {
+            std::snprintf(err, err_size, "no player ped");
+        }
+        return false;
+    }
+    if (preset_index >= kTeleportPresetCount) {
+        if (err && err_size) {
+            std::snprintf(err, err_size, "unknown preset %u",
+                          preset_index);
+        }
+        thor_log("[cheat] teleport_preset -> refused (idx=%u)",
+                 preset_index);
+        return false;
+    }
+    const TeleportPreset& p = kTeleportPresets[preset_index];
+    // Lift z by a small constant so the game resolves ground on the
+    // next frame rather than clipping the ped into geometry.
+    shv::call<void>(natives::SET_ENTITY_COORDS, ped,
+                    p.x, p.y, p.z + 1.0f, 0, 0, 0, 1);
+    mark_session_cheated();
+    thor_log("[cheat] teleport_preset -> ok (idx=%u xyz=%.1f,%.1f,%.1f)",
+             preset_index, p.x, p.y, p.z);
+    return true;
 }
 
 bool set_time_of_day(uint32_t hour, char* err, size_t err_size) {

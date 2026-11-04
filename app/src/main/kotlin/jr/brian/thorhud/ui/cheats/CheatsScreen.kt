@@ -104,6 +104,7 @@ internal fun CheatsScreen(
     onSetTime: (Int) -> Unit = {},
     onSetWeather: (Int) -> Unit = {},
     onSpawnVehicle: (Long) -> Unit = {},
+    onTeleportPreset: (Int) -> Unit = {},
     // Paint-to-lights toggle: ViewModel reads GtcSettings so the flip
     // persists across tab changes + launches. V-only; callback null
     // on IV hides the toggle row.
@@ -137,6 +138,7 @@ internal fun CheatsScreen(
     var showTrainerTime by rememberSaveable { mutableStateOf(false) }
     var showTrainerWeather by rememberSaveable { mutableStateOf(false) }
     var showTrainerVehicles by rememberSaveable { mutableStateOf(false) }
+    var showTrainerTeleports by rememberSaveable { mutableStateOf(false) }
     // Explicit Box so the sheets overlay the main Column reliably.
     // The pager page's layout scope allowed multiple siblings before,
     // but ordering + Z-index of a slide-up sheet (AnimatedVisibility
@@ -314,6 +316,7 @@ internal fun CheatsScreen(
                         onOpenTime = { showTrainerTime = true },
                         onOpenWeather = { showTrainerWeather = true },
                         onOpenVehicles = { showTrainerVehicles = true },
+                        onOpenTeleports = { showTrainerTeleports = true },
                     )
                 } else {
                     CheatGrid(
@@ -398,6 +401,14 @@ internal fun CheatsScreen(
         onPick = onSpawnVehicle,
         onDismiss = { showTrainerVehicles = false },
     )
+    TeleportLibrarySheet(
+        visible = showTrainerTeleports,
+        accent = accent,
+        pending = trainerPicking && trainerError == null,
+        error = trainerError,
+        onPick = onTeleportPreset,
+        onDismiss = { showTrainerTeleports = false },
+    )
     }   // Box
 }
 
@@ -420,6 +431,7 @@ private fun TrainerSection(
     onOpenTime: () -> Unit,
     onOpenWeather: () -> Unit,
     onOpenVehicles: () -> Unit,
+    onOpenTeleports: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth(),
            verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -449,12 +461,21 @@ private fun TrainerSection(
                 modifier = Modifier.weight(1f),
             )
         }
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
             TrainerLaunchPill(
                 label = stringResource(R.string.trainer_open_vehicles),
                 accent = accent,
                 onClick = onOpenVehicles,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.weight(1f),
+            )
+            TrainerLaunchPill(
+                label = stringResource(R.string.trainer_open_teleports),
+                accent = accent,
+                onClick = onOpenTeleports,
+                modifier = Modifier.weight(1f),
             )
         }
     }

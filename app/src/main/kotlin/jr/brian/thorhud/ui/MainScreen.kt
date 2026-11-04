@@ -728,6 +728,7 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         onSetTime = cheatsViewModel::setTime,
                                         onSetWeather = cheatsViewModel::setWeather,
                                         onSpawnVehicle = cheatsViewModel::spawnVehicle,
+                                        onTeleportPreset = cheatsViewModel::teleportPreset,
                                         paintToLightsEnabled = paintToLightsEnabled,
                                         onPaintToLightsChange =
                                             viewModel::setPaintToLightsEnabled,

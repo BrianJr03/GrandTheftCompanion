@@ -296,6 +296,14 @@ void drain(int32_t player, int32_t ped, int32_t veh,
             char err[kMaxErrLen] = {0};
             const bool ok = cheats::set_weather(c.arg0, err, sizeof(err));
             post_ack(c.client, c.id, ok, err);
+        } else if (std::strcmp(c.name, "teleport_preset") == 0) {
+            // Trainer teleport library picker. arg0 is the index into
+            // cheats::kTeleportPresets. The plugin reads coords from
+            // its own mirror table so the wire never carries floats.
+            char err[kMaxErrLen] = {0};
+            const bool ok = cheats::teleport_preset(c.arg0, ped,
+                                                    err, sizeof(err));
+            post_ack(c.client, c.id, ok, err);
         } else if (std::strcmp(c.name, "spawn_vehicle") == 0) {
             // Trainer vehicle library picker. arg0 is the joaat hash
             // of the lowercase model name (hashed on the Kotlin

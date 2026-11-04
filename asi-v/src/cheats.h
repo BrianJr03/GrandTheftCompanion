@@ -97,6 +97,7 @@ enum CheatId : uint32_t {
     kRandomPlane       = 73,
     kRandomHeli        = 74,
     kPortal            = 75,
+    kTeleportWaypoint  = 76,
 };
 
 constexpr uint32_t kFirstToggle = 20;
@@ -181,6 +182,22 @@ void run(uint32_t id, int32_t player, int32_t ped,
 //                   uint32) for CLEAR_WEATHER_TYPE_PERSIST.
 bool set_time_of_day(uint32_t hour, char* err, size_t err_size);
 bool set_weather(uint32_t weather_wire, char* err, size_t err_size);
+
+// Teleport to a curated preset. [preset_index] must be in
+// [0, kTeleportPresetCount); coords come from kTeleportPresets so
+// the wire never carries floats. Returns false with a short reason
+// in [err] when the index is out of range or there is no player ped.
+bool teleport_preset(uint32_t preset_index, int32_t ped,
+                     char* err, size_t err_size);
+
+// Count of curated teleport locations, kept in sync with app
+// TeleportLocations.ALL by index order.
+constexpr uint32_t kTeleportPresetCount = 30;
+
+// Packed coord struct for the preset table. Plain floats; no
+// alignment contract with the rest of the plugin.
+struct TeleportPreset { float x, y, z; };
+extern const TeleportPreset kTeleportPresets[kTeleportPresetCount];
 
 // Public forwarder for the anon-namespace begin_spawn_vehicle_hash
 // state-machine entry so the vehicle library sheet can arm it
