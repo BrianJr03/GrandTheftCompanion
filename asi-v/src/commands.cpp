@@ -296,6 +296,22 @@ void drain(int32_t player, int32_t ped, int32_t veh,
             char err[kMaxErrLen] = {0};
             const bool ok = cheats::set_weather(c.arg0, err, sizeof(err));
             post_ack(c.client, c.id, ok, err);
+        } else if (std::strcmp(c.name, "spawn_vehicle") == 0) {
+            // Trainer vehicle library picker. arg0 is the joaat hash
+            // of the lowercase model name (hashed on the Kotlin
+            // side via vJoaat). Posts a deferred ack: the spawn
+            // state machine resolves in cheats::tick and posts the
+            // ack when CREATE_VEHICLE has run (or kErrSpawnTimeout
+            // fires).
+            if (ped == 0) {
+                post_ack(c.client, c.id, false, "no player ped");
+            } else if (const char* why =
+                       cheats::begin_spawn_vehicle_hash(
+                           c.arg0, c.client, c.id)) {
+                post_ack(c.client, c.id, false, why);
+            }
+            // Successful begin: ack is deferred to advance_spawn in
+            // cheats::tick.
         } else if (std::strcmp(c.name, "mods_list") == 0
                 || std::strcmp(c.name, "set_mod") == 0
                 || std::strcmp(c.name, "toggle_mod") == 0

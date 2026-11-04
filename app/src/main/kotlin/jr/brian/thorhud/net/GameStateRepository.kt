@@ -281,6 +281,12 @@ class GameStateRepository @Inject constructor(
     suspend fun setWeather(weatherIndex: Int): Int? =
         client.send("set_weather", weatherIndex.toLong() and 0xFFFFFFFFL)
 
+    /** GTA V trainer vehicle library. [modelHash] is a joaat (via
+     *  vJoaat) of the lowercase model name. Plugin runs the same
+     *  async spawn state machine the curated car ids use. */
+    suspend fun spawnVehicle(modelHash: Long): Int? =
+        client.send("spawn_vehicle", modelHash)
+
     /** GTA V only: paint the current vehicle's two custom-colour layers
      *  to the exact RGB packed in [packed] as 0x00RRGGBB. GTA IV refuses
      *  the command with "not in this game"; the paint section in the UI

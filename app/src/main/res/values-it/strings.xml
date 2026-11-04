@@ -280,6 +280,11 @@
     <string name="trainer_weather_title">imposta meteo</string>
     <string name="trainer_weather_subtitle">scegli un preset, o tocca stock per restituire il controllo al gioco</string>
     <string name="trainer_apply">applica</string>
+    <string name="trainer_open_vehicles">spawn veicolo</string>
+    <string name="trainer_vehicles_title">catalogo veicoli</string>
+    <string name="trainer_vehicles_search_hint">cerca modello o etichetta…</string>
+    <string name="trainer_vehicles_all">tutti</string>
+    <string name="trainer_vehicles_empty">nessun veicolo corrisponde</string>
 
     <string name="cheat_60_respray">riverniciare</string>
     <string name="cheat_61_next_color">colore successivo</string>

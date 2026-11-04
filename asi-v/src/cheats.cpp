@@ -567,7 +567,7 @@ void run_portal(int32_t ped) {
 // not post one itself. Shared by the curated kSpawnCarFirst..Last ids,
 // the random boat/plane/heli trainer ids, and (future) the vehicle
 // library sheet.
-const char* begin_spawn_vehicle_hash(uint32_t hash,
+const char* begin_spawn_vehicle_hash_internal(uint32_t hash,
                                      uint32_t client, uint32_t cmd_id) {
     if (g_spawn.active) return kErrSpawnInProgress;
     if (!shv::call_bool(natives::IS_MODEL_IN_CDIMAGE, hash) ||
@@ -590,7 +590,7 @@ const char* begin_spawn_vehicle_hash(uint32_t hash,
 const char* begin_spawn(uint32_t id, uint32_t client, uint32_t cmd_id) {
     const uint32_t slot = id - kSpawnCarFirst;
     if (slot >= kSpawnCarCount) return kErrUnknown;
-    return begin_spawn_vehicle_hash(joaat(kSpawnCarModels[slot]), client, cmd_id);
+    return begin_spawn_vehicle_hash_internal(joaat(kSpawnCarModels[slot]), client, cmd_id);
 }
 
 // Arm the async spawn state machine for a ped (currently only the
@@ -740,13 +740,13 @@ void run(uint32_t id, int32_t player, int32_t ped,
             why = begin_spawn_ped_hash(
                 pick_random(kCopPedModels, kCopPedCount), client, cmd_id);
         } else if (id == kRandomBoat) {
-            why = begin_spawn_vehicle_hash(
+            why = begin_spawn_vehicle_hash_internal(
                 pick_random(kRandomBoatModels, kRandomBoatCount), client, cmd_id);
         } else if (id == kRandomPlane) {
-            why = begin_spawn_vehicle_hash(
+            why = begin_spawn_vehicle_hash_internal(
                 pick_random(kRandomPlaneModels, kRandomPlaneCount), client, cmd_id);
         } else {
-            why = begin_spawn_vehicle_hash(
+            why = begin_spawn_vehicle_hash_internal(
                 pick_random(kRandomHeliModels, kRandomHeliCount), client, cmd_id);
         }
         if (why) {
@@ -848,6 +848,20 @@ void reset() {
     g_weather_idx = 0;
     g_stat_marked = false;
     g_spawn = Spawn{};
+}
+
+const char* begin_spawn_vehicle_hash(uint32_t hash,
+                                     uint32_t client, uint32_t cmd_id) {
+    // Forwarder to the anon-namespace helper above. Lets
+    // commands::drain arm the spawn state machine directly for the
+    // Trainer vehicle library picker, reusing the exact same async
+    // REQUEST_MODEL -> HAS_MODEL_LOADED -> CREATE_VEHICLE flow the
+    // curated car cheat ids already use.
+    // Unqualified name resolves via the enclosing cheats:: namespace
+    // + anonymous-namespace member lookup; a `::cheats::` qualifier
+    // would not find it because anon-ns members live in an unnamed
+    // nested namespace, not in cheats:: directly.
+    return begin_spawn_vehicle_hash_internal(hash, client, cmd_id);
 }
 
 bool set_time_of_day(uint32_t hour, char* err, size_t err_size) {

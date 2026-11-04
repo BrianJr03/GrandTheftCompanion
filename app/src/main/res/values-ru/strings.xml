@@ -280,6 +280,11 @@
     <string name="trainer_weather_title">настроить погоду</string>
     <string name="trainer_weather_subtitle">выберите пресет или нажмите stock, чтобы вернуть управление игре</string>
     <string name="trainer_apply">применить</string>
+    <string name="trainer_open_vehicles">создать транспорт</string>
+    <string name="trainer_vehicles_title">каталог транспорта</string>
+    <string name="trainer_vehicles_search_hint">найти модель или метку…</string>
+    <string name="trainer_vehicles_all">все</string>
+    <string name="trainer_vehicles_empty">нет транспорта по фильтру</string>
 
     <string name="cheat_60_respray">перекрасить</string>
     <string name="cheat_61_next_color">след. цвет</string>

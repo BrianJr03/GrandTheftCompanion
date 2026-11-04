@@ -104,6 +104,11 @@
     <string name="trainer_weather_title">set weather</string>
     <string name="trainer_weather_subtitle">pick a preset, or tap stock to hand control back to the game</string>
     <string name="trainer_apply">apply</string>
+    <string name="trainer_open_vehicles">spawn vehicle</string>
+    <string name="trainer_vehicles_title">vehicle library</string>
+    <string name="trainer_vehicles_search_hint">search model or label…</string>
+    <string name="trainer_vehicles_all">all</string>
+    <string name="trainer_vehicles_empty">no vehicles match that filter</string>
 
     <!-- Paint one-shots (both games). Palette-index moves. -->
     <string name="cheat_60_respray">respray</string>

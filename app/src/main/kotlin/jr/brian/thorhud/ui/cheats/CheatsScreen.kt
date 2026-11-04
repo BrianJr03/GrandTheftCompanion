@@ -103,6 +103,7 @@ internal fun CheatsScreen(
     // index 0..13 or [TrainerModel.WEATHER_WIRE_CLEAR] for stock.
     onSetTime: (Int) -> Unit = {},
     onSetWeather: (Int) -> Unit = {},
+    onSpawnVehicle: (Long) -> Unit = {},
     // Paint-to-lights toggle: ViewModel reads GtcSettings so the flip
     // persists across tab changes + launches. V-only; callback null
     // on IV hides the toggle row.
@@ -135,6 +136,7 @@ internal fun CheatsScreen(
     // Box overlay at the bottom of CheatsScreen.
     var showTrainerTime by rememberSaveable { mutableStateOf(false) }
     var showTrainerWeather by rememberSaveable { mutableStateOf(false) }
+    var showTrainerVehicles by rememberSaveable { mutableStateOf(false) }
     // Explicit Box so the sheets overlay the main Column reliably.
     // The pager page's layout scope allowed multiple siblings before,
     // but ordering + Z-index of a slide-up sheet (AnimatedVisibility
@@ -311,6 +313,7 @@ internal fun CheatsScreen(
                         onLongPress = onLongPress,
                         onOpenTime = { showTrainerTime = true },
                         onOpenWeather = { showTrainerWeather = true },
+                        onOpenVehicles = { showTrainerVehicles = true },
                     )
                 } else {
                     CheatGrid(
@@ -387,6 +390,14 @@ internal fun CheatsScreen(
         onPick = onSetWeather,
         onDismiss = { showTrainerWeather = false },
     )
+    VehicleLibrarySheet(
+        visible = showTrainerVehicles,
+        accent = accent,
+        pending = trainerPicking && trainerError == null,
+        error = trainerError,
+        onPick = onSpawnVehicle,
+        onDismiss = { showTrainerVehicles = false },
+    )
     }   // Box
 }
 
@@ -408,6 +419,7 @@ private fun TrainerSection(
     onLongPress: (CheatDef) -> Unit,
     onOpenTime: () -> Unit,
     onOpenWeather: () -> Unit,
+    onOpenVehicles: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth(),
            verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -435,6 +447,14 @@ private fun TrainerSection(
                 accent = accent,
                 onClick = onOpenWeather,
                 modifier = Modifier.weight(1f),
+            )
+        }
+        Row(modifier = Modifier.fillMaxWidth()) {
+            TrainerLaunchPill(
+                label = stringResource(R.string.trainer_open_vehicles),
+                accent = accent,
+                onClick = onOpenVehicles,
+                modifier = Modifier.fillMaxWidth(),
             )
         }
     }

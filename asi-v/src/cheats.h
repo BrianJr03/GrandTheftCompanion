@@ -182,6 +182,14 @@ void run(uint32_t id, int32_t player, int32_t ped,
 bool set_time_of_day(uint32_t hour, char* err, size_t err_size);
 bool set_weather(uint32_t weather_wire, char* err, size_t err_size);
 
+// Public forwarder for the anon-namespace begin_spawn_vehicle_hash
+// state-machine entry so the vehicle library sheet can arm it
+// directly from commands::drain. Returns an err string on refusal,
+// nullptr when the machine has been armed (ack is then deferred to
+// advance_spawn in cheats::tick).
+const char* begin_spawn_vehicle_hash(uint32_t hash,
+                                     uint32_t client, uint32_t cmd_id);
+
 // Names of the 14 Trainer weather presets, indexed by wire value
 // (0..13). Must stay in sync with
 // app/src/main/kotlin/jr/brian/thorhud/ui/cheats/TrainerModel.kt

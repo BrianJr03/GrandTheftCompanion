@@ -299,6 +299,20 @@ internal class CheatsViewModel @Inject constructor(
         }
     }
 
+    /** GTA V trainer vehicle library. [modelHash] is a joaat of the
+     *  lowercase model name. Shares the picker pending slot with
+     *  setTime / setWeather (only one picker is open at a time). */
+    fun spawnVehicle(modelHash: Long) {
+        pending?.cancel()
+        _result.value = CheatResult(TRAINER_PICKER_PENDING_ID)
+        pending = viewModelScope.launch {
+            val id = repository.spawnVehicle(modelHash)
+            val error = awaitAckOrError(id)
+            _result.value = if (error == null) null
+                            else CheatResult(TRAINER_PICKER_PENDING_ID, error)
+        }
+    }
+
     private suspend fun awaitAckOrError(cmdId: Int?): String? {
         val ack = if (cmdId == null) null
                   else withTimeoutOrNull(ACK_TIMEOUT_MS.milliseconds) {
