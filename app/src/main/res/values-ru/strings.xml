@@ -273,6 +273,14 @@
     <string name="cheat_74_random_heli">заспавнить вертолёт</string>
     <string name="cheat_75_portal">портал</string>
 
+    <string name="trainer_open_time">настроить время</string>
+    <string name="trainer_open_weather">настроить погоду</string>
+    <string name="trainer_time_title">настроить время суток</string>
+    <string name="trainer_time_subtitle">выберите час и нажмите применить</string>
+    <string name="trainer_weather_title">настроить погоду</string>
+    <string name="trainer_weather_subtitle">выберите пресет или нажмите stock, чтобы вернуть управление игре</string>
+    <string name="trainer_apply">применить</string>
+
     <string name="cheat_60_respray">перекрасить</string>
     <string name="cheat_61_next_color">след. цвет</string>
     <string name="cheat_62_swap_colors">поменять цвета</string>

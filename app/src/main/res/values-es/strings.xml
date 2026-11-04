@@ -273,6 +273,14 @@
     <string name="cheat_74_random_heli">aparecer heli</string>
     <string name="cheat_75_portal">portal</string>
 
+    <string name="trainer_open_time">ajustar hora</string>
+    <string name="trainer_open_weather">ajustar clima</string>
+    <string name="trainer_time_title">ajustar hora del día</string>
+    <string name="trainer_time_subtitle">elige una hora y pulsa aplicar</string>
+    <string name="trainer_weather_title">ajustar clima</string>
+    <string name="trainer_weather_subtitle">elige un preset, o pulsa stock para devolver el control al juego</string>
+    <string name="trainer_apply">aplicar</string>
+
     <string name="cheat_60_respray">repintar</string>
     <string name="cheat_61_next_color">siguiente color</string>
     <string name="cheat_62_swap_colors">intercambiar colores</string>

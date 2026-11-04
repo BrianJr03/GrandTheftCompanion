@@ -273,6 +273,14 @@
     <string name="cheat_74_random_heli">spawn elicottero</string>
     <string name="cheat_75_portal">portale</string>
 
+    <string name="trainer_open_time">imposta ora</string>
+    <string name="trainer_open_weather">imposta meteo</string>
+    <string name="trainer_time_title">imposta l\'ora del giorno</string>
+    <string name="trainer_time_subtitle">scegli un\'ora, poi tocca applica</string>
+    <string name="trainer_weather_title">imposta meteo</string>
+    <string name="trainer_weather_subtitle">scegli un preset, o tocca stock per restituire il controllo al gioco</string>
+    <string name="trainer_apply">applica</string>
+
     <string name="cheat_60_respray">riverniciare</string>
     <string name="cheat_61_next_color">colore successivo</string>
     <string name="cheat_62_swap_colors">scambia colori</string>

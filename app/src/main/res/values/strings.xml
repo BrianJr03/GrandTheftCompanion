@@ -92,6 +92,19 @@
     <string name="cheat_74_random_heli">spawn heli</string>
     <string name="cheat_75_portal">portal</string>
 
+    <!-- Trainer pickers (V-only). The two sheets open from the Trainer
+         section of the cheats tab; their labels + strings live here
+         so translators pick up the whole trainer surface at once.
+         Weather preset names themselves are proper nouns kept English
+         inline in TrainerModel.kt. -->
+    <string name="trainer_open_time">set time</string>
+    <string name="trainer_open_weather">set weather</string>
+    <string name="trainer_time_title">set time of day</string>
+    <string name="trainer_time_subtitle">pick an hour, tap apply</string>
+    <string name="trainer_weather_title">set weather</string>
+    <string name="trainer_weather_subtitle">pick a preset, or tap stock to hand control back to the game</string>
+    <string name="trainer_apply">apply</string>
+
     <!-- Paint one-shots (both games). Palette-index moves. -->
     <string name="cheat_60_respray">respray</string>
     <string name="cheat_61_next_color">next color</string>

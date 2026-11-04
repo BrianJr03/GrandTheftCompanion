@@ -97,6 +97,12 @@ internal fun CheatsScreen(
     onRunCheat: (Int) -> Unit,
     onLongPressOneShot: (Int) -> Boolean,
     onPaintRgb: (Long) -> Unit,
+    // Trainer picker dispatchers. V-only; the Trainer section itself
+    // is hidden on IV (visibleCheats filter), so these never fire
+    // there. [onSetTime] carries an hour 0..23; [onSetWeather] a wire
+    // index 0..13 or [TrainerModel.WEATHER_WIRE_CLEAR] for stock.
+    onSetTime: (Int) -> Unit = {},
+    onSetWeather: (Int) -> Unit = {},
     // Paint-to-lights toggle: ViewModel reads GtcSettings so the flip
     // persists across tab changes + launches. V-only; callback null
     // on IV hides the toggle row.
@@ -124,6 +130,11 @@ internal fun CheatsScreen(
     // path as a swatch tap, so no new plugin code is involved.
     var showColorWheel by rememberSaveable { mutableStateOf(false) }
     var lastWheelPicked by rememberSaveable { mutableStateOf<Long?>(null) }
+    // Trainer picker sheet state. Hoisted here so the color wheel, the
+    // trainer sheets, and the onboarding sheet all live in the same
+    // Box overlay at the bottom of CheatsScreen.
+    var showTrainerTime by rememberSaveable { mutableStateOf(false) }
+    var showTrainerWeather by rememberSaveable { mutableStateOf(false) }
     // Explicit Box so the sheets overlay the main Column reliably.
     // The pager page's layout scope allowed multiple siblings before,
     // but ordering + Z-index of a slide-up sheet (AnimatedVisibility
@@ -289,6 +300,18 @@ internal fun CheatsScreen(
                         paintToLightsEnabled = paintToLightsEnabled,
                         onPaintToLightsChange = if (isGtaV) onPaintToLightsChange else null,
                     )
+                } else if (selected == CheatCategory.Trainer) {
+                    TrainerSection(
+                        items = items,
+                        accent = accent,
+                        pendingId = pendingId,
+                        cheatsMask = cheatsMask,
+                        autoApplyCheats = autoApplyCheats,
+                        onTap = onRunCheat,
+                        onLongPress = onLongPress,
+                        onOpenTime = { showTrainerTime = true },
+                        onOpenWeather = { showTrainerWeather = true },
+                    )
                 } else {
                     CheatGrid(
                         items = items,
@@ -329,8 +352,8 @@ internal fun CheatsScreen(
 
     // The colour wheel. Always composed so the slide-out animation
     // plays on dismiss; `visible` gates whether it is on screen. The
-    // picked RGB rides onPaintRgb — exactly the same wire path a
-    // swatch tap uses, so no new plugin code is involved.
+    // picked RGB rides onPaintRgb; the same wire path a swatch tap
+    // uses, so no new plugin code is involved.
     ColorWheelSheet(
         visible = showColorWheel,
         accent = accent,
@@ -341,7 +364,111 @@ internal fun CheatsScreen(
             onPaintRgb(packed)
         },
     )
+
+    // Trainer pickers. Pending/error for both sheets is derived from
+    // the single [lastResult] slot (ViewModel uses a shared
+    // TRAINER_PICKER_PENDING_ID = -2); only one picker is open at a
+    // time, so sharing the slot cannot confuse the display.
+    val trainerPicking = lastResult?.cheatId == TRAINER_PICKER_PENDING_ID
+    val trainerError = lastResult?.error?.takeIf { lastResult.cheatId == TRAINER_PICKER_PENDING_ID }
+    TrainerTimeSheet(
+        visible = showTrainerTime,
+        accent = accent,
+        pending = trainerPicking && trainerError == null,
+        error = trainerError,
+        onApply = onSetTime,
+        onDismiss = { showTrainerTime = false },
+    )
+    TrainerWeatherSheet(
+        visible = showTrainerWeather,
+        accent = accent,
+        pending = trainerPicking && trainerError == null,
+        error = trainerError,
+        onPick = onSetWeather,
+        onDismiss = { showTrainerWeather = false },
+    )
     }   // Box
+}
+
+/**
+ * Trainer section body. Renders the catalog's 11 Trainer rows (5
+ * toggles + 6 one-shot actions) through the shared [CheatGrid],
+ * followed by a trailing row of two "open picker" pills for the time
+ * and weather sheets. Mirrors [PaintSection]'s shape: catalog grid up
+ * top, feature-specific extras below.
+ */
+@Composable
+private fun TrainerSection(
+    items: List<CheatDef>,
+    accent: Color,
+    pendingId: Int?,
+    cheatsMask: Int?,
+    autoApplyCheats: Set<Int>,
+    onTap: (Int) -> Unit,
+    onLongPress: (CheatDef) -> Unit,
+    onOpenTime: () -> Unit,
+    onOpenWeather: () -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth(),
+           verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        CheatGrid(
+            items = items,
+            accent = accent,
+            pendingId = pendingId,
+            cheatsMask = cheatsMask,
+            autoApplyCheats = autoApplyCheats,
+            onTap = onTap,
+            onLongPress = onLongPress,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            TrainerLaunchPill(
+                label = stringResource(R.string.trainer_open_time),
+                accent = accent,
+                onClick = onOpenTime,
+                modifier = Modifier.weight(1f),
+            )
+            TrainerLaunchPill(
+                label = stringResource(R.string.trainer_open_weather),
+                accent = accent,
+                onClick = onOpenWeather,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+/** Half-width pill that matches a [CheatButton]'s look. Opens a
+ *  trainer picker sheet. Not a cheat (no id, no toggle bit), so it
+ *  does not share CheatDef / pending / toggle plumbing. */
+@Composable
+private fun TrainerLaunchPill(
+    label: String,
+    accent: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(50)
+    Box(
+        modifier = modifier
+            .heightIn(min = 44.dp)
+            .clip(shape)
+            .background(Color.Black)
+            .border(1.dp, accent, shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            color = accent,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 16.sp,
+            maxLines = 2,
+        )
+    }
 }
 
 /**

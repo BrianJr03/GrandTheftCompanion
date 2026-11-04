@@ -725,6 +725,8 @@ fun MainScreen(viewModel: MainViewModel = hiltViewModel()) {
                                         onLongPressOneShot =
                                             cheatsViewModel::toggleAutoApply,
                                         onPaintRgb = cheatsViewModel::paintRgb,
+                                        onSetTime = cheatsViewModel::setTime,
+                                        onSetWeather = cheatsViewModel::setWeather,
                                         paintToLightsEnabled = paintToLightsEnabled,
                                         onPaintToLightsChange =
                                             viewModel::setPaintToLightsEnabled,

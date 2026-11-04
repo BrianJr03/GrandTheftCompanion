@@ -273,6 +273,14 @@
     <string name="cheat_74_random_heli">ヘリ召喚</string>
     <string name="cheat_75_portal">ポータル</string>
 
+    <string name="trainer_open_time">時刻設定</string>
+    <string name="trainer_open_weather">天候設定</string>
+    <string name="trainer_time_title">時刻を設定</string>
+    <string name="trainer_time_subtitle">時間を選び、適用をタップ</string>
+    <string name="trainer_weather_title">天候を設定</string>
+    <string name="trainer_weather_subtitle">プリセットを選ぶか、stockをタップしてゲームに戻す</string>
+    <string name="trainer_apply">適用</string>
+
     <string name="cheat_60_respray">再塗装</string>
     <string name="cheat_61_next_color">次の色</string>
     <string name="cheat_62_swap_colors">色を入れ替え</string>

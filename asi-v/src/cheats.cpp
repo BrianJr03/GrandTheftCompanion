@@ -69,6 +69,16 @@ const char* const kWeatherNames[kWeatherCount] = {
 
 const uint32_t kClockHours[kClockHourCount] = { 6, 12, 18, 0 };
 
+// 14 Trainer weather presets. Wire index == array index. Kept in
+// sync with app TrainerModel.WEATHER_PRESETS; a mismatch would send
+// the wrong preset but not crash (the game clamps unknown names).
+const char* const kTrainerWeatherNames[kTrainerWeatherCount] = {
+    "EXTRASUNNY", "CLEAR",    "CLOUDS",    "SMOG",
+    "FOGGY",      "OVERCAST", "RAIN",      "THUNDER",
+    "CLEARING",   "NEUTRAL",  "SNOW",      "BLIZZARD",
+    "SNOWLIGHT",  "XMAS",
+};
+
 const char* const kErrUnknown        = "unknown cheat";
 const char* const kErrNotInBuild     = "cheat not in this build";
 const char* const kErrNoPed          = "no player ped";
@@ -838,6 +848,47 @@ void reset() {
     g_weather_idx = 0;
     g_stat_marked = false;
     g_spawn = Spawn{};
+}
+
+bool set_time_of_day(uint32_t hour, char* err, size_t err_size) {
+    if (hour > 23u) {
+        if (err && err_size) {
+            std::snprintf(err, err_size, "hour out of range (0..23)");
+        }
+        thor_log("[cheat] set_time -> refused (hour=%u)", hour);
+        return false;
+    }
+    shv::call<void>(natives::SET_CLOCK_TIME,
+                    static_cast<int32_t>(hour), 0, 0);
+    mark_session_cheated();
+    thor_log("[cheat] set_time -> ok (hour=%u)", hour);
+    return true;
+}
+
+bool set_weather(uint32_t weather_wire, char* err, size_t err_size) {
+    // 0xFFFFFFFF arrives from the app as -1 cast to uint32: hand
+    // weather control back to the game. Any index inside 0..13 maps
+    // to a named preset; anything else is refused.
+    if (weather_wire == 0xFFFFFFFFu) {
+        shv::call<void>(natives::CLEAR_WEATHER_TYPE_PERSIST);
+        mark_session_cheated();
+        thor_log("[cheat] set_weather -> ok (stock / cleared)");
+        return true;
+    }
+    if (weather_wire >= kTrainerWeatherCount) {
+        if (err && err_size) {
+            std::snprintf(err, err_size, "unknown weather index %u",
+                          weather_wire);
+        }
+        thor_log("[cheat] set_weather -> refused (idx=%u)", weather_wire);
+        return false;
+    }
+    shv::call<void>(natives::SET_WEATHER_TYPE_NOW_PERSIST,
+                    kTrainerWeatherNames[weather_wire]);
+    mark_session_cheated();
+    thor_log("[cheat] set_weather -> ok (idx=%u name=%s)",
+             weather_wire, kTrainerWeatherNames[weather_wire]);
+    return true;
 }
 
 }  // namespace cheats

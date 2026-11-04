@@ -68,6 +68,14 @@ internal const val CHEAT_BOTH: Int = CHEAT_IV or CHEAT_V
 // kFirstToggle.
 internal const val FIRST_TOGGLE_ID = 20
 
+// Sentinel pending ids for commands that do not carry a catalog id:
+// paint_rgb from the swatch row / color wheel, set_time / set_weather
+// from the Trainer pickers. Negative so a catalog comparison
+// (pendingId == def.id) can never false-positive and grey out a
+// catalog button while one of these is in flight.
+internal const val PAINT_RGB_PENDING_ID = -1
+internal const val TRAINER_PICKER_PENDING_ID = -2
+
 // Catalog order dictates both section placement and within-section
 // placement. CheatsScreen chunks each section's items two-wide, so
 // entries that belong visually paired should land at positions 2k /

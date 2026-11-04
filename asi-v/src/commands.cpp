@@ -278,9 +278,24 @@ void drain(int32_t player, int32_t ped, int32_t veh,
             // same code path as every other id-shaped paint cheat and
             // posts the ack from there. The command name is separate
             // because the one-u32 wire slot is already carrying the
-            // colour — a `cheat` command would need the id there.
+            // colour. A `cheat` command would need the id there.
             cheats::run(cheats::kCustomColour, player, ped, s,
                         c.client, c.id, c.arg0);
+        } else if (std::strcmp(c.name, "set_time") == 0) {
+            // Trainer time-of-day picker. arg0 carries the hour
+            // (0..23); plugin writes SET_CLOCK_TIME(hour, 0, 0).
+            char err[kMaxErrLen] = {0};
+            const bool ok = cheats::set_time_of_day(c.arg0, err, sizeof(err));
+            post_ack(c.client, c.id, ok, err);
+        } else if (std::strcmp(c.name, "set_weather") == 0) {
+            // Trainer weather picker. arg0 is 0..13 for a named
+            // preset per cheats::kTrainerWeatherNames, or 0xFFFFFFFF
+            // (sent as -1 cast to uint32) for
+            // CLEAR_WEATHER_TYPE_PERSIST (hand control back to the
+            // game).
+            char err[kMaxErrLen] = {0};
+            const bool ok = cheats::set_weather(c.arg0, err, sizeof(err));
+            post_ack(c.client, c.id, ok, err);
         } else if (std::strcmp(c.name, "mods_list") == 0
                 || std::strcmp(c.name, "set_mod") == 0
                 || std::strcmp(c.name, "toggle_mod") == 0

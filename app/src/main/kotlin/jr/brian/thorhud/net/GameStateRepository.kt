@@ -272,6 +272,15 @@ class GameStateRepository @Inject constructor(
      *  `cheats_mask` reports the new state. */
     suspend fun runCheat(cheatId: Int): Int? = client.send("cheat", cheatId.toLong())
 
+    /** GTA V trainer picker commands. [hour] is 0..23 and gets written
+     *  with SET_CLOCK_TIME(hour, 0, 0) on the plugin side. [weatherIndex]
+     *  is 0..13 for a named preset, or -1 to send CLEAR_WEATHER_TYPE_
+     *  PERSIST and hand control back to the game. */
+    suspend fun setTime(hour: Int): Int? =
+        client.send("set_time", (hour and 0xFF).toLong())
+    suspend fun setWeather(weatherIndex: Int): Int? =
+        client.send("set_weather", weatherIndex.toLong() and 0xFFFFFFFFL)
+
     /** GTA V only: paint the current vehicle's two custom-colour layers
      *  to the exact RGB packed in [packed] as 0x00RRGGBB. GTA IV refuses
      *  the command with "not in this game"; the paint section in the UI

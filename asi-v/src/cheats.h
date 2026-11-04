@@ -171,6 +171,24 @@ void run(uint32_t id, int32_t player, int32_t ped,
          const snapshot::State& s, uint32_t client, uint32_t cmd_id,
          uint32_t arg = 0);
 
+// Trainer picker entry points. Each returns true on success; on
+// failure, writes a short reason into [err] and returns false.
+// Called synchronously on the script fiber from commands::drain,
+// which forwards the result through commands::post_ack.
+//   [hour]: 0..23. Values outside the range are refused.
+//   [weather_wire]: 0..13 for a named preset per
+//                   kTrainerWeatherNames; 0xFFFFFFFF (==-1 cast to
+//                   uint32) for CLEAR_WEATHER_TYPE_PERSIST.
+bool set_time_of_day(uint32_t hour, char* err, size_t err_size);
+bool set_weather(uint32_t weather_wire, char* err, size_t err_size);
+
+// Names of the 14 Trainer weather presets, indexed by wire value
+// (0..13). Must stay in sync with
+// app/src/main/kotlin/jr/brian/thorhud/ui/cheats/TrainerModel.kt
+// WEATHER_PRESETS by order.
+constexpr uint32_t kTrainerWeatherCount = 14;
+extern const char* const kTrainerWeatherNames[kTrainerWeatherCount];
+
 // Called every tick on the script fiber, after commands::drain. Does
 // three things: re-applies active toggles (per-ped ones use the
 // current ped so a character switch does not clear them, world ones

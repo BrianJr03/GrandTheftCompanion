@@ -273,6 +273,14 @@
     <string name="cheat_74_random_heli">faire apparaître hélico</string>
     <string name="cheat_75_portal">portail</string>
 
+    <string name="trainer_open_time">régler l\'heure</string>
+    <string name="trainer_open_weather">régler la météo</string>
+    <string name="trainer_time_title">régler l\'heure du jour</string>
+    <string name="trainer_time_subtitle">choisis une heure, puis appuie sur appliquer</string>
+    <string name="trainer_weather_title">régler la météo</string>
+    <string name="trainer_weather_subtitle">choisis un préréglage, ou appuie sur stock pour rendre le contrôle au jeu</string>
+    <string name="trainer_apply">appliquer</string>
+
     <string name="cheat_60_respray">repeindre</string>
     <string name="cheat_61_next_color">couleur suivante</string>
     <string name="cheat_62_swap_colors">échanger couleurs</string>
