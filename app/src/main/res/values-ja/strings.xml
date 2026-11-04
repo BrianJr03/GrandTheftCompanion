@@ -290,6 +290,14 @@
     <string name="trainer_teleports_title">テレポート地点</string>
     <string name="trainer_teleports_subtitle">目的地を選択</string>
     <string name="trainer_teleports_all">すべて</string>
+    <string name="trainer_open_objects">オブジェクト召喚</string>
+    <string name="trainer_objects_title">オブジェクトスポナー</string>
+    <string name="trainer_objects_subtitle">プレイヤーの前に出現</string>
+    <string name="trainer_objects_all">すべて</string>
+    <string name="trainer_open_anims">アニメ再生</string>
+    <string name="trainer_anims_title">アニメーションライブラリ</string>
+    <string name="trainer_anims_subtitle">プレイヤーに一度だけ再生</string>
+    <string name="trainer_anims_all">すべて</string>
 
     <string name="cheat_60_respray">再塗装</string>
     <string name="cheat_61_next_color">次の色</string>

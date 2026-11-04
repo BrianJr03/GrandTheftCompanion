@@ -79,6 +79,46 @@ const char* const kTrainerWeatherNames[kTrainerWeatherCount] = {
     "SNOWLIGHT",  "XMAS",
 };
 
+// 30 Trainer animation presets. Wire index == array index. Kept in
+// sync with app AnimationLibrary.ALL. Each entry is (dict, name)
+// looked up by the plugin; the client sends only the index.
+const AnimEntry kAnimationList[kAnimationCount] = {
+    // Gestures
+    { "friends@frj@ig_1",            "wave_a" },           // 0  Wave
+    { "friends@fra@ig_1",            "wave_c" },           // 1  Salute
+    { "gestures@m@standing@casual",  "gesture_point" },    // 2  Point
+    { "gestures@m@standing@casual",  "gesture_bye_hard" }, // 3  Thumbs Up
+    { "gestures@m@standing@casual",  "gesture_yes_hard" }, // 4  Nod Yes
+    { "gestures@m@standing@casual",  "gesture_no_way_hard" }, // 5 Shake Head No
+    { "gestures@m@standing@casual",  "gesture_shrug_hard" }, // 6 Shrug
+    { "gestures@m@standing@casual",  "gesture_come_here_hard" }, // 7 Beckon
+    // Dances
+    { "amb@world_human_party_dancing@female@idle_a", "idle_a" }, // 8  Dance (solo)
+    { "misschinese2_crystalmazemcs1_ig",             "low_energy_dance_mcs_1_jimmy" }, // 9
+    { "mini@strip_club@idles@stripper",              "stripper_idle_02" }, // 10
+    { "mini@strip_club@idles@stripper",              "stripper_idle_04" }, // 11
+    { "facials@gen_male@base",                       "pain_1" }, // 12 Dance Facial (stand-in)
+    // Reactions
+    { "facials@gen_male@base", "laugh_1" },               // 13 Laugh
+    { "facials@gen_male@base", "crying_1" },              // 14 Cry
+    { "facials@gen_male@base", "mood_angry_1" },          // 15 Angry
+    { "facials@gen_male@base", "mood_scared_1" },         // 16 Scared
+    { "facials@gen_male@base", "mood_happy_1" },          // 17 Happy
+    { "facials@gen_male@base", "surprised_1" },           // 18 Surprised
+    { "amb@world_human_muscle_flex@arms_in_front@base",  "base" }, // 19 Flex
+    { "amb@world_human_push_ups@male@idle_a",            "idle_a" }, // 20 Push Up Start
+    { "anim@mp_player_intcelebrationmale@finger_wag",    "finger_wag" }, // 21 Finger Wag
+    // Idles
+    { "cellphone@",                     "cellphone_call_listen_base" }, // 22 Phone Call
+    { "amb@world_human_smoking@male@male_a@base", "base" },             // 23 Smoke
+    { "amb@world_human_drinking@beer@male@base",  "base" },             // 24 Drink Beer
+    { "amb@world_human_hang_out_street@male_a@base", "base" },          // 25 Hands on Hips
+    { "amb@world_human_hang_out_street@female_arms_crossed@base", "base" }, // 26 Cross Arms
+    { "amb@world_human_leaning@male@wall@back@mobile@base", "base" },   // 27 Lean on Wall
+    { "amb@world_human_picnic@male@base", "base" },                     // 28 Sit on Ground
+    { "amb@world_human_stand_impatient@male@no_sign@base", "base" },    // 29 Stretch
+};
+
 // 30 Trainer teleport locations. Wire index == array index. Kept
 // in sync with app TeleportLocations.ALL; see the Kotlin file for
 // what each index names.
@@ -142,6 +182,7 @@ bool     g_rand_seeded = false;
 enum SpawnKind : uint8_t {
     kSpawnVehicle,
     kSpawnPed,
+    kSpawnObject,
 };
 
 // Pending async spawn. One at a time; a second tap while one is
@@ -657,6 +698,27 @@ const char* begin_spawn(uint32_t id, uint32_t client, uint32_t cmd_id) {
     return begin_spawn_vehicle_hash_internal(joaat(kSpawnCarModels[slot]), client, cmd_id);
 }
 
+// Arm the async spawn state machine for a world object (prop,
+// barrier, etc). CREATE_OBJECT takes the usual Hash model + xyz +
+// three flags. No IS_MODEL_A_VEHICLE check; many props fail that
+// but still create cleanly.
+const char* begin_spawn_object_hash_internal(uint32_t hash,
+                                             uint32_t client, uint32_t cmd_id) {
+    if (g_spawn.active) return kErrSpawnInProgress;
+    if (!shv::call_bool(natives::IS_MODEL_IN_CDIMAGE, hash)) {
+        return kErrModelBad;
+    }
+    shv::call<void>(natives::REQUEST_MODEL, hash);
+    g_spawn.active = true;
+    g_spawn.kind = kSpawnObject;
+    g_spawn.model = hash;
+    g_spawn.client = client;
+    g_spawn.cmd_id = cmd_id;
+    g_spawn.deadline_ms = GetTickCount64() + kSpawnTimeoutMs;
+    thor_log("[cheat] spawn object 0x%08X requested", hash);
+    return nullptr;
+}
+
 // Arm the async spawn state machine for a ped (currently only the
 // random-cop trainer id). Same deferred-ack contract as the vehicle
 // path.
@@ -723,6 +785,15 @@ void advance_spawn(int32_t ped) {
         shv::call<void>(natives::SET_MODEL_AS_NO_LONGER_NEEDED, g_spawn.model);
         thor_log("[cheat] spawn vehicle 0x%08X -> ok (veh=%d)",
                  g_spawn.model, veh);
+    } else if (g_spawn.kind == kSpawnObject) {
+        const int32_t obj = shv::call<int32_t>(natives::CREATE_OBJECT,
+                                               g_spawn.model, sx, sy, c.z,
+                                               0, 1, 1);
+        int32_t obj_handle = obj;
+        shv::call<void>(natives::SET_OBJECT_AS_NO_LONGER_NEEDED, &obj_handle);
+        shv::call<void>(natives::SET_MODEL_AS_NO_LONGER_NEEDED, g_spawn.model);
+        thor_log("[cheat] spawn object 0x%08X -> ok (obj=%d)",
+                 g_spawn.model, obj);
     } else {
         const int32_t new_ped = shv::call<int32_t>(natives::CREATE_PED,
                                                    kPedTypeCop, g_spawn.model,
@@ -927,6 +998,52 @@ const char* begin_spawn_vehicle_hash(uint32_t hash,
     // would not find it because anon-ns members live in an unnamed
     // nested namespace, not in cheats:: directly.
     return begin_spawn_vehicle_hash_internal(hash, client, cmd_id);
+}
+
+const char* begin_spawn_object_hash(uint32_t hash,
+                                    uint32_t client, uint32_t cmd_id) {
+    // Mirror of begin_spawn_vehicle_hash for props / world objects.
+    return begin_spawn_object_hash_internal(hash, client, cmd_id);
+}
+
+bool play_anim(uint32_t anim_index, int32_t ped,
+               char* err, size_t err_size) {
+    if (ped == 0) {
+        if (err && err_size) {
+            std::snprintf(err, err_size, "no player ped");
+        }
+        return false;
+    }
+    if (anim_index >= kAnimationCount) {
+        if (err && err_size) {
+            std::snprintf(err, err_size, "unknown anim %u", anim_index);
+        }
+        return false;
+    }
+    const AnimEntry& a = kAnimationList[anim_index];
+    // Request + wait up to 200 ms on this tick. Script Hook V drains
+    // on the fiber, so this block does not stall the main game
+    // thread; it only costs this tick's time slice.
+    shv::call<void>(natives::REQUEST_ANIM_DICT, a.dict);
+    const uint64_t deadline = GetTickCount64() + 200;
+    while (!shv::call_bool(natives::HAS_ANIM_DICT_LOADED, a.dict)) {
+        if (GetTickCount64() > deadline) {
+            if (err && err_size) {
+                std::snprintf(err, err_size, "anim dict load timed out");
+            }
+            return false;
+        }
+    }
+    // Flags: 1 = loop? Actually see NativeDB. 0 = default. Use -1 for
+    // duration = loop until clear, speed = 8.0f feel natural.
+    shv::call<void>(natives::CLEAR_PED_TASKS, ped);
+    shv::call<void>(natives::TASK_PLAY_ANIM, ped, a.dict, a.name,
+                    8.0f, -8.0f, -1, 0, 0.0f, 0, 0, 0);
+    shv::call<void>(natives::REMOVE_ANIM_DICT, a.dict);
+    mark_session_cheated();
+    thor_log("[cheat] play_anim -> ok (idx=%u dict=%s name=%s)",
+             anim_index, a.dict, a.name);
+    return true;
 }
 
 bool teleport_preset(uint32_t preset_index, int32_t ped,

@@ -105,6 +105,8 @@ internal fun CheatsScreen(
     onSetWeather: (Int) -> Unit = {},
     onSpawnVehicle: (Long) -> Unit = {},
     onTeleportPreset: (Int) -> Unit = {},
+    onSpawnObject: (Long) -> Unit = {},
+    onPlayAnim: (Int) -> Unit = {},
     // Paint-to-lights toggle: ViewModel reads GtcSettings so the flip
     // persists across tab changes + launches. V-only; callback null
     // on IV hides the toggle row.
@@ -139,6 +141,8 @@ internal fun CheatsScreen(
     var showTrainerWeather by rememberSaveable { mutableStateOf(false) }
     var showTrainerVehicles by rememberSaveable { mutableStateOf(false) }
     var showTrainerTeleports by rememberSaveable { mutableStateOf(false) }
+    var showTrainerObjects by rememberSaveable { mutableStateOf(false) }
+    var showTrainerAnims by rememberSaveable { mutableStateOf(false) }
     // Explicit Box so the sheets overlay the main Column reliably.
     // The pager page's layout scope allowed multiple siblings before,
     // but ordering + Z-index of a slide-up sheet (AnimatedVisibility
@@ -317,6 +321,8 @@ internal fun CheatsScreen(
                         onOpenWeather = { showTrainerWeather = true },
                         onOpenVehicles = { showTrainerVehicles = true },
                         onOpenTeleports = { showTrainerTeleports = true },
+                        onOpenObjects = { showTrainerObjects = true },
+                        onOpenAnims = { showTrainerAnims = true },
                     )
                 } else {
                     CheatGrid(
@@ -409,6 +415,22 @@ internal fun CheatsScreen(
         onPick = onTeleportPreset,
         onDismiss = { showTrainerTeleports = false },
     )
+    ObjectSpawnerSheet(
+        visible = showTrainerObjects,
+        accent = accent,
+        pending = trainerPicking && trainerError == null,
+        error = trainerError,
+        onPick = onSpawnObject,
+        onDismiss = { showTrainerObjects = false },
+    )
+    AnimationSheet(
+        visible = showTrainerAnims,
+        accent = accent,
+        pending = trainerPicking && trainerError == null,
+        error = trainerError,
+        onPick = onPlayAnim,
+        onDismiss = { showTrainerAnims = false },
+    )
     }   // Box
 }
 
@@ -432,6 +454,8 @@ private fun TrainerSection(
     onOpenWeather: () -> Unit,
     onOpenVehicles: () -> Unit,
     onOpenTeleports: () -> Unit,
+    onOpenObjects: () -> Unit,
+    onOpenAnims: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxWidth(),
            verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -475,6 +499,23 @@ private fun TrainerSection(
                 label = stringResource(R.string.trainer_open_teleports),
                 accent = accent,
                 onClick = onOpenTeleports,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            TrainerLaunchPill(
+                label = stringResource(R.string.trainer_open_objects),
+                accent = accent,
+                onClick = onOpenObjects,
+                modifier = Modifier.weight(1f),
+            )
+            TrainerLaunchPill(
+                label = stringResource(R.string.trainer_open_anims),
+                accent = accent,
+                onClick = onOpenAnims,
                 modifier = Modifier.weight(1f),
             )
         }

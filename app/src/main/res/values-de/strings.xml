@@ -290,6 +290,14 @@
     <string name="trainer_teleports_title">teleport-orte</string>
     <string name="trainer_teleports_subtitle">ziel wählen</string>
     <string name="trainer_teleports_all">alle</string>
+    <string name="trainer_open_objects">objekt spawnen</string>
+    <string name="trainer_objects_title">objekt-spawner</string>
+    <string name="trainer_objects_subtitle">erscheint vor dem spieler</string>
+    <string name="trainer_objects_all">alle</string>
+    <string name="trainer_open_anims">animation abspielen</string>
+    <string name="trainer_anims_title">animations-bibliothek</string>
+    <string name="trainer_anims_subtitle">wird einmal auf dem spieler-ped abgespielt</string>
+    <string name="trainer_anims_all">alle</string>
 
     <string name="cheat_60_respray">umlackieren</string>
     <string name="cheat_61_next_color">nächste farbe</string>

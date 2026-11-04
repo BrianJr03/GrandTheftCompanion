@@ -327,6 +327,32 @@ internal class CheatsViewModel @Inject constructor(
         }
     }
 
+    /** GTA V trainer object spawner. [modelHash] is a joaat of the
+     *  lowercase object model name. Shares the picker pending slot. */
+    fun spawnObject(modelHash: Long) {
+        pending?.cancel()
+        _result.value = CheatResult(TRAINER_PICKER_PENDING_ID)
+        pending = viewModelScope.launch {
+            val id = repository.spawnObject(modelHash)
+            val error = awaitAckOrError(id)
+            _result.value = if (error == null) null
+                            else CheatResult(TRAINER_PICKER_PENDING_ID, error)
+        }
+    }
+
+    /** GTA V trainer animation picker. [animIndex] is the index into
+     *  AnimationLibrary.ALL. */
+    fun playAnim(animIndex: Int) {
+        pending?.cancel()
+        _result.value = CheatResult(TRAINER_PICKER_PENDING_ID)
+        pending = viewModelScope.launch {
+            val id = repository.playAnim(animIndex)
+            val error = awaitAckOrError(id)
+            _result.value = if (error == null) null
+                            else CheatResult(TRAINER_PICKER_PENDING_ID, error)
+        }
+    }
+
     private suspend fun awaitAckOrError(cmdId: Int?): String? {
         val ack = if (cmdId == null) null
                   else withTimeoutOrNull(ACK_TIMEOUT_MS.milliseconds) {

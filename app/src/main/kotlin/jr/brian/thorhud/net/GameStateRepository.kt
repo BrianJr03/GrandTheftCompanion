@@ -294,6 +294,20 @@ class GameStateRepository @Inject constructor(
     suspend fun teleportPreset(presetIndex: Int): Int? =
         client.send("teleport_preset", presetIndex.toLong() and 0xFFFFFFFFL)
 
+    /** GTA V trainer object spawner. [modelHash] is a joaat (via
+     *  vJoaat) of the lowercase object model name. Plugin extends the
+     *  spawn state machine with a kSpawnObject kind that routes
+     *  through CREATE_OBJECT. */
+    suspend fun spawnObject(modelHash: Long): Int? =
+        client.send("spawn_object", modelHash)
+
+    /** GTA V trainer animation picker. [animIndex] is the index into
+     *  AnimationLibrary.ALL; the plugin reads the dict + name from
+     *  its mirror table and runs REQUEST_ANIM_DICT -> TASK_PLAY_ANIM
+     *  on the player ped. */
+    suspend fun playAnim(animIndex: Int): Int? =
+        client.send("play_anim", animIndex.toLong() and 0xFFFFFFFFL)
+
     /** GTA V only: paint the current vehicle's two custom-colour layers
      *  to the exact RGB packed in [packed] as 0x00RRGGBB. GTA IV refuses
      *  the command with "not in this game"; the paint section in the UI

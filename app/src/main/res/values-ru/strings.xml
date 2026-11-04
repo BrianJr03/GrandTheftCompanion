@@ -290,6 +290,14 @@
     <string name="trainer_teleports_title">места телепорта</string>
     <string name="trainer_teleports_subtitle">выберите точку</string>
     <string name="trainer_teleports_all">все</string>
+    <string name="trainer_open_objects">создать объект</string>
+    <string name="trainer_objects_title">спавнер объектов</string>
+    <string name="trainer_objects_subtitle">появляется перед игроком</string>
+    <string name="trainer_objects_all">все</string>
+    <string name="trainer_open_anims">проиграть анимацию</string>
+    <string name="trainer_anims_title">библиотека анимаций</string>
+    <string name="trainer_anims_subtitle">проигрывается один раз на игроке</string>
+    <string name="trainer_anims_all">все</string>
 
     <string name="cheat_60_respray">перекрасить</string>
     <string name="cheat_61_next_color">след. цвет</string>

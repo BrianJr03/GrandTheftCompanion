@@ -183,6 +183,15 @@ enum : uint64_t {
     GET_GAMEPLAY_CAM_COORD                 = 0xA200EB1EE790F448,  // Vector3 ()
     GET_GAMEPLAY_CAM_ROT                   = 0x837765A25378F0BB,  // Vector3 (int rotationOrder)
 
+    // Trainer phase 5: objects + ped animations.
+    CREATE_OBJECT                          = 0x509D5878EB39E842,  // Object (Hash modelHash, float x, float y, float z, BOOL isNetwork, BOOL bScriptHostObj, BOOL dynamic)
+    SET_OBJECT_AS_NO_LONGER_NEEDED         = 0x3AE22DEB5BA5A3E6,  // void (Object*)
+    REQUEST_ANIM_DICT                      = 0xD3BD40951412FEF6,  // void (const char* animDict)
+    HAS_ANIM_DICT_LOADED                   = 0xD031A9162D01088C,  // BOOL (const char* animDict)
+    REMOVE_ANIM_DICT                       = 0xF66A602F829E2A06,  // void (const char* animDict)
+    TASK_PLAY_ANIM                         = 0xEA47FE3719165B94,  // void (Ped, const char* animDict, const char* animName, float speed, float speedMultiplier, int duration, int flag, float playbackRate, BOOL lockX, BOOL lockY, BOOL lockZ)
+    CLEAR_PED_TASKS                        = 0xE1EF3C1216AFF2CD,  // void (Ped)
+
     // Paint. Palette-index pair + two RGB override layers. Hashes
     // verified against alloc8or/gta5-nativedb-data (natives.json and
     // natives_gen9.json carry the same original hash). CLEAR_ natives

@@ -290,6 +290,14 @@
     <string name="trainer_teleports_title">luoghi di teletrasporto</string>
     <string name="trainer_teleports_subtitle">scegli una destinazione</string>
     <string name="trainer_teleports_all">tutti</string>
+    <string name="trainer_open_objects">spawn oggetto</string>
+    <string name="trainer_objects_title">spawner di oggetti</string>
+    <string name="trainer_objects_subtitle">appare davanti al giocatore</string>
+    <string name="trainer_objects_all">tutti</string>
+    <string name="trainer_open_anims">riproduci animazione</string>
+    <string name="trainer_anims_title">libreria animazioni</string>
+    <string name="trainer_anims_subtitle">viene riprodotta una volta sul ped del giocatore</string>
+    <string name="trainer_anims_all">tutte</string>
 
     <string name="cheat_60_respray">riverniciare</string>
     <string name="cheat_61_next_color">colore successivo</string>

@@ -114,6 +114,14 @@
     <string name="trainer_teleports_title">teleport locations</string>
     <string name="trainer_teleports_subtitle">pick a destination</string>
     <string name="trainer_teleports_all">all</string>
+    <string name="trainer_open_objects">spawn object</string>
+    <string name="trainer_objects_title">object spawner</string>
+    <string name="trainer_objects_subtitle">drops in front of the player</string>
+    <string name="trainer_objects_all">all</string>
+    <string name="trainer_open_anims">play animation</string>
+    <string name="trainer_anims_title">animation library</string>
+    <string name="trainer_anims_subtitle">plays once on the player ped</string>
+    <string name="trainer_anims_all">all</string>
 
     <!-- Paint one-shots (both games). Palette-index moves. -->
     <string name="cheat_60_respray">respray</string>

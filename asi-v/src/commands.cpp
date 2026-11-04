@@ -304,6 +304,25 @@ void drain(int32_t player, int32_t ped, int32_t veh,
             const bool ok = cheats::teleport_preset(c.arg0, ped,
                                                     err, sizeof(err));
             post_ack(c.client, c.id, ok, err);
+        } else if (std::strcmp(c.name, "spawn_object") == 0) {
+            // Trainer object spawner. arg0 is the joaat hash of the
+            // lowercase object model name. Ack is deferred to the
+            // spawn state machine (CREATE_OBJECT branch).
+            if (ped == 0) {
+                post_ack(c.client, c.id, false, "no player ped");
+            } else if (const char* why =
+                       cheats::begin_spawn_object_hash(
+                           c.arg0, c.client, c.id)) {
+                post_ack(c.client, c.id, false, why);
+            }
+        } else if (std::strcmp(c.name, "play_anim") == 0) {
+            // Trainer animation picker. arg0 is the index into
+            // cheats::kAnimationList. Synchronous REQUEST_ANIM_DICT
+            // + wait + TASK_PLAY_ANIM on the player ped.
+            char err[kMaxErrLen] = {0};
+            const bool ok = cheats::play_anim(c.arg0, ped,
+                                              err, sizeof(err));
+            post_ack(c.client, c.id, ok, err);
         } else if (std::strcmp(c.name, "spawn_vehicle") == 0) {
             // Trainer vehicle library picker. arg0 is the joaat hash
             // of the lowercase model name (hashed on the Kotlin

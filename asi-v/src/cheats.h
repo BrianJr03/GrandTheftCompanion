@@ -207,6 +207,24 @@ extern const TeleportPreset kTeleportPresets[kTeleportPresetCount];
 const char* begin_spawn_vehicle_hash(uint32_t hash,
                                      uint32_t client, uint32_t cmd_id);
 
+// Public forwarder for the object-spawn state-machine entry, used by
+// the trainer object spawner. Extends Spawn with a kSpawnObject kind
+// that routes through CREATE_OBJECT.
+const char* begin_spawn_object_hash(uint32_t hash,
+                                    uint32_t client, uint32_t cmd_id);
+
+// Trainer animation picker. [anim_index] is the index into
+// kAnimationList. Plays on the given ped via REQUEST_ANIM_DICT ->
+// wait-up-to-200ms -> TASK_PLAY_ANIM.
+bool play_anim(uint32_t anim_index, int32_t ped,
+               char* err, size_t err_size);
+
+// 30 animation entries. Index == wire. Each is (dict, name) joined
+// with a null; see kAnimationList in cheats.cpp.
+constexpr uint32_t kAnimationCount = 30;
+struct AnimEntry { const char* dict; const char* name; };
+extern const AnimEntry kAnimationList[kAnimationCount];
+
 // Names of the 14 Trainer weather presets, indexed by wire value
 // (0..13). Must stay in sync with
 // app/src/main/kotlin/jr/brian/thorhud/ui/cheats/TrainerModel.kt
