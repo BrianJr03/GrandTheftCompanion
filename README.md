@@ -231,20 +231,24 @@ Issues welcome for either game — please attach the plugin log.
 
 The app picks the layout from the plugin's hello frame. Both layouts share the same cards: money, weapon and ammo, vehicle and speed, radio, with health and armor bars underneath and a tappable radio picker while driving.
 
-**GTA IV** tints the HUD by episode (GTA IV, The Lost and Damned, The Ballad of Gay Tony) and shows six wanted stars.
+**GTA IV** tints the HUD by episode (GTA IV, The Lost and Damned, The Ballad of Gay Tony) and shows six wanted stars. The money card is named after the protagonist (Niko / Johnny / Luis).
 
 **GTA V** adds what only GTA V has:
 
-- **Three protagonists** — accent colour, name and cash follow whoever you are playing (Michael / Franklin / Trevor); a "switching…" screen covers the character-switch camera.
+- **Three protagonists**. Accent color, name and cash follow whoever you are playing (Michael / Franklin / Trevor). A "switching…" screen covers the character-switch camera.
 - **Special ability** bar (ready / active / charging — the game exposes states, not a level).
 - **Five** wanted stars instead of six.
 - **Vehicle class** on the vehicle card, altitude for aircraft, no engine bar on bicycles, "no radio" where the vehicle has none.
-- **Long-press the vehicle card** to open **[Los Santos Customs](#los-santos-customs-gta-v)** — body, performance, wheels, interior, lights, plate, tint, neon, bulletproof tyres, plus Paint and fix vehicle. A small pencil glyph next to the vehicle name advertises it.
+- **Long-press the character name** for **[Wardrobe](#wardrobe)**, the **weapon card** on foot for **[Ammu-Nation](#ammu-nation-gta-v)**, and the **vehicle card** while driving for **[Los Santos Customs](#los-santos-customs-gta-v)**.
 - **Radio picker built from the running game's own station list**, matched by station name rather than index, so DLC stations and build-to-build reordering don't break it.
 - Tags for mission / cutscene / animal form; non-protagonist peds (Director Mode) get a neutral palette with cash and special hidden.
 - **Story mode only.** In GTA Online the plugin publishes nothing but an "online" flag (and Script Hook V itself closes the game on entering Online).
 
-**First-visit tour** — on both games the HUD page shows a quick onboarding sheet the first time you land on it with a live game. Three slides on GTA IV (cards, taps, tabs), four on GTA V (adds a "long-press the vehicle card" slide for Customs). Dismissed state is persisted; a **Show tips again** row under Settings → Cheats brings every first-visit sheet back.
+**Hold to open a shop.** On both games you can long-press the character name on the money card to open **[Wardrobe](#wardrobe)** and change your outfit. On GTA V, long-press the weapon card on foot for **[Ammu-Nation](#ammu-nation-gta-v)** or the vehicle card while driving for **[Los Santos Customs](#los-santos-customs-gta-v)**. Long-press always opens the sheet; if you're in the wrong state (e.g. holding a weapon card in-vehicle), the sheet shows a short "You must … to use …" note instead of a half-populated catalogue. A short tap on the weapon card still opens the weapon wheel.
+
+**Endless swiping.** The pager normally stops at the first and last tab. Turn on **Settings → HUD → endless swiping** to wrap from the last tab back to the first (and vice versa).
+
+**First-visit tour.** On both games the HUD page shows a quick onboarding sheet the first time you land on it with a live game. GTA V walks through six slides (HUD, tap, Wardrobe, Ammu-Nation, Customs, tabs); GTA IV shows four with Wardrobe (HUD, tap, Wardrobe, tabs) or three before the plugin supports Wardrobe (HUD, tap, tabs). Feature names light up in the game's accent color. Dismissed state is persisted; a **Show tips again** row under Settings → Cheats brings every first-visit sheet back.
 
 ### Weapon Wheel
 
@@ -387,9 +391,31 @@ The **color wheel** is a full-screen HSV picker: hue + saturation on the ring, v
 
 Paint on GTA V uses eight game natives (two color readers, two palette setters, two custom-RGB setters, two custom-RGB clearers), each hash verified against the community `nativedb`. GTA IV uses two (`CHANGE_CAR_COLOUR`, `GET_CAR_COLOURS`); custom RGB and the color wheel are GTA V–only — IV has no custom-color native, so the color wheel button is hidden and `paint_rgb` is refused with "not in this game".
 
+### Wardrobe
+
+A full-screen **Wardrobe** sheet that lets the player change outfit from the bottom panel. **Long-press the character name** on the money card to open it. Works on both GTA IV (base game, The Lost and Damned, The Ballad of Gay Tony) and GTA V (Michael, Franklin, Trevor).
+
+- **Sections**: tops, pants (bottoms), shoes (feet), hair, accessories, props. Each slot the current character exposes shows up with a row of ◀ ▶ arrows: one for the style (which garment), one for its color variant. The row's label follows the plugin's reply, never the tap, so a write the game refused never looks like it landed.
+- **Reset outfit** button restores the character's default component variation and clears every prop (hat, glasses, ears, watch, bracelet).
+- **Saved Looks** strip at the top. **Save** snapshots the current outfit under a name you pick; tap a saved look to apply it as a single atomic outfit (the plugin validates every part first so a look never lands half-applied). Long-press a saved look to rename or delete it. Saved looks are per character, so Michael's bag never surfaces for Franklin and Niko's bag never surfaces for Johnny.
+- The sheet closes if you leave on-foot state (e.g. get in a car) and reopens on the right character if you character-switch mid-session.
+
+The plugin side walks the component / prop catalogue on the script fiber a slice per tick so it never hitches the game. GTA V uses fifteen natives on top of the HUD set (SET_PED_COMPONENT_VARIATION, SET_PED_PROP_INDEX, defaults, prop clears, …); GTA IV uses an equivalent thirteen on its own set. Every hash verified against `nativedb` (for V) or the known 1.2.0.59 addresses (for IV).
+
+### Ammu-Nation (GTA V)
+
+A full-screen **Ammu-Nation** sheet that puts the armory on the Thor. **Long-press the weapon card** while on foot to open it for the currently equipped weapon. Unarmed? The sheet notes that you need to equip something first.
+
+- **Attachments**: every component slot the game exposes for the weapon (suppressor, flashlight, grip, extended clip, scope, …) with a switch per component. Tapping flips it on or off and the row's label follows the plugin's reply.
+- **Tint**: ◀ ▶ list over the game's tint palette for that weapon.
+- **Ammo**: current / max readout, a **fill** button that tops you off to the game's own reserve, and an **add a clip** button that drops exactly one clip's worth into reserve.
+- The sheet closes if you get in a vehicle and reopens on the new weapon if you switch mid-session.
+
+GTA IV has no attachments / tints / per-weapon ammo natives, so the Ammu-Nation sheet is V-only. Long-pressing the weapon card on IV shows a short "Ammu-Nation not supported on GTA IV" toast instead.
+
 ### Los Santos Customs (GTA V)
 
-A full-screen **Customs** sheet that puts every mod Los Santos Customs sells on the Thor's bottom panel. A small pencil glyph sits next to the vehicle name on the HUD's vehicle card; **long-press the card** while sitting in a car and the sheet slides up with the Paint section on top and every modifiable slot the game exposes below.
+A full-screen **Customs** sheet that puts every mod Los Santos Customs sells on the Thor's bottom panel. **Long-press the vehicle card** while sitting in a car and the sheet slides up with the Paint section on top and every modifiable slot the game exposes below.
 
 - **Paint** at the top: respray, next color, swap colors, color wheel, fix vehicle, plus the same eight-swatch strip the Cheats tab's Paint section uses. Fire-and-forget — the sheet stays open so you can keep tweaking.
 - **Body / Performance / Wheels / Interior / Lights & extras / Plate** sections underneath, each collapsible. Every slot the current car exposes shows up with the game's own localized label (coming through `GET_MOD_SLOT_NAME` + `GET_LABEL_TEXT`); slots the game has no name for fall back to Rockstar's `eVehicleModType` enum names (spoiler, front bumper, hood, engine, brakes, suspension, …).
@@ -401,7 +427,7 @@ A full-screen **Customs** sheet that puts every mod Los Santos Customs sells on 
 - Bulletproof tyres switch at the bottom.
 - The sheet closes if you get out of the car for more than three seconds (a brief stall mid-mission won't slam it shut), and reopens with the catalogue for whatever car you climb into next.
 
-The plugin side walks modType 0..48 on the script fiber a slice at a time (eight slots per tick) so a crowded car's catalogue arrives in a few hundred ms without ever hitching the game. Twenty-six new natives on top of what Paint already uses, every hash verified against `nativedb`. GTA IV has no mod kit natives, so the whole feature is V-only and the pencil glyph never appears on the IV HUD.
+The plugin side walks modType 0..48 on the script fiber a slice at a time (eight slots per tick) so a crowded car's catalogue arrives in a few hundred ms without ever hitching the game. Twenty-six new natives on top of what Paint already uses, every hash verified against `nativedb`. GTA IV has no mod kit natives, so the whole feature is V-only; long-pressing the vehicle card on IV shows a short "Los Santos Customs not supported on GTA IV" toast instead.
 
 ### Wanted stick lights (AYN Thor)
 

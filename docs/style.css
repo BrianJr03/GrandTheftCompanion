@@ -191,6 +191,11 @@ main { padding: 0 24px; }
   gap: 14px;
 }
 
+.cards.three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -309,11 +314,14 @@ main { padding: 0 24px; }
   font-size: 0.96rem;
 }
 
-.v-extras .note {
+.v-extras .note,
+.hold-to-shop .note {
   margin-top: 20px;
   color: var(--muted);
   font-size: 0.98rem;
 }
+
+.hold-to-shop .lede { max-width: 78ch; }
 
 /* ---------- Table ---------- */
 
@@ -381,6 +389,7 @@ tbody th {
   .hero .tagline { font-size: 1rem; }
 
   .cards { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .cards.three { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .feature { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .feature.image-right .feature-text,
   .feature.image-left .feature-text { order: 1; }
@@ -396,6 +405,7 @@ tbody th {
   .hero { padding: 36px 16px 20px; }
   .hero-shots { gap: 10px; }
   .cards { grid-template-columns: minmax(0, 1fr); }
+  .cards.three { grid-template-columns: minmax(0, 1fr); }
   .cta { gap: 8px; }
   .btn { padding: 11px 18px; }
   table { min-width: 440px; }
