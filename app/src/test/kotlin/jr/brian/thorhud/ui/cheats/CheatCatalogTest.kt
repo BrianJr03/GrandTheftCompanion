@@ -22,22 +22,26 @@ class CheatCatalogTest {
             if (def.isToggle) {
                 assertTrue("toggle id ${def.id} must be >= $FIRST_TOGGLE_ID",
                            def.id >= FIRST_TOGGLE_ID)
-                // kMaxToggle in asi-v/src/cheats.h is 34; app allows
-                // ids up to 51 (bit 31 of the Int mask) but the
-                // plugin's enum stops at 34 today.
-                assertTrue("toggle id ${def.id} must be <= 34",
-                           def.id <= 34)
+                // kMaxToggle in asi-v/src/cheats.h is 39 after the
+                // Trainer section landed (toggles 35..39 continue the
+                // bitfield). IV's kMaxToggle stays at 31 because the
+                // new trainer toggles are V-only. App allows ids up to
+                // 51 (bit 31 of the Int mask).
+                assertTrue("toggle id ${def.id} must be <= 39",
+                           def.id <= 39)
             } else {
                 // One-shot bands around the toggle range: 1..19 (scalar
                 // one-shots + V spawn-car), 40..41 (IV weapon sets),
-                // 60..62 (paint one-shots on both games). The IV spawn
-                // range (50..58) is reserved in the plugin but no
-                // catalog entries live there yet — the on-device test
-                // showed REQUEST_MODEL from the per-frame hook crashes
-                // IV. Id 63 (custom-colour RGB) is sent via paint_rgb,
-                // not through the catalog.
-                assertTrue("one-shot id ${def.id} must be in 1..19, 40..41 or 60..62",
-                           def.id in 1..19 || def.id in 40..41 || def.id in 60..62)
+                // 60..62 (paint one-shots on both games), 70..75
+                // (Trainer actions on V). The IV spawn range (50..58)
+                // is reserved in the plugin but no catalog entries
+                // live there yet. The on-device test showed
+                // REQUEST_MODEL from the per-frame hook crashes IV.
+                // Id 63 (custom-color RGB) is sent via paint_rgb, not
+                // through the catalog.
+                assertTrue("one-shot id ${def.id} must be in 1..19, 40..41, 60..62 or 70..75",
+                           def.id in 1..19 || def.id in 40..41
+                                || def.id in 60..62 || def.id in 70..75)
             }
         }
     }
@@ -53,7 +57,9 @@ class CheatCatalogTest {
         assertTrue(iv.containsAll(setOf(60, 61, 62)))
         // V-only must not leak into IV.
         for (id in listOf(9, 10, 11, 12, 13, 14, 15, 16, 18, 21, 24, 25,
-                          28, 29, 30, 31, 32, 33, 34)) {
+                          28, 29, 30, 31, 32, 33, 34,
+                          35, 36, 37, 38, 39,
+                          70, 71, 72, 73, 74, 75)) {
             assertFalse("V-only id $id leaked onto IV", iv.contains(id))
         }
         // IV spawn range (50..58) is reserved but pulled from UI.
@@ -74,7 +80,9 @@ class CheatCatalogTest {
                           16, 17, 18,
                           20, 21, 24, 25, 26, 27,
                           28, 29, 30, 31, 32, 33, 34,
-                          60, 61, 62)) {
+                          35, 36, 37, 38, 39,
+                          60, 61, 62,
+                          70, 71, 72, 73, 74, 75)) {
             assertTrue("V missing id $id", v.contains(id))
         }
         // IV-only entries must not appear on V (fast reload, never
@@ -107,8 +115,10 @@ class CheatCatalogTest {
                           16, 17, 18, 19,
                           20, 21, 22, 23, 24, 25, 26, 27,
                           28, 29, 30, 31, 32, 33, 34,
+                          35, 36, 37, 38, 39,
                           40, 41,
-                          60, 61, 62)) {
+                          60, 61, 62,
+                          70, 71, 72, 73, 74, 75)) {
             assertTrue("missing cheat id $id in catalog", ids.contains(id))
         }
         assertEquals("one id per cheat", CHEATS.size, ids.size)
@@ -125,7 +135,7 @@ class CheatCatalogTest {
             listOf(CheatCategory.Health, CheatCategory.Wanted,
                    CheatCategory.Weapons, CheatCategory.Vehicle,
                    CheatCategory.Paint, CheatCategory.World,
-                   CheatCategory.Toggles),
+                   CheatCategory.Toggles, CheatCategory.Trainer),
             onV.keys.toList(),
         )
         // Wanted trio must be clustered inside the Wanted section with
@@ -193,6 +203,27 @@ class CheatCatalogTest {
             // All four are one-shots, not toggles.
             assertTrue(paint.all { !it.isToggle })
         }
+    }
+
+    @Test
+    fun trainerSectionIsVOnlyWithExpectedIds() {
+        // Trainer is a V-only port of NativeTrainer features. On IV the
+        // whole section drops out (visibleCheats excludes empty
+        // categories). On V the section holds the five new toggles
+        // (35..39) and the six new one-shot actions (70..75).
+        assertFalse("IV should have no Trainer section",
+                    visibleCheats(isGtaV = false).containsKey(CheatCategory.Trainer))
+        val trainer = visibleCheats(isGtaV = true)[CheatCategory.Trainer]
+        assertNotNull("V Trainer section missing", trainer)
+        assertEquals(
+            setOf(35, 36, 37, 38, 39, 70, 71, 72, 73, 74, 75),
+            trainer!!.map { it.id }.toSet(),
+        )
+        // The five toggles light the mask like any other; the six
+        // one-shots do not.
+        val (toggles, oneShots) = trainer.partition { it.isToggle }
+        assertEquals(setOf(35, 36, 37, 38, 39), toggles.map { it.id }.toSet())
+        assertEquals(setOf(70, 71, 72, 73, 74, 75), oneShots.map { it.id }.toSet())
     }
 
     @Test

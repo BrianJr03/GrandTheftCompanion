@@ -163,6 +163,26 @@ enum : uint64_t {
     // Four-arg y/n flags; passing BOOLs is enough for a teleport.
     SET_ENTITY_COORDS                      = 0x621873ECE1178967,  // void (Entity, float, float, float, BOOL, BOOL, BOOL, BOOL)
 
+    // Trainer cheats. Hashes verified against alloc8or/gta5-nativedb-
+    // data (natives.json and natives_gen9.json carry the same original
+    // hash). Ragdoll re-fires on every tick while the toggle is on,
+    // keeping the ped falling until the player turns it off; invisible
+    // / invincible vehicle stay in whatever state the native was last
+    // called with, so apply_toggle writes them on every tick to resist
+    // game-side resets (character switch, save-load). SET_PED_INFINITE_
+    // AMMO is called per weapon group that the ped carries, mirroring
+    // NativeTrainer's loop.
+    SET_PED_TO_RAGDOLL                     = 0xAE99FB955581844A,  // BOOL (Ped, int time1, int time2, int ragdollType, BOOL p4, BOOL p5, BOOL p6)
+    SET_ENTITY_VISIBLE                     = 0xEA1C610A04DB6BBB,  // void (Entity, BOOL toggle, BOOL p2)
+    SET_ENTITY_INVINCIBLE                  = 0x3882114BDE571AD4,  // void (Entity, BOOL toggle)
+    SET_PED_INFINITE_AMMO                  = 0x9F7794730795E019,  // void (Ped, BOOL toggle, Hash weaponHash)
+    CLEAR_AREA                             = 0xA56F01F3765B93A0,  // void (float x, float y, float z, float radius, BOOL p4, BOOL ignoreCopCars, BOOL ignoreObjects, BOOL p7)
+    CREATE_PED                             = 0xD49F9B0955C367DE,  // Ped (int pedType, Hash modelHash, float x, float y, float z, float heading, BOOL isNetwork, BOOL bScriptHostPed)
+    SET_PED_AS_ENEMY                       = 0x02A0C9720B854BFA,  // void (Ped, BOOL toggle)
+    SET_PED_AS_NO_LONGER_NEEDED            = 0x2595DD4236549CE3,  // void (Ped*)
+    GET_GAMEPLAY_CAM_COORD                 = 0xA200EB1EE790F448,  // Vector3 ()
+    GET_GAMEPLAY_CAM_ROT                   = 0x837765A25378F0BB,  // Vector3 (int rotationOrder)
+
     // Paint. Palette-index pair + two RGB override layers. Hashes
     // verified against alloc8or/gta5-nativedb-data (natives.json and
     // natives_gen9.json carry the same original hash). CLEAR_ natives

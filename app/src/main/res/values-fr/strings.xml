@@ -217,6 +217,7 @@
     <string name="cheats_section_paint">peinture</string>
     <string name="cheats_section_world">monde</string>
     <string name="cheats_section_toggles">bascules</string>
+    <string name="cheats_section_trainer">entraîneur</string>
 
     <string name="cheats_paint_get_in_car">montez dans une voiture</string>
     <string name="cheats_paint_custom">perso</string>
@@ -260,6 +261,17 @@
     <string name="cheat_32_explosive_melee">corps à corps explosif</string>
     <string name="cheat_33_incendiary_ammo">munitions incendiaires</string>
     <string name="cheat_34_slippery">voitures glissantes</string>
+    <string name="cheat_35_ragdoll">pantin</string>
+    <string name="cheat_36_invisible">invisible</string>
+    <string name="cheat_37_infinite_ammo">munitions infinies</string>
+    <string name="cheat_38_invincible_vehicle">véhicule invincible</string>
+    <string name="cheat_39_pause_time">temps en pause</string>
+    <string name="cheat_70_clear_area">nettoyer zone</string>
+    <string name="cheat_71_random_cop">faire apparaître flic</string>
+    <string name="cheat_72_random_boat">faire apparaître bateau</string>
+    <string name="cheat_73_random_plane">faire apparaître avion</string>
+    <string name="cheat_74_random_heli">faire apparaître hélico</string>
+    <string name="cheat_75_portal">portail</string>
 
     <string name="cheat_60_respray">repeindre</string>
     <string name="cheat_61_next_color">couleur suivante</string>

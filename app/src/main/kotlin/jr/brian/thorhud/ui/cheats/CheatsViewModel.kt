@@ -307,7 +307,10 @@ internal class CheatsViewModel @Inject constructor(
         // but short enough to feel immediate on a clean save-load.
         const val kSafeStreakFrames = 10
 
-        // Top of the toggle id range per asi/src/cheats.h.
-        const val MAX_TOGGLE_ID = 34
+        // Top of the toggle id range per asi-v/src/cheats.h kMaxToggle.
+        // Bumped from 34 to 39 when the Trainer section landed; IV's
+        // asi/src/cheats.h kMaxToggle stays at 31 because the new
+        // trainer toggles are V-only.
+        const val MAX_TOGGLE_ID = 39
     }
 }

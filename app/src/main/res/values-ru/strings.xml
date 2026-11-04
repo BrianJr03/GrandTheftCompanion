@@ -217,6 +217,7 @@
     <string name="cheats_section_paint">покраска</string>
     <string name="cheats_section_world">мир</string>
     <string name="cheats_section_toggles">переключатели</string>
+    <string name="cheats_section_trainer">тренер</string>
 
     <string name="cheats_paint_get_in_car">сядьте в машину</string>
     <string name="cheats_paint_custom">свой</string>
@@ -260,6 +261,17 @@
     <string name="cheat_32_explosive_melee">взрывной рукопашный бой</string>
     <string name="cheat_33_incendiary_ammo">зажигательные патроны</string>
     <string name="cheat_34_slippery">скользкие машины</string>
+    <string name="cheat_35_ragdoll">тряпичная кукла</string>
+    <string name="cheat_36_invisible">невидимость</string>
+    <string name="cheat_37_infinite_ammo">бесконечные патроны</string>
+    <string name="cheat_38_invincible_vehicle">неуязвимое авто</string>
+    <string name="cheat_39_pause_time">пауза времени</string>
+    <string name="cheat_70_clear_area">очистить зону</string>
+    <string name="cheat_71_random_cop">заспавнить копа</string>
+    <string name="cheat_72_random_boat">заспавнить лодку</string>
+    <string name="cheat_73_random_plane">заспавнить самолёт</string>
+    <string name="cheat_74_random_heli">заспавнить вертолёт</string>
+    <string name="cheat_75_portal">портал</string>
 
     <string name="cheat_60_respray">перекрасить</string>
     <string name="cheat_61_next_color">след. цвет</string>

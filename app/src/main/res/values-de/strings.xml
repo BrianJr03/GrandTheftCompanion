@@ -217,6 +217,7 @@
     <string name="cheats_section_paint">lack</string>
     <string name="cheats_section_world">welt</string>
     <string name="cheats_section_toggles">schalter</string>
+    <string name="cheats_section_trainer">trainer</string>
 
     <string name="cheats_paint_get_in_car">steig in ein auto</string>
     <string name="cheats_paint_custom">eigen</string>
@@ -260,6 +261,17 @@
     <string name="cheat_32_explosive_melee">explosiver nahkampf</string>
     <string name="cheat_33_incendiary_ammo">brandmunition</string>
     <string name="cheat_34_slippery">rutschige autos</string>
+    <string name="cheat_35_ragdoll">ragdoll</string>
+    <string name="cheat_36_invisible">unsichtbar</string>
+    <string name="cheat_37_infinite_ammo">unendlich munition</string>
+    <string name="cheat_38_invincible_vehicle">unverwundbares fahrzeug</string>
+    <string name="cheat_39_pause_time">zeit pausieren</string>
+    <string name="cheat_70_clear_area">bereich räumen</string>
+    <string name="cheat_71_random_cop">polizist spawnen</string>
+    <string name="cheat_72_random_boat">boot spawnen</string>
+    <string name="cheat_73_random_plane">flugzeug spawnen</string>
+    <string name="cheat_74_random_heli">heli spawnen</string>
+    <string name="cheat_75_portal">portal</string>
 
     <string name="cheat_60_respray">umlackieren</string>
     <string name="cheat_61_next_color">nächste farbe</string>

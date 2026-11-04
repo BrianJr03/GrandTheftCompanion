@@ -217,6 +217,7 @@
     <string name="cheats_section_paint">vernice</string>
     <string name="cheats_section_world">mondo</string>
     <string name="cheats_section_toggles">interruttori</string>
+    <string name="cheats_section_trainer">trainer</string>
 
     <string name="cheats_paint_get_in_car">sali in auto</string>
     <string name="cheats_paint_custom">personal.</string>
@@ -260,6 +261,17 @@
     <string name="cheat_32_explosive_melee">mischia esplosiva</string>
     <string name="cheat_33_incendiary_ammo">munizioni incendiarie</string>
     <string name="cheat_34_slippery">auto scivolose</string>
+    <string name="cheat_35_ragdoll">ragdoll</string>
+    <string name="cheat_36_invisible">invisibile</string>
+    <string name="cheat_37_infinite_ammo">munizioni infinite</string>
+    <string name="cheat_38_invincible_vehicle">veicolo invincibile</string>
+    <string name="cheat_39_pause_time">pausa tempo</string>
+    <string name="cheat_70_clear_area">ripulisci area</string>
+    <string name="cheat_71_random_cop">spawn poliziotto</string>
+    <string name="cheat_72_random_boat">spawn barca</string>
+    <string name="cheat_73_random_plane">spawn aereo</string>
+    <string name="cheat_74_random_heli">spawn elicottero</string>
+    <string name="cheat_75_portal">portale</string>
 
     <string name="cheat_60_respray">riverniciare</string>
     <string name="cheat_61_next_color">colore successivo</string>

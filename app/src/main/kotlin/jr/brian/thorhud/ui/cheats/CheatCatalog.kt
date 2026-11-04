@@ -40,6 +40,10 @@ internal enum class CheatCategory(@StringRes val labelRes: Int) {
     Paint(R.string.cheats_section_paint),
     World(R.string.cheats_section_world),
     Toggles(R.string.cheats_section_toggles),
+    // Ports of Alexander Blade's NativeTrainer features. V-only.
+    // Ids 35..39 (toggles) and 70+ (one-shots) are reserved here and
+    // in asi-v/src/cheats.h.
+    Trainer(R.string.cheats_section_trainer),
 }
 
 /**
@@ -170,6 +174,37 @@ internal val CHEATS: List<CheatDef> = listOf(
              labelRes = R.string.cheat_33_incendiary_ammo),
     CheatDef(34, isToggle = true,  games = CHEAT_V,    category = CheatCategory.Toggles,
              labelRes = R.string.cheat_34_slippery),
+
+    // -- Trainer (V-only; ported from Alexander Blade's NativeTrainer
+    //    samples by native hash, not by code. Toggles 35..39 continue
+    //    the kFirstToggle=20 bitfield; one-shot ids start at 70 to leave
+    //    40..69 for existing phone-cheat/paint growth. Id 37 is
+    //    "infinite ammo" (reserve ammo never depletes) because the
+    //    brief's "no reload" is already covered by id 21 kInfiniteClip.
+    //    Id 39 pause-time and id 26 slow-motion share SET_TIME_SCALE;
+    //    the plugin writes pause > slow > normal if both bits are on.) -
+    CheatDef(35, isToggle = true,  games = CHEAT_V,    category = CheatCategory.Trainer,
+             labelRes = R.string.cheat_35_ragdoll),
+    CheatDef(36, isToggle = true,  games = CHEAT_V,    category = CheatCategory.Trainer,
+             labelRes = R.string.cheat_36_invisible),
+    CheatDef(37, isToggle = true,  games = CHEAT_V,    category = CheatCategory.Trainer,
+             labelRes = R.string.cheat_37_infinite_ammo),
+    CheatDef(38, isToggle = true,  games = CHEAT_V,    category = CheatCategory.Trainer,
+             labelRes = R.string.cheat_38_invincible_vehicle),
+    CheatDef(39, isToggle = true,  games = CHEAT_V,    category = CheatCategory.Trainer,
+             labelRes = R.string.cheat_39_pause_time),
+    CheatDef(70, isToggle = false, games = CHEAT_V,    category = CheatCategory.Trainer,
+             labelRes = R.string.cheat_70_clear_area),
+    CheatDef(71, isToggle = false, games = CHEAT_V,    category = CheatCategory.Trainer,
+             labelRes = R.string.cheat_71_random_cop),
+    CheatDef(72, isToggle = false, games = CHEAT_V,    category = CheatCategory.Trainer,
+             labelRes = R.string.cheat_72_random_boat),
+    CheatDef(73, isToggle = false, games = CHEAT_V,    category = CheatCategory.Trainer,
+             labelRes = R.string.cheat_73_random_plane),
+    CheatDef(74, isToggle = false, games = CHEAT_V,    category = CheatCategory.Trainer,
+             labelRes = R.string.cheat_74_random_heli),
+    CheatDef(75, isToggle = false, games = CHEAT_V,    category = CheatCategory.Trainer,
+             labelRes = R.string.cheat_75_portal),
 )
 
 /** Cheats the current game supports, grouped by category and

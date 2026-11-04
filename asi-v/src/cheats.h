@@ -59,6 +59,20 @@ enum CheatId : uint32_t {
     kIncendiaryAmmo    = 33,  // this-frame
     kSlipperyVehicles  = 34,
 
+    // Trainer toggles (V-only). Ported from Alexander Blade's
+    // NativeTrainer samples by native hash, not by code. Extend the
+    // kFirstToggle=20 bitfield through 39. Id 37 kInfiniteAmmo hits
+    // SET_PED_INFINITE_AMMO (reserve ammo). Distinct from id 21
+    // kInfiniteClip which hits SET_PED_INFINITE_AMMO_CLIP (no reload).
+    // Id 39 kPauseTime shares SET_TIME_SCALE with id 26 kSlowMotion;
+    // apply_time_scale() picks pause > slow > normal if both bits
+    // are on so the two toggles do not fight.
+    kRagdoll             = 35,
+    kInvisible           = 36,
+    kInfiniteAmmo        = 37,
+    kInvincibleVehicle   = 38,
+    kPauseTime           = 39,
+
     // Paint (IV + V). 60..62 are id-shaped one-shots on both games.
     // 63 is V-only and carries an RGB in arg0 — the `cheat` wire slot
     // reuses that u32 for the packed 0x00RRGGBB; reachable only via
@@ -68,10 +82,25 @@ enum CheatId : uint32_t {
     kNextColour        = 61,
     kSwapColours       = 62,
     kCustomColour      = 63,  // V only
+
+    // Trainer one-shots (V-only). Start at 70 so there is breathing
+    // room past the paint band for future growth. 70 clears
+    // vehicles/peds in a radius around the player; 71..74 spawn a
+    // random model from a small curated list per category through the
+    // same async model-load state machine as the curated car ids;
+    // 75 teleports the ped a few metres in front of the gameplay
+    // camera (useful for getting through doors, walls on glitches,
+    // etc).
+    kClearArea         = 70,
+    kRandomCop         = 71,
+    kRandomBoat        = 72,
+    kRandomPlane       = 73,
+    kRandomHeli        = 74,
+    kPortal            = 75,
 };
 
 constexpr uint32_t kFirstToggle = 20;
-constexpr uint32_t kMaxToggle   = 34;
+constexpr uint32_t kMaxToggle   = 39;
 
 // Bitmask of toggle ids whose natives have to be re-called every
 // game frame (the "SET_*_THIS_FRAME" family). When any of these is on,

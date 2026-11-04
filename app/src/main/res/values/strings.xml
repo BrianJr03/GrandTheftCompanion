@@ -26,6 +26,7 @@
     <string name="cheats_section_paint">paint</string>
     <string name="cheats_section_world">world</string>
     <string name="cheats_section_toggles">toggles</string>
+    <string name="cheats_section_trainer">trainer</string>
 
     <!-- Paint section: pair readout + swatch labels. The pair comes from
          the state frame, never from the tap, so the labels under the two
@@ -75,6 +76,21 @@
     <string name="cheat_32_explosive_melee">explosive melee</string>
     <string name="cheat_33_incendiary_ammo">incendiary ammo</string>
     <string name="cheat_34_slippery">slippery cars</string>
+
+    <!-- Trainer section (V-only). Toggles 35..39 continue the toggle
+         bitfield that ends at 34; one-shot ids start at 70 to leave
+         room for future phone-cheat and paint growth. -->
+    <string name="cheat_35_ragdoll">ragdoll</string>
+    <string name="cheat_36_invisible">invisible</string>
+    <string name="cheat_37_infinite_ammo">infinite ammo</string>
+    <string name="cheat_38_invincible_vehicle">invincible vehicle</string>
+    <string name="cheat_39_pause_time">pause time</string>
+    <string name="cheat_70_clear_area">clear area</string>
+    <string name="cheat_71_random_cop">spawn cop</string>
+    <string name="cheat_72_random_boat">spawn boat</string>
+    <string name="cheat_73_random_plane">spawn plane</string>
+    <string name="cheat_74_random_heli">spawn heli</string>
+    <string name="cheat_75_portal">portal</string>
 
     <!-- Paint one-shots (both games). Palette-index moves. -->
     <string name="cheat_60_respray">respray</string>
