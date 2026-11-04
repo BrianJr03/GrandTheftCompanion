@@ -26,7 +26,7 @@
 
   <div class="cta">
     <a class="btn primary" href="https://github.com/BrianJr03/GrandTheftCompanion/releases/latest">
-      Download <span id="latest-version">v1.0.0</span>
+      Download <span id="latest-version">v1.1.0</span>
     </a>
     <a class="btn ghost" href="https://github.com/BrianJr03/GrandTheftCompanion">View on GitHub</a>
   </div>
@@ -191,10 +191,10 @@
   <h2>Cheats</h2>
   <!-- README: line 310 (first paragraph) -->
   <p class="lede">
-    A third tab for one-tap cheats, grouped into collapsible sections (health,
-    wanted, weapons, vehicle, world, toggles). All sections start open; tap a
-    header to collapse the ones you don't care about. Collapsed sections are
-    remembered across app launches.
+    A third tab for one-tap cheats, grouped by category (health, wanted,
+    weapons, vehicle, paint, world, toggles, and GTA V also gets a
+    <a href="#trainer">trainer</a> section). Pick a category on the left rail
+    and the pane fills with that section's buttons.
   </p>
 
   <div class="two-col">
@@ -217,7 +217,9 @@
         fill special, skyfall, six spawn-car buttons (adder, zentorno, bati,
         sanchez, frogger, bmx), plus toggles for infinite clip, fast run, low
         gravity, drunk, fast swim, super jump, explosive ammo, explosive
-        melee, incendiary ammo, and slippery cars.
+        melee, incendiary ammo, and slippery cars. A separate
+        <a href="#trainer">trainer</a> section covers the native-trainer–style
+        features that live beyond Rockstar's phone cheats.
       </p>
     </div>
   </div>
@@ -236,6 +238,75 @@
     entering the code on the phone, so cheated saves block Achievements /
     Trophies for that session. GTA IV has no equivalent flag.
   </p>
+</section>
+
+<section class="section trainer" id="trainer">
+  <!-- README: section "Trainer (GTA V)". Ported from NativeTrainer samples by hash. -->
+  <h2>Trainer (GTA V)</h2>
+  <p class="lede">
+    A dedicated <strong>trainer</strong> section on the GTA V cheats tab with
+    the features a classic trainer gives you, beyond Rockstar's own phone
+    cheats. Ported from Alexander Blade's NativeTrainer samples by native hash
+    (not by code, so no license entanglement). GTA IV has no equivalent and
+    the trainer section is hidden there.
+  </p>
+
+  <div class="cards three">
+    <div class="card">
+      <h3>Toggles &amp; actions</h3>
+      <p>
+        Five toggles (ragdoll, invisible, infinite ammo, invincible vehicle,
+        pause time) and seven one-tap actions (clear area, spawn random cop /
+        boat / plane / heli, portal in front of the camera, teleport to current
+        waypoint). Pause-time coexists with slow motion; pause wins if both are
+        on.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Time &amp; weather</h3>
+      <p>
+        <strong>Time slider</strong> for any hour of the day with six quick-hour
+        chips. <strong>Weather picker</strong> with fourteen named presets
+        (extra sunny, clear, clouds, smog, foggy, overcast, rain, thunder,
+        clearing, neutral, snow, blizzard, snow light, xmas) plus a stock pill
+        that hands control back to the game.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Vehicle library</h3>
+      <p>
+        About 200 model entries with a search field and twenty category chips
+        (supers, sports, muscle, off-road, motorcycles, planes, helis, boats,
+        trains, service, military, &hellip;). Reuses the same async spawn state
+        machine the curated car ids use, so a DLC model the local install does
+        not have refuses cleanly instead of crashing.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Teleport library</h3>
+      <p>
+        Thirty curated spots across Los Santos and Blaine County. Michael's
+        house, Maze Bank rooftop, Fort Zancudo gate, Vinewood sign, Mt Chiliad
+        peak, Paleto Bay, Diamond Casino, and more. Coords live only on the
+        plugin side; the companion sends the preset index.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Object spawner</h3>
+      <p>
+        Ramps, barriers, barrels, crates, vending machines, chairs. Drops the
+        object in front of the player.
+      </p>
+    </div>
+    <div class="card">
+      <h3>Animation library</h3>
+      <p>
+        Thirty ped animations. Wave, salute, dance, smoke, drink beer, lean on
+        a wall, cross arms, push-up, finger wag, and more. Plays once on the
+        player ped.
+      </p>
+    </div>
+  </div>
 </section>
 
 <section class="section hold-to-shop" id="hold-to-shop">

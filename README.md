@@ -356,15 +356,28 @@ curl -L -o /tmp/v.png "https://www.bragitoff.com/wp-content/uploads/2015/11/GTAV
 
 ### Cheats
 
-A third tab for one-tap cheats, grouped into collapsible sections (health, wanted, weapons, vehicle, world, toggles). All sections start open; tap a header to collapse the ones you don't care about. Collapsed sections are remembered across app launches.
+A third tab for one-tap cheats, grouped by category (health, wanted, weapons, vehicle, paint, world, toggles, and GTA V also gets a trainer section). Pick a category on the left rail and the pane fills with that section's buttons.
 
 **GTA IV** carries the base-game phone-cheat set: heal, wanted +1 / clear, all weapons, max ammo, fix vehicle, next weather, next time of day, parachute, and the three named weapon-set cheats (advanced, poor, and the ultimate 482-555-0100 combo). Toggles: invincible, fast reload, never tired, slow motion, police ignore. Vehicle spawning is deferred; the game's phone keeps working for those.
 
-**GTA V** adds every gameplay cheat from GTA V's own phone-cheat list: wanted -1, fill special, skyfall, six spawn-car buttons (adder, zentorno, bati, sanchez, frogger, bmx), plus toggles for infinite clip, fast run, low gravity, drunk, fast swim, super jump, explosive ammo, explosive melee, incendiary ammo, and slippery cars.
+**GTA V** adds every gameplay cheat from GTA V's own phone-cheat list: wanted -1, fill special, skyfall, six spawn-car buttons (adder, zentorno, bati, sanchez, frogger, bmx), plus toggles for infinite clip, fast run, low gravity, drunk, fast swim, super jump, explosive ammo, explosive melee, incendiary ammo, and slippery cars. See **[Trainer](#trainer-gta-v)** below for the native-trainer–style features that live in their own section.
 
 Toggle lights come from what the game reports, not from the tap, so a toggle the game refuses never looks on. Tapped something that didn't work? The last refusal shows as a short red line at the bottom in the plugin's own words.
 
 GTA V flags the save as cheated the first time you tap a cheat, same as entering the code on the phone, so cheated saves block Achievements / Trophies for that session. GTA IV has no equivalent flag.
+
+### Trainer (GTA V)
+
+A dedicated **trainer** section on the GTA V cheats tab with the features a classic trainer gives you, beyond Rockstar's own phone cheats. Ported from Alexander Blade's NativeTrainer samples by native hash (not by code, so no license entanglement). GTA IV has no equivalent and the trainer section is hidden there.
+
+- **Five toggles**: ragdoll, invisible, infinite ammo, invincible vehicle, pause time. Pause-time coexists cleanly with slow motion (pause wins if both are on).
+- **Seven one-tap actions**: clear area, random cop spawn, random boat / plane / heli spawn, portal (teleport in front of the gameplay camera), teleport to current waypoint.
+- **Time slider**. Drag any hour, tap apply, with six quick-hour chips for midnight / dawn / 09 / noon / dusk / 21.
+- **Weather picker**. Fourteen named presets (extra sunny, clear, clouds, smog, foggy, overcast, rain, thunder, clearing, neutral, snow, blizzard, snow light, xmas) plus a stock pill that hands control back to the game.
+- **Vehicle library**. About 200 model entries with a search field and twenty category chips (supers, sports, muscle, off-road, motorcycles, planes, helis, boats, trains, service, military, …). Tap a row and the plugin runs the same async spawn state machine the curated car ids use, so a DLC model the local install does not have refuses cleanly instead of crashing.
+- **Teleport library**. Thirty curated spots across Los Santos and Blaine County (Michael's house, Maze Bank rooftop, Fort Zancudo gate, Vinewood sign, Mt Chiliad peak, Paleto Bay, Diamond Casino, …). Coords live only on the plugin side; the companion sends the preset index.
+- **Object spawner**. Ramps, barriers, barrels, crates, vending machines, chairs. Drops in front of the player.
+- **Animation library**. Thirty ped animations (wave, salute, dance, smoke, drink beer, lean on a wall, cross arms, push-up, finger wag, …). Plays once on the player ped.
 
 ### Paint
 
